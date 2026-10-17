@@ -1,0 +1,90 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44cdf45ff4fc48e41a61804082653481, type: 3}
+  m_Name: SceneryArtSet
+  m_EditorClassIdentifier: Fabula.Incrementant::Fabula.Incrementant.AntFarm.SceneryArtSet
+  _grass:
+  - {fileID: 21300000, guid: 533dcd13de994d840a072b730d65e798, type: 3}
+  - {fileID: 21300000, guid: 2e6db737a764b664ab28b04119d3e01a, type: 3}
+  - {fileID: 21300000, guid: 89217c8d55a362f4d9ed4632fdce8c05, type: 3}
+  - {fileID: 21300000, guid: c9d892ce3bcff2640b8114288035ba48, type: 3}
+  - {fileID: 21300000, guid: a1a6a88a42f1612458814089cb686246, type: 3}
+  - {fileID: 21300000, guid: f69f81c3d01815745911b757dbef628c, type: 3}
+  - {fileID: 21300000, guid: 93a04a346ec10634690bc12b6b1c99d8, type: 3}
+  - {fileID: 21300000, guid: e8c7b62d2731c8d4f9815a4084b51c21, type: 3}
+  - {fileID: 21300000, guid: 3fa2053f5f7a93a47a42caf16ffef939, type: 3}
+  - {fileID: 21300000, guid: 3b3aaf4049bc71949b268cb6b80dce05, type: 3}
+  _tufts:
+  - {fileID: 21300000, guid: b0386e410905b97448adc58ae48d8c55, type: 3}
+  - {fileID: 21300000, guid: ca15e3c93e9e8e049a8607b2c811cbff, type: 3}
+  - {fileID: 21300000, guid: 1ca47082387a88f4c99778e80e2e6372, type: 3}
+  - {fileID: 21300000, guid: 0ecb11ba2f00c6e4486be650d6b754a5, type: 3}
+  - {fileID: 21300000, guid: ce92702bab8e4fe488679f390078cffd, type: 3}
+  - {fileID: 21300000, guid: 0fd2b44295abb8a48a2b6fdd236878e3, type: 3}
+  - {fileID: 21300000, guid: 9f2c9c85f15fd714b9ed727bcc418701, type: 3}
+  - {fileID: 21300000, guid: 8831a8fc9f43451438271ba7bd4813bf, type: 3}
+  _flowers:
+  - {fileID: 21300000, guid: cfa9b6282900d4a4bae205c362a72224, type: 3}
+  - {fileID: 21300000, guid: 4de14c362f638974d96a9e7290cd4ac4, type: 3}
+  - {fileID: 21300000, guid: 76dcd46576e969545aa75b1b8c4283a3, type: 3}
+  - {fileID: 21300000, guid: 962c40c7b66238b4e9ac9fee6966f7bd, type: 3}
+  _clovers:
+  - {fileID: 21300000, guid: ecd4aaf3e48ed314cba356aa6aee79fa, type: 3}
+  - {fileID: 21300000, guid: 97dd437b884f7db41ba42fa2e5b03641, type: 3}
+  - {fileID: 21300000, guid: 6aadb99b899e75d43abc6a920d74d962, type: 3}
+  - {fileID: 21300000, guid: 7506cd56a6f046040ac1f99f136f841b, type: 3}
+  - {fileID: 21300000, guid: 2b53944b59ad98b4ba11f7b9174c353d, type: 3}
+  - {fileID: 21300000, guid: 906c04ef097b12642a3c0713aa20b862, type: 3}
+  _mushrooms:
+  - {fileID: 21300000, guid: ffe134c77e0b3614cb5f90c1438d99c6, type: 3}
+  - {fileID: 21300000, guid: 1b1ba30290346b34081d219017dc45cf, type: 3}
+  - {fileID: 21300000, guid: 123be0ff16a1a70489c7e4bbb1dbee6e, type: 3}
+  - {fileID: 21300000, guid: 86c576cf17fbd4b4a98e2dfdd3575b55, type: 3}
+  - {fileID: 21300000, guid: 63d1f52fe581d1147a6ad1d959c9b358, type: 3}
+  - {fileID: 21300000, guid: 6f8064ace8fb6bc409c23df6c8d5ad0c, type: 3}
+  - {fileID: 21300000, guid: 1092841fc6e8c2a40b6539aa08f9f88c, type: 3}
+  - {fileID: 21300000, guid: e191b4edfb3acd645896d1bacf4a6d9c, type: 3}
+  _twigs:
+  - {fileID: 21300000, guid: d5935fe039e2ab14fa70e64bd43c5d16, type: 3}
+  - {fileID: 21300000, guid: beace71c70bacc84996c5c71e1ff434f, type: 3}
+  - {fileID: 21300000, guid: 21f2e9a00a45b984d9495c9e5266b95b, type: 3}
+  - {fileID: 21300000, guid: 68af3d5105fa99047a94aa1a4e766f1a, type: 3}
+  - {fileID: 21300000, guid: d32e83606eeb6a0478bd26e11b398635, type: 3}
+  _dryLeaves:
+  - {fileID: 21300000, guid: 3913d9877cb491a44a9210ff2763cc6e, type: 3}
+  - {fileID: 21300000, guid: c6be5a42e73472d428f70d2623b99154, type: 3}
+  - {fileID: 21300000, guid: bafbc10f9f90ee24a87ba4be0e1ef0c0, type: 3}
+  - {fileID: 21300000, guid: fcea83f13779fe140aa9debc4bd8e5f3, type: 3}
+  - {fileID: 21300000, guid: a688c55cbc463344693e637d131812ae, type: 3}
+  - {fileID: 21300000, guid: 27484873d22d58a42b378311020c486d, type: 3}
+  _pebbles:
+  - {fileID: 21300000, guid: ca23cc62c73477f439213d22a5925c70, type: 3}
+  - {fileID: 21300000, guid: 8a850e762f7a6534d9ae8a10e9e69bbc, type: 3}
+  - {fileID: 21300000, guid: 288418ccff27fc444adcce815af1d5b8, type: 3}
+  - {fileID: 21300000, guid: cdebafb4444802d45853598d8069e04f, type: 3}
+  - {fileID: 21300000, guid: 5cc5bdab388a64b4fa43bef41836be0a, type: 3}
+  - {fileID: 21300000, guid: 35aad84972257214089b046bef503d7b, type: 3}
+  - {fileID: 21300000, guid: 1176cb2a1523e51468e4f39d11766a1d, type: 3}
+  - {fileID: 21300000, guid: 9ae10beb4dec2584cad4439d64a74d92, type: 3}
+  - {fileID: 21300000, guid: 883fdbc9893941f44a4ea6a654ac2dac, type: 3}
+  - {fileID: 21300000, guid: b3cac1bde8316fe499886196705e5504, type: 3}
+  - {fileID: 21300000, guid: cb160e290d43577418c5037b1ee469fe, type: 3}
+  - {fileID: 21300000, guid: 9ecf0cbf635acfb4bb178c5505d783c0, type: 3}
+  _grains:
+  - {fileID: 21300000, guid: bf8c31d75c6a2e94c978dc84ec0ead7a, type: 3}
+  - {fileID: 21300000, guid: 36ef845429591a34a9eed55ec10f5077, type: 3}
+  - {fileID: 21300000, guid: edf766d7c3c08404697b0b4a54c3e473, type: 3}
+  - {fileID: 21300000, guid: 52a4090a82ac50e4cbce7b7b09fe292c, type: 3}
+  - {fileID: 21300000, guid: 90a752c0f4764cd4599c246e7d88ac74, type: 3}
+  - {fileID: 21300000, guid: 9d89c7095f86d334d9fc32b2275a06fb, type: 3}
+  - {fileID: 21300000, guid: 73e56e7c96c945c44bdf56f5a79950da, type: 3}
+  - {fileID: 21300000, guid: f107b9587f432c1468884edd0cfab3c3, type: 3}
