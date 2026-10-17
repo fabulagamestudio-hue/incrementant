@@ -11,6 +11,16 @@ namespace Fabula.Incrementant.AntFarm
     /// SpriteRenderer filho (criado no Play) com 1 unidade de mundo por célula; o SpriteRenderer deste objeto
     /// fica só para o preview do mapa no Editor. A posição deste objeto é a origem do mapa (célula 0,0).
     /// </summary>
+    /// <summary>Modo do pincel, para a cor do contorno desenhado na textura.</summary>
+    public enum BrushTint
+    {
+        Dig,
+        Build,
+        QueenRoom,
+        Harvest,
+        NutrientRoom,
+    }
+
     [RequireComponent(typeof(SpriteRenderer))]
     public sealed class AntFarmView : MonoBehaviour
     {
@@ -19,6 +29,22 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField] Color32 _tunnelColor = new Color32(54, 37, 27, 255);
         [SerializeField] Color32 _markColor = new Color32(255, 196, 40, 255);
         [SerializeField, Range(0f, 1f)] float _markStrength = 0.45f;
+        [Tooltip("Cor das marcas de construção (células vazias que as formigas vão preencher) e do pincel no modo construir.")]
+        [SerializeField] Color32 _buildMarkColor = new Color32(70, 190, 255, 255);
+        [Tooltip("Cor da sala da rainha pintada e do pincel no modo sala da rainha.")]
+        [SerializeField] Color32 _queenRoomColor = new Color32(214, 96, 230, 255);
+        [Tooltip("Força da tinta na sala em que a rainha fica; salas menores (ignoradas) e células ainda maciças ficam com metade.")]
+        [SerializeField, Range(0f, 1f)] float _queenRoomStrength = 0.4f;
+        [Tooltip("Cor da sala de nutrientes pintada (slots livres) e do pincel no modo sala de nutrientes.")]
+        [SerializeField] Color32 _nutrientRoomColor = new Color32(120, 200, 90, 255);
+        [Tooltip("Força da tinta da sala de nutrientes; células ainda maciças ficam com metade.")]
+        [SerializeField, Range(0f, 1f)] float _nutrientRoomStrength = 0.35f;
+        [Tooltip("Cor do nutriente guardado num slot (e carregado até a rainha, no fallback sem sprites).")]
+        [SerializeField] Color32 _nutrientColor = new Color32(232, 214, 92, 255);
+        [Tooltip("Cor do pixel de planta recém-guardado; vai mudando para a cor do nutriente enquanto cura.")]
+        [SerializeField] Color32 _curingNutrientColor = new Color32(96, 168, 64, 255);
+        [Tooltip("Cor do pincel no modo colher (plantas da superfície).")]
+        [SerializeField] Color32 _harvestBrushColor = new Color32(170, 240, 110, 255);
         [SerializeField] Color32 _antBody = new Color32(20, 12, 10, 255);
         [SerializeField] Color32 _antHead = new Color32(48, 26, 18, 255);
         [SerializeField] Color32 _brushColor = new Color32(255, 255, 255, 255);
@@ -31,6 +57,11 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField, Range(1f, 4f)] float _dropStreak = 2f;
         [Tooltip("Quanto cada nível de umidade escurece a célula (terra molhada pela chuva leve).")]
         [SerializeField, Range(0f, 0.3f)] float _wetDarkening = 0.1f;
+        [Header("Água")]
+        [SerializeField] Color32 _waterColor = new Color32(44, 104, 196, 255);
+        [Tooltip("Cor da linha de cima da água (superfície da poça).")]
+        [SerializeField] Color32 _waterSurfaceColor = new Color32(120, 180, 235, 255);
+        [SerializeField, Range(0f, 1f)] float _waterOpacity = 0.7f;
 
         /// <summary>A janela cresce em passos deste tamanho, para não recriar a textura a cada mudança de zoom.</summary>
         const int WindowStep = 16;
@@ -44,11 +75,14 @@ namespace Fabula.Incrementant.AntFarm
         int _height;
         int _originX;
         int _originY;
+        bool _plantsAsSprites;
 
         /// <param name="transparentSky">Deixa o céu transparente, para um cenário desenhado atrás (SurfaceSceneryView) aparecer.</param>
         /// <param name="skyBaseY">Linha onde o gradiente do céu começa (cor de baixo); o topo da grade tem a cor de cima.</param>
-        public void Initialize(PixelGrid grid, bool transparentSky = false, int skyBaseY = 0)
+        /// <param name="plantsAsSprites">As plantas colhíveis são desenhadas à parte, com sprites: as células delas ficam como céu.</param>
+        public void Initialize(PixelGrid grid, bool transparentSky = false, int skyBaseY = 0, bool plantsAsSprites = false)
         {
+            _plantsAsSprites = plantsAsSprites;
             if (_windowRenderer == null)
             {
                 var own = GetComponent<SpriteRenderer>();
@@ -85,8 +119,11 @@ namespace Fabula.Incrementant.AntFarm
         /// <param name="window">Recorte da grade a desenhar (ver <see cref="WindowFor"/>).</param>
         /// <param name="drawAnts">Desenha as formigas na textura (fallback de 3 pixels quando não há AntSwarmView).</param>
         /// <param name="drops">Gotas de chuva em queda (opcional).</param>
-        public void Render(PixelGrid grid, IReadOnlyList<Ant> ants, TerrainLayout layout, Vector2Int brushCell, int brushRadius,
-                           bool showBrush, bool drawAnts, RectInt window, IReadOnlyList<RainDrop> drops = null)
+        /// <param name="brush">Modo do pincel, só para a cor do contorno.</param>
+        /// <param name="colony">Colônia, para destacar a sala em que a rainha fica e desenhar a rainha no fallback (opcional).</param>
+        public void Render(PixelGrid grid, IReadOnlyList<Ant> ants, IReadOnlyList<Vector2Int> dumpStrips, Vector2Int brushCell, int brushRadius,
+                           bool showBrush, bool drawAnts, RectInt window, IReadOnlyList<RainDrop> drops = null,
+                           BrushTint brush = BrushTint.Dig, AntColony colony = null)
         {
             if (_windowRenderer == null || _skyRows.Length != grid.Height)
                 Initialize(grid);
@@ -96,17 +133,33 @@ namespace Fabula.Incrementant.AntFarm
             _originY = window.y;
             _windowRenderer.transform.localPosition = new Vector3(_originX, _originY, 0f);
 
-            DrawCells(grid);
-            DrawDumpMarkers(grid, layout);
+            DrawCells(grid, colony);
+            DrawDumpMarkers(grid, dumpStrips);
             if (drops != null)
                 DrawDrops(drops);
             if (drawAnts)
+            {
                 DrawAnts(ants);
+                if (colony != null)
+                    DrawQueen(colony.Queen);
+            }
             if (showBrush)
-                DrawBrush(brushCell, brushRadius);
+                DrawBrush(brushCell, brushRadius, BrushColor(brush));
 
             _texture.SetPixels32(_pixels);
             _texture.Apply(false);
+        }
+
+        Color32 BrushColor(BrushTint brush)
+        {
+            switch (brush)
+            {
+                case BrushTint.Build: return _buildMarkColor;
+                case BrushTint.QueenRoom: return _queenRoomColor;
+                case BrushTint.Harvest: return _harvestBrushColor;
+                case BrushTint.NutrientRoom: return _nutrientRoomColor;
+                default: return _brushColor;
+            }
         }
 
         void CreateTexture(int width, int height)
@@ -126,8 +179,9 @@ namespace Fabula.Incrementant.AntFarm
             _windowRenderer.sprite = _sprite;
         }
 
-        void DrawCells(PixelGrid grid)
+        void DrawCells(PixelGrid grid, AntColony colony)
         {
+            float faintRoom = _queenRoomStrength * 0.5f;
             for (int wy = 0; wy < _height; wy++)
             {
                 int row = wy * _width;
@@ -137,7 +191,11 @@ namespace Fabula.Incrementant.AntFarm
                     int x = _originX + wx;
                     CellMaterial material = grid.Get(x, y);
                     Color32 color;
-                    if (material == CellMaterial.Empty)
+                    if (_plantsAsSprites && CellMaterials.IsPlant(material))
+                    {
+                        color = _skyRows[y];
+                    }
+                    else if (material == CellMaterial.Empty)
                     {
                         if (y > grid.GetSurfaceY(x))
                         {
@@ -148,7 +206,18 @@ namespace Fabula.Incrementant.AntFarm
                             // Fundo de túnel com leve granulação fixa por posição.
                             int n = ((x * 73856093) ^ (y * 19349663)) & 15;
                             color = new Color32((byte)(_tunnelColor.r + n), (byte)(_tunnelColor.g + n / 2), (byte)(_tunnelColor.b + n / 3), 255);
+                            if (grid.IsBuildMarked(x, y))
+                                color = Color32.Lerp(color, _buildMarkColor, _markStrength);
+                            if (grid.IsQueenRoom(x, y))
+                                color = Color32.Lerp(color, _queenRoomColor,
+                                                     colony != null && colony.IsQueenArea(x, y) ? _queenRoomStrength : faintRoom);
+                            if (grid.IsNutrientRoom(x, y))
+                                color = Color32.Lerp(color, _nutrientRoomColor, _nutrientRoomStrength);
                         }
+                        if (grid.HasNutrient(x, y))
+                            color = NutrientAt(x, y, grid.GetNutrientCure(x, y), colony);
+                        if (grid.HasWater(x, y))
+                            color = WaterOver(color, grid.HasWater(x, y + 1) ? _waterColor : _waterSurfaceColor);
                     }
                     else
                     {
@@ -158,17 +227,42 @@ namespace Fabula.Incrementant.AntFarm
                             color = Darken(color, Mathf.Max(0.4f, 1f - wetness * _wetDarkening));
                         if (grid.IsMarked(x, y))
                             color = Color32.Lerp(color, _markColor, _markStrength);
+                        if (grid.IsQueenRoom(x, y))
+                            color = Color32.Lerp(color, _queenRoomColor, faintRoom);
+                        if (grid.IsNutrientRoom(x, y))
+                            color = Color32.Lerp(color, _nutrientRoomColor, _nutrientRoomStrength * 0.5f);
                     }
                     _pixels[row + wx] = color;
                 }
             }
         }
 
-        void DrawDumpMarkers(PixelGrid grid, TerrainLayout layout)
+        /// <summary>
+        /// Nutriente guardado: a cor fixa com um leve granulado por posição, para os slots cheios não virarem um bloco liso.
+        /// Ainda curando, sai da cor de planta e chega à do nutriente quando fica pronto.
+        /// </summary>
+        Color32 NutrientAt(int x, int y, float cure, AntColony colony)
         {
-            // Duas estacas discretas indicando a faixa onde as formigas despejam terra.
-            DrawStake(grid, layout.DumpMinX);
-            DrawStake(grid, layout.DumpMaxX);
+            Color32 baseColor = _nutrientColor;
+            if (cure > 0f)
+            {
+                float total = colony != null ? colony.NutrientCureSeconds : 0f;
+                float progress = total > 0f ? Mathf.Clamp01(1f - cure / total) : 0f;
+                baseColor = Color32.Lerp(_curingNutrientColor, _nutrientColor, progress * 0.6f);
+            }
+            int n = ((x * 19349663) ^ (y * 83492791)) & 15;
+            return new Color32((byte)Mathf.Max(0, baseColor.r - n), (byte)Mathf.Max(0, baseColor.g - n),
+                               (byte)Mathf.Max(0, baseColor.b - n / 2), 255);
+        }
+
+        void DrawDumpMarkers(PixelGrid grid, IReadOnlyList<Vector2Int> dumpStrips)
+        {
+            // Duas estacas discretas por faixa onde as formigas despejam terra (um par de faixas por abertura).
+            for (int i = 0; i < dumpStrips.Count; i++)
+            {
+                DrawStake(grid, dumpStrips[i].x);
+                DrawStake(grid, dumpStrips[i].y);
+            }
         }
 
         void DrawStake(PixelGrid grid, int x)
@@ -186,8 +280,22 @@ namespace Fabula.Incrementant.AntFarm
                 Put(ant.X - ant.FacingX, ant.Y, _antBody);
                 Put(ant.X, ant.Y, _antBody);
                 Put(ant.X + ant.FacingX, ant.Y, _antHead);
-                if (ant.State == AntState.Carrying)
+                if (ant.State == AntState.Carrying || ant.State == AntState.Hauling)
                     Put(ant.X, ant.Y + 1, CellMaterials.ShadedColor(ant.Carried, ant.CarriedShade));
+                else if (ant.State == AntState.Delivering)
+                    Put(ant.X, ant.Y + 1, _nutrientColor);
+            }
+        }
+
+        /// <summary>Fallback da rainha: o dobro da formiga de 3 pixels (6 x 2).</summary>
+        void DrawQueen(Ant queen)
+        {
+            int f = queen.FacingX >= 0 ? 1 : -1;
+            for (int i = -2; i <= 3; i++)
+            {
+                Color32 color = i >= 2 ? _antHead : _antBody;
+                Put(queen.X + i * f, queen.Y, color);
+                Put(queen.X + i * f, queen.Y + 1, color);
             }
         }
 
@@ -204,10 +312,16 @@ namespace Fabula.Incrementant.AntFarm
             }
         }
 
+        /// <summary>Água translúcida por cima do fundo; sobre o céu transparente, pinta com alfa (o cenário aparece atrás).</summary>
+        Color32 WaterOver(Color32 under, Color32 water) =>
+            under.a == 0
+                ? new Color32(water.r, water.g, water.b, (byte)(255 * _waterOpacity))
+                : Color32.Lerp(under, new Color32(water.r, water.g, water.b, under.a), _waterOpacity);
+
         static Color32 Darken(Color32 c, float f) =>
             new Color32((byte)(c.r * f), (byte)(c.g * f), (byte)(c.b * f), c.a);
 
-        void DrawBrush(Vector2Int center, int radius)
+        void DrawBrush(Vector2Int center, int radius, Color32 color)
         {
             int r2 = radius * radius;
             for (int dy = -radius; dy <= radius; dy++)
@@ -218,7 +332,7 @@ namespace Fabula.Incrementant.AntFarm
                 bool edge = !Inside(dx + 1, dy, r2) || !Inside(dx - 1, dy, r2) ||
                             !Inside(dx, dy + 1, r2) || !Inside(dx, dy - 1, r2);
                 if (edge)
-                    Blend(center.x + dx, center.y + dy, _brushColor, 0.6f);
+                    Blend(center.x + dx, center.y + dy, color, 0.6f);
             }
         }
 

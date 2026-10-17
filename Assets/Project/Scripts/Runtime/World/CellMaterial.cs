@@ -16,6 +16,12 @@ namespace Fabula.Incrementant.World
         PackedSpoil = 7,
         /// <summary>Areia que a chuva forte compactou.</summary>
         PackedSand = 8,
+        /// <summary>Terra mole: terra fixa (natural ou construída) que ficou tempo demais encostada na água. Granular.</summary>
+        Mud = 9,
+        /// <summary>Folha de grama que cresce na superfície (<see cref="VegetationSimulation"/>). Colhida, vira nutriente.</summary>
+        PlantGrass = 10,
+        /// <summary>Caule e folhas de uma muda folhosa da superfície. Colhida, vira nutriente.</summary>
+        PlantLeaf = 11,
     }
 
     /// <summary>Regras e cores por material. Tabela fixa enquanto o protótipo não pede dados configuráveis.</summary>
@@ -25,7 +31,12 @@ namespace Fabula.Incrementant.World
 
         /// <summary>Materiais que caem e escorregam em diagonal (formam pilhas).</summary>
         public static bool IsGranular(CellMaterial material) =>
-            material == CellMaterial.Sand || material == CellMaterial.Spoil;
+            material == CellMaterial.Sand || material == CellMaterial.Spoil || material == CellMaterial.Mud;
+
+        /// <summary>Terra fixa que a água amolece (vira <see cref="CellMaterial.Mud"/>) dentro do formigueiro.</summary>
+        public static bool IsErodible(CellMaterial material) =>
+            material == CellMaterial.Dirt || material == CellMaterial.Grass ||
+            material == CellMaterial.PackedSpoil || material == CellMaterial.PackedSand;
 
         /// <summary>No que um material granular vira quando a chuva forte o compacta (os demais não mudam).</summary>
         public static CellMaterial ToPacked(CellMaterial material)
@@ -33,17 +44,29 @@ namespace Fabula.Incrementant.World
             switch (material)
             {
                 case CellMaterial.Sand: return CellMaterial.PackedSand;
-                case CellMaterial.Spoil: return CellMaterial.PackedSpoil;
+                case CellMaterial.Spoil:
+                case CellMaterial.Mud: return CellMaterial.PackedSpoil;
                 default: return material;
             }
         }
 
+        /// <summary>
+        /// Planta da superfície: estática, não escavável pelo pincel de cavar; as formigas a colhem (pincel Colher) de
+        /// cima para baixo e levam cada pixel para a sala de nutrientes.
+        /// </summary>
+        public static bool IsPlant(CellMaterial material) =>
+            material == CellMaterial.PlantGrass || material == CellMaterial.PlantLeaf;
+
+        /// <summary>Aceita marca de trabalho (<see cref="PixelGrid.SetMarked"/>): escavável ou planta (colheita).</summary>
+        public static bool IsMarkable(CellMaterial material) => IsDiggable(material) || IsPlant(material);
+
         public static bool IsDiggable(CellMaterial material) =>
             material == CellMaterial.Dirt || material == CellMaterial.Grass ||
             material == CellMaterial.Sand || material == CellMaterial.Spoil ||
-            material == CellMaterial.PackedSpoil || material == CellMaterial.PackedSand;
+            material == CellMaterial.PackedSpoil || material == CellMaterial.PackedSand ||
+            material == CellMaterial.Mud;
 
-        /// <summary>Segundos que uma formiga leva para soltar um pixel deste material.</summary>
+        /// <summary>Segundos que uma formiga leva para soltar (ou colher) um pixel deste material.</summary>
         public static float DigSeconds(CellMaterial material)
         {
             switch (material)
@@ -54,6 +77,9 @@ namespace Fabula.Incrementant.World
                 case CellMaterial.Dirt: return 0.25f;
                 case CellMaterial.PackedSpoil: return 0.3f;
                 case CellMaterial.PackedSand: return 0.2f;
+                case CellMaterial.Mud: return 0.1f;
+                case CellMaterial.PlantGrass: return 0.15f;
+                case CellMaterial.PlantLeaf: return 0.2f;
                 default: return float.PositiveInfinity;
             }
         }
@@ -74,6 +100,9 @@ namespace Fabula.Incrementant.World
                 case CellMaterial.Bedrock: return new Color32(46, 40, 40, 255);
                 case CellMaterial.PackedSpoil: return new Color32(124, 100, 84, 255);
                 case CellMaterial.PackedSand: return new Color32(176, 150, 104, 255);
+                case CellMaterial.Mud: return new Color32(84, 58, 40, 255);
+                case CellMaterial.PlantGrass: return new Color32(110, 168, 64, 255);
+                case CellMaterial.PlantLeaf: return new Color32(62, 132, 70, 255);
                 default: return new Color32(0, 0, 0, 0);
             }
         }

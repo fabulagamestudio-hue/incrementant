@@ -4,7 +4,8 @@ namespace Fabula.Incrementant.World
 {
     /// <summary>
     /// Converte entre a grade e uma imagem de mapa (1 pixel = 1 célula, y = 0 embaixo).
-    /// Cada material é uma cor fixa (<see cref="CellMaterials.BaseColor"/>); transparente = céu; <see cref="TunnelColor"/> = vazio subterrâneo.
+    /// Cada material é uma cor fixa (<see cref="CellMaterials.BaseColor"/>); transparente = céu; <see cref="TunnelColor"/> = vazio subterrâneo;
+    /// <see cref="WaterColor"/> = água (conta como céu para o solo original: pinte laguinhos acima do chão).
     /// A decodificação aceita a cor mais próxima da paleta, para tolerar pequenas diferenças de pintura.
     /// O tom (variação de cor) não é salvo: é recalculado de forma determinística ao carregar.
     /// </summary>
@@ -12,11 +13,12 @@ namespace Fabula.Incrementant.World
     {
         public static readonly Color32 SkyColor = new Color32(0, 0, 0, 0);
         public static readonly Color32 TunnelColor = new Color32(54, 37, 27, 255);
+        public static readonly Color32 WaterColor = new Color32(60, 120, 200, 255);
 
         static readonly CellMaterial[] PaletteMaterials =
         {
             CellMaterial.Dirt, CellMaterial.Grass, CellMaterial.Sand, CellMaterial.Rock, CellMaterial.Spoil, CellMaterial.Bedrock,
-            CellMaterial.PackedSpoil, CellMaterial.PackedSand,
+            CellMaterial.PackedSpoil, CellMaterial.PackedSand, CellMaterial.Mud, CellMaterial.PlantGrass, CellMaterial.PlantLeaf,
         };
 
         public static Color32[] Encode(PixelGrid grid)
@@ -28,6 +30,7 @@ namespace Fabula.Incrementant.World
                 CellMaterial material = grid.Get(x, y);
                 Color32 color = material != CellMaterial.Empty
                     ? CellMaterials.BaseColor(material)
+                    : grid.HasWater(x, y) ? WaterColor
                     : y > grid.GetSurfaceY(x) ? SkyColor : TunnelColor;
                 pixels[y * grid.Width + x] = color;
             }
@@ -43,9 +46,12 @@ namespace Fabula.Incrementant.World
             for (int x = 0; x < width; x++)
             {
                 int i = y * width + x;
-                CellMaterial material = Classify(pixels[i], out bool sky);
-                isSky[i] = sky;
+                CellMaterial material = Classify(pixels[i], out bool sky, out bool water);
+                // Planta fica acima do chão: conta como céu para achar o solo original.
+                isSky[i] = sky || water || CellMaterials.IsPlant(material);
                 grid.Set(x, y, material, 128);
+                if (water)
+                    grid.SetWater(x, y, true);
             }
 
             // Solo original de cada coluna = pixel não-céu mais alto (túneis pintados contam como subterrâneo).
@@ -86,14 +92,21 @@ namespace Fabula.Incrementant.World
             return (byte)Mathf.Clamp(128 + (int)layered + grain - depth / 6, 0, 255);
         }
 
-        static CellMaterial Classify(Color32 color, out bool sky)
+        static CellMaterial Classify(Color32 color, out bool sky, out bool water)
         {
             sky = color.a < 128;
+            water = false;
             if (sky)
                 return CellMaterial.Empty;
 
             CellMaterial best = CellMaterial.Empty; // túnel
             int bestDistance = Distance(color, TunnelColor);
+            int waterDistance = Distance(color, WaterColor);
+            if (waterDistance < bestDistance)
+            {
+                bestDistance = waterDistance;
+                water = true;
+            }
             foreach (CellMaterial material in PaletteMaterials)
             {
                 int d = Distance(color, CellMaterials.BaseColor(material));
@@ -101,6 +114,7 @@ namespace Fabula.Incrementant.World
                 {
                     bestDistance = d;
                     best = material;
+                    water = false;
                 }
             }
             return best;

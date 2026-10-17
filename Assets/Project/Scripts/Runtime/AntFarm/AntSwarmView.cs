@@ -29,6 +29,10 @@ namespace Fabula.Incrementant.AntFarm
         [Tooltip("Posição do pixel carregado na vista de cima (pivô no centro do sprite).")]
         [SerializeField] Vector2 _carriedOffsetTop = new Vector2(1.35f, 0f);
         [SerializeField, Range(0.2f, 1.5f)] float _carriedSize = 0.8f;
+        [Tooltip("Cor do nutriente que a formiga leva à rainha (a mesma do nutriente guardado no AntFarmView).")]
+        [SerializeField] Color32 _nutrientColor = new Color32(232, 214, 92, 255);
+        [Tooltip("Tamanho da rainha em relação às formigas (mesmos quadros, escalados).")]
+        [SerializeField, Min(1f)] float _queenScale = 2f;
 
         sealed class AntVisual
         {
@@ -41,9 +45,12 @@ namespace Fabula.Incrementant.AntFarm
             public float Walked;
             public Vector2 LastPosition;
             public bool Initialized;
+            /// <summary>Escala do sprite (rainha &gt; 1); a base é levantada para as patas continuarem na superfície.</summary>
+            public float Scale = 1f;
         }
 
         readonly List<AntVisual> _visuals = new List<AntVisual>();
+        AntVisual _queenVisual;
         Texture2D _pixelTexture;
         Sprite _pixelSprite;
 
@@ -51,11 +58,24 @@ namespace Fabula.Incrementant.AntFarm
         bool HasTopFrames => _topFrames != null && _topFrames.Length > 0 && _topFrames[0] != null;
 
         /// <param name="simulationTime">Tempo simulado atual, incluindo a fração ainda não processada do passo.</param>
-        public void Render(PixelGrid grid, IReadOnlyList<Ant> ants, Vector3 origin, float simulationTime, float deltaTime)
+        /// <param name="queen">Rainha, desenhada maior (<c>_queenScale</c>) e atrás das operárias. Null = sem rainha.</param>
+        public void Render(PixelGrid grid, IReadOnlyList<Ant> ants, Vector3 origin, float simulationTime, float deltaTime,
+                           Ant queen = null)
         {
             EnsurePixelSprite();
+            if (queen != null)
+            {
+                if (_queenVisual == null)
+                    _queenVisual = CreateVisual("Queen", _queenScale, _sortingOrder - 2);
+                UpdateVisual(_queenVisual, queen, grid, origin, simulationTime, deltaTime);
+            }
+            else if (_queenVisual != null && _queenVisual.GameObject.activeSelf)
+            {
+                _queenVisual.GameObject.SetActive(false);
+                _queenVisual.Initialized = false;
+            }
             while (_visuals.Count < ants.Count)
-                _visuals.Add(CreateVisual(_visuals.Count));
+                _visuals.Add(CreateVisual($"Ant_{_visuals.Count:000}", 1f, _sortingOrder));
 
             for (int i = 0; i < ants.Count; i++)
                 UpdateVisual(_visuals[i], ants[i], grid, origin, simulationTime, deltaTime);
@@ -74,10 +94,10 @@ namespace Fabula.Incrementant.AntFarm
 
             float t = ant.MoveDuration > 0f ? Mathf.Clamp01((time - ant.MoveStart) / ant.MoveDuration) : 1f;
             var cell = new Vector2(Mathf.Lerp(ant.FromX, ant.X, t), Mathf.Lerp(ant.FromY, ant.Y, t));
-            visual.Transform.position = origin + new Vector3(cell.x + 0.5f, cell.y + 0.5f, 0f);
 
             // Direção: o último passo, ou o pixel que está cavando.
-            Vector2 heading = ant.State == AntState.Digging
+            bool working = ant.State == AntState.Digging || ant.State == AntState.Gathering || ant.State == AntState.Placing;
+            Vector2 heading = working
                 ? new Vector2(ant.DigX - ant.X, ant.DigY - ant.Y)
                 : new Vector2(ant.X - ant.FromX, ant.Y - ant.FromY);
             if (!visual.Initialized)
@@ -98,21 +118,27 @@ namespace Fabula.Incrementant.AntFarm
                 UpdateOrientation(visual, GroundVector(grid, ant.X, ant.Y), heading, deltaTime);
             visual.Transform.rotation = Quaternion.Euler(0f, 0f, visual.Angle);
             visual.Body.flipX = visual.FlipX;
+            Vector3 position = origin + new Vector3(cell.x + 0.5f, cell.y + 0.5f, 0f);
+            // De lado, o pivô fica meia célula (na escala 1) acima das patas: maior, ele sobe junto, no "cima" do sprite.
+            if (!topView && visual.Scale != 1f)
+                position += visual.Transform.rotation * new Vector3(0f, (visual.Scale - 1f) * 0.5f, 0f);
+            visual.Transform.position = position;
 
             visual.Walked += (cell - visual.LastPosition).magnitude;
             visual.LastPosition = cell;
-            int frame = ant.State == AntState.Digging
+            int frame = working
                 ? (int)(time * _digFramesPerSecond)
                 : (int)(visual.Walked * _framesPerCell);
             Sprite[] frames = topView ? _topFrames : _walkFrames;
             visual.Body.sprite = frames[frame % frames.Length];
 
-            bool carrying = ant.State == AntState.Carrying;
+            bool delivering = ant.State == AntState.Delivering;
+            bool carrying = ant.State == AntState.Carrying || ant.State == AntState.Hauling || delivering;
             if (visual.Carried.gameObject.activeSelf != carrying)
                 visual.Carried.gameObject.SetActive(carrying);
             if (carrying)
             {
-                visual.Carried.color = CellMaterials.ShadedColor(ant.Carried, ant.CarriedShade);
+                visual.Carried.color = delivering ? (Color)_nutrientColor : CellMaterials.ShadedColor(ant.Carried, ant.CarriedShade);
                 Vector2 offset = topView ? _carriedOffsetTop : _carriedOffset;
                 visual.Carried.transform.localPosition = new Vector3(visual.FlipX ? -offset.x : offset.x, offset.y, 0f);
             }
@@ -185,22 +211,23 @@ namespace Fabula.Incrementant.AntFarm
 
         static float Snap45(float degrees) => Mathf.Round(degrees / 45f) * 45f;
 
-        AntVisual CreateVisual(int index)
+        AntVisual CreateVisual(string objectName, float scale, int sortingOrder)
         {
-            var root = new GameObject($"Ant_{index:000}");
+            var root = new GameObject(objectName);
             root.transform.SetParent(transform, false);
+            root.transform.localScale = new Vector3(scale, scale, 1f);
             var body = root.AddComponent<SpriteRenderer>();
-            body.sortingOrder = _sortingOrder;
+            body.sortingOrder = sortingOrder;
 
             var carriedGo = new GameObject("Carried");
             carriedGo.transform.SetParent(root.transform, false);
             carriedGo.transform.localScale = new Vector3(_carriedSize, _carriedSize, 1f);
             var carried = carriedGo.AddComponent<SpriteRenderer>();
             carried.sprite = _pixelSprite;
-            carried.sortingOrder = _sortingOrder + 1;
+            carried.sortingOrder = sortingOrder + 1;
             carriedGo.SetActive(false);
 
-            return new AntVisual { GameObject = root, Transform = root.transform, Body = body, Carried = carried };
+            return new AntVisual { GameObject = root, Transform = root.transform, Body = body, Carried = carried, Scale = scale };
         }
 
         void EnsurePixelSprite()

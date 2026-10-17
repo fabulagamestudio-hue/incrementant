@@ -53,47 +53,22 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
-        public void Near_HasGrassTallerThanAnAnt()
-        {
-            var (grid, layout) = MakeMap(11);
-            SceneryLayers layers = SurfaceSceneryPainter.Paint(grid, layout, new SurfaceScenerySettings(), 11, Sky, Sky);
-            SceneryLayer near = layers.Near;
-
-            // Algum pixel pintado a mais de 20 células acima do solo da coluna (a formiga tem 2 de altura).
-            bool tall = false;
-            for (int py = 0; py < near.Height && !tall; py++)
-            for (int px = 0; px < near.Width; px++)
-            {
-                if (near.Get(px, py).a == 0)
-                    continue;
-                float y = near.OriginY + py / (float)near.PixelsPerCell;
-                if (y > grid.GetSurfaceY(px / near.PixelsPerCell) + 20f)
-                {
-                    tall = true;
-                    break;
-                }
-            }
-            Assert.IsTrue(tall);
-        }
-
-        [Test]
-        public void Front_LeavesEntranceAndDumpClear()
+        public void Scenery_PaintsNoPlants_TheyAreAllHarvestable()
         {
             var (grid, layout) = MakeMap(3);
-            var settings = new SurfaceScenerySettings();
-            SceneryLayer front = SurfaceSceneryPainter.Paint(grid, layout, settings, 3, Sky, Sky).Front;
+            var red = new Color32(255, 0, 0, 255);
+            var pixels = new Color32[4 * 4];
+            for (int i = 0; i < pixels.Length; i++)
+                pixels[i] = red;
+            var art = new SceneryStampLibrary();
+            foreach (SceneryElement plant in new[] { SceneryElement.Grass, SceneryElement.Tuft, SceneryElement.Clover, SceneryElement.Flower })
+                art.Set(plant, new[] { new SceneryStamp(4, 4, pixels, 2, 0) });
 
-            // Tufos têm até ~3 células de espalhamento e ~6 de inclinação; a folga padrão (12) cobre isso.
-            int margin = settings.ForegroundClearance - 10;
-            for (int py = 0; py < front.Height; py++)
-            for (int px = 0; px < front.Width; px++)
-            {
-                if (front.Get(px, py).a == 0)
-                    continue;
-                int x = px / front.PixelsPerCell;
-                Assert.IsFalse(Mathf.Abs(x - layout.EntranceX) < margin, $"Tufo da frente sobre a entrada em x = {x}.");
-                Assert.IsFalse(x > layout.DumpMinX - margin && x < layout.DumpMaxX + margin, $"Tufo da frente sobre o despejo em x = {x}.");
-            }
+            SceneryLayers layers = SurfaceSceneryPainter.Paint(grid, layout, new SurfaceScenerySettings(), 3, Sky, Sky, art: art);
+            Assert.IsFalse(System.Array.Exists(layers.Near.Pixels, c => c.Equals(red)),
+                           "Grama, tufo, trevo e flor são plantas colhíveis (PlantSprites), não cenário.");
+            Assert.IsFalse(System.Array.Exists(layers.Front.Pixels, c => c.a > 0), "A camada da frente fica vazia.");
+            Assert.IsTrue(System.Array.Exists(layers.Near.Pixels, c => c.a > 0), "O resto do cenário perto continua.");
         }
 
         [Test]
@@ -120,14 +95,14 @@ namespace Fabula.Incrementant.Tests
             for (int i = 0; i < pixels.Length; i++)
                 pixels[i] = red;
             var art = new SceneryStampLibrary();
-            art.Set(SceneryElement.Grass, new[] { new SceneryStamp(4, 4, pixels, 2, 0) });
+            art.Set(SceneryElement.Pebble, new[] { new SceneryStamp(4, 4, pixels, 2, 0) });
 
             SceneryLayer near = SurfaceSceneryPainter.Paint(grid, layout, new SurfaceScenerySettings(), 13, Sky, Sky, art: art).Near;
             int redCount = 0;
             foreach (Color32 c in near.Pixels)
                 if (c.Equals(red))
                     redCount++;
-            Assert.Greater(redCount, 0, "A grama precisa vir da biblioteca dada.");
+            Assert.Greater(redCount, 0, "As pedrinhas precisam vir da biblioteca dada.");
 
             // Os outros elementos, sem carimbos na biblioteca, caem na arte procedural.
             SceneryLayer fallback = SurfaceSceneryPainter.Paint(grid, layout, new SurfaceScenerySettings(), 13, Sky, Sky).Near;

@@ -71,8 +71,13 @@ namespace Fabula.Incrementant.Colony
         }
 
         /// <summary>Monta o campo sobre <paramref name="walkability"/>, que precisa estar atualizado (<see cref="WalkabilityMap.Refresh"/>).</summary>
-        public void Build(WalkabilityMap walkability, List<int> sourceIndices)
+        /// <param name="anthillOnly">
+        /// Só se espalha pelo formigueiro: células no solo original ou abaixo dele (sem o céu) e sem marca de construção
+        /// (não atravessa a obra).
+        /// </param>
+        public void Build(WalkabilityMap walkability, List<int> sourceIndices, bool anthillOnly = false)
         {
+            PixelGrid grid = walkability.Grid;
             // Toda célula com distância passou pela fila do build anterior: limpar só ela custa o alcançado, não a grade.
             for (int n = 0; n < _reached; n++)
                 _distance[_queue[n]] = Unreachable;
@@ -102,6 +107,8 @@ namespace Fabula.Incrementant.Colony
                         continue;
                     int ni = ny * _width + nx;
                     if (_distance[ni] != Unreachable || !walkability.IsWalkableAt(ni))
+                        continue;
+                    if (anthillOnly && (ny > grid.GetSurfaceY(nx) || grid.IsBuildMarked(nx, ny)))
                         continue;
                     _distance[ni] = next;
                     _queue[tail++] = ni;

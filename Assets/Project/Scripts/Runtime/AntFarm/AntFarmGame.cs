@@ -1,5 +1,7 @@
 using System.Diagnostics;
+using System;
 using Fabula.Incrementant.Colony;
+using Fabula.Incrementant.Save;
 using Fabula.Incrementant.World;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -53,17 +55,32 @@ namespace Fabula.Incrementant.AntFarm
         [Tooltip("Tempo ao dar Play e ao gerar outro mapa. No Play, troque com C ou pelo HUD.")]
         [SerializeField] Weather _weather = Weather.Clear;
         [SerializeField] RainSettings _rainSettings = new RainSettings();
+        [Header("Água")]
+        [SerializeField] WaterSettings _waterSettings = new WaterSettings();
+        [Header("Vegetação")]
+        [Tooltip("Grama e mudas da superfície que crescem com o tempo e são colhidas (pincel Colher) para virar nutrientes.")]
+        [SerializeField] VegetationSettings _vegetationSettings = new VegetationSettings();
         [Header("Câmera")]
         [Tooltip("Folga, em células, do enquadramento inicial e acima do topo do mundo.")]
         [SerializeField, Min(0f)] float _cameraMargin = 4f;
         [SerializeField] MapCamera _cameraControl = new MapCamera();
 
         static readonly int[] SpeedSteps = { 1, 3, 8 };
+        /// <summary>
+        /// O que o pincel faz: marcar terra para as formigas cavarem, espaço vazio para elas preencherem, a sala onde
+        /// a rainha pode ficar, plantas para colher ou a sala onde os nutrientes são guardados. A ordem casa com
+        /// <see cref="BrushTint"/>.
+        /// </summary>
+        enum BrushMode { Dig, Build, QueenRoom, Harvest, NutrientRoom }
+
+        static readonly string[] BrushLabels = { "Cavar", "Construir", "Sala da rainha", "Colher", "Sala de nutrientes" };
         static readonly string[] WeatherLabels = { "Seco", "Chuva leve", "Chuva forte" };
 
         PixelGrid _grid;
         GranularSimulation _simulation;
         RainSimulation _rain;
+        WaterSimulation _water;
+        VegetationSimulation _vegetation;
         AntColony _colony;
         TerrainLayout _layout;
         TerrainGenerator _generator;
@@ -71,8 +88,12 @@ namespace Fabula.Incrementant.AntFarm
         float _accumulator;
         int _speedIndex;
         Vector2Int _brushCell;
+        BrushMode _brushMode;
         bool _pointerOverWorld;
-        Rect _hudRect = new Rect(10, 10, 300, 340);
+        Rect _hudRect = new Rect(10, 10, 340, 640);
+        readonly MatchTimer _matchTimer = new MatchTimer();
+        string _saveStatus;
+        float _saveStatusUntil;
 
         readonly Stopwatch _stopwatch = new Stopwatch();
         float _simMsSmoothed;
@@ -83,6 +104,7 @@ namespace Fabula.Incrementant.AntFarm
         public MapSource Source => _mapSource;
         public Texture2D Map => _map;
         public AntFarmView View => _view;
+        public MatchTimer Timer => _matchTimer;
 
         void Awake()
         {
@@ -126,11 +148,16 @@ namespace Fabula.Incrementant.AntFarm
             return true;
         }
 
-        /// <summary>Gera um mapa procedural (ou recarrega a imagem da cena) e reinicia a colônia.</summary>
-        void Regenerate()
+        /// <summary>
+        /// Gera um mapa procedural (ou recarrega a imagem da cena) e reinicia a colônia e o cronômetro. Com
+        /// <paramref name="snapshot"/>, usa a seed do save e aplica o estado salvo por cima do mapa regenerado.
+        /// </summary>
+        void Regenerate(GameSnapshot snapshot = null)
         {
-            if (_randomizeSeed)
-                _seed = Random.Range(int.MinValue, int.MaxValue);
+            if (snapshot != null)
+                _seed = snapshot.Seed;
+            else if (_randomizeSeed)
+                _seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
 
             if (_mapSource == MapSource.Image)
             {
@@ -149,7 +176,25 @@ namespace Fabula.Incrementant.AntFarm
             }
             _simulation = new GranularSimulation();
             _rain = new RainSimulation(_rainSettings, _seed) { Weather = _weather };
+            _water = new WaterSimulation(_waterSettings, _grid, _seed);
+            snapshot?.ApplyTo(_grid);
+            snapshot?.ApplyTo(_rain);
+            snapshot?.ApplyTo(_water);
+            _weather = _rain.Weather;
+            // As plantas nascem em EnsureGenerated (Populate), coluna a coluna; as do save já estão nas células. Com o
+            // cenário, a forma de cada planta na grade é a silhueta do sprite de grama/trevo sorteado para ela.
+            _vegetation = _scenery != null
+                ? new VegetationSimulation(_vegetationSettings, _seed, _layout, _grid.Width,
+                                           _scenery.PlantShapes(PlantKind.Grass), _scenery.PlantShapes(PlantKind.Leafy))
+                : new VegetationSimulation(_vegetationSettings, _seed, _layout, _grid.Width);
+            if (snapshot != null)
+            {
+                _vegetation.MarkPopulated(_grid.Active);
+                snapshot.ApplyTo(_vegetation);
+            }
             _colony = new AntColony(_grid, _colonySettings, _layout, _seed);
+            snapshot?.ApplyTo(_colony);
+            _matchTimer.Set(snapshot?.MatchSeconds ?? 0.0);
             _accumulator = 0f;
 
             Vector3 origin = _view.transform.position;
@@ -157,9 +202,17 @@ namespace Fabula.Incrementant.AntFarm
             var startView = new Rect(origin.x + _startArea.x, origin.y + _startArea.y, _startArea.width, _startArea.height);
             _cameraControl.Reset(_camera, bounds, startView, _cameraMargin);
 
-            _view.Initialize(_grid, transparentSky: _scenery != null, skyBaseY: _startArea.yMin);
+            _view.Initialize(_grid, transparentSky: _scenery != null, skyBaseY: _startArea.yMin, plantsAsSprites: _scenery != null);
             if (_scenery != null)
-                _scenery.Build(_grid, _layout, _seed, origin, _startArea.yMin, _camera.transform.position);
+            {
+                // Laguinhos: no procedural vêm do gerador (inclusive os ainda não gerados); na imagem, da água pintada.
+                TerrainGenerator generator = _generator;
+                PixelGrid grid = _grid;
+                Func<int, bool> isLake = generator != null
+                    ? x => generator.GetLakeLevel(x) >= 0
+                    : (Func<int, bool>)(x => grid.HasWater(x, grid.GetSurfaceY(x) + 1));
+                _scenery.Build(_grid, _layout, _seed, origin, _startArea.yMin, _camera.transform.position, isLake);
+            }
             EnsureGenerated();
         }
 
@@ -169,9 +222,13 @@ namespace Fabula.Incrementant.AntFarm
         /// </summary>
         void EnsureGenerated()
         {
-            if (_generator == null)
-                return;
+            if (_generator != null)
+                ExpandToView();
+            _vegetation.Populate(_grid);
+        }
 
+        void ExpandToView()
+        {
             Rect view = LocalViewRect();
             int chunk = _terrainSettings.ChunkSize;
             int margin = _terrainSettings.GenerationMargin;
@@ -195,8 +252,84 @@ namespace Fabula.Incrementant.AntFarm
             return view;
         }
 
+        // ---------------------------------------------------------------- save / load
+
+        /// <summary>Grava a partida no save rápido. Devolve false (com a causa no HUD) se não conseguiu.</summary>
+        public bool SaveGame()
+        {
+            if (_colony == null)
+                return false;
+            try
+            {
+                GameSnapshot snapshot = GameSnapshot.Capture(_grid, _colony, _rain, _water, (int)_mapSource, _seed, _matchTimer.Seconds,
+                                                             _vegetation);
+                SaveStorage.Write(SaveStorage.QuickSavePath, snapshot);
+                ShowSaveStatus($"Partida salva ({MatchTimer.Format(_matchTimer.Seconds)}).");
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"{name}: falha ao salvar em '{SaveStorage.QuickSavePath}': {e}", this);
+                ShowSaveStatus($"Falha ao salvar: {e.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Carrega o save rápido. O arquivo é lido e conferido antes de mexer na partida atual: se não servir
+        /// (inexistente, corrompido, de outro modo de mapa ou tamanho de mundo), a partida continua intacta.
+        /// </summary>
+        public bool LoadGame()
+        {
+            if (_colony == null)
+                return false;
+            try
+            {
+                string path = SaveStorage.QuickSavePath;
+                if (!System.IO.File.Exists(path))
+                {
+                    ShowSaveStatus("Nenhum save encontrado.");
+                    return false;
+                }
+                GameSnapshot snapshot = SaveStorage.Read(path);
+                string problem = DescribeIncompatibility(snapshot);
+                if (problem != null)
+                {
+                    ShowSaveStatus(problem);
+                    return false;
+                }
+                Regenerate(snapshot);
+                ShowSaveStatus($"Partida carregada ({MatchTimer.Format(_matchTimer.Seconds)}).");
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"{name}: falha ao carregar '{SaveStorage.QuickSavePath}': {e}", this);
+                ShowSaveStatus($"Falha ao carregar: {e.Message}");
+                return false;
+            }
+        }
+
+        string DescribeIncompatibility(GameSnapshot snapshot)
+        {
+            if (snapshot.MapSource != (int)_mapSource)
+                return "O save é de outro modo de mapa (Procedural/Image).";
+            int width = _mapSource == MapSource.Image ? _map.width : _terrainSettings.WorldWidth;
+            int height = _mapSource == MapSource.Image ? _map.height : _terrainSettings.WorldHeight;
+            if (snapshot.GridWidth != width || snapshot.GridHeight != height)
+                return $"O save é de um mundo {snapshot.GridWidth}x{snapshot.GridHeight}; o atual é {width}x{height}.";
+            return null;
+        }
+
+        void ShowSaveStatus(string message)
+        {
+            _saveStatus = message;
+            _saveStatusUntil = Time.unscaledTime + 5f;
+        }
+
         void Update()
         {
+            _matchTimer.Advance(Time.unscaledDeltaTime);
             _cameraControl.Update(_camera, Time.unscaledDeltaTime, PointerOverHud());
             EnsureGenerated();
             HandleInput();
@@ -210,6 +343,8 @@ namespace Fabula.Incrementant.AntFarm
             while (_accumulator >= tickDuration && ticks < maxTicks)
             {
                 _rain.Step(_grid, tickDuration);
+                _water.Step(_grid, tickDuration);
+                _vegetation.Step(_grid, tickDuration);
                 _simulation.Step(_grid);
                 _colony.Tick(tickDuration);
                 _accumulator -= tickDuration;
@@ -222,11 +357,16 @@ namespace Fabula.Incrementant.AntFarm
             _stopwatch.Restart();
             bool spriteAnts = _antsView != null && _antsView.HasFrames;
             RectInt window = AntFarmView.WindowFor(LocalViewRect(), _grid);
-            _view.Render(_grid, _colony.Ants, _layout, _brushCell, _brushRadius, _pointerOverWorld, !spriteAnts, window, _rain.Drops);
+            _view.Render(_grid, _colony.Ants, _colony.DumpStrips,_brushCell, _brushRadius, _pointerOverWorld, !spriteAnts, window, _rain.Drops,
+                         (BrushTint)(int)_brushMode, _colony);
             if (spriteAnts)
-                _antsView.Render(_grid, _colony.Ants, _view.transform.position, _colony.SimulationTime + _accumulator, Time.deltaTime);
+                _antsView.Render(_grid, _colony.Ants, _view.transform.position, _colony.SimulationTime + _accumulator, Time.deltaTime,
+                                 _colony.Queen);
             if (_scenery != null)
+            {
                 _scenery.UpdateParallax(_camera);
+                _scenery.UpdatePlants(_grid, _vegetation);
+            }
             _renderMsSmoothed = Mathf.Lerp(_renderMsSmoothed, (float)_stopwatch.Elapsed.TotalMilliseconds, 0.1f);
         }
 
@@ -286,6 +426,14 @@ namespace Fabula.Incrementant.AntFarm
                 Gizmos.color = new Color(1f, 0.85f, 0.2f);
                 DrawDumpLine(_dumpStartMarker.position.x, origin.y, height);
                 DrawDumpLine(_dumpEndMarker.position.x, origin.y, height);
+                if (_nestMarker != null)
+                {
+                    // Espelho da faixa em relação ao ninho: o segundo lado do despejo (calculado, não editável).
+                    float axis = _nestMarker.position.x * 2f;
+                    Gizmos.color = new Color(1f, 0.85f, 0.2f, 0.4f);
+                    DrawDumpLine(axis - _dumpStartMarker.position.x, origin.y, height);
+                    DrawDumpLine(axis - _dumpEndMarker.position.x, origin.y, height);
+                }
             }
         }
 
@@ -302,10 +450,16 @@ namespace Fabula.Incrementant.AntFarm
                 if (keyboard.digit1Key.wasPressedThisFrame) _speedIndex = 0;
                 if (keyboard.digit2Key.wasPressedThisFrame) _speedIndex = 1;
                 if (keyboard.digit3Key.wasPressedThisFrame) _speedIndex = 2;
+                if (keyboard.bKey.wasPressedThisFrame)
+                    _brushMode = (BrushMode)(((int)_brushMode + 1) % BrushLabels.Length);
                 if (keyboard.cKey.wasPressedThisFrame)
                     SetWeather((Weather)(((int)_weather + 1) % WeatherLabels.Length));
                 if (keyboard.rKey.wasPressedThisFrame)
                     Regenerate();
+                if (keyboard.f5Key.wasPressedThisFrame)
+                    SaveGame();
+                if (keyboard.f9Key.wasPressedThisFrame && LoadGame())
+                    return;
             }
 
             Mouse mouse = Mouse.current;
@@ -355,8 +509,26 @@ namespace Fabula.Incrementant.AntFarm
             for (int dy = -_brushRadius; dy <= _brushRadius; dy++)
             for (int dx = -_brushRadius; dx <= _brushRadius; dx++)
             {
-                if (dx * dx + dy * dy <= r2)
-                    _grid.SetMarked(_brushCell.x + dx, _brushCell.y + dy, marked);
+                if (dx * dx + dy * dy > r2)
+                    continue;
+                int x = _brushCell.x + dx, y = _brushCell.y + dy;
+                switch (_brushMode)
+                {
+                    case BrushMode.Build:
+                        _grid.SetBuildMarked(x, y, marked);
+                        break;
+                    case BrushMode.QueenRoom:
+                        _grid.SetQueenRoom(x, y, marked);
+                        break;
+                    case BrushMode.NutrientRoom:
+                        _grid.SetNutrientRoom(x, y, marked);
+                        break;
+                    default:
+                        // Cavar e colher usam a mesma marca, mas cada pincel só mexe no próprio tipo de célula.
+                        if (CellMaterials.IsPlant(_grid.Get(x, y)) == (_brushMode == BrushMode.Harvest))
+                            _grid.SetMarked(x, y, marked);
+                        break;
+                }
             }
         }
 
@@ -367,17 +539,33 @@ namespace Fabula.Incrementant.AntFarm
 
             GUILayout.BeginArea(_hudRect, GUI.skin.box);
             GUILayout.Label("<b>Formigário — protótipo</b>", RichLabel());
-            GUILayout.Label($"Formigas: {_colony.Ants.Count}");
-            GUILayout.Label($"Terra em estoque: {_colony.StoredPixels}   (total retirado: {_colony.TotalDelivered})");
-            GUILayout.Label($"Pixels marcados: {_grid.MarkedCount}");
-            GUI.enabled = _colony.StoredPixels >= _colony.NextAntCost;
-            if (GUILayout.Button($"Nova formiga — {_colony.NextAntCost} terra  [Espaço]"))
+            GUILayout.Label($"Tempo de partida: {MatchTimer.Format(_matchTimer.Seconds)}");
+            GUILayout.Label($"Formigas: {_colony.Ants.Count}   (afogadas: {_colony.DrownedAnts})");
+            GUILayout.Label($"<b>Nutrientes: {_colony.Nutrients}</b>   (consumidos pela rainha: {_colony.TotalNutrients})", RichLabel());
+            GUILayout.Label($"Sala de nutrientes: {NutrientRoomStatus()}");
+            GUILayout.Label($"Plantas: {_vegetation.PlantCount} · colhidos: {_colony.HarvestedPixels} px · cresceram: {_vegetation.GrownCells} px");
+            GUILayout.Label($"Terra retirada: {_colony.TotalDelivered}");
+            GUILayout.Label($"Pixels marcados: {_grid.MarkedCount} para cavar/colher · {_grid.BuildMarkedCount} para construir");
+            GUILayout.Label($"Rainha: {QueenStatus()}");
+            GUI.enabled = _colony.Nutrients >= _colony.NextAntCost;
+            if (GUILayout.Button($"Nova formiga — {_colony.NextAntCost} nutrientes  [Espaço]"))
                 _colony.TryBuyAnt();
             GUI.enabled = true;
             GUILayout.Label($"Tempo  [C]   dissolvidos: {_rain.DissolvedCells} · compactados: {_rain.PackedCells}");
+            GUILayout.Label($"Água: {_grid.WaterCount} px · terra amolecida: {_water.ErodedCells}");
             int weather = GUILayout.Toolbar((int)_weather, WeatherLabels);
             if (weather != (int)_weather)
                 SetWeather((Weather)weather);
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Salvar  [F5]"))
+                SaveGame();
+            if (GUILayout.Button("Carregar  [F9]"))
+                LoadGame();
+            GUILayout.EndHorizontal();
+            if (!string.IsNullOrEmpty(_saveStatus) && Time.unscaledTime < _saveStatusUntil)
+                GUILayout.Label(_saveStatus);
+            GUILayout.Label("Pincel  [B]");
+            _brushMode = (BrushMode)GUILayout.SelectionGrid((int)_brushMode, BrushLabels, 3);
             GUILayout.Label($"Velocidade: x{SpeedSteps[_speedIndex]}  [1/2/3]   Pincel: {_brushRadius}  [scroll]");
             GUILayout.Label(_mapSource == MapSource.Image ?"Esq.: marcar · Dir.: desmarcar · R: reiniciar mapa" : "Esq.: marcar · Dir.: desmarcar · R: novo mapa");
             GUILayout.Label("WASD / botão do meio: mover · Q/E ou Ctrl+scroll: zoom");
@@ -385,6 +573,27 @@ namespace Fabula.Incrementant.AntFarm
             GUILayout.Label($"Mapa gerado: {active.width}x{active.height} de {_grid.Width}x{_grid.Height}");
             GUILayout.Label($"Sim: {_simMsSmoothed:0.00} ms · Render: {_renderMsSmoothed:0.00} ms · {1f / Mathf.Max(Time.smoothDeltaTime, 0.0001f):0} fps");
             GUILayout.EndArea();
+        }
+
+        string NutrientRoomStatus()
+        {
+            if (_grid.NutrientRoomCount == 0 && _grid.NutrientCount == 0)
+                return "nenhuma (pinte uma com o pincel Sala de nutrientes)";
+            string full = _colony.FreeNutrientSlots == 0 ? " — cheia: a colheita para" : "";
+            int curing = _grid.NutrientCount - _grid.ReadyNutrientCount;
+            string curingText = curing > 0 ? $" ({curing} curando)" : "";
+            return $"{_grid.NutrientCount} guardados{curingText} · {_colony.FreeNutrientSlots} slots livres{full}";
+        }
+
+        string QueenStatus()
+        {
+            if (_colony.QueenRoomSize == 0)
+                return _grid.QueenRoomCount == 0 ? "sem sala (pinte uma com o pincel Sala da rainha)" : "sala pintada ainda maciça (cave-a)";
+            if (_colony.QueenInRoom)
+                return $"na sala ({_colony.QueenRoomSize} px)";
+            return _colony.QueenCanReachRoom
+                ? $"indo para a sala ({_colony.QueenRoomSize} px)"
+                : "sala sem caminho até ela (ligue por um túnel)";
         }
 
         static GUIStyle _richLabel;

@@ -8,10 +8,7 @@ namespace Fabula.Incrementant.AntFarm
     [Serializable]
     public sealed class SurfaceScenerySettings
     {
-        [Tooltip("Touceiras de grama alta atrás do formigário (folhas de 25 a 70 células: bem maiores que a formiga).")]
-        [SerializeField, Min(0f)] float _grassClumps = 6f;
-        [SerializeField, Min(0f)] float _clovers = 2.5f;
-        [SerializeField, Min(0f)] float _flowers = 0.6f;
+        // Grama, trevos e flores não são cenário: são plantas colhíveis (VegetationSimulation + PlantSprites).
         [SerializeField, Min(0f)] float _mushrooms = 0.6f;
         [SerializeField, Min(0f)] float _twigs = 0.6f;
         [SerializeField, Min(0f)] float _dryLeaves = 1f;
@@ -19,21 +16,12 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField, Min(0f)] float _pebbles = 16f;
         [Tooltip("Grãos e migalhas de menos de 1 célula.")]
         [SerializeField, Min(0f)] float _grains = 30f;
-        [Tooltip("Tufos baixos na frente das formigas (fora da entrada e da faixa de despejo).")]
-        [SerializeField, Min(0f)] float _foregroundTufts = 2.5f;
-        [Tooltip("Células livres de tufos da frente em volta da entrada e da faixa de despejo.")]
-        [SerializeField, Min(0)] int _foregroundClearance = 12;
 
-        public float GrassClumps => _grassClumps;
-        public float Clovers => _clovers;
-        public float Flowers => _flowers;
         public float Mushrooms => _mushrooms;
         public float Twigs => _twigs;
         public float DryLeaves => _dryLeaves;
         public float Pebbles => _pebbles;
         public float Grains => _grains;
-        public float ForegroundTufts => _foregroundTufts;
-        public int ForegroundClearance => _foregroundClearance;
     }
 
     /// <summary>
@@ -146,8 +134,10 @@ namespace Fabula.Incrementant.AntFarm
 
         /// <param name="skyBaseY">Linha do mapa onde o gradiente do céu tem a cor de baixo; o topo do mapa tem a de cima.</param>
         /// <param name="art">Carimbos de cada elemento; sem ele (ou num elemento sem carimbos) usa <see cref="SceneryStampLibrary.Default"/>.</param>
+        /// <param name="isLakeColumn">Colunas com laguinho (opcional): nada do cenário perto/frente nasce nelas.</param>
         public static SceneryLayers Paint(PixelGrid grid, TerrainLayout layout, SurfaceScenerySettings settings, int seed,
-                                          Color32 skyTop, Color32 skyBottom, int skyBaseY = 0, SceneryStampLibrary art = null)
+                                          Color32 skyTop, Color32 skyBottom, int skyBaseY = 0, SceneryStampLibrary art = null,
+                                          Func<int, bool> isLakeColumn = null)
         {
             int minSurface = grid.Height - 1;
             for (int x = 0; x < grid.Width; x++)
@@ -157,7 +147,7 @@ namespace Fabula.Incrementant.AntFarm
             int height = Mathf.Max(1, grid.Height - originY) * PixelsPerCell;
 
             var rng = new System.Random(seed);
-            var painter = new Painter(grid, originY);
+            var painter = new Painter(grid, originY) { Skip = isLakeColumn };
             float per100 = grid.Width / 100f;
 
             var sky = new SceneryLayer(1, (grid.Height + SkyAbove - originY) * PixelsPerCell, originY, PixelsPerCell);
@@ -180,15 +170,8 @@ namespace Fabula.Incrementant.AntFarm
             var near = new SceneryLayer(width, height, originY, PixelsPerCell);
             near.Fill(Clear);
             painter.Target = near;
-            Repeat(rng, settings.GrassClumps * per100, () => painter.Place(Pick(SceneryElement.Grass), RandomX(rng, grid.Width)));
-            Repeat(rng, settings.Flowers * per100, () => painter.Place(Pick(SceneryElement.Flower), RandomX(rng, grid.Width)));
-            // Trevos e cogumelos nascem em grupinhos de 1 a 3.
-            Repeat(rng, settings.Clovers * per100, () =>
-            {
-                float x = RandomX(rng, grid.Width);
-                for (int i = 0, count = rng.Next(1, 4); i < count; i++)
-                    painter.Place(Pick(SceneryElement.Clover), x + Range(rng, -6f, 6f));
-            });
+            // Sem grama, trevos e flores: toda planta da superfície é colhível e desenhada por PlantSprites.
+            // Cogumelos nascem em grupinhos de 1 a 3.
             Repeat(rng, settings.Mushrooms * per100, () =>
             {
                 float x = RandomX(rng, grid.Width);
@@ -200,26 +183,10 @@ namespace Fabula.Incrementant.AntFarm
             Repeat(rng, settings.Pebbles * per100, () => PlacePebble(painter, Pick(SceneryElement.Pebble), RandomX(rng, grid.Width), Range(rng, 0.6f, 1f)));
             Repeat(rng, settings.Grains * per100, () => painter.Place(Pick(SceneryElement.Grain), RandomX(rng, grid.Width)));
 
+            // Camada da frente (na frente das formigas) vazia: os tufos que ficavam nela viraram plantas colhíveis
+            // (variantes da grama em PlantSprites), já que tudo o que é grama em primeiro plano pode ser colhido.
             var front = new SceneryLayer(width, height, originY, PixelsPerCell);
             front.Fill(Clear);
-            painter.Target = front;
-            int clearance = settings.ForegroundClearance;
-            Repeat(rng, settings.ForegroundTufts * per100, () =>
-            {
-                // Algumas tentativas para achar um lugar fora da área de jogo; sem lugar, o tufo é pulado.
-                for (int attempt = 0; attempt < 8; attempt++)
-                {
-                    float x = RandomX(rng, grid.Width);
-                    bool nearEntrance = Mathf.Abs(x - layout.EntranceX) < clearance;
-                    bool nearDump = x > layout.DumpMinX - clearance && x < layout.DumpMaxX + clearance;
-                    if (nearEntrance || nearDump)
-                        continue;
-                    painter.Place(Pick(SceneryElement.Tuft), x);
-                    if (rng.NextDouble() < 0.5)
-                        PlacePebble(painter, Pick(SceneryElement.Pebble), x + Range(rng, -4f, 4f), Range(rng, 0.5f, 0.9f));
-                    return;
-                }
-            });
 
             return new SceneryLayers(sky, far, mid, near, front);
         }
@@ -511,6 +478,9 @@ namespace Fabula.Incrementant.AntFarm
 
             public SceneryLayer Target;
 
+            /// <summary>Colunas onde nada é carimbado (pivô nelas). Opcional.</summary>
+            public Func<int, bool> Skip;
+
             public Painter(PixelGrid grid, int originY)
                 : this(x => grid.GetSurfaceY(Mathf.Clamp(Mathf.FloorToInt(x), 0, grid.Width - 1)) + 1f, originY)
             {
@@ -543,6 +513,8 @@ namespace Fabula.Incrementant.AntFarm
             /// </summary>
             public void Place(SceneryStamp stamp, float x, float sink = 0f)
             {
+                if (Skip != null && Skip(Mathf.FloorToInt(x)))
+                    return;
                 float ground = MinGround(x + stamp.BaseLeft / P, x + stamp.BaseRight / P) - sink;
                 int left = PxX(x) - stamp.PivotX;
                 int bottom = PxY(ground) - stamp.PivotY;

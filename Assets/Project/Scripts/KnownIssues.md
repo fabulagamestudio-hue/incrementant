@@ -10,6 +10,17 @@ Bugs, dívidas técnicas e correções relevantes. Cada item cita o guia de sist
 | KI-004 | Mapa de caminhabilidade é recalculado inteiro na primeira montagem dos campos e em cada bloco tocado pela expansão do mundo: ~14 ms (editor) uma vez com o mundo inteiro gerado de uma só vez; expansões normais da câmera custam proporcional à faixa nova. Pode dar um soluço ao revelar áreas grandes de uma vez. | [AntFarmGuide](Runtime/AntFarm/AntFarmGuide.md) | 2026-10-17 |
 | KI-003 | Formigas se sobrepõem (sem colisão entre elas) e o sprite (3x2 células) cobre parte das paredes em túneis de 1 célula. Aceitável no protótipo. | [AntFarmGuide](Runtime/AntFarm/AntFarmGuide.md) | 2026-10-17 |
 
+## Abertos (save/load)
+
+| ID | Resumo | Guia afetado | Desde |
+|---|---|---|---|
+| KI-005 | Save/load tem um único slot (save rápido), sem autosave, e não guarda a posição da câmera nem gotas de chuva no ar. Ao carregar, o sorteio das formigas recomeça da seed. | [AntFarmGuide](Runtime/AntFarm/AntFarmGuide.md) | 2026-10-17 |
+| KI-007 | Água sem pressão: poças só se nivelam até `HorizontalReach` (64) células; não há vasos comunicantes (água não sobe pelo outro lado de um U). Formigas não desviam da água (a navegação a ignora) e se afogam se o caminho passar por túnel inundado ou fundo de laguinho. Durante a chuva forte a água fica alguns segundos no túnel antes de ser consumida (Erosion Seconds), então ainda dá para afogar. Contato da terra com a água não vai para o save (erosão recomeça a contar). Saves da versão 1 são recusados. | [AntFarmGuide](Runtime/AntFarm/AntFarmGuide.md) | 2026-10-17 |
+| KI-008 | A rainha usa os quadros das operárias escalados 2x (sem arte própria) e, sem sala da rainha pintada, fica parada no ninho. O teste `Colony_FillsBuildMarksFromTheDeepestPointOutward_UsingDirtFromOutside` é sensível à sequência aleatória: mudar o que a colônia sorteia antes das formigas já o fez falhar (a rainha deixou de sortear o lado ao nascer por isso). | [AntFarmGuide](Runtime/AntFarm/AntFarmGuide.md) | 2026-10-17 |
+| KI-009 | A água só é consumida dentro do formigueiro (sem infiltração nem evaporação na superfície). Com chuva forte prolongada, a água que não desce para os túneis se acumula na superfície do formigário fechado; antes da infiltração, uma rodada de teste inundou a superfície em poucos minutos. Falta ver em jogo real se a chance de gota virar água (10%) basta. | [AntFarmGuide](Runtime/AntFarm/AntFarmGuide.md) | 2026-10-17 |
+| KI-010 | Plantas e nutrientes (protótipo): a formiga com planta na mão espera indefinidamente se a sala de nutrientes for apagada ou ficar sem caminho; o nutriente coberto por terra se perde; com nutrientes guardados, até metade das formigas larga a escavação para buscá-los (valor fixo em `AntColony.MaxFetchers`); a fase do crescimento das plantas recomeça ao carregar um save; touceiras vizinhas podem se sobrepor (a célula em comum é de uma só); cada planta tem a própria textura (~50 a 170 KB cada), refeita só quando uma célula dela muda; uma touceira inteira rende ~300 a 420 nutrientes e leva minutos para ser colhida com poucas formigas. Dois campos de navegação a mais (~8 MB no mundo 960x520). | [AntFarmGuide](Runtime/AntFarm/AntFarmGuide.md) | 2026-10-17 |
+| KI-006 | Construir não cobra terra do estoque (só consome a pilha de fora), e a formiga pode trancar outras que estão atrás da célula preenchida num beco sem saída; só uma marca de escavação as liberta. | [AntFarmGuide](Runtime/AntFarm/AntFarmGuide.md) | 2026-10-17 |
+
 ## Resolvidos
 
 | ID | Resumo | Correção | Data |

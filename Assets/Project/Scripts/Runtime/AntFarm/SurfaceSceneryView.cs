@@ -8,6 +8,7 @@ namespace Fabula.Incrementant.AntFarm
     /// montado por <see cref="SurfaceSceneryPainter"/> a cada mapa novo com os PNGs de <see cref="SceneryArtSet"/>. SpriteRenderers filhos, criados em runtime:
     /// céu e duas faixas de grama distante com paralaxe (<see cref="UpdateParallax"/>), perto atrás do terreno
     /// (o céu do terreno fica transparente) e frente sobre as formigas. Só visual: não entra na grade nem na navegação.
+    /// Também desenha as plantas colhíveis da grade com a mesma arte (<see cref="PlantSprites"/>, <see cref="UpdatePlants"/>).
     /// </summary>
     public sealed class SurfaceSceneryView : MonoBehaviour
     {
@@ -22,6 +23,12 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField] int _midSortingOrder = -15;
         [SerializeField] int _nearSortingOrder = -10;
         [SerializeField] int _frontSortingOrder = 20;
+        [Header("Plantas colhíveis")]
+        [Tooltip("Ordem das plantas colhíveis: na frente do cenário perto e atrás do terreno (a parte ainda não crescida fica enterrada).")]
+        [SerializeField] int _plantSortingOrder = -5;
+        [Tooltip("Cor puxada nos pedaços da planta marcados para colheita.")]
+        [SerializeField] Color32 _plantMarkTint = new Color32(255, 214, 90, 255);
+        [SerializeField, Range(0f, 1f)] float _plantMarkStrength = 0.5f;
         [Header("Paralaxe")]
         [Tooltip("Quanto a grama distante acompanha a câmera (0 = presa ao mapa, 1 = presa à tela).")]
         [SerializeField, Range(0f, 1f)] float _farParallax = 0.75f;
@@ -42,6 +49,7 @@ namespace Fabula.Incrementant.AntFarm
         LayerView _near;
         LayerView _front;
         SceneryStampLibrary _library;
+        PlantSprites _plants;
         Vector3 _mapOrigin;
         Vector2 _parallaxAnchor;
 
@@ -49,14 +57,16 @@ namespace Fabula.Incrementant.AntFarm
         /// Pinta o cenário para o mapa atual. <paramref name="mapOrigin"/> é a posição do canto inferior esquerdo do mapa;
         /// <paramref name="parallaxAnchor"/> é a posição da câmera em que as faixas distantes ficam no horizonte.
         /// </summary>
-        public void Build(PixelGrid grid, TerrainLayout layout, int seed, Vector3 mapOrigin, int skyBaseY, Vector2 parallaxAnchor)
+        /// <param name="isLakeColumn">Colunas com laguinho (opcional): o cenário perto/frente não nasce nelas.</param>
+        public void Build(PixelGrid grid, TerrainLayout layout, int seed, Vector3 mapOrigin, int skyBaseY, Vector2 parallaxAnchor,
+                          System.Func<int, bool> isLakeColumn = null)
         {
             _mapOrigin = mapOrigin;
             _parallaxAnchor = parallaxAnchor;
             // Lido uma vez por sessão de Play: os PNGs não mudam enquanto o jogo roda.
-            if (_library == null && _art != null)
-                _library = _art.CreateLibrary();
-            SceneryLayers layers = SurfaceSceneryPainter.Paint(grid, layout, _settings, seed, _skyTop, _skyBottom, skyBaseY, _library);
+            EnsureLibrary();
+            _plants?.Clear();
+            SceneryLayers layers = SurfaceSceneryPainter.Paint(grid, layout, _settings, seed, _skyTop, _skyBottom, skyBaseY, _library, isLakeColumn);
             Apply(ref _sky, "ScenerySky", _skySortingOrder, layers.Sky, SpriteDrawMode.Simple);
             Apply(ref _far, "SceneryFar", _farSortingOrder, layers.Far, SpriteDrawMode.Tiled);
             Apply(ref _mid, "SceneryMid", _midSortingOrder, layers.Mid, SpriteDrawMode.Tiled);
@@ -65,6 +75,28 @@ namespace Fabula.Incrementant.AntFarm
             _near.Renderer.transform.position = mapOrigin + new Vector3(0f, layers.Near.OriginY, 0f);
             _front.Renderer.transform.position = mapOrigin + new Vector3(0f, layers.Front.OriginY, 0f);
         }
+
+        void EnsureLibrary()
+        {
+            if (_library == null && _art != null)
+                _library = _art.CreateLibrary();
+        }
+
+        PlantSprites Plants()
+        {
+            EnsureLibrary();
+            return _plants ??= new PlantSprites(transform, _library, _plantSortingOrder);
+        }
+
+        /// <summary>
+        /// Forma de cada variante de arte do tipo de planta (a silhueta do sprite na grade): passe para
+        /// <see cref="VegetationSimulation"/>, para a planta da grade ter a forma do desenho.
+        /// </summary>
+        public PlantShape[] PlantShapes(PlantKind kind) => Plants().Shapes(kind);
+
+        /// <summary>Acompanha a altura e as marcas das plantas colhíveis. Chamar todo frame.</summary>
+        public void UpdatePlants(PixelGrid grid, VegetationSimulation vegetation) =>
+            Plants().Update(grid, vegetation, _mapOrigin, _plantMarkTint, _plantMarkStrength);
 
         /// <summary>Posiciona céu e faixas distantes para a vista atual da câmera. Chamar todo frame, depois de mover a câmera.</summary>
         public void UpdateParallax(Camera camera)
@@ -147,6 +179,7 @@ namespace Fabula.Incrementant.AntFarm
             if (_mid != null) Release(_mid);
             if (_near != null) Release(_near);
             if (_front != null) Release(_front);
+            _plants?.Dispose();
         }
     }
 }

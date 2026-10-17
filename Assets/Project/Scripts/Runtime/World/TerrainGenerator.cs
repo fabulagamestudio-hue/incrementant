@@ -25,6 +25,15 @@ namespace Fabula.Incrementant.World
         [SerializeField, Min(0)] int _nestSafeRadius = 22;
         [Tooltip("Pilhas de terra escavada (Spoil) dos dois lados da entrada: altura e comprimento da encosta de fora, em células. Altura 0 desliga.")]
         [SerializeField] Vector2Int _entranceMound = new Vector2Int(4, 8);
+        [Header("Laguinhos")]
+        [Tooltip("Laguinhos na superfície a cada 1000 colunas do mundo. 0 desliga.")]
+        [SerializeField, Min(0f)] float _lakesPer1000Columns = 4f;
+        [Tooltip("Largura do laguinho, em células (mín, máx).")]
+        [SerializeField] Vector2Int _lakeWidth = new Vector2Int(16, 34);
+        [Tooltip("Profundidade do laguinho no centro, em células (mín, máx).")]
+        [SerializeField] Vector2Int _lakeDepth = new Vector2Int(3, 7);
+        [Tooltip("Distância mínima, em células, entre um laguinho e a entrada (somada à faixa de despejo).")]
+        [SerializeField, Min(0)] int _lakeClearance = 12;
         [Header("Mundo expansível")]
         [Tooltip("Largura máxima do mundo, em células. O mapa cresce para os lados até aqui; a área inicial (Width) fica no centro.")]
         [SerializeField, Min(32)] int _maxWidth = 960;
@@ -48,6 +57,10 @@ namespace Fabula.Incrementant.World
         public Vector2Int DumpOffset => _dumpOffset;
         public int NestSafeRadius => _nestSafeRadius;
         public Vector2Int EntranceMound => _entranceMound;
+        public float LakesPer1000Columns => _lakesPer1000Columns;
+        public Vector2Int LakeWidth => _lakeWidth;
+        public Vector2Int LakeDepth => _lakeDepth;
+        public int LakeClearance => _lakeClearance;
         public int WorldWidth => Mathf.Max(_maxWidth, _width);
         public int WorldHeight => Mathf.Max(_maxHeight, _height);
         public int ChunkSize => _chunkSize;
@@ -72,6 +85,18 @@ namespace Fabula.Incrementant.World
             DumpMinX = dumpMinX;
             DumpMaxX = dumpMaxX;
         }
+
+        /// <summary>
+        /// Faixa de despejo espelhada em relação à entrada (as formigas dividem a terra entre os dois lados), cortada
+        /// nos limites do mapa. Não existe se sair inteira do mapa ou encostar na faixa original (faixa sobre a entrada).
+        /// </summary>
+        public bool TryGetMirrorDump(int gridWidth, out int minX, out int maxX)
+        {
+            minX = Mathf.Max(0, 2 * EntranceX - DumpMaxX);
+            maxX = Mathf.Min(gridWidth - 1, 2 * EntranceX - DumpMinX);
+            bool overlaps = maxX >= DumpMinX && minX <= DumpMaxX;
+            return minX <= maxX && !overlaps;
+        }
     }
 
     /// <summary>
@@ -85,6 +110,8 @@ namespace Fabula.Incrementant.World
         readonly float _rockSeed;
         readonly float _sandSeed;
         readonly int[] _surface;
+        // Nível da água do laguinho por coluna (-1 = sem laguinho). A água ocupa (_surface, _lakeLevel].
+        readonly int[] _lakeLevel;
         readonly int _entranceX;
         readonly int _chamberY;
         readonly RectInt _sandFreeZone;
@@ -122,6 +149,11 @@ namespace Fabula.Incrementant.World
                                           startArea.yMin + 4, worldHeight - 2);
             }
 
+            _lakeLevel = new int[worldWidth];
+            for (int x = 0; x < worldWidth; x++)
+                _lakeLevel[x] = -1;
+            CarveLakes(seed);
+
             int top = _surface[_entranceX];
             _chamberY = Mathf.Max(top - settings.ShaftDepth, startArea.yMin + settings.ChamberSize.y + 2);
             int rx = Mathf.Max(2, settings.ChamberSize.x / 2);
@@ -130,6 +162,53 @@ namespace Fabula.Incrementant.World
             // Sem areia em volta do ninho inicial, senão ele desaba nos primeiros segundos.
             int zoneMinY = _chamberY - ry - safe;
             _sandFreeZone = new RectInt(_entranceX - rx - safe, zoneMinY, 2 * (rx + safe) + 1, top - zoneMinY + 1);
+        }
+
+        /// <summary>
+        /// Sorteia os laguinhos (gerador próprio, para não mudar o resto do mapa da mesma seed) longe da entrada, das
+        /// pilhas e da faixa de despejo, e afunda o relevo em bacia. O nível da água é a borda mais baixa, então a água
+        /// fica contida; o fundo da bacia vira o solo original da coluna (a água fica "no céu", fora do formigueiro).
+        /// </summary>
+        void CarveLakes(int seed)
+        {
+            int count = Mathf.RoundToInt(WorldWidth * 0.001f * _settings.LakesPer1000Columns);
+            if (count <= 0)
+                return;
+
+            var rng = new System.Random(seed ^ 0x1A4E5);
+            int keepOut = Mathf.Max(_settings.DumpOffset.y, 44) + _settings.LakeClearance;
+            int minWidth = Mathf.Max(5, Mathf.Min(_settings.LakeWidth.x, _settings.LakeWidth.y));
+            int maxWidth = Mathf.Max(minWidth, _settings.LakeWidth.y);
+            int minDepth = Mathf.Max(1, Mathf.Min(_settings.LakeDepth.x, _settings.LakeDepth.y));
+            int maxDepth = Mathf.Max(minDepth, _settings.LakeDepth.y);
+            const int gap = 8;
+
+            for (int placed = 0, attempt = 0; placed < count && attempt < count * 20; attempt++)
+            {
+                int width = rng.Next(minWidth, maxWidth + 1);
+                int depth = rng.Next(minDepth, maxDepth + 1);
+                int left = rng.Next(3, Mathf.Max(4, WorldWidth - width - 3));
+                int right = left + width - 1; // colunas da bacia; as bordas ficam em left - 1 e right + 1
+                if (right + 1 > WorldWidth - 3 || (left - keepOut <= _entranceX && right + keepOut >= _entranceX))
+                    continue;
+                bool overlaps = false;
+                for (int x = left - gap; x <= right + gap && !overlaps; x++)
+                    overlaps = x >= 0 && x < WorldWidth && _lakeLevel[x] >= 0;
+                if (overlaps)
+                    continue;
+
+                int level = Mathf.Min(_surface[left - 1], _surface[right + 1]);
+                float half = (width + 1) * 0.5f;
+                float center = (left + right) * 0.5f;
+                for (int x = left; x <= right; x++)
+                {
+                    float t = (x - center) / half;
+                    int bed = Mathf.Min(_surface[x], level - Mathf.Max(1, Mathf.RoundToInt(depth * (1f - t * t))));
+                    _surface[x] = Mathf.Max(bed, StartArea.yMin + 4);
+                    _lakeLevel[x] = level;
+                }
+                placed++;
+            }
         }
 
         /// <summary>Gera a grade inteira de uma vez (mundo = grade). Usado pela ferramenta de Editor e pelos testes.</summary>
@@ -189,8 +268,13 @@ namespace Fabula.Incrementant.World
             {
                 CellMaterial material = CellAt(x, y, out byte shade);
                 grid.Set(x, y, material, shade);
+                if (material == CellMaterial.Empty && y > _surface[x] && y <= _lakeLevel[x])
+                    grid.SetWater(x, y, true);
             }
         }
+
+        /// <summary>Nível da água do laguinho na coluna (-1 = sem laguinho).</summary>
+        public int GetLakeLevel(int x) => (uint)x < (uint)WorldWidth ? _lakeLevel[x] : -1;
 
         CellMaterial CellAt(int x, int y, out byte shade)
         {
@@ -210,7 +294,8 @@ namespace Fabula.Incrementant.World
 
             float scale = _settings.PocketScale;
             int depth = surface - y;
-            CellMaterial material = depth < 2 ? CellMaterial.Grass : CellMaterial.Dirt;
+            // Fundo de laguinho: areia compactada, que não absorve a água (WaterSimulation.IsPorous).
+            CellMaterial material = depth >= 2 ? CellMaterial.Dirt : _lakeLevel[x] >= 0 ? CellMaterial.PackedSand : CellMaterial.Grass;
             if (depth > 6 && Mathf.PerlinNoise(_rockSeed + x * scale, _rockSeed + y * scale * 1.4f) > _settings.RockThreshold)
                 material = CellMaterial.Rock;
             else if (depth > 4 && Mathf.PerlinNoise(_sandSeed + x * scale * 1.2f, _sandSeed + y * scale * 1.6f) > _settings.SandThreshold)

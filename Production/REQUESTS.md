@@ -12,6 +12,9 @@
 | REQ-003 | 2026-10-17 | Mapa procedural que cresce com a câmera, paralaxe e limite de câmera | PROGRAMMING, ART | UNDEFINED | IMPLEMENTED |
 | REQ-004 | 2026-10-17 | Velocidade 8x com o mesmo FPS e simulação constante | PROGRAMMING | UNDEFINED | IMPLEMENTED |
 | REQ-005 | 2026-10-17 | Chuva leve (dissolve a terra despejada) e chuva forte (compacta o granular) | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
+| REQ-006 | 2026-10-17 | Água: laguinhos, chuva que cria água, erosão da terra e afogamento | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
+| REQ-007 | 2026-10-17 | Formiga rainha e pintura da sala da rainha | PROGRAMMING, GAME_DESIGN, ART | UNDEFINED | IMPLEMENTED |
+| REQ-008 | 2026-10-17 | Sala de nutrientes, colheita de plantas da superfície e nutrientes como moeda | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
 
 ## Registros
 
@@ -100,3 +103,59 @@
 - **Histórico:**
   - 2026-10-17 — registrado.
   - 2026-10-17 — IMPLEMENTED: `RainSimulation` com gotas por célula, 6 testes EditMode novos (suíte 42/42) e Play Mode pelo agente (tempo trocado por código); falta o desenvolvedor jogar e aprovar ritmo e visual.
+
+### REQ-006 — Água: laguinhos, chuva que cria água, erosão da terra e afogamento
+
+- **Data de registro:** 2026-10-17
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, GAME_DESIGN
+- **Descrição:** "Na superfície haverão laguinhos, e a chuva criará pixels de água. A água vai procurar escorrer horizontalmente para formar linhas horizontais e também para baixo. Dentro do formigueiro, se ela ficar X segundos em contato com terra fixa, seja natural ou construída, ela vai converter em terra mole com física. Se a formiga ficar mais de Y segundos debaixo da água ela morre."
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-005
+- **Itens relacionados:** PRG-014, GD-003
+- **Referências:** [AntFarmGuide.md](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md) ("Água")
+- **Decisões pendentes:** Ver GD-003 (valores de X e Y, se as formigas devem desviar da água).
+- **Histórico:**
+  - 2026-10-17 — registrado.
+  - 2026-10-17 — IMPLEMENTED: `WaterSimulation`, laguinhos no gerador e afogamento na colônia; 13 testes EditMode novos (suíte 66/66) e Play Mode pelo agente com chuva forte no 8x (tempo trocado por código).
+  - 2026-10-17 — Ajuste pedido pelo desenvolvedor: "A água só pode ser consumida se entrar no formigueiro construido pelo jogador". Infiltração e evaporação na superfície removidas; suíte 74/74.
+  - 2026-10-17 — ajuste pedido pelo desenvolvedor: a água que molha o terreno dentro do formigueiro é consumida (não forma lagos) e só a chuva forte gera água. 3 testes novos, suíte 69/69.
+
+### REQ-007 — Formiga rainha e pintura da sala da rainha
+
+- **Data de registro:** 2026-10-17
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, GAME_DESIGN, ART
+- **Descrição:** "Vamos criar a formiga rainha. Ela vai ter o dobro do tamanho das formigas. As formigas vão agora ficar em idle em toda a região do formigueiro conectada com o local da rainha. Junto com isso, crie um sistema de pintura de salas, onde o jogador vai poder 'pintar' a região onde a rainha vai poder ficar. Ela anda apenas naquela região. Em caso múltiplas áreas de rainha, ela fica na maior."
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-001
+- **Itens relacionados:** PRG-015, GD-004
+- **Referências:** [AntFarmGuide.md](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md) ("Rainha e sala da rainha")
+- **Decisões pendentes:** Ver GD-004 (comportamento sem sala, formigas novas nascendo na rainha, arte própria da rainha).
+- **Histórico:**
+  - 2026-10-17 — registrado.
+  - 2026-10-17 — IMPLEMENTED: rainha em `AntColony` (sprite 2x em `AntSwarmView`), pincel "Sala da rainha" (tecla B), ociosas pela região do formigueiro ligada à rainha, save versão 3; 6 testes EditMode novos (suíte 75/75) e Play Mode pelo agente (sala pintada e cavada por código).
+
+### REQ-008 — Sala de nutrientes, colheita de plantas da superfície e nutrientes como moeda
+
+- **Data de registro:** 2026-10-17
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, GAME_DESIGN
+- **Descrição:** Nova sala de nutrientes para guardar os recursos coletados fora do formigueiro. O jogador "coleta" folhas e gramas da superfície, que crescem a cada X tempo até o tamanho máximo. As formigas colhem da parte de cima para a de baixo e levam à sala de nutrientes; cada pixel vira um nutriente, levado à sala da rainha, que o consome e aumenta o contador de nutrientes. Nutrientes são a moeda para criar formigas. Os slots da sala não obstruem a passagem das formigas, mas ocupam o pixel; sem slot livre, as formigas não colhem mais.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-001, REQ-007
+- **Itens relacionados:** PRG-016, GD-005
+- **Referências:** [AntFarmGuide.md](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md) ("Plantas, sala de nutrientes e nutrientes")
+- **Decisões pendentes:** Ver GD-005 (valor de X, formas e densidade das plantas, pincel próprio de colheita, colheita automática pela raiz marcada, preço das formigas em nutrientes).
+- **Histórico:**
+  - 2026-10-17 — registrado.
+  - 2026-10-17 — IMPLEMENTED: plantas em `VegetationSimulation` (materiais `PlantGrass`/`PlantLeaf`), pincéis "Colher" e "Sala de nutrientes", colheita, guarda e entrega à rainha em `AntColony`, compra de formigas com nutrientes, save versão 4; 7 testes EditMode novos (suíte 81/81) e Play Mode pelo agente (sala e marcas feitas por código: 12 pixels colhidos e 11 consumidos em ~30 s simulados, sem erros).
+  - 2026-10-17 — Ajuste pedido: plantas desenhadas com os sprites de grama/trevo em primeiro plano, crescendo para fora do chão; grama do fundo mais clara. Feito (suíte 82/82, Play Mode pelo agente).
+  - 2026-10-17 — Ajuste pedido: colher os pedaços da planta como os da terra. Feito: forma da planta = silhueta do sprite em células, sprite recortado pelo que sobra; plantas nascem completas e se recompõem de baixo para cima (suíte 82/82, Play Mode pelo agente).
+  - 2026-10-17 — Ajuste pedido: o pixel guardado leva 10 s (1×) para virar nutriente, sem a formiga esperar. Feito: cura no slot (`ColonySettings.NutrientCureSeconds`), cor de planta indo para a de nutriente, HUD com "curando", save guarda o tempo que falta (suíte 84/84; sem Play Mode).
+  - 2026-10-17 — Ajuste pedido: toda grama em primeiro plano colhível e crescimento mais lento (~1 min). Feito: tufos da frente viraram variantes da grama colhível, trevos de cenário desbotados ao fundo, 60 s por pedaço reposto (suíte 84/84; Play Mode pelo agente: só captura de tela, sem colheita).
+  - 2026-10-17 — Ajuste pedido: tirar todas as plantas do cenário perto (todas colhíveis); média e distante sem mudança. Feito: o cenário perto só tem cogumelos, gravetos, folhas secas, pedrinhas e grãos; flores viraram mudas folhosas colhíveis; densidade das plantas colhíveis subiu (faixa de 12 colunas, 85%) (suíte 83/83; Play Mode pelo agente: 23 plantas colhíveis na área inicial, só captura de tela).
+  - 2026-10-17 — Ajuste pedido: o que cresce não nasce marcado; a planta cresce pela base com a ponta sempre criada, empurrando a planta inteira para cima. Feito: linhas enterradas por planta (`GetSunkRows`), passo de 60 s sobe a planta 1 linha com buracos e marcas, rebrota da ponta colhida, sprite acompanha, formiga acompanha o pixel que subiu, save versão 5 (suíte 84/84; Play Mode pelo agente com crescimento acelerado: rebrote, subida, marcas e colheita durante o crescimento conferidos; dois defeitos achados e corrigidos).

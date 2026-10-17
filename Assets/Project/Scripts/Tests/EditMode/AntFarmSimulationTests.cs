@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Fabula.Incrementant.Colony;
 using Fabula.Incrementant.World;
 using NUnit.Framework;
@@ -114,6 +115,124 @@ namespace Fabula.Incrementant.Tests
             for (int y = 1; y < grid.Height; y++)
                 if (grid.Get(x, y) == CellMaterial.Spoil) dumped++;
             Assert.AreEqual(1, dumped, "O pixel despejado vira Spoil na faixa de despejo.");
+        }
+
+        [Test]
+        public void Colony_SplitsDumpedDirtEvenlyBetweenBothSidesOfTheEntrance()
+        {
+            // Entrada no meio, faixa configurada à direita; o espelho fica à esquerda. A terra vem toda do lado esquerdo,
+            // então sem o equilíbrio o lado mais perto (ou o configurado) ficaria com tudo.
+            PixelGrid grid = MakeFloorGrid(90, 16);
+            for (int x = 0; x < grid.Width; x++)
+                grid.SetSurfaceY(x, 0);
+            const int pixels = 12;
+            for (int x = 4; x < 10; x++)
+            for (int y = 1; y <= 2; y++)
+            {
+                grid.Set(x, y, CellMaterial.Dirt);
+                grid.SetMarked(x, y, true);
+            }
+
+            var layout = new TerrainLayout(45, new Vector2Int(45, 1), 55, 60);
+            Assert.IsTrue(layout.TryGetMirrorDump(grid.Width, out int mirrorMin, out int mirrorMax));
+            Assert.AreEqual(30, mirrorMin);
+            Assert.AreEqual(35, mirrorMax);
+
+            var colony = new AntColony(grid, new ColonySettings(), layout, seed: 3);
+            // Chão de pedra sem buraco: nenhuma abertura, então valem a faixa configurada e o espelho.
+            Assert.AreEqual(0, colony.OpeningCount);
+            Assert.AreEqual(2, colony.DumpStrips.Count);
+            var sim = new GranularSimulation();
+            const float dt = 1f / 60f;
+            for (int i = 0; i < 60 * 240 && colony.TotalDelivered < pixels; i++)
+            {
+                sim.Step(grid);
+                colony.Tick(dt);
+            }
+            Assert.AreEqual(pixels, colony.TotalDelivered, "Todos os pixels marcados deveriam ter sido despejados.");
+
+            int left = 0, right = 0;
+            for (int x = 0; x < grid.Width; x++)
+            for (int y = 1; y < grid.Height; y++)
+            {
+                if (grid.Get(x, y) != CellMaterial.Spoil)
+                    continue;
+                if (x < layout.EntranceX) left++;
+                else right++;
+            }
+            Assert.AreEqual(pixels, left + right);
+            Assert.LessOrEqual(Mathf.Abs(left - right), 2, $"Monte desequilibrado: {left} à esquerda, {right} à direita.");
+        }
+
+        [Test]
+        public void Colony_PilesDirtOnBothSidesOfTheNearestSurfaceOpening()
+        {
+            // Solo maciço com duas aberturas ligadas por um túnel: a entrada (x 39..41) e outra cavada depois (x 100..102).
+            // A terra marcada fica ao lado da segunda, então ela deve ganhar o monte, dividido entre os dois lados.
+            const int surface = 20;
+            PixelGrid grid = MakeFloorGrid(140, 40);
+            for (int x = 0; x < grid.Width; x++)
+            {
+                grid.SetSurfaceY(x, surface);
+                for (int y = 1; y <= surface; y++)
+                    grid.Set(x, y, CellMaterial.Dirt);
+            }
+            for (int y = 5; y <= surface; y++)
+            for (int i = -1; i <= 1; i++)
+            {
+                grid.Set(40 + i, y, CellMaterial.Empty);
+                grid.Set(101 + i, y, CellMaterial.Empty);
+            }
+            for (int x = 39; x <= 102; x++)
+            for (int y = 5; y <= 7; y++)
+                grid.Set(x, y, CellMaterial.Empty);
+
+            const int pixels = 8;
+            for (int x = 103; x < 107; x++)
+            for (int y = 5; y <= 6; y++)
+                grid.SetMarked(x, y, true);
+
+            // Faixa configurada: 16..30 células à direita da entrada.
+            var layout = new TerrainLayout(40, new Vector2Int(40, 5), 56, 70);
+            var colony = new AntColony(grid, new ColonySettings(), layout, seed: 5);
+            Assert.AreEqual(2, colony.OpeningCount);
+            CollectionAssert.AreEqual(
+                new[] { new Vector2Int(10, 24), new Vector2Int(56, 70), new Vector2Int(71, 85), new Vector2Int(117, 131) },
+                colony.DumpStrips.OrderBy(s => s.x).ToArray(),
+                "Cada abertura ganha uma faixa de cada lado, com a distância da faixa configurada.");
+
+            var sim = new GranularSimulation();
+            const float dt = 1f / 60f;
+            for (int i = 0; i < 60 * 240 && colony.TotalDelivered < pixels; i++)
+            {
+                sim.Step(grid);
+                colony.Tick(dt);
+            }
+            Assert.AreEqual(pixels, colony.TotalDelivered);
+
+            int left = 0, right = 0, elsewhere = 0;
+            for (int x = 0; x < grid.Width; x++)
+            for (int y = surface + 1; y < grid.Height; y++)
+            {
+                if (grid.Get(x, y) != CellMaterial.Spoil)
+                    continue;
+                if (x >= 68 && x < 100) left++;
+                else if (x > 102) right++;
+                else elsewhere++;
+            }
+            Assert.AreEqual(0, elsewhere, "A terra deveria ir para a abertura mais perto, não para a entrada.");
+            Assert.AreEqual(pixels, left + right);
+            Assert.LessOrEqual(Mathf.Abs(left - right), 2, $"Monte desequilibrado: {left} à esquerda, {right} à direita.");
+        }
+
+        [Test]
+        public void Layout_HasNoMirrorDump_WhenTheStripCoversTheEntranceOrLeavesTheMap()
+        {
+            Assert.IsFalse(new TerrainLayout(20, new Vector2Int(20, 1), 15, 25).TryGetMirrorDump(100, out _, out _));
+            Assert.IsFalse(new TerrainLayout(2, new Vector2Int(2, 1), 30, 35).TryGetMirrorDump(100, out _, out _));
+            Assert.IsTrue(new TerrainLayout(10, new Vector2Int(10, 1), 15, 30).TryGetMirrorDump(100, out int min, out int max));
+            Assert.AreEqual(0, min, "O espelho é cortado na borda do mapa.");
+            Assert.AreEqual(5, max);
         }
 
         [TestCase(1)]
@@ -236,6 +355,132 @@ namespace Fabula.Incrementant.Tests
             var field = new FlowField(grid.Width, grid.Height);
             field.Build(grid, new List<int> { grid.ToIndex(6, 1) });
             Assert.AreEqual(5, field.Get(6, 6));
+        }
+
+        [Test]
+        public void BuildMarks_OnlyApplyToEmptyUndergroundCells_AndClearWhenFilled()
+        {
+            PixelGrid grid = MakeFloorGrid(10, 10);
+            for (int x = 0; x < grid.Width; x++)
+                grid.SetSurfaceY(x, 5);
+            grid.Set(3, 2, CellMaterial.Dirt);
+
+            Assert.IsFalse(grid.SetBuildMarked(3, 2, true), "Célula sólida não recebe marca de construção.");
+            Assert.IsFalse(grid.SetBuildMarked(4, 7, true), "O céu acima do solo original não se constrói.");
+            Assert.IsTrue(grid.SetBuildMarked(4, 2, true));
+            Assert.AreEqual(1, grid.BuildMarkedCount);
+            Assert.IsTrue(grid.IsBuildMarked(4, 2));
+
+            int version = grid.MarkVersion;
+            grid.Set(4, 2, CellMaterial.PackedSpoil);
+            Assert.AreEqual(0, grid.BuildMarkedCount, "Preencher a célula apaga a marca.");
+            Assert.AreNotEqual(version, grid.MarkVersion);
+        }
+
+        [Test]
+        public void Colony_FillsBuildMarksFromTheDeepestPointOutward_UsingDirtFromOutside()
+        {
+            // Solo maciço de terra com uma entrada (x 39..41) e um túnel horizontal até x = 70. Lá fora, sobre o solo,
+            // há uma pilha de terra solta. As marcas de construção ocupam o fundo do túnel (x 60..65).
+            const int surface = 20;
+            PixelGrid grid = MakeFloorGrid(80, 30);
+            for (int x = 0; x < grid.Width; x++)
+            {
+                grid.SetSurfaceY(x, surface);
+                for (int y = 1; y <= surface; y++)
+                    grid.Set(x, y, CellMaterial.Dirt);
+            }
+            for (int y = 5; y <= surface; y++)
+            for (int x = 39; x <= 41; x++)
+                grid.Set(x, y, CellMaterial.Empty);
+            for (int x = 39; x <= 70; x++)
+            for (int y = 5; y <= 7; y++)
+                grid.Set(x, y, CellMaterial.Empty);
+            for (int x = 48; x <= 57; x++)
+                grid.Set(x, surface + 1, CellMaterial.Spoil);
+            for (int x = 50; x <= 55; x++)
+                grid.Set(x, surface + 2, CellMaterial.Spoil);
+
+            for (int x = 60; x <= 65; x++)
+            for (int y = 5; y <= 6; y++)
+                Assert.IsTrue(grid.SetBuildMarked(x, y, true));
+            int toFill = grid.BuildMarkedCount;
+
+            var layout = new TerrainLayout(40, new Vector2Int(40, 6), 60, 70);
+            var colony = new AntColony(grid, new ColonySettings(), layout, seed: 11);
+            var sim = new GranularSimulation();
+            const float dt = 1f / 60f;
+
+            // Tick em que cada coluna recebeu o primeiro e o último pixel.
+            var first = new Dictionary<int, int>();
+            var last = new Dictionary<int, int>();
+            var seen = new HashSet<Vector2Int>();
+            int peakBuilders = 0;
+            for (int tick = 0; tick < 60 * 180 && grid.BuildMarkedCount > 0; tick++)
+            {
+                sim.Step(grid);
+                colony.Tick(dt);
+                int builders = colony.Ants.Count(a => a.State == AntState.Gathering || a.State == AntState.Hauling || a.State == AntState.Placing);
+                peakBuilders = Mathf.Max(peakBuilders, builders);
+                for (int x = 60; x <= 65; x++)
+                for (int y = 5; y <= 6; y++)
+                {
+                    if (grid.IsSolid(x, y) && seen.Add(new Vector2Int(x, y)))
+                    {
+                        if (!first.ContainsKey(x)) first[x] = tick;
+                        last[x] = tick;
+                    }
+                }
+            }
+
+            Assert.AreEqual(0, grid.BuildMarkedCount, "Todas as marcas deveriam ter sido preenchidas.");
+            Assert.AreEqual(toFill, seen.Count);
+            // Pontos até 1 de distância da saída em diferença podem andar juntos; a partir de 2 colunas, o mais fundo vem antes.
+            for (int x = 60; x < 64; x++)
+                Assert.LessOrEqual(last[x + 2], first[x], $"A coluna {x + 2} (mais fundo) deveria ficar pronta antes de a {x} começar.");
+            Assert.GreaterOrEqual(peakBuilders, 3, "Várias formigas devem construir ao mesmo tempo, sem voltar ociosas.");
+            Assert.AreEqual(CellMaterial.PackedSpoil, grid.Get(65, 5), "A terra posta fica encaixada, sem escorrer.");
+            Assert.AreEqual(0, colony.TotalDelivered, "Construir não conta como entrega de terra.");
+        }
+
+        [Test]
+        public void Colony_NeverFillsACellThatWouldSealOffAnInnerBuildMark()
+        {
+            // Túnel de 1 célula de altura: preencher qualquer ponto fecharia a passagem até as marcas mais fundas.
+            const int surface = 20;
+            PixelGrid grid = MakeFloorGrid(80, 30);
+            for (int x = 0; x < grid.Width; x++)
+            {
+                grid.SetSurfaceY(x, surface);
+                for (int y = 1; y <= surface; y++)
+                    grid.Set(x, y, CellMaterial.Dirt);
+            }
+            for (int y = 5; y <= surface; y++)
+            for (int x = 39; x <= 41; x++)
+                grid.Set(x, y, CellMaterial.Empty);
+            for (int x = 39; x <= 70; x++)
+                grid.Set(x, 5, CellMaterial.Empty);
+            for (int x = 48; x <= 57; x++)
+                grid.Set(x, surface + 1, CellMaterial.Spoil);
+            for (int x = 50; x <= 55; x++)
+                grid.Set(x, surface + 2, CellMaterial.Spoil);
+            for (int x = 50; x <= 55; x++)
+                Assert.IsTrue(grid.SetBuildMarked(x, 5, true));
+
+            var colony = new AntColony(grid, new ColonySettings(), new TerrainLayout(40, new Vector2Int(40, 6), 60, 70), seed: 4);
+            var sim = new GranularSimulation();
+            for (int tick = 0; tick < 60 * 120 && grid.BuildMarkedCount > 0; tick++)
+            {
+                sim.Step(grid);
+                colony.Tick(1f / 60f);
+                // Sempre do fundo para a saída: nenhuma célula é preenchida com uma mais funda ainda vazia.
+                for (int x = 50; x < 55; x++)
+                {
+                    if (grid.IsSolid(x, 5))
+                        Assert.IsTrue(grid.IsSolid(x + 1, 5), $"Preencheu a célula {x} antes da {x + 1}, selando a passagem.");
+                }
+            }
+            Assert.AreEqual(0, grid.BuildMarkedCount, "O túnel inteiro deveria ter sido preenchido, de dentro para fora.");
         }
 
         [Test]
