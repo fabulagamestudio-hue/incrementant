@@ -33,8 +33,9 @@ namespace Fabula.Incrementant.Save
         /// 2: água (camada, contadores e tempo debaixo d'água das formigas). 3: rainha e sala da rainha.
         /// 4: plantas, sala de nutrientes, nutrientes guardados e economia de nutrientes.
         /// 5: linhas ainda enterradas de cada planta (crescimento pela base).
+        /// 6: plantas cobertas por terra (<c>PixelGrid.GetBehind</c>).
         /// </summary>
-        public const int CurrentVersion = 5;
+        public const int CurrentVersion = 6;
         /// <summary>
         /// Versão mais antiga que ainda carrega (a 2 volta sem sala pintada e com a rainha no ninho; a 2 e a 3 voltam sem
         /// sala de nutrientes e com 0 nutrientes).
@@ -86,6 +87,9 @@ namespace Fabula.Incrementant.Save
         /// anteriores à versão 5: as plantas voltam todas para fora (a que só tiver a linha do chão reinicia).
         /// </summary>
         public byte[] PlantSunk = Array.Empty<byte>();
+        /// <summary>Por célula: planta atrás do material (material como byte, 0 = nenhuma) e o tom dela. Vazios antes da versão 6.</summary>
+        public byte[] Behind = Array.Empty<byte>();
+        public byte[] BehindShades = Array.Empty<byte>();
 
         public static GameSnapshot Capture(PixelGrid grid, AntColony colony, RainSimulation rain, WaterSimulation water,
                                            int mapSource, int seed, double matchSeconds, VegetationSimulation vegetation = null)
@@ -124,6 +128,8 @@ namespace Fabula.Incrementant.Save
                 Water = new byte[count],
                 QueenRoom = new byte[count],
                 NutrientRoom = new byte[count],
+                Behind = new byte[count],
+                BehindShades = new byte[count],
             };
 
             int i = 0;
@@ -136,6 +142,8 @@ namespace Fabula.Incrementant.Save
                 snapshot.Wetness[i] = grid.GetWetness(x, y);
                 snapshot.Water[i] = grid.HasWater(x, y) ? (byte)1 : (byte)0;
                 snapshot.QueenRoom[i] = grid.IsQueenRoom(x, y) ? (byte)1 : (byte)0;
+                snapshot.Behind[i] = (byte)grid.GetBehind(x, y);
+                snapshot.BehindShades[i] = grid.GetBehindShade(x, y);
                 // Bits 2-7: segundos de cura que faltam (arredondados para cima, até 63). Saves antigos têm 0 = pronto.
                 int cure = Mathf.Min(63, Mathf.CeilToInt(grid.GetNutrientCure(x, y)));
                 snapshot.NutrientRoom[i] = (byte)((grid.IsNutrientRoom(x, y) ? 1 : 0) | (grid.HasNutrient(x, y) ? 2 : 0) | (cure << 2));
@@ -177,7 +185,12 @@ namespace Fabula.Incrementant.Save
             for (int y = Active.yMin; y < Active.yMax; y++)
             for (int x = Active.xMin; x < Active.xMax; x++, i++)
             {
+                // Esvazia antes (sem planta atrás para voltar): Set sobre planta a guardaria atrás, e o que fica atrás vem do save.
+                grid.SetBehind(x, y, CellMaterial.Empty);
+                grid.Set(x, y, CellMaterial.Empty, 0);
                 grid.Set(x, y, (CellMaterial)Cells[i], Shades[i]);
+                if (Behind.Length != 0 && Behind[i] != 0)
+                    grid.SetBehind(x, y, (CellMaterial)Behind[i], BehindShades[i]);
                 if (Marked[i] == 1)
                     grid.SetMarked(x, y, true);
                 else if (Marked[i] == 2)
@@ -277,6 +290,8 @@ namespace Fabula.Incrementant.Save
                 w.Write(QueenRoom);
                 w.Write(NutrientRoom);
                 w.Write(PlantSunk);
+                w.Write(Behind);
+                w.Write(BehindShades);
             }
         }
 
@@ -360,6 +375,8 @@ namespace Fabula.Incrementant.Save
                     s.QueenRoom = version >= 3 ? ReadBlock(r, count) : Array.Empty<byte>();
                     s.NutrientRoom = version >= 4 ? ReadBlock(r, count) : Array.Empty<byte>();
                     s.PlantSunk = version >= 5 ? ReadBlock(r, s.Active.width) : Array.Empty<byte>();
+                    s.Behind = version >= 6 ? ReadBlock(r, count) : Array.Empty<byte>();
+                    s.BehindShades = version >= 6 ? ReadBlock(r, count) : Array.Empty<byte>();
                     return s;
                 }
             }

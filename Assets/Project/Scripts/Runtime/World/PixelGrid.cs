@@ -29,6 +29,9 @@ namespace Fabula.Incrementant.World
         readonly byte[] _wetness;
         // Água: camada à parte, só em células sem material. Para navegação e estrutura a célula continua vazia.
         readonly bool[] _water;
+        // Planta atrás do material: pixel de planta que terra (ou outro sólido) cobriu. Volta quando a célula esvazia.
+        readonly CellMaterial[] _behind;
+        readonly byte[] _behindShades;
         readonly int[] _surfaceY;
 
         // Blocos de ChunkSize x ChunkSize células. Toda mudança de célula "toca" o bloco dela e os vizinhos que
@@ -108,6 +111,8 @@ namespace Fabula.Incrementant.World
             _nutrientCure = new float[width * height];
             _wetness = new byte[width * height];
             _water = new bool[width * height];
+            _behind = new CellMaterial[width * height];
+            _behindShades = new byte[width * height];
             _surfaceY = new int[width];
             for (int x = 0; x < width; x++)
                 _surfaceY[x] = -1;
@@ -252,6 +257,48 @@ namespace Fabula.Incrementant.World
 
         internal CellMaterial GetAt(int index) => _cells[index];
 
+        /// <summary>
+        /// Planta guardada atrás do material da célula (<see cref="CellMaterial.Empty"/> = nenhuma). As plantas ficam numa
+        /// profundidade atrás da terra: grão que cai numa célula de planta a cobre em vez de parar em cima, e a planta
+        /// volta quando a célula esvazia (o grão segue caindo, a formiga cava). Não conta como material para nada.
+        /// </summary>
+        public CellMaterial GetBehind(int x, int y) => InBounds(x, y) ? _behind[y * Width + x] : CellMaterial.Empty;
+
+        public byte GetBehindShade(int x, int y) => InBounds(x, y) ? _behindShades[y * Width + x] : (byte)0;
+
+        /// <summary>
+        /// Guarda (ou tira, com <see cref="CellMaterial.Empty"/>) uma planta atrás do material. Só planta e só em célula
+        /// com material que não é planta (save, crescimento). Devolve false se não aceitou.
+        /// </summary>
+        public bool SetBehind(int x, int y, CellMaterial plant, byte shade = 128)
+        {
+            if (!InBounds(x, y))
+                return false;
+            int i = y * Width + x;
+            if (plant != CellMaterial.Empty &&
+                (!CellMaterials.IsPlant(plant) || _cells[i] == CellMaterial.Empty || CellMaterials.IsPlant(_cells[i])))
+                return false;
+            _behind[i] = plant;
+            _behindShades[i] = plant == CellMaterial.Empty ? (byte)0 : shade;
+            return true;
+        }
+
+        /// <summary>Grão pode cair na célula: vazia ou planta (que fica atrás dele).</summary>
+        internal bool CanFallIntoAt(int index)
+        {
+            CellMaterial m = _cells[index];
+            return m == CellMaterial.Empty || CellMaterials.IsPlant(m);
+        }
+
+        /// <summary>Guarda a planta da célula atrás do material que vai entrar (sem marca de colheita).</summary>
+        void PushBehindAt(int index)
+        {
+            _behind[index] = _cells[index];
+            _behindShades[index] = _shades[index];
+            if (_marked[index])
+                ClearMarkAt(index);
+        }
+
         internal bool IsMarkedAt(int index) => _marked[index];
 
         /// <summary>
@@ -265,6 +312,17 @@ namespace Fabula.Incrementant.World
 
             int i = y * Width + x;
             bool wasSolid = _cells[i] != CellMaterial.Empty;
+            if (material != CellMaterial.Empty && !CellMaterials.IsPlant(material) && CellMaterials.IsPlant(_cells[i]))
+                PushBehindAt(i);
+            else if (CellMaterials.IsPlant(material))
+                _behind[i] = CellMaterial.Empty;
+            if (material == CellMaterial.Empty && _behind[i] != CellMaterial.Empty)
+            {
+                // A planta que estava atrás volta (a terra que a cobria saiu).
+                material = _behind[i];
+                shade = _behindShades[i];
+                _behind[i] = CellMaterial.Empty;
+            }
             _cells[i] = material;
             _shades[i] = shade;
             SetWetnessAt(i, 0);
@@ -432,15 +490,20 @@ namespace Fabula.Incrementant.World
         }
 
         /// <summary>
-        /// Move material, tom e marca de uma célula para outra vazia (usado pela simulação granular). Se o destino
-        /// tinha água, ela troca de lugar com o grão (o grão afunda).
+        /// Move material, tom e marca de uma célula para outra vazia ou com planta (usado pela simulação granular). Se o
+        /// destino tinha água, ela troca de lugar com o grão (o grão afunda); se tinha planta, ela fica atrás do grão
+        /// (<see cref="GetBehind"/>). A planta que estava atrás da origem volta para ela.
         /// </summary>
         internal void MoveCell(int from, int to)
         {
+            if (CellMaterials.IsPlant(_cells[to]))
+                PushBehindAt(to);
             if (_water[to])
             {
                 SetWaterAt(to, false);
-                SetWaterAt(from, true);
+                // A origem só fica livre para a água se não houver planta atrás do grão para voltar a ela.
+                if (_behind[from] == CellMaterial.Empty)
+                    SetWaterAt(from, true);
             }
             _cells[to] = _cells[from];
             _shades[to] = _shades[from];
@@ -456,8 +519,10 @@ namespace Fabula.Incrementant.World
                 SetNutrientAt(to, false);
             SetWetnessAt(to, _wetness[from]);
             SetWetnessAt(from, 0);
-            _cells[from] = CellMaterial.Empty;
-            _shades[from] = 0;
+            _cells[from] = _behind[from];
+            _shades[from] = _behindShades[from];
+            _behind[from] = CellMaterial.Empty;
+            _behindShades[from] = 0;
             _marked[from] = false;
             StructureVersion++;
             Touch(from % Width, from / Width);

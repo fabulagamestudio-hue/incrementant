@@ -156,7 +156,10 @@ namespace Fabula.Incrementant.AntFarm
             for (int i = 0; i < cells.Length; i++)
             {
                 int cx = x + cells[i].x, cy = rootY + cells[i].y - entry.Sunk;
-                byte state = cy < rootY ? (byte)0 : CellMaterials.IsPlant(grid.Get(cx, cy)) ? grid.IsMarked(cx, cy) ? (byte)2 : (byte)1 : (byte)0;
+                // Pedaço coberto por terra (PixelGrid.GetBehind) continua desenhado: o sprite fica atrás do terreno.
+                byte state = cy < rootY ? (byte)0
+                    : CellMaterials.IsPlant(grid.Get(cx, cy)) ? grid.IsMarked(cx, cy) ? (byte)2 : (byte)1
+                    : CellMaterials.IsPlant(grid.GetBehind(cx, cy)) ? (byte)1 : (byte)0;
                 if (state == entry.State[i])
                     continue;
                 entry.State[i] = state;

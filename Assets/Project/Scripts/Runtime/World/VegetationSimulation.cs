@@ -444,7 +444,11 @@ namespace Fabula.Incrementant.World
                     continue;
                 int cx = x + c.x, cy = rootY + c.y - oldSunk;
                 if (!CellMaterials.IsPlant(grid.Get(cx, cy)))
+                {
+                    // Pedaço coberto por terra (atrás dela): some junto, para não reaparecer fora do lugar ao cavar.
+                    grid.SetBehind(cx, cy, CellMaterial.Empty);
                     continue;
+                }
                 grid.Set(cx, cy, CellMaterial.Empty, 0);
                 removed++;
             }

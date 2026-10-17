@@ -2,6 +2,7 @@ namespace Fabula.Incrementant.World
 {
     /// <summary>
     /// Queda de materiais granulares no estilo "falling sand": cai reto, senão escorrega em diagonal.
+    /// Planta não segura grão: ela fica atrás da terra (<see cref="PixelGrid.GetBehind"/>), então o grão a atravessa.
     /// Varre de baixo para cima; como só há movimento para a linha de baixo (já processada), nenhuma célula
     /// anda duas vezes no mesmo passo. A direção horizontal alterna por linha e por passo para não enviesar pilhas.
     /// Pula os blocos dormindo da grade (<see cref="PixelGrid.IsChunkAwake"/>): neles todo grão já está parado, então
@@ -64,7 +65,7 @@ namespace Fabula.Incrementant.World
                 return;
 
             int below = i - w;
-            if (grid.GetAt(below) == CellMaterial.Empty)
+            if (grid.CanFallIntoAt(below))
             {
                 grid.MoveCell(i, below);
                 return;
@@ -79,7 +80,8 @@ namespace Fabula.Incrementant.World
         {
             int nx = x + dx;
             // Exige a lateral livre também, para o grão não atravessar quinas.
-            if (grid.Get(nx, y) != CellMaterial.Empty || grid.Get(nx, y - 1) != CellMaterial.Empty)
+            if (!grid.InBounds(nx, y - 1) || !grid.CanFallIntoAt(grid.ToIndex(nx, y)) ||
+                !grid.CanFallIntoAt(grid.ToIndex(nx, y - 1)))
                 return false;
 
             grid.MoveCell(grid.ToIndex(x, y), grid.ToIndex(nx, y - 1));

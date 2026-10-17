@@ -150,6 +150,45 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
+        public void FallingSoil_PassesBehindPlants_AndThePlantComesBackWhenTheSoilLeaves()
+        {
+            PixelGrid grid = MakeWorld();
+            PlantBlade(grid, 5);
+            int top = Surface + 5;
+            grid.Set(BladeX, top + 3, CellMaterial.Spoil, 77);
+            var granular = new GranularSimulation();
+            for (int i = 0; i < 20; i++)
+                granular.Step(grid);
+
+            Assert.AreEqual(CellMaterial.Spoil, grid.Get(BladeX, Surface + 1), "O grão atravessa a planta até o chão.");
+            Assert.AreEqual(77, grid.GetShade(BladeX, Surface + 1));
+            Assert.AreEqual(CellMaterial.PlantGrass, grid.GetBehind(BladeX, Surface + 1), "A raiz fica atrás do grão.");
+            Assert.IsFalse(grid.IsMarked(BladeX, Surface + 1), "A marca de colheita do pedaço coberto sai.");
+            for (int y = Surface + 2; y <= top; y++)
+            {
+                Assert.AreEqual(CellMaterial.PlantGrass, grid.Get(BladeX, y), $"A planta continua inteira em y = {y}.");
+                Assert.AreEqual(CellMaterial.Empty, grid.GetBehind(BladeX, y));
+            }
+
+            // Save com a planta coberta: volta igual.
+            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 3);
+            var snapshot = GameSnapshot.Capture(grid, colony, new RainSimulation(new RainSettings(), 1),
+                                                new WaterSimulation(new WaterSettings(), grid, 1), 0, 1, 0);
+            using var stream = new MemoryStream();
+            snapshot.Write(stream);
+            stream.Position = 0;
+            PixelGrid loaded = MakeWorld();
+            GameSnapshot.Read(stream).ApplyTo(loaded);
+            Assert.AreEqual(CellMaterial.Spoil, loaded.Get(BladeX, Surface + 1));
+            Assert.AreEqual(CellMaterial.PlantGrass, loaded.GetBehind(BladeX, Surface + 1), "O save guarda a planta coberta.");
+
+            // Cavado o grão, a planta volta para a célula.
+            grid.Set(BladeX, Surface + 1, CellMaterial.Empty, 0);
+            Assert.AreEqual(CellMaterial.PlantGrass, grid.Get(BladeX, Surface + 1));
+            Assert.AreEqual(CellMaterial.Empty, grid.GetBehind(BladeX, Surface + 1));
+        }
+
+        [Test]
         public void Vegetation_RegrowsFromTheBase_PushingTheWholePlantUp()
         {
             PixelGrid grid = MakeWorld(400);
