@@ -63,6 +63,8 @@ namespace Fabula.Incrementant.AntFarm
         [Header("Câmera")]
         [Tooltip("Folga, em células, do enquadramento inicial e acima do topo do mundo.")]
         [SerializeField, Min(0f)] float _cameraMargin = 4f;
+        [Tooltip("Quanto a câmera sobe acima do topo do mundo, em células (além da folga): espaço de céu para elementos grandes do cenário.")]
+        [SerializeField, Min(0f)] float _cameraSkyHeadroom = 120f;
         [SerializeField] MapCamera _cameraControl = new MapCamera();
 
         static readonly int[] SpeedSteps = { 1, 3, 8 };
@@ -198,7 +200,8 @@ namespace Fabula.Incrementant.AntFarm
             _accumulator = 0f;
 
             Vector3 origin = _view.transform.position;
-            var bounds = new Rect(origin.x, origin.y, _grid.Width, _grid.Height + _cameraMargin);
+            float skyAbove = _cameraMargin + _cameraSkyHeadroom;
+            var bounds = new Rect(origin.x, origin.y, _grid.Width, _grid.Height + skyAbove);
             var startView = new Rect(origin.x + _startArea.x, origin.y + _startArea.y, _startArea.width, _startArea.height);
             _cameraControl.Reset(_camera, bounds, startView, _cameraMargin);
 
@@ -211,7 +214,8 @@ namespace Fabula.Incrementant.AntFarm
                 Func<int, bool> isLake = generator != null
                     ? x => generator.GetLakeLevel(x) >= 0
                     : (Func<int, bool>)(x => grid.HasWater(x, grid.GetSurfaceY(x) + 1));
-                _scenery.Build(_grid, _layout, _seed, origin, _startArea.yMin, _camera.transform.position, isLake);
+                _scenery.Build(_grid, _layout, _seed, origin, _startArea.yMin, _camera.transform.position, isLake,
+                               Mathf.CeilToInt(skyAbove) + 1);
             }
             EnsureGenerated();
         }

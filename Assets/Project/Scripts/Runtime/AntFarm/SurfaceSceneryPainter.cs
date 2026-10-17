@@ -120,8 +120,8 @@ namespace Fabula.Incrementant.AntFarm
         public const int PixelsPerCell = 6;
         /// <summary>Células abaixo do solo mais baixo incluídas nas camadas, para as bases ficarem enterradas atrás do terreno.</summary>
         const int Embed = 3;
-        /// <summary>Células de céu acima do topo do mapa (a câmera tem uma folga acima do mundo).</summary>
-        const int SkyAbove = 40;
+        /// <summary>Células de céu acima do topo do mapa quando quem chama não informa a folga da câmera.</summary>
+        public const int DefaultSkyAbove = 40;
         /// <summary>Largura do ladrilho das faixas de grama distante, em células.</summary>
         public const int BandTileCells = 160;
         /// <summary>
@@ -135,9 +135,10 @@ namespace Fabula.Incrementant.AntFarm
         /// <param name="skyBaseY">Linha do mapa onde o gradiente do céu tem a cor de baixo; o topo do mapa tem a de cima.</param>
         /// <param name="art">Carimbos de cada elemento; sem ele (ou num elemento sem carimbos) usa <see cref="SceneryStampLibrary.Default"/>.</param>
         /// <param name="isLakeColumn">Colunas com laguinho (opcional): nada do cenário perto/frente nasce nelas.</param>
+        /// <param name="skyAbove">Células de céu pintadas acima do topo do mapa; cubra até onde a câmera pode subir.</param>
         public static SceneryLayers Paint(PixelGrid grid, TerrainLayout layout, SurfaceScenerySettings settings, int seed,
                                           Color32 skyTop, Color32 skyBottom, int skyBaseY = 0, SceneryStampLibrary art = null,
-                                          Func<int, bool> isLakeColumn = null)
+                                          Func<int, bool> isLakeColumn = null, int skyAbove = DefaultSkyAbove)
         {
             int minSurface = grid.Height - 1;
             for (int x = 0; x < grid.Width; x++)
@@ -150,7 +151,7 @@ namespace Fabula.Incrementant.AntFarm
             var painter = new Painter(grid, originY) { Skip = isLakeColumn };
             float per100 = grid.Width / 100f;
 
-            var sky = new SceneryLayer(1, (grid.Height + SkyAbove - originY) * PixelsPerCell, originY, PixelsPerCell);
+            var sky = new SceneryLayer(1, (grid.Height + Mathf.Max(0, skyAbove) - originY) * PixelsPerCell, originY, PixelsPerCell);
             PaintSky(sky, skyBaseY, grid.Height - 1, skyTop, skyBottom);
 
             // Duas faixas de grama distante, cada vez mais apagadas na cor do céu (perspectiva atmosférica).

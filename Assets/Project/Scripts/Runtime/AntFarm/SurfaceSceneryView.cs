@@ -58,15 +58,16 @@ namespace Fabula.Incrementant.AntFarm
         /// <paramref name="parallaxAnchor"/> é a posição da câmera em que as faixas distantes ficam no horizonte.
         /// </summary>
         /// <param name="isLakeColumn">Colunas com laguinho (opcional): o cenário perto/frente não nasce nelas.</param>
+        /// <param name="skyAbove">Células de céu acima do topo do mapa (até onde a câmera sobe).</param>
         public void Build(PixelGrid grid, TerrainLayout layout, int seed, Vector3 mapOrigin, int skyBaseY, Vector2 parallaxAnchor,
-                          System.Func<int, bool> isLakeColumn = null)
+                          System.Func<int, bool> isLakeColumn = null, int skyAbove = SurfaceSceneryPainter.DefaultSkyAbove)
         {
             _mapOrigin = mapOrigin;
             _parallaxAnchor = parallaxAnchor;
             // Lido uma vez por sessão de Play: os PNGs não mudam enquanto o jogo roda.
             EnsureLibrary();
             _plants?.Clear();
-            SceneryLayers layers = SurfaceSceneryPainter.Paint(grid, layout, _settings, seed, _skyTop, _skyBottom, skyBaseY, _library, isLakeColumn);
+            SceneryLayers layers = SurfaceSceneryPainter.Paint(grid, layout, _settings, seed, _skyTop, _skyBottom, skyBaseY, _library, isLakeColumn, skyAbove);
             Apply(ref _sky, "ScenerySky", _skySortingOrder, layers.Sky, SpriteDrawMode.Simple);
             Apply(ref _far, "SceneryFar", _farSortingOrder, layers.Far, SpriteDrawMode.Tiled);
             Apply(ref _mid, "SceneryMid", _midSortingOrder, layers.Mid, SpriteDrawMode.Tiled);

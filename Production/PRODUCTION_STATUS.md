@@ -121,7 +121,7 @@ Registro completo: [REQUESTS.md](REQUESTS.md)
 - Regras da chuva: quando chove (manual × ciclo automático), compactação permanente ou temporária, se a chuva leve afeta areia despejada e o compactado (GD-002)
 - Regras da água: valores de X e Y, se as formigas devem evitar a água (GD-003); conferir se a superfície inunda com chuva forte agora que a água só some no formigueiro (KI-009)
 - Regras da rainha: o que ela faz sem sala, se formigas novas nascem nela, arte própria e se pintar a sala deveria já marcar para cavar (GD-004)
-- Regras das plantas e nutrientes: valor de X (60 s por passo de crescimento), forma das plantas vinda dos sprites (touceira de ~300 a 420 pedaços), rebrota da planta com a ponta colhida (vira uma planta baixa com ponta), densidade, pincel próprio de colheita, preço das formigas em nutrientes (GD-005)
+- Regras das plantas e nutrientes: valor de X (60 s por passo de crescimento), forma das plantas vinda dos sprites (touceira de ~300 a 420 pedaços), reinício da planta só quando não sobra nada para colher, densidade, pincel próprio de colheita, preço das formigas em nutrientes (GD-005)
 - O loop do protótipo (marcar pixels para cavar e plantas para colher; nutrientes compram formigas) é o desejado? (GD-001)
 - Descrição, plataformas-alvo e marco atual do jogo.
 - Substituir a cena de template `Assets/Scenes/SampleScene.unity` e mover `Assets/Settings` para `Assets/Project`? (não feito: quebraria referências; fica como tarefa separada).

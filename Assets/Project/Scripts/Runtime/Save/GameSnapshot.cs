@@ -83,7 +83,7 @@ namespace Fabula.Incrementant.Save
         public byte[] NutrientRoom = Array.Empty<byte>();
         /// <summary>
         /// Por coluna da área ativa: linhas da forma da planta com raiz ali ainda enterradas (até 255). Vazio em saves
-        /// anteriores à versão 5: as plantas voltam todas para fora (a que estiver com a ponta colhida rebrota).
+        /// anteriores à versão 5: as plantas voltam todas para fora (a que só tiver a linha do chão reinicia).
         /// </summary>
         public byte[] PlantSunk = Array.Empty<byte>();
 

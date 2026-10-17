@@ -25,11 +25,16 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Vazio abaixo do solo original: a formiga se apoia na parede de trás do formigueiro.</summary>
         public static bool IsTunnelBackground(PixelGrid grid, int x, int y) => y <= grid.GetSurfaceY(x);
 
+        /// <summary>
+        /// Algum dos 8 vizinhos é sólido. Acima do topo do mundo é céu aberto, não apoio: sem isso a última linha da
+        /// grade (fora dela tudo conta como <see cref="CellMaterial.Bedrock"/>) viraria um teto onde as formigas andam.
+        /// </summary>
         public static bool TouchesSolid(PixelGrid grid, int x, int y)
         {
             for (int k = 0; k < 8; k++)
             {
-                if (grid.IsSolid(x + Dx[k], y + Dy[k]))
+                int ny = y + Dy[k];
+                if (ny < grid.Height && grid.IsSolid(x + Dx[k], ny))
                     return true;
             }
             return false;

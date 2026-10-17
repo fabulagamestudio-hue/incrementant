@@ -358,6 +358,18 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
+        public void TopOfWorld_IsNotACeiling()
+        {
+            // Fora da grade conta como rocha; acima do topo, porém, é céu aberto: a última linha não vira teto.
+            PixelGrid grid = MakeFloorGrid(12, 14);
+            for (int x = 0; x < grid.Width; x++)
+                grid.SetSurfaceY(x, 8);
+
+            Assert.IsFalse(AntNavigation.IsWalkable(grid, 6, grid.Height - 1), "Topo do mundo sem nada encostado: não anda.");
+            Assert.IsTrue(AntNavigation.IsWalkable(grid, 0, grid.Height - 2), "A borda lateral do mundo continua sendo parede.");
+        }
+
+        [Test]
         public void BuildMarks_OnlyApplyToEmptyUndergroundCells_AndClearWhenFilled()
         {
             PixelGrid grid = MakeFloorGrid(10, 10);

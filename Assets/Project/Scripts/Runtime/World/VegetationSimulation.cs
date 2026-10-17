@@ -356,9 +356,10 @@ namespace Fabula.Incrementant.World
         /// <summary>
         /// Um passo de crescimento. Com linhas ainda enterradas, empurra a planta inteira 1 linha para cima (células,
         /// buracos colhidos e marcas de colheita vão junto) e põe a linha seguinte da forma na linha da raiz, sem marca.
-        /// Toda para fora e com a ponta colhida, rebrota: o que sobrou vira a ponta da forma, com a mesma altura, e volta
-        /// a subir nos passos seguintes. Toda para fora com a ponta inteira, para (buracos no meio não voltam). Precisa de
-        /// chão firme sob a raiz; se algo que não é planta tapa a subida, espera. Devolve quantos pixels a planta ganhou.
+        /// Toda para fora, para de crescer enquanto ainda tiver algum pixel que dê para colher; quando só sobra a linha do
+        /// chão (que nunca é colhida), reinicia: volta inteira para debaixo da terra, com só a ponta para fora, e sobe de
+        /// novo nos passos seguintes (pedido do desenvolvedor em 2026-10-17). Precisa de chão firme sob a raiz; se algo que
+        /// não é planta tapa a subida, espera. Devolve quantos pixels a planta ganhou.
         /// </summary>
         int Grow(PixelGrid grid, int x, PlantShape shape, CellMaterial material)
         {
@@ -370,16 +371,14 @@ namespace Fabula.Incrementant.World
             Vector2Int[] cells = shape.Cells;
             if (sunk == 0)
             {
-                int top = -1;
+                // Ainda há o que colher (algum pixel acima da linha do chão da coluna dele): espera.
                 foreach (Vector2Int c in cells)
                 {
-                    if (CellMaterials.IsPlant(grid.Get(x + c.x, rootY + c.y)))
-                        top = Mathf.Max(top, c.y);
+                    int cx = x + c.x, cy = rootY + c.y;
+                    if (cy > grid.GetSurfaceY(cx) + 1 && CellMaterials.IsPlant(grid.Get(cx, cy)))
+                        return 0;
                 }
-                if (top >= shape.Height - 1)
-                    return 0;
-                // Ponta colhida: rebrota com a altura que sobrou (pelo menos a linha da raiz).
-                return Sprout(grid, x, shape, material, shape.Height - Mathf.Max(1, top + 1));
+                return Sprout(grid, x, shape, material, shape.Height - 1);
             }
 
             // Sobe: de cima para baixo (Cells está em ordem de crescimento), cada célula presente vai 1 linha para cima.
@@ -431,15 +430,13 @@ namespace Fabula.Incrementant.World
         }
 
         /// <summary>
-        /// Refaz a planta com <paramref name="sunk"/> linhas enterradas: tira as células dela e põe as linhas de cima da
-        /// forma a partir da raiz. Célula que continua planta mantém a marca; célula nova nasce sem marca. Devolve o
-        /// saldo de pixels (nunca negativo).
+        /// Refaz a planta do zero com <paramref name="sunk"/> linhas enterradas: tira as células dela (e as marcas) e põe
+        /// as linhas de cima da forma a partir da raiz, todas sem marca. Devolve o saldo de pixels (nunca negativo).
         /// </summary>
         int Sprout(PixelGrid grid, int x, PlantShape shape, CellMaterial material, int sunk)
         {
             int rootY = grid.GetSurfaceY(x) + 1;
             int oldSunk = Mathf.Min(_sunk[x], shape.Height - 1);
-            var marked = new HashSet<int>();
             int removed = 0;
             foreach (Vector2Int c in shape.Cells)
             {
@@ -448,14 +445,12 @@ namespace Fabula.Incrementant.World
                 int cx = x + c.x, cy = rootY + c.y - oldSunk;
                 if (!CellMaterials.IsPlant(grid.Get(cx, cy)))
                     continue;
-                if (grid.IsMarked(cx, cy))
-                    marked.Add(cy * grid.Width + cx);
                 grid.Set(cx, cy, CellMaterial.Empty, 0);
                 removed++;
             }
 
             _sunk[x] = sunk;
-            var placed = new List<int>();
+            int placed = 0;
             foreach (Vector2Int c in shape.Cells)
             {
                 if (c.y < sunk)
@@ -464,28 +459,9 @@ namespace Fabula.Incrementant.World
                 if (!grid.IsOpen(cx, cy) || cy <= grid.GetSurfaceY(cx))
                     continue;
                 grid.Set(cx, cy, material, Shade(cx, c.y));
-                placed.Add(cy * grid.Width + cx);
+                placed++;
             }
-
-            // A forma nova pode não ter célula onde estava a marcada (a ponta é mais fina que a base): cada marca passa
-            // para a célula nova mais perto na mesma linha, então a colheita pedida continua e nenhuma marca a mais nasce.
-            foreach (int index in marked)
-            {
-                int mx = index % grid.Width, my = index / grid.Width;
-                int best = int.MaxValue, bestX = 0;
-                foreach (int p in placed)
-                {
-                    int cx = p % grid.Width, distance = Mathf.Abs(cx - mx);
-                    if (p / grid.Width == my && distance < best && !grid.IsMarked(cx, my))
-                    {
-                        best = distance;
-                        bestX = cx;
-                    }
-                }
-                if (best != int.MaxValue)
-                    grid.SetMarked(bestX, my, true);
-            }
-            return Mathf.Max(0, placed.Count - removed);
+            return Mathf.Max(0, placed - removed);
         }
 
         /// <summary>Tom fixo de cada célula da forma (acompanha a célula quando a planta sobe).</summary>

@@ -168,7 +168,17 @@ namespace Fabula.Incrementant.Tests
             Assert.AreEqual(shape.Cells.Length, CountPlant(grid, plantX), "A planta nasce completa.");
             Assert.AreEqual(0, vegetation.GetSunkRows(plantX));
 
-            // Colhe tudo menos a linha do chão e marca a raiz para colheita.
+            // Completa e com a ponta colhida: ainda tem pixel para colher, então não cresce.
+            int top = TopOfPlant(grid, plantX);
+            for (int dx = -1; dx <= 1; dx++)
+                grid.Set(plantX + dx, top, CellMaterial.Empty);
+            int remaining = CountPlant(grid, plantX);
+            Assert.Greater(TopOfPlant(grid, plantX), Surface + 1, "O teste precisa de pixels colhíveis acima do chão.");
+            RunGrowStep(vegetation, grid, settings);
+            Assert.AreEqual(0, vegetation.GetSunkRows(plantX), "Com o que colher, a planta completa espera.");
+            Assert.AreEqual(remaining, CountPlant(grid, plantX), "Não repõe nada enquanto há o que colher.");
+
+            // Colhe tudo menos a linha do chão (que nunca é colhida) e marca a raiz.
             for (int y = Surface + 2; y < grid.Height; y++)
             for (int dx = -1; dx <= 1; dx++)
             {
@@ -177,11 +187,14 @@ namespace Fabula.Incrementant.Tests
             }
             Assert.IsTrue(grid.SetMarked(plantX, Surface + 1, true));
 
-            // Primeiro passo: rebrota com a ponta da forma na linha da raiz (a marca fica onde estava).
+            // Sem nada para colher, reinicia: volta inteira para debaixo da terra com só a ponta para fora, sem marca.
             RunGrowStep(vegetation, grid, settings);
-            Assert.AreEqual(shape.Height - 1, vegetation.GetSunkRows(plantX), "Rebrota com só a ponta para fora.");
+            Assert.AreEqual(shape.Height - 1, vegetation.GetSunkRows(plantX), "Reinicia com só a ponta para fora.");
             Assert.AreEqual(Surface + 1, TopOfPlant(grid, plantX));
+            Assert.AreEqual(0, grid.MarkedCount, "A planta reiniciada nasce sem marca.");
 
+            // O jogador marca a ponta: a marca sobe junto com o pixel, e o que cresce embaixo nasce sem marca.
+            Assert.IsTrue(grid.SetMarked(plantX, Surface + 1, true));
             for (int i = 1; i < shape.Height; i++)
             {
                 RunGrowStep(vegetation, grid, settings);
