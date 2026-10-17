@@ -35,22 +35,77 @@ namespace Fabula.Incrementant.Tests
             return grid;
         }
 
-        /// <summary>Folha de grama em <see cref="BladeX"/>: raiz logo acima do solo e <paramref name="height"/> pixels ao todo, marcada.</summary>
+        /// <summary>Folha de grama em <see cref="BladeX"/>: raiz logo acima do solo e <paramref name="height"/> pixels ao todo.</summary>
         static void PlantBlade(PixelGrid grid, int height)
         {
             for (int i = 0; i < height; i++)
-            {
                 grid.Set(BladeX, Surface + 1 + i, CellMaterial.PlantGrass);
-                Assert.IsTrue(grid.SetMarked(BladeX, Surface + 1 + i, true), "Planta aceita marca de colheita.");
-            }
         }
 
-        static int BladeHeight(PixelGrid grid)
+        /// <summary>
+        /// Mundo largo com uma única planta nascida da seed (longe da entrada e do despejo), completa, e a sala de nutrientes
+        /// pintada. As outras plantas da seed são apagadas para o alvo das jardineiras ser sempre esta.
+        /// </summary>
+        static (PixelGrid grid, VegetationSimulation vegetation, int plantX, PlantShape shape) MakeGarden(PlantShape[] shapes = null)
         {
-            int height = 0;
-            while (grid.Get(BladeX, Surface + 1 + height) == CellMaterial.PlantGrass)
-                height++;
-            return height;
+            PixelGrid grid = MakeWorld(400);
+            var vegetation = shapes == null
+                ? new VegetationSimulation(new VegetationSettings(), seed: 11, Layout, grid.Width)
+                : new VegetationSimulation(new VegetationSettings(), seed: 11, Layout, grid.Width, shapes, shapes);
+            vegetation.Populate(grid);
+            int plantX = -1;
+            PlantShape shape = null;
+            foreach (int x in vegetation.Plants)
+            {
+                if (plantX < 0)
+                {
+                    plantX = x;
+                    vegetation.TryGetPlant(x, out _, out shape, out _);
+                    continue;
+                }
+                vegetation.TryGetPlant(x, out _, out PlantShape other, out _);
+                foreach (Vector2Int c in other.Cells)
+                    grid.Set(x + c.x, Surface + 1 + c.y, CellMaterial.Empty);
+            }
+            Assert.GreaterOrEqual(plantX, 0, "A seed deveria ter alguma planta longe da entrada.");
+            PaintNutrientRoom(grid, 30, 35, 1, 3);
+            return (grid, vegetation, plantX, shape);
+        }
+
+        static int PlantCells(PixelGrid grid, int plantX, PlantShape shape)
+        {
+            int cells = 0;
+            for (int y = Surface + 1; y < grid.Height; y++)
+            for (int x = plantX + shape.MinDx; x <= plantX + shape.MaxDx; x++)
+                cells += CellMaterials.IsPlant(grid.Get(x, y)) ? 1 : 0;
+            return cells;
+        }
+
+        static int PlantCellsInRow(PixelGrid grid, int plantX, PlantShape shape, int y)
+        {
+            int cells = 0;
+            for (int x = plantX + shape.MinDx; x <= plantX + shape.MaxDx; x++)
+                cells += CellMaterials.IsPlant(grid.Get(x, y)) ? 1 : 0;
+            return cells;
+        }
+
+        static int TopRow(PixelGrid grid, int plantX, PlantShape shape)
+        {
+            for (int y = grid.Height - 1; y > Surface; y--)
+            {
+                if (PlantCellsInRow(grid, plantX, shape, y) > 0)
+                    return y;
+            }
+            return Surface;
+        }
+
+        /// <summary>Pixels que as jardineiras podem cortar na forma (tudo menos a linha do chão, que é a raiz).</summary>
+        static int HarvestableCells(PlantShape shape)
+        {
+            int cells = 0;
+            foreach (Vector2Int c in shape.Cells)
+                cells += c.y > 0 ? 1 : 0;
+            return cells;
         }
 
         static int BladeCells(PixelGrid grid)
@@ -139,12 +194,12 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
-        public void Plants_AreHarvestedFromTheTipDown_AndNeverAtTheRoot()
+        public void Plants_CanBeCutAnywhere_ButNeverAtTheRoot()
         {
             PixelGrid grid = MakeWorld();
             PlantBlade(grid, 3);
             Assert.IsFalse(VegetationSimulation.CanHarvest(grid, BladeX, Surface + 1), "Raiz.");
-            Assert.IsFalse(VegetationSimulation.CanHarvest(grid, BladeX, Surface + 2), "Tem planta em cima.");
+            Assert.IsTrue(VegetationSimulation.CanHarvest(grid, BladeX, Surface + 2), "Qualquer pixel acima da raiz pode ser cortado, não só a ponta.");
             Assert.IsTrue(VegetationSimulation.CanHarvest(grid, BladeX, Surface + 3), "Ponta.");
             Assert.IsFalse(CellMaterials.IsDiggable(CellMaterial.PlantGrass), "O pincel de cavar não pega plantas.");
         }
@@ -163,7 +218,6 @@ namespace Fabula.Incrementant.Tests
             Assert.AreEqual(CellMaterial.Spoil, grid.Get(BladeX, Surface + 1), "O grão atravessa a planta até o chão.");
             Assert.AreEqual(77, grid.GetShade(BladeX, Surface + 1));
             Assert.AreEqual(CellMaterial.PlantGrass, grid.GetBehind(BladeX, Surface + 1), "A raiz fica atrás do grão.");
-            Assert.IsFalse(grid.IsMarked(BladeX, Surface + 1), "A marca de colheita do pedaço coberto sai.");
             for (int y = Surface + 2; y <= top; y++)
             {
                 Assert.AreEqual(CellMaterial.PlantGrass, grid.Get(BladeX, y), $"A planta continua inteira em y = {y}.");
@@ -217,35 +271,56 @@ namespace Fabula.Incrementant.Tests
             Assert.AreEqual(0, vegetation.GetSunkRows(plantX), "Com o que colher, a planta completa espera.");
             Assert.AreEqual(remaining, CountPlant(grid, plantX), "Não repõe nada enquanto há o que colher.");
 
-            // Colhe tudo menos a linha do chão (que nunca é colhida) e marca a raiz.
+            // Colhe tudo menos a linha do chão (que nunca é colhida).
             for (int y = Surface + 2; y < grid.Height; y++)
             for (int dx = -1; dx <= 1; dx++)
             {
                 if (CellMaterials.IsPlant(grid.Get(plantX + dx, y)))
                     grid.Set(plantX + dx, y, CellMaterial.Empty);
             }
-            Assert.IsTrue(grid.SetMarked(plantX, Surface + 1, true));
 
-            // Sem nada para colher, reinicia: volta inteira para debaixo da terra com só a ponta para fora, sem marca.
+            // Sem nada para colher, reinicia: volta inteira para debaixo da terra com só a ponta para fora.
             RunGrowStep(vegetation, grid, settings);
             Assert.AreEqual(shape.Height - 1, vegetation.GetSunkRows(plantX), "Reinicia com só a ponta para fora.");
             Assert.AreEqual(Surface + 1, TopOfPlant(grid, plantX));
-            Assert.AreEqual(0, grid.MarkedCount, "A planta reiniciada nasce sem marca.");
+            Assert.AreEqual(0, grid.MarkedCount, "Planta não tem marca de colheita.");
 
-            // O jogador marca a ponta: a marca sobe junto com o pixel, e o que cresce embaixo nasce sem marca.
-            Assert.IsTrue(grid.SetMarked(plantX, Surface + 1, true));
+            // Cresce pela base: a planta inteira sobe 1 linha por passo e o que nasce embaixo é a linha seguinte da forma.
             for (int i = 1; i < shape.Height; i++)
             {
                 RunGrowStep(vegetation, grid, settings);
                 Assert.AreEqual(shape.Height - 1 - i, vegetation.GetSunkRows(plantX));
                 Assert.AreEqual(Surface + 1 + i, TopOfPlant(grid, plantX), "A planta inteira sobe 1 linha por passo.");
-                Assert.IsTrue(grid.IsMarked(plantX, Surface + 1 + i), "A marca de colheita sobe junto com o pixel.");
-                Assert.AreEqual(1, grid.MarkedCount, "O que cresce não nasce marcado.");
+                Assert.AreEqual(0, grid.MarkedCount);
             }
             Assert.AreEqual(shape.Cells.Length, CountPlant(grid, plantX), "Termina com a forma completa.");
 
             RunGrowStep(vegetation, grid, settings);
             Assert.AreEqual(shape.Cells.Length, CountPlant(grid, plantX), "Completa, para de crescer.");
+        }
+
+        [Test]
+        public void Vegetation_WaitsForTheGeneratedArea_InsteadOfSproutingClippedAtItsEdge()
+        {
+            PixelGrid grid = MakeWorld(400);
+            grid.SetActive(new RectInt(0, 0, 230, grid.Height));
+            var vegetation = new VegetationSimulation(new VegetationSettings(), seed: 11, Layout, grid.Width);
+            vegetation.Populate(grid);
+            foreach (int x in vegetation.Plants)
+            {
+                vegetation.TryGetPlant(x, out _, out PlantShape shape, out _);
+                Assert.Less(x + shape.MaxDx, 229, $"A planta em {x} passa da borda da área gerada.");
+            }
+            int before = vegetation.PlantCount;
+
+            grid.ExpandActive(new RectInt(0, 0, 400, grid.Height));
+            vegetation.Populate(grid);
+            Assert.Greater(vegetation.PlantCount, before, "As plantas que não cabiam nascem quando a área cresce.");
+            foreach (int x in vegetation.Plants)
+            {
+                vegetation.TryGetPlant(x, out _, out PlantShape shape, out _);
+                Assert.AreEqual(shape.Cells.Length, PlantCells(grid, x, shape), $"A planta em {x} nasce inteira, sem corte.");
+            }
         }
 
         [Test]
@@ -357,38 +432,219 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
-        public void Colony_HarvestsMarkedPlant_StoresNutrients_AndTheQueenConsumesThem()
+        public void Gardeners_HarvestThePlantOnTheirOwn_TopDown_AndTheQueenConsumesIt()
         {
-            PixelGrid grid = MakeWorld();
-            PlantBlade(grid, 9);
-            PaintNutrientRoom(grid, 30, 35, 1, 3);
+            var (grid, vegetation, plantX, shape) = MakeGarden();
             var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 7);
-            Assert.AreEqual(0, colony.Nutrients);
+            colony.AttachVegetation(vegetation);
+            int expected = HarvestableCells(shape);
+            Assert.AreEqual(0, grid.MarkedCount, "O jogador não marca nada: a planta nasce sem marca.");
 
-            int lastHeight = BladeHeight(grid);
-            for (int i = 0; i < 60 * 120 && colony.TotalNutrients < 8; i++)
+            var granular = new GranularSimulation();
+            int lastCells = PlantCells(grid, plantX, shape);
+            for (int i = 0; i < 60 * 240 && colony.TotalNutrients < expected; i++)
             {
+                int topRow = TopRow(grid, plantX, shape);
+                int topCells = PlantCellsInRow(grid, plantX, shape, topRow);
                 colony.Tick(Dt);
-                int height = BladeHeight(grid);
-                Assert.AreEqual(height, BladeCells(grid), "Colhe da ponta para a base: não sobra buraco no meio.");
-                Assert.LessOrEqual(height, lastHeight);
-                lastHeight = height;
+                granular.Step(grid); // o pixel solto pela formiga cai antes de ser colhido
+                int cells = PlantCells(grid, plantX, shape);
+                Assert.LessOrEqual(cells, lastCells, "A planta só diminui.");
+                if (cells < lastCells)
+                    Assert.Less(PlantCellsInRow(grid, plantX, shape, topRow), topCells, "Corta sempre pela linha de cima.");
+                lastCells = cells;
             }
 
-            Assert.AreEqual(1, BladeHeight(grid), "Colhe tudo menos a raiz.");
-            Assert.AreEqual(8, colony.HarvestedPixels);
-            Assert.AreEqual(8, colony.TotalNutrients, "Cada pixel colhido vira um nutriente consumido pela rainha.");
-            Assert.AreEqual(8, colony.Nutrients);
+            Assert.AreEqual(shape.Cells.Length - expected, PlantCells(grid, plantX, shape), "Colhe tudo menos a raiz.");
+            Assert.AreEqual(expected, colony.HarvestedPixels);
+            Assert.AreEqual(expected, colony.TotalNutrients, "Cada pixel colhido vira um nutriente consumido pela rainha.");
             Assert.AreEqual(0, grid.NutrientCount, "A sala esvazia quando a rainha consome tudo.");
+        }
+
+        [Test]
+        public void Colony_WithoutGardeners_NeverTouchesPlants()
+        {
+            var (grid, vegetation, plantX, shape) = MakeGarden();
+            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 7);
+            colony.AttachVegetation(vegetation);
+            foreach (Ant ant in colony.Ants)
+                ant.Role = AntRole.Worker;
+            int before = PlantCells(grid, plantX, shape);
+
+            for (int i = 0; i < 60 * 40; i++)
+                colony.Tick(Dt);
+
+            Assert.AreEqual(before, PlantCells(grid, plantX, shape), "Comuns não colhem planta.");
+            Assert.AreEqual(0, colony.HarvestedPixels);
+            Assert.AreEqual(-1, colony.GardenTarget);
+        }
+
+        [Test]
+        public void Gardeners_PickTheBiggestPlant_ThenTheNearestToTheEntrance()
+        {
+            PixelGrid grid = MakeWorld(400);
+            var vegetation = new VegetationSimulation(new VegetationSettings(), seed: 11, Layout, grid.Width);
+            vegetation.Populate(grid);
+            PaintNutrientRoom(grid, 30, 35, 1, 3);
+
+            int expected = -1, bestRows = 0, bestDistance = int.MaxValue, candidates = 0;
+            foreach (int x in vegetation.Plants)
+            {
+                if (!vegetation.IsHarvestable(grid, x, out int rows))
+                    continue;
+                candidates++;
+                int distance = Mathf.Abs(x - Layout.EntranceX);
+                if (rows > bestRows || rows == bestRows && distance < bestDistance)
+                {
+                    expected = x;
+                    bestRows = rows;
+                    bestDistance = distance;
+                }
+            }
+            Assert.GreaterOrEqual(candidates, 2, "A seed deveria ter mais de uma planta para comparar.");
+
+            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 7);
+            colony.AttachVegetation(vegetation);
+            colony.Tick(Dt);
+            Assert.AreEqual(expected, colony.GardenTarget, "Maior primeiro; no empate, a mais perto da entrada.");
+        }
+
+        [Test]
+        public void Plant_OnlyBecomesATarget_AfterGrowingTheMinimum()
+        {
+            var (grid, vegetation, plantX, shape) = MakeGarden();
+            Assert.IsTrue(vegetation.IsHarvestable(grid, plantX, out int rows));
+            Assert.AreEqual(shape.Height, rows);
+
+            // Recém-brotada (só a ponta para fora): ainda não vale, mesmo com pixels para cortar.
+            vegetation.SetSunkRows(plantX, shape.Height - 1);
+            Assert.IsFalse(vegetation.IsHarvestable(grid, plantX, out rows));
+            Assert.AreEqual(1, rows);
+
+            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 7);
+            colony.AttachVegetation(vegetation);
+            colony.Tick(Dt);
+            Assert.AreEqual(-1, colony.GardenTarget, "Planta que não cresceu o mínimo não é escolhida.");
+
+            vegetation.SetSunkRows(plantX, 0);
+            Assert.IsTrue(vegetation.IsHarvestable(grid, plantX, out _), "Crescida, vale.");
+        }
+
+        [Test]
+        public void Ants_CanClimbAndEnterPlants_LikeTunnels()
+        {
+            PixelGrid grid = MakeWorld();
+            PlantBlade(grid, 6);
+            int y = Surface + 4;
+            Assert.IsTrue(AntNavigation.IsWalkable(grid, BladeX + 1, y), "Planta serve de apoio.");
+            Assert.IsTrue(AntNavigation.IsWalkable(grid, BladeX, y), "Dentro da planta a formiga passa.");
+            Assert.IsFalse(AntNavigation.IsWalkable(grid, BladeX + 1, y + 10), "Longe da planta é céu.");
+        }
+
+        [Test]
+        public void DisconnectedPlantPieces_BecomeFallingPixels()
+        {
+            PixelGrid grid = MakeWorld();
+            PlantBlade(grid, 4);
+            for (int i = 0; i < 3; i++)
+                grid.Set(BladeX + 6 + i, Surface + 9, CellMaterial.PlantGrass); // pedaço solto no ar
+            int dropped = VegetationSimulation.DropDisconnected(grid, BladeX + 5, Surface + 8);
+            Assert.AreEqual(3, dropped);
+            Assert.AreEqual(4, BladeCells(grid), "A planta ligada à raiz não é tocada.");
+            var granular = new GranularSimulation();
+            for (int i = 0; i < 40; i++)
+                granular.Step(grid);
+            for (int i = 0; i < 3; i++)
+            {
+                Assert.AreEqual(CellMaterial.Empty, grid.Get(BladeX + 6 + i, Surface + 9), "O pixel saiu do ar.");
+                Assert.IsTrue(CellMaterials.IsPlantDebris(grid.Get(BladeX + 6 + i, Surface + 1)), "E pousou no chão.");
+                Assert.IsTrue(grid.IsMarked(BladeX + 6 + i, Surface + 1), "Marcado para a colheita.");
+            }
+        }
+
+        [Test]
+        public void CuttingTheBase_DropsTheWholePlantAbove()
+        {
+            PixelGrid grid = MakeWorld();
+            PlantBlade(grid, 6);
+            int y = Surface + 2; // primeiro pixel acima da raiz
+            grid.Set(BladeX, y, CellMaterial.Empty, 0);
+            Assert.AreEqual(4, VegetationSimulation.DropDisconnected(grid, BladeX, y), "Os 4 pixels acima do corte ficam sem raiz.");
+            Assert.AreEqual(1, BladeCells(grid), "Fica só a raiz.");
+        }
+
+        [Test]
+        public void Gardeners_HarvestAWidePlant()
+        {
+            // Touceira larga: 13 colunas, mais alta no meio (silhueta de sprite), com furos.
+            var cells = new System.Collections.Generic.List<Vector2Int>();
+            for (int dx = -6; dx <= 6; dx++)
+            {
+                int h = 18 - Mathf.Abs(dx) * 2;
+                for (int i = 0; i < h; i++)
+                {
+                    if (i > 2 && dx % 2 != 0 && i % 4 == 0)
+                        continue;
+                    cells.Add(new Vector2Int(dx, i));
+                }
+            }
+            var wide = new PlantShape(cells);
+            var (grid, vegetation, plantX, shape) = MakeGarden(new[] { wide });
+            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 5);
+            colony.AttachVegetation(vegetation);
+            int expected = HarvestableCells(shape);
+
+            var granular = new GranularSimulation();
+            for (int i = 0; i < 60 * 1800 && colony.HarvestedPixels < expected; i++)
+            {
+                colony.Tick(Dt);
+                granular.Step(grid);
+            }
+            // A touceira fica longe da sala de nutrientes: duas jardineiras levam um pixel por vez, então a colheita é lenta.
+            Assert.AreEqual(expected, colony.HarvestedPixels,
+                            $"colhidos; plantas restantes {PlantCells(grid, plantX, shape)} (raiz: {shape.Cells.Length - expected})");
+        }
+
+        [Test]
+        public void Gardeners_ReleaseThePixelFirst_AndOnlyThenCollectItFromTheGround()
+        {
+            var (grid, vegetation, plantX, shape) = MakeGarden();
+            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 7);
+            colony.AttachVegetation(vegetation);
+            var granular = new GranularSimulation();
+            int expected = HarvestableCells(shape);
+
+            bool sawFallen = false;
+            for (int i = 0; i < 60 * 240 && colony.HarvestedPixels < expected; i++)
+            {
+                colony.Tick(Dt);
+                granular.Step(grid);
+                for (int y = Surface + 1; y < grid.Height; y++)
+                {
+                    for (int x = plantX - 8; x <= plantX + 8; x++)
+                    {
+                        if (!CellMaterials.IsPlantDebris(grid.Get(x, y)))
+                            continue;
+                        sawFallen = true;
+                        Assert.IsTrue(grid.IsMarked(x, y), "O pixel solto mantém a marca de colheita.");
+                    }
+                }
+            }
+
+            Assert.IsTrue(sawFallen, "A formiga solta o pixel antes de colhê-lo.");
+            Assert.AreEqual(expected, colony.HarvestedPixels, "Todos os pixels soltos acabam colhidos.");
+            Assert.AreEqual(shape.Cells.Length - expected, PlantCells(grid, plantX, shape), "Sobra só a raiz.");
         }
 
         [Test]
         public void Colony_StopsHarvesting_WhenTheNutrientRoomIsFull()
         {
-            PixelGrid grid = MakeWorld();
-            PlantBlade(grid, 10);
+            PixelGrid grid = MakeWorld(400);
+            var vegetation = new VegetationSimulation(new VegetationSettings(), seed: 11, Layout, grid.Width);
+            vegetation.Populate(grid);
             PaintNutrientRoom(grid, 30, 32, 1, 1); // 3 slots
             var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 3);
+            colony.AttachVegetation(vegetation);
             // Tranca a rainha no ninho: os nutrientes ficam na sala e ela enche.
             for (int y = 1; y <= 3; y++)
                 grid.Set(23, y, CellMaterial.Rock);
@@ -405,27 +661,40 @@ namespace Fabula.Incrementant.Tests
             for (int y = 4; y <= Surface; y++)
                 grid.Set(26, y, CellMaterial.Empty);
 
+            var granularSim = new GranularSimulation();
             for (int i = 0; i < 60 * 90; i++)
+            {
                 colony.Tick(Dt);
+                granularSim.Step(grid);
+            }
 
             Assert.AreEqual(3, grid.NutrientCount, "Enche os 3 slots.");
             Assert.AreEqual(3, colony.HarvestedPixels, "Sem slot livre, ninguém colhe mais.");
-            Assert.AreEqual(7, BladeCells(grid));
             Assert.IsFalse(colony.CanHarvest);
             Assert.AreEqual(0, colony.TotalNutrients, "A rainha trancada não recebe nada.");
         }
 
         [Test]
-        public void BuyingAnAnt_SpendsNutrients()
+        public void Colony_StartsWithOneGardener_AndTheRestAreWorkers()
         {
-            PixelGrid grid = MakeWorld();
-            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 1);
-            int before = colony.Ants.Count;
-            Assert.IsFalse(colony.TryBuyAnt(), "Sem nutrientes não compra.");
-            colony.RestoreNutrients(colony.NextAntCost, 0, 0);
-            Assert.IsTrue(colony.TryBuyAnt());
-            Assert.AreEqual(before + 1, colony.Ants.Count);
-            Assert.AreEqual(0, colony.Nutrients);
+            var colony = new AntColony(MakeWorld(), new ColonySettings(), Layout, seed: 1);
+            Assert.AreEqual(1, colony.CountOf(AntRole.Gardener));
+            Assert.AreEqual(colony.Ants.Count - 1, colony.CountOf(AntRole.Worker));
+        }
+
+        [Test]
+        public void AntRoles_CostsAndWorkFollowTheDesign()
+        {
+            var colony = new AntColony(MakeWorld(), new ColonySettings(), Layout, seed: 1);
+            Assert.AreEqual(18, colony.CostOf(AntRole.Worker), "Comum: 18 N, do design.");
+            Assert.Greater(colony.CostOf(AntRole.Digger), colony.CostOf(AntRole.Carrier));
+            Assert.Greater(colony.CostOf(AntRole.Carrier), colony.CostOf(AntRole.Worker));
+            Assert.IsTrue(AntRoles.Harvests(AntRole.Gardener) && AntRoles.Harvests(AntRole.Cutter));
+            Assert.IsFalse(AntRoles.Harvests(AntRole.Worker) || AntRoles.Harvests(AntRole.Digger) || AntRoles.Harvests(AntRole.Carrier));
+            Assert.AreEqual(0.5f, AntRoles.DigTimeFactor(AntRole.Digger), "Escavadora: 32 contra 16 células/s.");
+            Assert.AreEqual(0.5f, AntRoles.CutTimeFactor(AntRole.Cutter), "Cortadeira: 1 s contra 2 s.");
+            Assert.Greater(AntRoles.SpeedFactor(AntRole.Carrier), 1f);
+            Assert.Less(AntRoles.SpeedFactor(AntRole.Gardener), 1f);
         }
 
         [Test]
@@ -462,7 +731,10 @@ namespace Fabula.Incrementant.Tests
             Assert.IsTrue(grid2.HasNutrient(32, 1));
             Assert.AreEqual(8f, grid2.GetNutrientCure(32, 1), "A cura que falta volta arredondada para cima.");
             Assert.AreEqual(4, BladeCells(grid2));
-            Assert.IsTrue(grid2.IsMarked(BladeX, Surface + 4), "A marca de colheita volta com a planta.");
+            Assert.IsFalse(grid2.IsMarked(BladeX, Surface + 4), "Planta em pé não tem marca de colheita.");
+            Assert.AreEqual(colony.Ants.Count, colony2.Ants.Count);
+            for (int i = 0; i < colony.Ants.Count; i++)
+                Assert.AreEqual(colony.Ants[i].Role, colony2.Ants[i].Role, "O papel de cada formiga volta com o save.");
             Assert.AreEqual(5, colony2.Nutrients);
             Assert.AreEqual(12, colony2.TotalNutrients);
             Assert.AreEqual(13, colony2.HarvestedPixels);

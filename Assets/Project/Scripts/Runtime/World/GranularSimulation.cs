@@ -61,27 +61,33 @@ namespace Fabula.Incrementant.World
         {
             int w = grid.Width;
             int i = y * w + x;
-            if (!CellMaterials.IsGranular(grid.GetAt(i)))
+            CellMaterial material = grid.GetAt(i);
+            if (!CellMaterials.IsGranular(material))
                 return;
 
+            // Pixel solto de planta não atravessa planta em pé: senão apagaria a marca de colheita das células por onde passa.
+            bool debris = CellMaterials.IsPlantDebris(material);
             int below = i - w;
-            if (grid.CanFallIntoAt(below))
+            if (CanEnter(grid, below, debris))
             {
                 grid.MoveCell(i, below);
                 return;
             }
 
             int first = ((x ^ y ^ _tick) & 1) == 0 ? -1 : 1;
-            if (!TryDiagonal(grid, x, y, first))
-                TryDiagonal(grid, x, y, -first);
+            if (!TryDiagonal(grid, x, y, first, debris))
+                TryDiagonal(grid, x, y, -first, debris);
         }
 
-        static bool TryDiagonal(PixelGrid grid, int x, int y, int dx)
+        static bool CanEnter(PixelGrid grid, int index, bool debris) =>
+            debris ? grid.GetAt(index) == CellMaterial.Empty : grid.CanFallIntoAt(index);
+
+        static bool TryDiagonal(PixelGrid grid, int x, int y, int dx, bool debris)
         {
             int nx = x + dx;
             // Exige a lateral livre também, para o grão não atravessar quinas.
-            if (!grid.InBounds(nx, y - 1) || !grid.CanFallIntoAt(grid.ToIndex(nx, y)) ||
-                !grid.CanFallIntoAt(grid.ToIndex(nx, y - 1)))
+            if (!grid.InBounds(nx, y - 1) || !CanEnter(grid, grid.ToIndex(nx, y), debris) ||
+                !CanEnter(grid, grid.ToIndex(nx, y - 1), debris))
                 return false;
 
             grid.MoveCell(grid.ToIndex(x, y), grid.ToIndex(nx, y - 1));

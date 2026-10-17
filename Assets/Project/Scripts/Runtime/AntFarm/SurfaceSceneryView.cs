@@ -126,7 +126,11 @@ namespace Fabula.Incrementant.AntFarm
             float phase = _mapOrigin.x + (cameraPosition.x - _parallaxAnchor.x) * parallax;
             float left = phase + tile * Mathf.Floor((cameraPosition.x - halfWidth - phase) / tile);
             float width = tile * (Mathf.Ceil(2f * halfWidth / tile) + 1f);
-            float bottom = _mapOrigin.y + layer.OriginY + (cameraPosition.y - _parallaxAnchor.y) * parallax;
+            // A faixa sobe com a câmera (paralaxe), mas o campo liso abaixo dela só cobre BandFill células: passando disso
+            // abriria um vão de céu entre a faixa e o chão quando a câmera sobe até o chão quase sair da vista. Daí em
+            // diante a faixa para de subir (fica presa ao mundo) em vez de deixar o vão aparecer.
+            float rise = Mathf.Min((cameraPosition.y - _parallaxAnchor.y) * parallax, SurfaceSceneryPainter.BandFill - 4f);
+            float bottom = _mapOrigin.y + layer.OriginY + rise;
 
             var size = new Vector2(width, layer.Height / ppc);
             if (view.Renderer.size != size)

@@ -20,6 +20,8 @@ namespace Fabula.Incrementant.World
         readonly bool[] _queenRoom;
         // Sala de nutrientes: lugar pintado (como a sala da rainha). Cada célula vazia pintada é um slot.
         readonly bool[] _nutrientRoom;
+        // Berçário: lugar pintado (como as outras salas). Cada célula vazia e alcançável conta para as vagas de cria.
+        readonly bool[] _nurseryRoom;
         // Nutriente guardado: camada à parte, só em célula sem material. Não bloqueia a passagem (a célula continua vazia).
         readonly bool[] _nutrient;
         // Segundos que faltam para o pixel guardado virar nutriente que pode ser levado (0 = pronto).
@@ -45,6 +47,7 @@ namespace Fabula.Incrementant.World
         readonly int[] _chunkBuildMarked;
         readonly int[] _chunkQueenRoom;
         readonly int[] _chunkNutrientRoom;
+        readonly int[] _chunkNurseryRoom;
         readonly int[] _chunkNutrient;
         readonly int[] _chunkWater;
         readonly int[] _rowWater;
@@ -70,6 +73,9 @@ namespace Fabula.Incrementant.World
         /// <summary>Células marcadas para escavar.</summary>
         public int MarkedCount { get; private set; }
 
+        /// <summary>Pixels de planta soltos (<see cref="CellMaterials.IsPlantDebris"/>) à espera de colheita; cada um já ocupa um slot da sala de nutrientes.</summary>
+        public int PlantDebrisCount { get; private set; }
+
         /// <summary>Células vazias marcadas para as formigas preencherem com terra.</summary>
         public int BuildMarkedCount { get; private set; }
 
@@ -78,6 +84,9 @@ namespace Fabula.Incrementant.World
 
         /// <summary>Células pintadas como sala de nutrientes (slots, quando vazias).</summary>
         public int NutrientRoomCount { get; private set; }
+
+        /// <summary>Células pintadas como berçário.</summary>
+        public int NurseryRoomCount { get; private set; }
 
         /// <summary>Nutrientes guardados (células com a camada de nutriente).</summary>
         public int NutrientCount { get; private set; }
@@ -107,6 +116,7 @@ namespace Fabula.Incrementant.World
             _buildMarked = new bool[width * height];
             _queenRoom = new bool[width * height];
             _nutrientRoom = new bool[width * height];
+            _nurseryRoom = new bool[width * height];
             _nutrient = new bool[width * height];
             _nutrientCure = new float[width * height];
             _wetness = new byte[width * height];
@@ -131,6 +141,7 @@ namespace Fabula.Incrementant.World
             _chunkBuildMarked = new int[chunks];
             _chunkQueenRoom = new int[chunks];
             _chunkNutrientRoom = new int[chunks];
+            _chunkNurseryRoom = new int[chunks];
             _chunkNutrient = new int[chunks];
             _chunkWater = new int[chunks];
             _rowWater = new int[ChunkRows];
@@ -204,6 +215,9 @@ namespace Fabula.Incrementant.World
 
         /// <summary>Célula pintada como sala de nutrientes (vale o lugar, não o material).</summary>
         public bool IsNutrientRoom(int x, int y) => InBounds(x, y) && _nutrientRoom[y * Width + x];
+
+        /// <summary>Célula pintada como berçário (vale o lugar, não o material).</summary>
+        public bool IsNurseryRoom(int x, int y) => InBounds(x, y) && _nurseryRoom[y * Width + x];
 
         /// <summary>A célula guarda um nutriente (só células sem material guardam).</summary>
         public bool HasNutrient(int x, int y) => InBounds(x, y) && _nutrient[y * Width + x];
@@ -323,6 +337,7 @@ namespace Fabula.Incrementant.World
                 shade = _behindShades[i];
                 _behind[i] = CellMaterial.Empty;
             }
+            PlantDebrisCount += (CellMaterials.IsPlantDebris(material) ? 1 : 0) - (CellMaterials.IsPlantDebris(_cells[i]) ? 1 : 0);
             _cells[i] = material;
             _shades[i] = shade;
             SetWetnessAt(i, 0);
@@ -364,6 +379,8 @@ namespace Fabula.Incrementant.World
             MarkedCount += marked ? 1 : -1;
             _chunkMarked[ChunkOf(i)] += marked ? 1 : -1;
             MarkVersion++;
+            if (CellMaterials.IsPlant(_cells[i]))
+                Touch(x, y);
             return true;
         }
 
@@ -401,12 +418,34 @@ namespace Fabula.Incrementant.World
             int i = y * Width + x;
             if (_queenRoom[i] == room)
                 return false;
-            if (room && (y > GetSurfaceY(x) || _nutrientRoom[i]))
+            if (room && (y > GetSurfaceY(x) || _nutrientRoom[i] || _nurseryRoom[i]))
                 return false;
 
             _queenRoom[i] = room;
             QueenRoomCount += room ? 1 : -1;
             _chunkQueenRoom[ChunkOf(i)] += room ? 1 : -1;
+            MarkVersion++;
+            return true;
+        }
+
+        /// <summary>
+        /// Pinta/apaga o berçário. Como a sala da rainha: só células do formigueiro (no solo original ou abaixo), sólidas ou
+        /// não, e nunca por cima de outra sala.
+        /// </summary>
+        public bool SetNurseryRoom(int x, int y, bool room)
+        {
+            if (!InBounds(x, y))
+                return false;
+
+            int i = y * Width + x;
+            if (_nurseryRoom[i] == room)
+                return false;
+            if (room && (y > GetSurfaceY(x) || _queenRoom[i] || _nutrientRoom[i]))
+                return false;
+
+            _nurseryRoom[i] = room;
+            NurseryRoomCount += room ? 1 : -1;
+            _chunkNurseryRoom[ChunkOf(i)] += room ? 1 : -1;
             MarkVersion++;
             return true;
         }
@@ -424,7 +463,7 @@ namespace Fabula.Incrementant.World
             int i = y * Width + x;
             if (_nutrientRoom[i] == room)
                 return false;
-            if (room && (y > GetSurfaceY(x) || _queenRoom[i]))
+            if (room && (y > GetSurfaceY(x) || _queenRoom[i] || _nurseryRoom[i]))
                 return false;
 
             _nutrientRoom[i] = room;
@@ -628,6 +667,9 @@ namespace Fabula.Incrementant.World
         /// <summary>Quantas células pintadas como sala de nutrientes há no bloco.</summary>
         public int GetChunkNutrientRoomCount(int cx, int cy) => _chunkNutrientRoom[cy * ChunkColumns + cx];
 
+        /// <summary>Quantas células pintadas como berçário há no bloco.</summary>
+        public int GetChunkNurseryRoomCount(int cx, int cy) => _chunkNurseryRoom[cy * ChunkColumns + cx];
+
         /// <summary>Quantos nutrientes guardados há no bloco.</summary>
         public int GetChunkNutrientCount(int cx, int cy) => _chunkNutrient[cy * ChunkColumns + cx];
 
@@ -686,6 +728,9 @@ namespace Fabula.Incrementant.World
             MarkedCount--;
             _chunkMarked[ChunkOf(index)]--;
             MarkVersion++;
+            // Marca de planta muda onde dá para pisar (AntNavigation.TouchesSolid).
+            if (CellMaterials.IsPlant(_cells[index]))
+                Touch(index % Width, index / Width);
         }
 
         void ClearBuildMarkAt(int index)

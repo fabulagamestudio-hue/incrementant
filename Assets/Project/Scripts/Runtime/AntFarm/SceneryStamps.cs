@@ -64,6 +64,26 @@ namespace Fabula.Incrementant.AntFarm
             BaseRight = max - pivotX;
         }
 
+        /// <summary>
+        /// Escala da arte do cenário (pedido do desenvolvedor em 2026-10-17): cada pixel dos PNGs vira
+        /// <c>ArtScale</c> x <c>ArtScale</c> pixels do cenário, então a arte fica <c>ArtScale</c> vezes maior (um pixel da
+        /// arte = <c>ArtScale</c> pixels da formiga). Vale só para a arte em PNG; a arte procedural já é pintada na grade.
+        /// </summary>
+        public const int ArtScale = 6;
+
+        /// <summary>Cópia com cada pixel repetido <paramref name="factor"/> x <paramref name="factor"/> vezes (o pivô acompanha).</summary>
+        public SceneryStamp Scaled(int factor)
+        {
+            if (factor <= 1)
+                return this;
+            int w = Width * factor, h = Height * factor;
+            var pixels = new Color32[w * h];
+            for (int y = 0; y < h; y++)
+            for (int x = 0; x < w; x++)
+                pixels[y * w + x] = Pixels[(y / factor) * Width + x / factor];
+            return new SceneryStamp(w, h, pixels, PivotX * factor, PivotY * factor);
+        }
+
         /// <summary>Lê um sprite importado com Read/Write; o pivô do sprite é o ponto de apoio. Null se a textura não for legível.</summary>
         public static SceneryStamp FromSprite(Sprite sprite)
         {
@@ -76,7 +96,7 @@ namespace Fabula.Incrementant.AntFarm
             var pixels = new Color32[colors.Length];
             for (int i = 0; i < colors.Length; i++)
                 pixels[i] = colors[i];
-            return new SceneryStamp(w, h, pixels, Mathf.RoundToInt(sprite.pivot.x), Mathf.RoundToInt(sprite.pivot.y));
+            return new SceneryStamp(w, h, pixels, Mathf.RoundToInt(sprite.pivot.x), Mathf.RoundToInt(sprite.pivot.y)).Scaled(ArtScale);
         }
     }
 

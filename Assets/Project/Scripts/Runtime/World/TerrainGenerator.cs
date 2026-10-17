@@ -43,6 +43,8 @@ namespace Fabula.Incrementant.World
         [SerializeField, Range(8, 128)] int _chunkSize = 32;
         [Tooltip("Folga, em células, além da borda da câmera que já fica gerada.")]
         [SerializeField, Min(0)] int _generationMargin = 24;
+        [Tooltip("Linhas de céu extras acima da área inicial, para as plantas e a arte caberem inteiras (a arte é 6x maior que a grade). Soma-se à altura do mundo.")]
+        [SerializeField, Min(0)] int _skyHeadroom = 440;
 
         public int Width => _width;
         public int Height => _height;
@@ -62,12 +64,16 @@ namespace Fabula.Incrementant.World
         public Vector2Int LakeDepth => _lakeDepth;
         public int LakeClearance => _lakeClearance;
         public int WorldWidth => Mathf.Max(_maxWidth, _width);
-        public int WorldHeight => Mathf.Max(_maxHeight, _height);
+        public int SkyHeadroom => _skyHeadroom;
+        public int WorldHeight => Mathf.Max(_maxHeight, _height) + _skyHeadroom;
         public int ChunkSize => _chunkSize;
         public int GenerationMargin => _generationMargin;
 
-        /// <summary>Área inicial dentro do mundo: no topo (céu) e centralizada na horizontal.</summary>
-        public RectInt StartArea => new RectInt((WorldWidth - _width) / 2, WorldHeight - _height, _width, _height);
+        /// <summary>
+        /// Área inicial dentro do mundo: no topo (céu) e centralizada na horizontal. Inclui as linhas de céu extras
+        /// (<see cref="SkyHeadroom"/>) no alto; o solo fica a <see cref="SurfaceLevel"/> da parte de baixo, de altura <see cref="Height"/>.
+        /// </summary>
+        public RectInt StartArea => new RectInt((WorldWidth - _width) / 2, WorldHeight - _height - _skyHeadroom, _width, _height + _skyHeadroom);
     }
 
     /// <summary>Pontos de referência do mapa gerado, consumidos pela colônia.</summary>
@@ -121,7 +127,8 @@ namespace Fabula.Incrementant.World
         public RectInt StartArea { get; }
 
         /// <param name="startArea">Área gerada de início; nível do solo, entrada e despejo são relativos a ela.</param>
-        public TerrainGenerator(TerrainSettings settings, int seed, int worldWidth, int worldHeight, RectInt startArea)
+        /// <param name="skyHeadroom">Linhas de céu extras no alto de <paramref name="startArea"/>: o nível do solo conta só as de baixo.</param>
+        public TerrainGenerator(TerrainSettings settings, int seed, int worldWidth, int worldHeight, RectInt startArea, int skyHeadroom = 0)
         {
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             WorldWidth = worldWidth;
@@ -134,7 +141,7 @@ namespace Fabula.Incrementant.World
             _rockSeed = rng.Next(0, 10000);
             _sandSeed = rng.Next(0, 10000);
 
-            int h = startArea.height;
+            int h = startArea.height - skyHeadroom;
             int baseSurface = startArea.yMin + Mathf.Clamp(Mathf.RoundToInt(h * settings.SurfaceLevel), 8, h - 4);
             _entranceX = startArea.xMin + Mathf.Clamp(Mathf.RoundToInt(startArea.width * settings.EntranceX01), 4, startArea.width - 5);
 

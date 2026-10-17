@@ -131,6 +131,7 @@ namespace Fabula.Incrementant.AntFarm
                 : (int)(visual.Walked * _framesPerCell);
             Sprite[] frames = topView ? _topFrames : _walkFrames;
             visual.Body.sprite = frames[frame % frames.Length];
+            visual.Body.color = RoleTint(ant.Role);
 
             bool delivering = ant.State == AntState.Delivering;
             bool carrying = ant.State == AntState.Carrying || ant.State == AntState.Hauling || delivering;
@@ -207,6 +208,19 @@ namespace Fabula.Incrementant.AntFarm
                     ground += new Vector2(dx, dy);
             }
             return ground;
+        }
+
+        /// <summary>Matiz de cada papel sobre o sprite único (a silhueta própria de cada um ainda não existe).</summary>
+        public static Color RoleTint(AntRole role)
+        {
+            switch (role)
+            {
+                case AntRole.Gardener: return new Color(0.6f, 1f, 0.55f);
+                case AntRole.Carrier: return new Color(0.6f, 0.8f, 1f);
+                case AntRole.Cutter: return new Color(1f, 0.65f, 0.45f);
+                case AntRole.Digger: return new Color(1f, 0.92f, 0.4f);
+                default: return Color.white;
+            }
         }
 
         static float Snap45(float degrees) => Mathf.Round(degrees / 45f) * 45f;

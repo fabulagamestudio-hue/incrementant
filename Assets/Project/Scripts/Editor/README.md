@@ -15,6 +15,8 @@ Código exclusivo do Editor da Unity (namespace `Fabula.Incrementant.Editor` ou 
 | `AntFarm/SceneryArtImporter.cs` | Importação dos PNGs do cenário (Point, Read/Write, 6 ppu) e atualização automática do catálogo. |
 | `AntFarm/AntFarmGameEditor.cs` | Inspector do `AntFarmGame`: preview da cena e câmera conforme o modo do mapa. |
 | `Setup/AntFarmMapImporter.cs` | Configurações de importação dos PNGs em `Assets/Project/Art/Maps/`. |
+| `UI/UiSpriteImporter.cs` | Importa `Art/UI/Sprites` como sprites de UI e grava as bordas 9-slice; menu **Incrementant/UI/Aplicar importação e 9-slice dos sprites**. |
+| `UI/AntFarmHudSetup.cs` | Menu **Incrementant/Setup/Montar HUD da partida**: recria o objeto `HUD` (Canvas) e o EventSystem na cena do AntFarm. Guia: [HudGuide](../Runtime/UI/HudGuide.md). |
 | `Validation/` | Validadores de conteúdo e de referências, executáveis por menu e em batch. |
 
 Ferramentas de um domínio ficam em uma pasta com o nome do domínio de `Runtime`. Cada ferramenta de menu usa o prefixo `Incrementant/` para ficar agrupada.

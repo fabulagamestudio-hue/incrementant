@@ -420,6 +420,9 @@ namespace Fabula.Incrementant.Tests
 
             var layout = new TerrainLayout(40, new Vector2Int(40, 6), 60, 70);
             var colony = new AntColony(grid, new ColonySettings(), layout, seed: 11);
+            // Jardineiras só cortam planta: quem constrói são as comuns.
+            foreach (Ant ant in colony.Ants)
+                ant.Role = AntRole.Worker;
             var sim = new GranularSimulation();
             const float dt = 1f / 60f;
 
@@ -495,14 +498,5 @@ namespace Fabula.Incrementant.Tests
             Assert.AreEqual(0, grid.BuildMarkedCount, "O túnel inteiro deveria ter sido preenchido, de dentro para fora.");
         }
 
-        [Test]
-        public void Colony_BuyingAnAntSpendsStoredPixels()
-        {
-            PixelGrid grid = MakeFloorGrid(10, 4);
-            var colony = new AntColony(grid, new ColonySettings(), new TerrainLayout(2, new Vector2Int(2, 1), 6, 8), 1);
-            int before = colony.Ants.Count;
-            Assert.IsFalse(colony.TryBuyAnt(), "Sem terra em estoque não compra.");
-            Assert.AreEqual(before, colony.Ants.Count);
-        }
     }
 }

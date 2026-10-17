@@ -169,7 +169,7 @@ namespace Fabula.Incrementant.World
                 for (int d = 0; d < _settings.HeavySoakDepth; d++, y--)
                 {
                     CellMaterial material = grid.Get(x, y);
-                    if (!CellMaterials.IsGranular(material))
+                    if (!CellMaterials.IsGranular(material) || CellMaterials.IsPlantDebris(material))
                         break;
                     grid.Set(x, y, CellMaterials.ToPacked(material), grid.GetShade(x, y));
                     PackedCells++;

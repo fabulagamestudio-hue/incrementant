@@ -15,8 +15,12 @@ namespace Fabula.Incrementant.Colony
 
         public static bool IsWalkable(PixelGrid grid, int x, int y)
         {
-            if (!grid.InBounds(x, y) || grid.IsSolid(x, y))
+            if (!grid.InBounds(x, y))
                 return false;
+            if (grid.IsSolid(x, y))
+                // Planta é como o túnel do formigueiro: a formiga entra nela e sobe por ela (pedido do desenvolvedor em
+                // 2026-10-17); o resto do sólido é parede.
+                return CellMaterials.IsPlant(grid.Get(x, y));
             if (IsTunnelBackground(grid, x, y))
                 return true;
             return TouchesSolid(grid, x, y);
@@ -63,6 +67,9 @@ namespace Fabula.Incrementant.Colony
             _queue = new int[width * height];
             Array.Fill(_distance, Unreachable);
         }
+
+        /// <summary>Quantas células o último <c>Build</c> alcançou (as fontes incluídas).</summary>
+        public int ReachedCount => _reached;
 
         public int Get(int x, int y) =>
             (uint)x < (uint)_width && (uint)y < (uint)_height ? _distance[y * _width + x] : Unreachable;

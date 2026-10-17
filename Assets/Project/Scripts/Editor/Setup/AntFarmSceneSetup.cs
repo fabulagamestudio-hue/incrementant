@@ -1,6 +1,7 @@
 using System.Linq;
 using Fabula.Incrementant.AntFarm;
 using Fabula.Incrementant.EditorTools.AntFarm;
+using Fabula.Incrementant.EditorTools.UI;
 using Fabula.Incrementant.World;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -101,6 +102,8 @@ namespace Fabula.Incrementant.EditorTools.Setup
             // O modo do mapa (Procedural por padrão) é escolha do usuário e não é alterado aqui; o PNG fica
             // atribuído para o modo Image. O preview segue o modo: PNG na cena (Image) ou nenhum (Procedural).
             AntFarmGameEditor.SyncPreview(game);
+
+            AntFarmHudSetup.Build(scene);
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene, ScenePath);

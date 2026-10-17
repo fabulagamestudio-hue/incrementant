@@ -19,6 +19,7 @@ namespace Fabula.Incrementant.World
         {
             CellMaterial.Dirt, CellMaterial.Grass, CellMaterial.Sand, CellMaterial.Rock, CellMaterial.Spoil, CellMaterial.Bedrock,
             CellMaterial.PackedSpoil, CellMaterial.PackedSand, CellMaterial.Mud, CellMaterial.PlantGrass, CellMaterial.PlantLeaf,
+            CellMaterial.FallenGrass, CellMaterial.FallenLeaf,
         };
 
         public static Color32[] Encode(PixelGrid grid)

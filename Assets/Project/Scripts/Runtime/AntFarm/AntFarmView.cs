@@ -17,8 +17,8 @@ namespace Fabula.Incrementant.AntFarm
         Dig,
         Build,
         QueenRoom,
-        Harvest,
         NutrientRoom,
+        NurseryRoom,
     }
 
     [RequireComponent(typeof(SpriteRenderer))]
@@ -37,14 +37,13 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField, Range(0f, 1f)] float _queenRoomStrength = 0.4f;
         [Tooltip("Cor da sala de nutrientes pintada (slots livres) e do pincel no modo sala de nutrientes.")]
         [SerializeField] Color32 _nutrientRoomColor = new Color32(120, 200, 90, 255);
+        [SerializeField] Color32 _nurseryRoomColor = new Color32(240, 160, 190, 255);
         [Tooltip("Força da tinta da sala de nutrientes; células ainda maciças ficam com metade.")]
         [SerializeField, Range(0f, 1f)] float _nutrientRoomStrength = 0.35f;
         [Tooltip("Cor do nutriente guardado num slot (e carregado até a rainha, no fallback sem sprites).")]
         [SerializeField] Color32 _nutrientColor = new Color32(232, 214, 92, 255);
         [Tooltip("Cor do pixel de planta recém-guardado; vai mudando para a cor do nutriente enquanto cura.")]
         [SerializeField] Color32 _curingNutrientColor = new Color32(96, 168, 64, 255);
-        [Tooltip("Cor do pincel no modo colher (plantas da superfície).")]
-        [SerializeField] Color32 _harvestBrushColor = new Color32(170, 240, 110, 255);
         [SerializeField] Color32 _antBody = new Color32(20, 12, 10, 255);
         [SerializeField] Color32 _antHead = new Color32(48, 26, 18, 255);
         [SerializeField] Color32 _brushColor = new Color32(255, 255, 255, 255);
@@ -156,8 +155,8 @@ namespace Fabula.Incrementant.AntFarm
             {
                 case BrushTint.Build: return _buildMarkColor;
                 case BrushTint.QueenRoom: return _queenRoomColor;
-                case BrushTint.Harvest: return _harvestBrushColor;
                 case BrushTint.NutrientRoom: return _nutrientRoomColor;
+                case BrushTint.NurseryRoom: return _nurseryRoomColor;
                 default: return _brushColor;
             }
         }
@@ -213,6 +212,8 @@ namespace Fabula.Incrementant.AntFarm
                                                      colony != null && colony.IsQueenArea(x, y) ? _queenRoomStrength : faintRoom);
                             if (grid.IsNutrientRoom(x, y))
                                 color = Color32.Lerp(color, _nutrientRoomColor, _nutrientRoomStrength);
+                            if (grid.IsNurseryRoom(x, y))
+                                color = Color32.Lerp(color, _nurseryRoomColor, _nutrientRoomStrength);
                         }
                         if (grid.HasNutrient(x, y))
                             color = NutrientAt(x, y, grid.GetNutrientCure(x, y), colony);
@@ -231,6 +232,8 @@ namespace Fabula.Incrementant.AntFarm
                             color = Color32.Lerp(color, _queenRoomColor, faintRoom);
                         if (grid.IsNutrientRoom(x, y))
                             color = Color32.Lerp(color, _nutrientRoomColor, _nutrientRoomStrength * 0.5f);
+                        if (grid.IsNurseryRoom(x, y))
+                            color = Color32.Lerp(color, _nurseryRoomColor, _nutrientRoomStrength * 0.5f);
                     }
                     _pixels[row + wx] = color;
                 }

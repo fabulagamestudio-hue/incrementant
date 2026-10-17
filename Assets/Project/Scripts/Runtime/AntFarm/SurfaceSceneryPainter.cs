@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Fabula.Incrementant.World;
 using UnityEngine;
 
@@ -9,13 +10,13 @@ namespace Fabula.Incrementant.AntFarm
     public sealed class SurfaceScenerySettings
     {
         // Grama, trevos e flores não são cenário: são plantas colhíveis (VegetationSimulation + PlantSprites).
-        [SerializeField, Min(0f)] float _mushrooms = 0.6f;
-        [SerializeField, Min(0f)] float _twigs = 0.6f;
-        [SerializeField, Min(0f)] float _dryLeaves = 1f;
+        [SerializeField, Min(0f)] float _mushrooms = 0.25f;
+        [SerializeField, Min(0f)] float _twigs = 0.25f;
+        [SerializeField, Min(0f)] float _dryLeaves = 0.4f;
         [Tooltip("Pedrinhas de 1 a 6 células (a formiga mede 3x2).")]
-        [SerializeField, Min(0f)] float _pebbles = 16f;
+        [SerializeField, Min(0f)] float _pebbles = 4f;
         [Tooltip("Grãos e migalhas de menos de 1 célula.")]
-        [SerializeField, Min(0f)] float _grains = 30f;
+        [SerializeField, Min(0f)] float _grains = 8f;
 
         public float Mushrooms => _mushrooms;
         public float Twigs => _twigs;
@@ -122,6 +123,9 @@ namespace Fabula.Incrementant.AntFarm
         const int Embed = 3;
         /// <summary>Células de céu acima do topo do mapa quando quem chama não informa a folga da câmera.</summary>
         public const int DefaultSkyAbove = 40;
+        /// <summary>Altura máxima, em células acima de <c>originY</c>, das camadas de perto e da frente.</summary>
+        public const int NearLayerRows = 260;
+
         /// <summary>Largura do ladrilho das faixas de grama distante, em células.</summary>
         public const int BandTileCells = 160;
         /// <summary>
@@ -145,7 +149,9 @@ namespace Fabula.Incrementant.AntFarm
                 minSurface = Mathf.Min(minSurface, grid.GetSurfaceY(x));
             int originY = Mathf.Max(0, minSurface - Embed);
             int width = grid.Width * PixelsPerCell;
-            int height = Mathf.Max(1, grid.Height - originY) * PixelsPerCell;
+            // As camadas de perto e da frente só guardam a faixa onde há cenário (cogumelos, galhos, pedras); o céu extra
+            // acima do mundo (TerrainSettings.SkyHeadroom) não precisa de textura.
+            int height = Mathf.Clamp(grid.Height - originY, 1, NearLayerRows) * PixelsPerCell;
 
             var rng = new System.Random(seed);
             var painter = new Painter(grid, originY) { Skip = isLakeColumn };
@@ -172,17 +178,30 @@ namespace Fabula.Incrementant.AntFarm
             near.Fill(Clear);
             painter.Target = near;
             // Sem grama, trevos e flores: toda planta da superfície é colhível e desenhada por PlantSprites.
-            // Cogumelos nascem em grupinhos de 1 a 3.
+            // Com a arte em escala de célula (SceneryStamp.ArtScale), cada elemento tem dezenas de células de largura:
+            // posições são sorteadas sem sobrepor os já postos (FindX), em vez de caírem umas sobre as outras.
+            // Cogumelos nascem em grupinhos de 1 a 3, mas cada um busca o próprio espaço livre.
+            var bigUsed = new List<Vector2>();
+            var pebbleUsed = new List<Vector2>();
+            var grainUsed = new List<Vector2>();
+            void PlaceSpaced(SceneryStamp stamp, List<Vector2> used, float gap, float sink = 0f, float bury = 0f)
+            {
+                if (!FindX(rng, grid.Width, stamp, used, gap, out float x))
+                    return;
+                if (bury > 0f)
+                    PlacePebble(painter, stamp, x, bury);
+                else
+                    painter.Place(stamp, x, sink);
+            }
             Repeat(rng, settings.Mushrooms * per100, () =>
             {
-                float x = RandomX(rng, grid.Width);
                 for (int i = 0, count = rng.Next(1, 4); i < count; i++)
-                    painter.Place(Pick(SceneryElement.Mushroom), x + Range(rng, -5f, 5f));
+                    PlaceSpaced(Pick(SceneryElement.Mushroom), bigUsed, 12f);
             });
-            Repeat(rng, settings.Twigs * per100, () => painter.Place(Pick(SceneryElement.Twig), RandomX(rng, grid.Width)));
-            Repeat(rng, settings.DryLeaves * per100, () => painter.Place(Pick(SceneryElement.DryLeaf), RandomX(rng, grid.Width)));
-            Repeat(rng, settings.Pebbles * per100, () => PlacePebble(painter, Pick(SceneryElement.Pebble), RandomX(rng, grid.Width), Range(rng, 0.6f, 1f)));
-            Repeat(rng, settings.Grains * per100, () => painter.Place(Pick(SceneryElement.Grain), RandomX(rng, grid.Width)));
+            Repeat(rng, settings.Twigs * per100, () => PlaceSpaced(Pick(SceneryElement.Twig), bigUsed, 12f));
+            Repeat(rng, settings.DryLeaves * per100, () => PlaceSpaced(Pick(SceneryElement.DryLeaf), bigUsed, 12f));
+            Repeat(rng, settings.Pebbles * per100, () => PlaceSpaced(Pick(SceneryElement.Pebble), pebbleUsed, 6f, bury: Range(rng, 0.6f, 1f)));
+            Repeat(rng, settings.Grains * per100, () => PlaceSpaced(Pick(SceneryElement.Grain), grainUsed, 3f));
 
             // Camada da frente (na frente das formigas) vazia: os tufos que ficavam nela viraram plantas colhíveis
             // (variantes da grama em PlantSprites), já que tudo o que é grama em primeiro plano pode ser colhido.
@@ -443,6 +462,35 @@ namespace Fabula.Incrementant.AntFarm
         };
 
         static float Range(System.Random rng, float min, float max) => min + (float)rng.NextDouble() * (max - min);
+
+        /// <summary>
+        /// Sorteia uma posição em que o carimbo (largura em células, mais <paramref name="gap"/> de cada lado) não cruza
+        /// nenhum intervalo de <paramref name="used"/> e a registra. Falha (false) depois de 40 tentativas: o elemento some.
+        /// </summary>
+        static bool FindX(System.Random rng, int mapWidth, SceneryStamp stamp, List<Vector2> used, float gap, out float x)
+        {
+            float left = -stamp.PivotX / (float)PixelsPerCell - gap;
+            float right = (stamp.Width - stamp.PivotX) / (float)PixelsPerCell + gap;
+            for (int attempt = 0; attempt < 40; attempt++)
+            {
+                x = RandomX(rng, mapWidth);
+                bool free = true;
+                foreach (Vector2 u in used)
+                {
+                    if (x + right > u.x && x + left < u.y)
+                    {
+                        free = false;
+                        break;
+                    }
+                }
+                if (!free)
+                    continue;
+                used.Add(new Vector2(x + left, x + right));
+                return true;
+            }
+            x = 0f;
+            return false;
+        }
 
         static float RandomX(System.Random rng, int mapWidth) => Range(rng, 2f, mapWidth - 2f);
 

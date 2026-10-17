@@ -2,7 +2,8 @@
     "name": "Fabula.Incrementant",
     "rootNamespace": "Fabula.Incrementant",
     "references": [
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

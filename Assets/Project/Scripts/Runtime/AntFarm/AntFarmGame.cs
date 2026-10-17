@@ -4,6 +4,7 @@ using Fabula.Incrementant.Colony;
 using Fabula.Incrementant.Save;
 using Fabula.Incrementant.World;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using Debug = UnityEngine.Debug;
 
@@ -58,7 +59,7 @@ namespace Fabula.Incrementant.AntFarm
         [Header("Água")]
         [SerializeField] WaterSettings _waterSettings = new WaterSettings();
         [Header("Vegetação")]
-        [Tooltip("Grama e mudas da superfície que crescem com o tempo e são colhidas (pincel Colher) para virar nutrientes.")]
+        [Tooltip("Grama e mudas da superfície que crescem com o tempo e são colhidas pelas jardineiras para virar nutrientes.")]
         [SerializeField] VegetationSettings _vegetationSettings = new VegetationSettings();
         [Header("Câmera")]
         [Tooltip("Folga, em células, do enquadramento inicial e acima do topo do mundo.")]
@@ -70,12 +71,12 @@ namespace Fabula.Incrementant.AntFarm
         static readonly int[] SpeedSteps = { 1, 3, 8 };
         /// <summary>
         /// O que o pincel faz: marcar terra para as formigas cavarem, espaço vazio para elas preencherem, a sala onde
-        /// a rainha pode ficar, plantas para colher ou a sala onde os nutrientes são guardados. A ordem casa com
-        /// <see cref="BrushTint"/>.
+        /// a rainha pode ficar ou a sala onde os nutrientes são guardados. Plantas não se marcam: as jardineiras escolhem
+        /// sozinhas o que colher. A ordem casa com <see cref="BrushTint"/>.
         /// </summary>
-        enum BrushMode { Dig, Build, QueenRoom, Harvest, NutrientRoom }
+        enum BrushMode { Dig, Build, QueenRoom, NutrientRoom, NurseryRoom }
 
-        static readonly string[] BrushLabels = { "Cavar", "Construir", "Sala da rainha", "Colher", "Sala de nutrientes" };
+        static readonly string[] BrushLabels = { "Cavar", "Construir", "Sala da rainha", "Sala de nutrientes", "Berçário" };
         static readonly string[] WeatherLabels = { "Seco", "Chuva leve", "Chuva forte" };
 
         PixelGrid _grid;
@@ -92,6 +93,9 @@ namespace Fabula.Incrementant.AntFarm
         Vector2Int _brushCell;
         BrushMode _brushMode;
         bool _pointerOverWorld;
+        bool _paused;
+        /// <summary>HUD de depuração (IMGUI, com contadores de simulação); o HUD de jogo é o <c>AntFarmHud</c> (uGUI). F1 alterna.</summary>
+        [SerializeField] bool _showDebugHud;
         Rect _hudRect = new Rect(10, 10, 340, 640);
         readonly MatchTimer _matchTimer = new MatchTimer();
         string _saveStatus;
@@ -107,6 +111,29 @@ namespace Fabula.Incrementant.AntFarm
         public Texture2D Map => _map;
         public AntFarmView View => _view;
         public MatchTimer Timer => _matchTimer;
+
+        public static int SpeedCount => SpeedSteps.Length;
+        public static int SpeedMultiplier(int index) => SpeedSteps[index];
+        public int SpeedIndex => _speedIndex;
+        public bool Paused => _paused;
+
+        /// <summary>Escolhe a velocidade (índice de <see cref="SpeedMultiplier"/>) e retoma a partida se estava pausada.</summary>
+        public void SetSpeed(int index)
+        {
+            _speedIndex = Mathf.Clamp(index, 0, SpeedSteps.Length - 1);
+            _paused = false;
+        }
+
+        /// <summary>Pausa a simulação (o cronômetro, a câmera e o input seguem em tempo real).</summary>
+        public void SetPaused(bool paused) => _paused = paused;
+
+        public static int BrushCount => BrushLabels.Length;
+        public static string BrushLabel(int index) => BrushLabels[index];
+        public int BrushIndex => (int)_brushMode;
+        public void SetBrush(int index) => _brushMode = (BrushMode)Mathf.Clamp(index, 0, BrushLabels.Length - 1);
+
+        /// <summary>Último aviso de salvar/carregar enquanto ainda vale (5 s); vazio depois.</summary>
+        public string SaveStatus => !string.IsNullOrEmpty(_saveStatus) && Time.unscaledTime < _saveStatusUntil ? _saveStatus : string.Empty;
 
         void Awake()
         {
@@ -173,7 +200,7 @@ namespace Fabula.Incrementant.AntFarm
                 // O mundo inteiro é alocado de uma vez, mas só a área inicial é gerada; o resto vem com a câmera.
                 _startArea = _terrainSettings.StartArea;
                 _grid = new PixelGrid(_terrainSettings.WorldWidth, _terrainSettings.WorldHeight);
-                _generator = new TerrainGenerator(_terrainSettings, _seed, _grid.Width, _grid.Height, _startArea);
+                _generator = new TerrainGenerator(_terrainSettings, _seed, _grid.Width, _grid.Height, _startArea, _terrainSettings.SkyHeadroom);
                 _layout = _generator.Begin(_grid);
             }
             _simulation = new GranularSimulation();
@@ -195,6 +222,7 @@ namespace Fabula.Incrementant.AntFarm
                 snapshot.ApplyTo(_vegetation);
             }
             _colony = new AntColony(_grid, _colonySettings, _layout, _seed);
+            _colony.AttachVegetation(_vegetation);
             snapshot?.ApplyTo(_colony);
             _matchTimer.Set(snapshot?.MatchSeconds ?? 0.0);
             _accumulator = 0f;
@@ -202,7 +230,9 @@ namespace Fabula.Incrementant.AntFarm
             Vector3 origin = _view.transform.position;
             float skyAbove = _cameraMargin + _cameraSkyHeadroom;
             var bounds = new Rect(origin.x, origin.y, _grid.Width, _grid.Height + skyAbove);
-            var startView = new Rect(origin.x + _startArea.x, origin.y + _startArea.y, _startArea.width, _startArea.height);
+            // A vista inicial enquadra só o solo e o céu de sempre; as linhas de céu extras (SkyHeadroom) ficam para cima.
+            int skyHeadroom = _generator != null ? _terrainSettings.SkyHeadroom : 0;
+            var startView = new Rect(origin.x + _startArea.x, origin.y + _startArea.y, _startArea.width, _startArea.height - skyHeadroom);
             _cameraControl.Reset(_camera, bounds, startView, _cameraMargin);
 
             _view.Initialize(_grid, transparentSky: _scenery != null, skyBaseY: _startArea.yMin, plantsAsSprites: _scenery != null);
@@ -339,7 +369,8 @@ namespace Fabula.Incrementant.AntFarm
             HandleInput();
 
             float tickDuration = 1f / _ticksPerSecond;
-            _accumulator += Time.deltaTime * SpeedSteps[_speedIndex];
+            if (!_paused)
+                _accumulator += Time.deltaTime * SpeedSteps[_speedIndex];
             int maxTicks = _maxTicksPerFrame * SpeedSteps[_speedIndex];
             int ticks = 0;
 
@@ -449,11 +480,11 @@ namespace Fabula.Incrementant.AntFarm
             Keyboard keyboard = Keyboard.current;
             if (keyboard != null)
             {
-                if (keyboard.spaceKey.wasPressedThisFrame)
-                    _colony.TryBuyAnt();
-                if (keyboard.digit1Key.wasPressedThisFrame) _speedIndex = 0;
-                if (keyboard.digit2Key.wasPressedThisFrame) _speedIndex = 1;
-                if (keyboard.digit3Key.wasPressedThisFrame) _speedIndex = 2;
+                if (keyboard.digit1Key.wasPressedThisFrame) SetSpeed(0);
+                if (keyboard.digit2Key.wasPressedThisFrame) SetSpeed(1);
+                if (keyboard.digit3Key.wasPressedThisFrame) SetSpeed(2);
+                if (keyboard.pKey.wasPressedThisFrame) SetPaused(!_paused);
+                if (keyboard.f1Key.wasPressedThisFrame) _showDebugHud = !_showDebugHud;
                 if (keyboard.bKey.wasPressedThisFrame)
                     _brushMode = (BrushMode)(((int)_brushMode + 1) % BrushLabels.Length);
                 if (keyboard.cKey.wasPressedThisFrame)
@@ -502,6 +533,10 @@ namespace Fabula.Incrementant.AntFarm
             Mouse mouse = Mouse.current;
             if (mouse == null)
                 return false;
+            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+                return true;
+            if (!_showDebugHud)
+                return false;
             Vector2 screen = mouse.position.ReadValue();
             // IMGUI usa y para baixo.
             return _hudRect.Contains(new Vector2(screen.x, Screen.height - screen.y));
@@ -527,9 +562,12 @@ namespace Fabula.Incrementant.AntFarm
                     case BrushMode.NutrientRoom:
                         _grid.SetNutrientRoom(x, y, marked);
                         break;
+                    case BrushMode.NurseryRoom:
+                        _grid.SetNurseryRoom(x, y, marked);
+                        break;
                     default:
-                        // Cavar e colher usam a mesma marca, mas cada pincel só mexe no próprio tipo de célula.
-                        if (CellMaterials.IsPlant(_grid.Get(x, y)) == (_brushMode == BrushMode.Harvest))
+                        // Cavar não marca plantas: quem as colhe é a jardineira, por conta própria.
+                        if (!CellMaterials.IsAnyPlant(_grid.Get(x, y)))
                             _grid.SetMarked(x, y, marked);
                         break;
                 }
@@ -538,7 +576,7 @@ namespace Fabula.Incrementant.AntFarm
 
         void OnGUI()
         {
-            if (_colony == null)
+            if (_colony == null || !_showDebugHud)
                 return;
 
             GUILayout.BeginArea(_hudRect, GUI.skin.box);
@@ -549,12 +587,9 @@ namespace Fabula.Incrementant.AntFarm
             GUILayout.Label($"Sala de nutrientes: {NutrientRoomStatus()}");
             GUILayout.Label($"Plantas: {_vegetation.PlantCount} · colhidos: {_colony.HarvestedPixels} px · cresceram: {_vegetation.GrownCells} px");
             GUILayout.Label($"Terra retirada: {_colony.TotalDelivered}");
-            GUILayout.Label($"Pixels marcados: {_grid.MarkedCount} para cavar/colher · {_grid.BuildMarkedCount} para construir");
+            GUILayout.Label($"Pixels marcados: {_grid.MarkedCount} para cavar · {_grid.BuildMarkedCount} para construir");
             GUILayout.Label($"Rainha: {QueenStatus()}");
-            GUI.enabled = _colony.Nutrients >= _colony.NextAntCost;
-            if (GUILayout.Button($"Nova formiga — {_colony.NextAntCost} nutrientes  [Espaço]"))
-                _colony.TryBuyAnt();
-            GUI.enabled = true;
+            GUILayout.Label($"Criação: {_colony.Breeding} · ovos {_colony.Brood.Eggs} larvas {_colony.Brood.Larvae} pupas {_colony.Brood.Pupae} · vagas {_colony.AdultCapacity} (berçário {_colony.NurserySlots})");
             GUILayout.Label($"Tempo  [C]   dissolvidos: {_rain.DissolvedCells} · compactados: {_rain.PackedCells}");
             GUILayout.Label($"Água: {_grid.WaterCount} px · terra amolecida: {_water.ErodedCells}");
             int weather = GUILayout.Toolbar((int)_weather, WeatherLabels);

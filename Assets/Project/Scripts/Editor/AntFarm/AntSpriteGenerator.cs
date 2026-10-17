@@ -18,11 +18,12 @@ namespace Fabula.Incrementant.EditorTools.AntFarm
         public const int FrameCount = 4;
 
         static readonly Color32 Clear = new Color32(0, 0, 0, 0);
-        static readonly Color32 Body = new Color32(30, 18, 14, 255);
-        static readonly Color32 Shine = new Color32(84, 52, 36, 255);
-        static readonly Color32 NearLeg = new Color32(22, 13, 10, 255);
-        static readonly Color32 FarLeg = new Color32(58, 38, 28, 255);
-        static readonly Color32 Eye = new Color32(120, 84, 60, 255);
+        // Vermelho terroso de saúva, com patas escuras e reflexos acobreados.
+        static readonly Color32 Body = new Color32(158, 49, 30, 255);
+        static readonly Color32 Shine = new Color32(215, 91, 49, 255);
+        static readonly Color32 NearLeg = new Color32(82, 24, 18, 255);
+        static readonly Color32 FarLeg = new Color32(119, 38, 24, 255);
+        static readonly Color32 Eye = new Color32(35, 12, 9, 255);
 
         public static string FramePath(int index) => $"{AntSpriteImporter.AntsFolder}Ant_Walk_{index}.png";
         public static string TopFramePath(int index) => $"{AntSpriteImporter.AntsFolder}{AntSpriteImporter.TopViewPrefix}{index}.png";

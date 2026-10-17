@@ -15,6 +15,11 @@
 | REQ-006 | 2026-10-17 | Água: laguinhos, chuva que cria água, erosão da terra e afogamento | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
 | REQ-007 | 2026-10-17 | Formiga rainha e pintura da sala da rainha | PROGRAMMING, GAME_DESIGN, ART | UNDEFINED | IMPLEMENTED |
 | REQ-008 | 2026-10-17 | Sala de nutrientes, colheita de plantas da superfície e nutrientes como moeda | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
+| REQ-009 | 2026-10-17 | Ler o design revisado e organizar Markdown por assunto em Docs | GAME_DESIGN | UNDEFINED | VERIFIED |
+| REQ-010 | 2026-10-17 | Montar o HUD da partida com os sprites 9-slice | PROGRAMMING, ART | UNDEFINED | IMPLEMENTED |
+| REQ-011 | 2026-10-17 | Painel da rainha para escolher qual formiga criar | PROGRAMMING | UNDEFINED | IMPLEMENTED |
+| REQ-012 | 2026-10-17 | Mais tipos de formiga e início com 1 jardineira | PROGRAMMING | UNDEFINED | IMPLEMENTED |
+| REQ-013 | 2026-10-17 | Ciclo de criação (ovo, larva, pupa, berçário) seguindo o design | PROGRAMMING | UNDEFINED | IMPLEMENTED |
 
 ## Registros
 
@@ -160,3 +165,86 @@
   - 2026-10-17 — Ajuste pedido: tirar todas as plantas do cenário perto (todas colhíveis); média e distante sem mudança. Feito: o cenário perto só tem cogumelos, gravetos, folhas secas, pedrinhas e grãos; flores viraram mudas folhosas colhíveis; densidade das plantas colhíveis subiu (faixa de 12 colunas, 85%) (suíte 83/83; Play Mode pelo agente: 23 plantas colhíveis na área inicial, só captura de tela).
   - 2026-10-17 — Ajuste pedido: o que cresce não nasce marcado; a planta cresce pela base com a ponta sempre criada, empurrando a planta inteira para cima. Feito: linhas enterradas por planta (`GetSunkRows`), passo de 60 s sobe a planta 1 linha com buracos e marcas, rebrota da ponta colhida, sprite acompanha, formiga acompanha o pixel que subiu, save versão 5 (suíte 84/84; Play Mode pelo agente com crescimento acelerado: rebrote, subida, marcas e colheita durante o crescimento conferidos; dois defeitos achados e corrigidos).
   - 2026-10-17 — Ajuste pedido: no crescimento máximo, só voltar a crescer quando não houver mais pixel para colher, reiniciando a planta para subir completa. Feito em `VegetationSimulation.Grow`/`Sprout` (suíte 85/85; Play Mode pelo agente com crescimento acelerado).
+  - 2026-10-17 — Ajuste pedido: a jardineira escolhe sozinha as plantas maiores e mais próximas do formigueiro (nesta ordem), corta sempre de cima para baixo, o jogador não marca mais a colheita e a planta só vale depois de crescer um mínimo. Feito: papel `AntRole.Gardener` (só ele colhe; sem a classe completa da árvore da rainha), planta-alvo em `AntColony`, `VegetationSettings.MinHarvestGrowth` (padrão 1 = completa), pincel "Colher" removido, save versão 7 (suíte 94/94; sem Play Mode).
+  - 2026-10-17 — Ajuste pedido: a jardineira só corta (as comuns recolhem os pixels soltos) e o pixel que uma formiga está cortando/pegando fica travado para as outras buscarem outro. Feito em `AntColony` (`_claimed`); teste em Play Mode a 8× com 50 jardineiras e 10 comuns pelo agente: 0 travas duplicadas, colheita e consumo pela rainha funcionando, gargalo nas poucas comuns (suíte 94/94).
+
+### REQ-009 — Ler o design revisado e organizar Markdown por assunto em Docs
+
+- **Data de registro:** 2026-10-17
+- **Estado:** VERIFIED
+- **Prioridade:** UNDEFINED
+- **Setores:** GAME_DESIGN
+- **Descrição:** Ler `Increment_Ant_Game_Design_Completo_Revisado.docx`, criar os Markdown relativos a cada etapa/assunto do projeto e organizar na pasta correta de documentação.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** —
+- **Itens relacionados:** GD-006
+- **Referências:** [Docs/README.md](../Docs/README.md)
+- **Decisões pendentes:** As decisões de design em aberto foram preservadas nos respectivos documentos; esta solicitação cobre a organização documental.
+- **Histórico:**
+  - 2026-10-17 — PLANNED: pedido registrado a partir do documento fornecido pelo desenvolvedor.
+  - 2026-10-17 — IMPLEMENTED: criados 38 Markdown, separados nas pastas temáticas existentes de Docs, com índice e navegação.
+  - 2026-10-17 — VERIFIED: conferência automática contra o DOCX confirmou 38 seções, 507 parágrafos, 28 tabelas, 209 linhas e 604 células em ordem; 156 links locais válidos. Evidência e identificação da fonte em [Docs/README.md](../Docs/README.md).
+
+### REQ-010 — Montar o HUD da partida com os sprites 9-slice
+
+- **Data de registro:** 2026-10-17
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, ART
+- **Descrição:** Definir as bordas 9-slice dos sprites de UI e montar o HUD da partida (referência `05-hud-partida`) por um script de Editor idempotente.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** —
+- **Itens relacionados:** PRG-017, ART-004
+- **Referências:** [HudGuide.md](../Assets/Project/Scripts/Runtime/UI/HudGuide.md)
+- **Decisões pendentes:** O que mostrar nos cartões sem dado no jogo (próxima formiga, ovos/larvas/pupas, taxa de nutrientes); fonte pixel; telas Evolução, Rainha, Ambientes, Avisos e menu de pausa.
+- **Histórico:**
+  - 2026-10-17 — PLANNED: pedido registrado.
+  - 2026-10-17 — IMPLEMENTED: bordas 9-slice, HUD uGUI e setup idempotente; capturas em Play Mode pelo agente, sem uso por uma pessoa.
+
+### REQ-011 — Painel da rainha para escolher qual formiga criar
+
+- **Data de registro:** 2026-10-17
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING
+- **Descrição:** Painel mínimo da rainha com os três modos (automático, tipo específico, pausado) e os tipos de formiga que o jogo já tem, a partir do design da seção 11.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-010
+- **Itens relacionados:** PRG-018, GD-004
+- **Referências:** [HudGuide.md](../Assets/Project/Scripts/Runtime/UI/HudGuide.md), [11_Reproducao_e_politica_da_rainha.md](../Docs/01_Design/11_Reproducao_e_politica_da_rainha.md)
+- **Decisões pendentes:** Quando entram ovo/larva/pupa, berçário e reserva mínima; metas do automático; os demais tipos de formiga.
+- **Histórico:**
+  - 2026-10-17 — PLANNED: pedido registrado.
+  - 2026-10-17 — IMPLEMENTED: política e painel; suíte 96/96 e captura em Play Mode pelo agente, sem uso por uma pessoa.
+
+### REQ-012 — Mais tipos de formiga e início com 1 jardineira
+
+- **Data de registro:** 2026-10-17
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING
+- **Descrição:** Adicionar mais tipos de formiga e fazer o jogador começar com 1 jardineira.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-011
+- **Itens relacionados:** PRG-019, GD-004
+- **Referências:** [AntFarmGuide.md](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md), [14](../Docs/01_Design/14_Tipos_de_formiga_e_divisao_do_trabalho.md), [15](../Docs/04_Data/15_Valores_base_de_cada_formiga.md)
+- **Decisões pendentes:** Cuidadora e soldado (dependem de berçário e invasoras); se a cortadeira deve colher como a jardineira; custo por tipo.
+- **Histórico:**
+  - 2026-10-17 — PLANNED: pedido registrado.
+  - 2026-10-17 — IMPLEMENTED: carregadora, cortadeira e escavadora; início com 1 jardineira; suíte 99/99 e captura em Play Mode pelo agente, sem uso por uma pessoa.
+
+### REQ-013 — Ciclo de criação (ovo, larva, pupa, berçário) seguindo o design
+
+- **Data de registro:** 2026-10-17
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING
+- **Descrição:** Seguir o documento de design no ciclo de criação e resolver as duas interpretações de REQ-012 pelo design (cortadeira colhe; custo estável por tipo).
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-012
+- **Itens relacionados:** PRG-020, GD-004
+- **Referências:** [AntFarmGuide.md](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md), [11](../Docs/01_Design/11_Reproducao_e_politica_da_rainha.md), [12](../Docs/01_Design/12_Ciclo_de_vida_contadores_e_recuperacao.md), [13](../Docs/01_Design/13_Capacidade_superlotacao_e_morte_da_rainha.md), [19](../Docs/01_Design/19_Bercario_habilidades_e_balanceamento.md)
+- **Decisões pendentes:** Escala de células por vaga (protótipo x design de 256); envelhecimento, recuperação, superlotação e game over; compras B0 a B3 e pincel pago; reserva inicial de 100 N; cuidadora e soldado.
+- **Histórico:**
+  - 2026-10-17 — PLANNED: pedido registrado.
+  - 2026-10-17 — IMPLEMENTED: ciclo mínimo, berçário, capacidade e custo estável; suíte 105/105 e Play Mode pelo agente, sem uso por uma pessoa.

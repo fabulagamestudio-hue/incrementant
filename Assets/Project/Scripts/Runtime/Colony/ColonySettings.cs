@@ -28,8 +28,22 @@ namespace Fabula.Incrementant.Colony
         [SerializeField, Min(1)] int _maxDumpOpenings = 4;
         [Tooltip("Segundos seguidos debaixo d'água até a formiga se afogar.")]
         [SerializeField, Min(0.1f)] float _drownSeconds = 5f;
-        [SerializeField, Min(0)] int _antBaseCost = 25;
-        [SerializeField, Min(1f)] float _antCostGrowth = 1.12f;
+        [Tooltip("Quantas das formigas iniciais nascem jardineiras (colhem as plantas sozinhas). As demais são comuns.")]
+        [SerializeField, Min(0)] int _initialGardeners = 1;
+        [Header("Criação (seções 11, 12 e 19 do design)")]
+        [Tooltip("Segundos entre uma postura e a seguinte.")]
+        [SerializeField, Min(0.1f)] float _layIntervalSeconds = 18f;
+        [SerializeField, Min(0.1f)] float _eggSeconds = 8f;
+        [SerializeField, Min(0.1f)] float _larvaSeconds = 14f;
+        [SerializeField, Min(0.1f)] float _pupaSeconds = 12f;
+        [Tooltip("Nutrientes que a rainha preserva: só põe o ovo se sobrar isto depois de pagar a cria.")]
+        [SerializeField, Min(0)] int _minNutrientReserve = 30;
+        [Tooltip("Células escavadas e acessíveis por vaga de adulta. O design usa 256 (um B), mas as formigas do protótipo " +
+                 "ocupam 3x2 células; este valor é a escala do protótipo e precisa de ajuste de balanceamento.")]
+        [SerializeField, Min(1)] int _cellsPerAdultSlot = 24;
+        [Tooltip("Células de berçário (vazias e alcançáveis) por vaga de cria. O design dá 2 vagas por B de 256 células; " +
+                 "mesma escala do protótipo de Cells Per Adult Slot.")]
+        [SerializeField, Min(1)] int _cellsPerNurserySlot = 16;
 
         public int InitialAnts => _initialAnts;
         public int MaxAnts => _maxAnts;
@@ -43,7 +57,13 @@ namespace Fabula.Incrementant.Colony
         public float QueenRestSeconds => _queenRestSeconds;
         public int MaxDumpOpenings => _maxDumpOpenings;
         public float DrownSeconds => _drownSeconds;
-        public int AntBaseCost => _antBaseCost;
-        public float AntCostGrowth => _antCostGrowth;
+        public int InitialGardeners => _initialGardeners;
+        public float LayIntervalSeconds => _layIntervalSeconds;
+        public float EggSeconds => _eggSeconds;
+        public float LarvaSeconds => _larvaSeconds;
+        public float PupaSeconds => _pupaSeconds;
+        public int MinNutrientReserve => _minNutrientReserve;
+        public int CellsPerAdultSlot => _cellsPerAdultSlot;
+        public int CellsPerNurserySlot => _cellsPerNurserySlot;
     }
 }

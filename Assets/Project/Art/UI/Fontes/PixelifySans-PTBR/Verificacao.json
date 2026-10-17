@@ -1,0 +1,14 @@
+[
+  {
+    "file": "PixelifySans-Regular.ttf",
+    "source": "https://raw.githubusercontent.com/eifetx/Pixelify-Sans/main/fonts/ttf/PixelifySans-Regular.ttf",
+    "tested_characters": 125,
+    "missing": []
+  },
+  {
+    "file": "PixelifySans-Bold.ttf",
+    "source": "https://raw.githubusercontent.com/eifetx/Pixelify-Sans/main/fonts/ttf/PixelifySans-Bold.ttf",
+    "tested_characters": 125,
+    "missing": []
+  }
+]

@@ -22,6 +22,10 @@ namespace Fabula.Incrementant.World
         PlantGrass = 10,
         /// <summary>Caule e folhas de uma muda folhosa da superfície. Colhida, vira nutriente.</summary>
         PlantLeaf = 11,
+        /// <summary>Pixel de grama que a formiga soltou da planta: cai como grão e, no chão, espera ser colhido.</summary>
+        FallenGrass = 12,
+        /// <summary>Pixel de muda folhosa solto da planta (ver <see cref="FallenGrass"/>).</summary>
+        FallenLeaf = 13,
     }
 
     /// <summary>Regras e cores por material. Tabela fixa enquanto o protótipo não pede dados configuráveis.</summary>
@@ -31,7 +35,8 @@ namespace Fabula.Incrementant.World
 
         /// <summary>Materiais que caem e escorregam em diagonal (formam pilhas).</summary>
         public static bool IsGranular(CellMaterial material) =>
-            material == CellMaterial.Sand || material == CellMaterial.Spoil || material == CellMaterial.Mud;
+            material == CellMaterial.Sand || material == CellMaterial.Spoil || material == CellMaterial.Mud ||
+            IsPlantDebris(material);
 
         /// <summary>Terra fixa que a água amolece (vira <see cref="CellMaterial.Mud"/>) dentro do formigueiro.</summary>
         public static bool IsErodible(CellMaterial material) =>
@@ -57,8 +62,25 @@ namespace Fabula.Incrementant.World
         public static bool IsPlant(CellMaterial material) =>
             material == CellMaterial.PlantGrass || material == CellMaterial.PlantLeaf;
 
-        /// <summary>Aceita marca de trabalho (<see cref="PixelGrid.SetMarked"/>): escavável ou planta (colheita).</summary>
-        public static bool IsMarkable(CellMaterial material) => IsDiggable(material) || IsPlant(material);
+        /// <summary>
+        /// Pixel de planta solto pela formiga (cai como grão): só então pode ser colhido e levado à sala de nutrientes.
+        /// Mantém a marca de colheita do pixel que o originou.
+        /// </summary>
+        public static bool IsPlantDebris(CellMaterial material) =>
+            material == CellMaterial.FallenGrass || material == CellMaterial.FallenLeaf;
+
+        /// <summary>Planta em pé ou já solta: o que o pincel Colher marca.</summary>
+        public static bool IsAnyPlant(CellMaterial material) => IsPlant(material) || IsPlantDebris(material);
+
+        /// <summary>Em que a planta em pé vira ao ser solta (e de volta, ao ser colhida do chão).</summary>
+        public static CellMaterial ToDebris(CellMaterial plant) =>
+            plant == CellMaterial.PlantGrass ? CellMaterial.FallenGrass : CellMaterial.FallenLeaf;
+
+        public static CellMaterial FromDebris(CellMaterial debris) =>
+            debris == CellMaterial.FallenGrass ? CellMaterial.PlantGrass : CellMaterial.PlantLeaf;
+
+        /// <summary>Aceita marca de trabalho (<see cref="PixelGrid.SetMarked"/>): escavável, planta ou pixel solto de planta.</summary>
+        public static bool IsMarkable(CellMaterial material) => IsDiggable(material) || IsAnyPlant(material);
 
         public static bool IsDiggable(CellMaterial material) =>
             material == CellMaterial.Dirt || material == CellMaterial.Grass ||
@@ -80,6 +102,8 @@ namespace Fabula.Incrementant.World
                 case CellMaterial.Mud: return 0.1f;
                 case CellMaterial.PlantGrass: return 0.15f;
                 case CellMaterial.PlantLeaf: return 0.2f;
+                case CellMaterial.FallenGrass: return 0.15f;
+                case CellMaterial.FallenLeaf: return 0.2f;
                 default: return float.PositiveInfinity;
             }
         }
@@ -103,6 +127,8 @@ namespace Fabula.Incrementant.World
                 case CellMaterial.Mud: return new Color32(84, 58, 40, 255);
                 case CellMaterial.PlantGrass: return new Color32(110, 168, 64, 255);
                 case CellMaterial.PlantLeaf: return new Color32(62, 132, 70, 255);
+                case CellMaterial.FallenGrass: return new Color32(110, 168, 64, 255);
+                case CellMaterial.FallenLeaf: return new Color32(62, 132, 70, 255);
                 default: return new Color32(0, 0, 0, 0);
             }
         }

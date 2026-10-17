@@ -18,6 +18,8 @@ namespace Fabula.Incrementant.Save
         public int DigX, DigY, DumpTargetX;
         public byte Carried, CarriedShade;
         public float UnderwaterSeconds;
+        /// <summary><see cref="AntRole"/> como byte. Saves anteriores à versão 7 não têm: voltam todas comuns e a colônia promove jardineiras.</summary>
+        public byte Role;
     }
 
     /// <summary>
@@ -34,8 +36,10 @@ namespace Fabula.Incrementant.Save
         /// 4: plantas, sala de nutrientes, nutrientes guardados e economia de nutrientes.
         /// 5: linhas ainda enterradas de cada planta (crescimento pela base).
         /// 6: plantas cobertas por terra (<c>PixelGrid.GetBehind</c>).
+        /// 7: papel de cada formiga.
+        /// 8: berçário pintado, ovos/larvas/pupas, relógio da postura e política da rainha.
         /// </summary>
-        public const int CurrentVersion = 6;
+        public const int CurrentVersion = 8;
         /// <summary>
         /// Versão mais antiga que ainda carrega (a 2 volta sem sala pintada e com a rainha no ninho; a 2 e a 3 voltam sem
         /// sala de nutrientes e com 0 nutrientes).
@@ -82,6 +86,14 @@ namespace Fabula.Incrementant.Save
         public byte[] QueenRoom = Array.Empty<byte>();
         /// <summary>Por célula: bit 0 = sala de nutrientes pintada, bit 1 = nutriente guardado.</summary>
         public byte[] NutrientRoom = Array.Empty<byte>();
+        /// <summary>Berçário pintado (1) por célula. Vazio antes da versão 8.</summary>
+        public byte[] NurseryRoom = Array.Empty<byte>();
+        /// <summary><see cref="QueenMode"/> e o papel do modo específico (versão 8).</summary>
+        public byte QueenMode, QueenTarget;
+        /// <summary>Segundos até a próxima postura (versão 8).</summary>
+        public float LayTimer;
+        /// <summary>Crias reservadas (versão 8).</summary>
+        public BroodRecord[] Brood = Array.Empty<BroodRecord>();
         /// <summary>
         /// Por coluna da área ativa: linhas da forma da planta com raiz ali ainda enterradas (até 255). Vazio em saves
         /// anteriores à versão 5: as plantas voltam todas para fora (a que só tiver a linha do chão reinicia).
@@ -128,6 +140,11 @@ namespace Fabula.Incrementant.Save
                 Water = new byte[count],
                 QueenRoom = new byte[count],
                 NutrientRoom = new byte[count],
+                NurseryRoom = new byte[count],
+                QueenMode = (byte)colony.QueenMode,
+                QueenTarget = (byte)colony.QueenTarget,
+                LayTimer = colony.Brood.SecondsToNextLay,
+                Brood = new List<BroodRecord>(colony.Brood.Brood).ToArray(),
                 Behind = new byte[count],
                 BehindShades = new byte[count],
             };
@@ -142,6 +159,7 @@ namespace Fabula.Incrementant.Save
                 snapshot.Wetness[i] = grid.GetWetness(x, y);
                 snapshot.Water[i] = grid.HasWater(x, y) ? (byte)1 : (byte)0;
                 snapshot.QueenRoom[i] = grid.IsQueenRoom(x, y) ? (byte)1 : (byte)0;
+                snapshot.NurseryRoom[i] = grid.IsNurseryRoom(x, y) ? (byte)1 : (byte)0;
                 snapshot.Behind[i] = (byte)grid.GetBehind(x, y);
                 snapshot.BehindShades[i] = grid.GetBehindShade(x, y);
                 // Bits 2-7: segundos de cura que faltam (arredondados para cima, até 63). Saves antigos têm 0 = pronto.
@@ -166,6 +184,7 @@ namespace Fabula.Incrementant.Save
                     X = ant.X, Y = ant.Y, FacingX = ant.FacingX, State = (byte)ant.State, Cooldown = ant.Cooldown,
                     DigX = ant.DigX, DigY = ant.DigY, DumpTargetX = ant.DumpTargetX,
                     Carried = (byte)ant.Carried, CarriedShade = ant.CarriedShade, UnderwaterSeconds = ant.UnderwaterSeconds,
+                    Role = (byte)ant.Role,
                 };
             }
             return snapshot;
@@ -191,7 +210,8 @@ namespace Fabula.Incrementant.Save
                 grid.Set(x, y, (CellMaterial)Cells[i], Shades[i]);
                 if (Behind.Length != 0 && Behind[i] != 0)
                     grid.SetBehind(x, y, (CellMaterial)Behind[i], BehindShades[i]);
-                if (Marked[i] == 1)
+                // Planta em pé não tem mais marca (saves antigos a guardam): as jardineiras escolhem sozinhas o que cortar.
+                if (Marked[i] == 1 && !CellMaterials.IsPlant((CellMaterial)Cells[i]))
                     grid.SetMarked(x, y, true);
                 else if (Marked[i] == 2)
                     grid.SetBuildMarked(x, y, true);
@@ -206,6 +226,8 @@ namespace Fabula.Incrementant.Save
                     grid.SetNutrientRoom(x, y, (NutrientRoom[i] & 1) != 0);
                     grid.SetNutrient(x, y, (NutrientRoom[i] & 2) != 0, NutrientRoom[i] >> 2);
                 }
+                if (NurseryRoom.Length != 0)
+                    grid.SetNurseryRoom(x, y, NurseryRoom[i] != 0);
             }
         }
 
@@ -219,12 +241,15 @@ namespace Fabula.Incrementant.Save
                     X = r.X, Y = r.Y, FacingX = r.FacingX, State = (AntState)r.State, Cooldown = r.Cooldown,
                     DigX = r.DigX, DigY = r.DigY, DumpTargetX = r.DumpTargetX,
                     Carried = (CellMaterial)r.Carried, CarriedShade = r.CarriedShade, UnderwaterSeconds = r.UnderwaterSeconds,
+                    Role = (AntRole)r.Role,
                 });
             }
             colony.RestoreState(StoredPixels, TotalDelivered, SimulationTime, ants, DrownedAnts);
             colony.RestoreNutrients(Nutrients, TotalNutrients, HarvestedPixels);
             if (HasQueen)
                 colony.RestoreQueen(QueenX, QueenY, QueenFacingX);
+            colony.SetQueenPolicy((QueenMode)QueenMode, (AntRole)QueenTarget);
+            colony.RestoreBrood(Brood, LayTimer);
         }
 
         /// <summary>Linhas enterradas das plantas (chame depois de <c>MarkPopulated</c>; as células já vêm da grade).</summary>
@@ -277,7 +302,7 @@ namespace Fabula.Incrementant.Save
                 {
                     w.Write(a.X); w.Write(a.Y); w.Write(a.FacingX); w.Write(a.State); w.Write(a.Cooldown);
                     w.Write(a.DigX); w.Write(a.DigY); w.Write(a.DumpTargetX); w.Write(a.Carried); w.Write(a.CarriedShade);
-                    w.Write(a.UnderwaterSeconds);
+                    w.Write(a.UnderwaterSeconds); w.Write(a.Role);
                 }
                 w.Write(QueenX); w.Write(QueenY); w.Write(QueenFacingX);
                 w.Write(Nutrients); w.Write(TotalNutrients); w.Write(HarvestedPixels);
@@ -292,6 +317,13 @@ namespace Fabula.Incrementant.Save
                 w.Write(PlantSunk);
                 w.Write(Behind);
                 w.Write(BehindShades);
+                w.Write(NurseryRoom);
+                w.Write(QueenMode); w.Write(QueenTarget); w.Write(LayTimer);
+                w.Write(Brood.Length);
+                foreach (BroodRecord b in Brood)
+                {
+                    w.Write((byte)b.Role); w.Write((byte)b.Stage); w.Write(b.Remaining);
+                }
             }
         }
 
@@ -350,6 +382,7 @@ namespace Fabula.Incrementant.Save
                             X = r.ReadInt32(), Y = r.ReadInt32(), FacingX = r.ReadInt32(), State = r.ReadByte(), Cooldown = r.ReadSingle(),
                             DigX = r.ReadInt32(), DigY = r.ReadInt32(), DumpTargetX = r.ReadInt32(),
                             Carried = r.ReadByte(), CarriedShade = r.ReadByte(), UnderwaterSeconds = r.ReadSingle(),
+                            Role = version >= 7 ? r.ReadByte() : (byte)0,
                         };
                     }
                     if (version >= 3)
@@ -377,6 +410,19 @@ namespace Fabula.Incrementant.Save
                     s.PlantSunk = version >= 5 ? ReadBlock(r, s.Active.width) : Array.Empty<byte>();
                     s.Behind = version >= 6 ? ReadBlock(r, count) : Array.Empty<byte>();
                     s.BehindShades = version >= 6 ? ReadBlock(r, count) : Array.Empty<byte>();
+                    if (version >= 8)
+                    {
+                        s.NurseryRoom = ReadBlock(r, count);
+                        s.QueenMode = r.ReadByte();
+                        s.QueenTarget = r.ReadByte();
+                        s.LayTimer = r.ReadSingle();
+                        int broodCount = r.ReadInt32();
+                        if (broodCount < 0 || broodCount > 100000)
+                            throw new InvalidDataException("O save tem uma contagem de crias inválida.");
+                        s.Brood = new BroodRecord[broodCount];
+                        for (int i = 0; i < broodCount; i++)
+                            s.Brood[i] = new BroodRecord { Role = (AntRole)r.ReadByte(), Stage = (BroodStage)r.ReadByte(), Remaining = r.ReadSingle() };
+                    }
                     return s;
                 }
             }

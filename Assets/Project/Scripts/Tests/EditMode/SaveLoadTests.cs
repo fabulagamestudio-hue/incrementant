@@ -43,7 +43,13 @@ namespace Fabula.Incrementant.Tests
                 water.Step(grid, 1f / 60f);
                 colony.Tick(1f / 60f);
             }
-            colony.TryBuyAnt();
+            grid.SetNurseryRoom(nest.x + 2, nest.y, true);
+            colony.SetQueenPolicy(QueenMode.Specific, AntRole.Digger);
+            colony.RestoreBrood(new[]
+            {
+                new BroodRecord { Role = AntRole.Carrier, Stage = BroodStage.Larva, Remaining = 5f },
+                new BroodRecord { Role = AntRole.Cutter, Stage = BroodStage.Egg, Remaining = 3f },
+            }, 7f);
 
             GameSnapshot saved = GameSnapshot.Capture(grid, colony, rain, water, 0, Seed, 125.5);
             var stream = new MemoryStream();
@@ -78,6 +84,13 @@ namespace Fabula.Incrementant.Tests
             }
             Assert.AreEqual(Weather.LightRain, rain2.Weather);
             Assert.AreEqual(colony.Ants.Count, colony2.Ants.Count);
+            Assert.AreEqual(grid.NurseryRoomCount, grid2.NurseryRoomCount, "O berçário pintado volta com o save.");
+            Assert.AreEqual(QueenMode.Specific, colony2.QueenMode);
+            Assert.AreEqual(AntRole.Digger, colony2.QueenTarget);
+            Assert.AreEqual(2, colony2.Brood.Count);
+            Assert.AreEqual(1, colony2.Brood.Larvae);
+            Assert.AreEqual(1, colony2.Brood.CountOf(AntRole.Cutter));
+            Assert.AreEqual(7f, colony2.Brood.SecondsToNextLay, 1e-4f);
             Assert.AreEqual(colony.StoredPixels, colony2.StoredPixels);
             Assert.AreEqual(colony.TotalDelivered, colony2.TotalDelivered);
             Assert.AreEqual(colony.SimulationTime, colony2.SimulationTime);

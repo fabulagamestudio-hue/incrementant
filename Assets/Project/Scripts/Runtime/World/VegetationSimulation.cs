@@ -17,9 +17,9 @@ namespace Fabula.Incrementant.World
     public sealed class VegetationSettings
     {
         [Tooltip("Largura (em células) de cada faixa da superfície onde nasce no máximo uma planta (a raiz dela). As " +
-                 "touceiras de grama têm de 15 a 35 células de largura, então vizinhas se sobrepõem um pouco (a célula " +
+                 "touceiras de grama têm de 90 a 200 células de largura (arte 6x), então vizinhas se sobrepõem um pouco (a célula " +
                  "comum é de quem cresceu primeiro). Toda a vegetação da superfície vem daqui: o cenário perto não pinta plantas.")]
-        [SerializeField, Min(4)] int _slotWidth = 12;
+        [SerializeField, Min(4)] int _slotWidth = 100;
         [Tooltip("Chance de cada faixa ter uma planta.")]
         [SerializeField, Range(0f, 1f)] float _density = 0.85f;
         [Tooltip("Parte das plantas que são grama (o resto são mudas folhosas).")]
@@ -35,7 +35,10 @@ namespace Fabula.Incrementant.World
                  "sorteio). A ponta sai primeiro, então menos que 1 dá a planta inteira, só mais baixa (o resto enterrado).")]
         [SerializeField] Vector2 _initialGrowth = new Vector2(1f, 1f);
         [Tooltip("Células livres de plantas em volta da entrada e das faixas de despejo configuradas.")]
-        [SerializeField, Min(0)] int _clearance = 6;
+        [SerializeField, Min(0)] int _clearance = 30;
+        [Tooltip("Parte da altura da forma que a planta precisa ter crescido (linhas para fora do chão) para as jardineiras " +
+                 "a escolherem. 1 = só planta completa. Vale para escolher a planta; uma vez escolhida, a jardineira a colhe até o fim.")]
+        [SerializeField, Range(0.05f, 1f)] float _minHarvestGrowth = 1f;
 
         public int SlotWidth => Mathf.Max(4, _slotWidth);
         public float Density => _density;
@@ -45,6 +48,7 @@ namespace Fabula.Incrementant.World
         public float GrowSeconds => _growSeconds;
         public Vector2 InitialGrowth => _initialGrowth;
         public int Clearance => _clearance;
+        public float MinHarvestGrowth => _minHarvestGrowth;
     }
 
     /// <summary>
@@ -134,7 +138,7 @@ namespace Fabula.Incrementant.World
     /// save guarda). A planta cresce pela base: a cada <see cref="VegetationSettings.GrowSeconds"/> sobe inteira 1 linha
     /// (com os buracos e as marcas de colheita) e ganha embaixo a linha seguinte da forma, sem marca, então a ponta, que
     /// é onde as formigas colhem, nunca é tapada pelo que cresce (ver <c>Grow</c>). A colheita é das formigas
-    /// (<c>AntColony</c>): só pixels sem planta em cima (<see cref="CanHarvest"/>), nunca a linha do chão.
+    /// (<c>AntColony</c>): qualquer pixel acima da raiz (<see cref="CanHarvest"/>), nunca a linha do chão.
     /// </summary>
     public sealed class VegetationSimulation
     {
@@ -193,19 +197,114 @@ namespace Fabula.Incrementant.World
             y == grid.GetSurfaceY(x) + 1 && CellMaterials.IsPlant(grid.Get(x, y));
 
         /// <summary>
-        /// Pixel de planta que pode ser colhido agora: não é da linha do chão e não tem planta em cima (nas 3 células de
-        /// cima), então a planta é colhida de cima para baixo.
+        /// Pixel de planta que pode ser cortado agora: qualquer um, menos o da linha do chão da coluna (a raiz, de onde ela
+        /// volta a crescer). Cortar no meio solta o pixel e, se a planta se partir, o pedaço sem raiz também cai
+        /// (<see cref="DropDisconnected"/>). Antes só a ponta (sem planta em cima) podia ser colhida.
         /// </summary>
-        public static bool CanHarvest(PixelGrid grid, int x, int y)
+        public static bool CanHarvest(PixelGrid grid, int x, int y) =>
+            CellMaterials.IsPlant(grid.Get(x, y)) && y != grid.GetSurfaceY(x) + 1;
+
+        /// <summary>
+        /// A planta com raiz em <paramref name="rootX"/> serve de alvo para as jardineiras: cresceu pelo menos
+        /// <see cref="VegetationSettings.MinHarvestGrowth"/> da altura da forma e ainda tem o que cortar. Devolve em
+        /// <paramref name="rows"/> a altura atual (linhas da forma para fora do chão), o tamanho que ordena os alvos.
+        /// </summary>
+        public bool IsHarvestable(PixelGrid grid, int rootX, out int rows)
         {
-            if (!CellMaterials.IsPlant(grid.Get(x, y)) || y == grid.GetSurfaceY(x) + 1)
+            rows = 0;
+            if (!TryGetPlant(rootX, out _, out PlantShape shape, out _))
                 return false;
-            for (int dx = -1; dx <= 1; dx++)
+            rows = shape.Height - Mathf.Min(GetSunkRows(rootX), shape.Height - 1);
+            int needed = Mathf.Max(1, Mathf.CeilToInt(_settings.MinHarvestGrowth * shape.Height - 0.0001f));
+            return rows >= needed && TryGetHarvestRow(grid, rootX, out _, out _, out _);
+        }
+
+        /// <summary>
+        /// Linha mais alta da planta com raiz em <paramref name="rootX"/> que ainda tem pixel cortável
+        /// (<see cref="CanHarvest"/>), com as colunas mínima e máxima desses pixels. As jardineiras cortam sempre por ela:
+        /// de cima para baixo.
+        /// </summary>
+        public bool TryGetHarvestRow(PixelGrid grid, int rootX, out int row, out int minX, out int maxX)
+        {
+            row = minX = maxX = 0;
+            if (!TryGetPlant(rootX, out _, out PlantShape shape, out _))
+                return false;
+            int rootY = grid.GetSurfaceY(rootX) + 1;
+            for (int y = Mathf.Min(grid.Height - 1, rootY + shape.Height - 1); y >= rootY; y--)
             {
-                if (CellMaterials.IsPlant(grid.Get(x + dx, y + 1)))
-                    return false;
+                bool found = false;
+                for (int x = rootX + shape.MinDx; x <= rootX + shape.MaxDx; x++)
+                {
+                    if (!grid.InBounds(x, y) || !CanHarvest(grid, x, y))
+                        continue;
+                    if (!found)
+                        minX = x;
+                    maxX = x;
+                    found = true;
+                }
+                if (found)
+                {
+                    row = y;
+                    return true;
+                }
             }
-            return true;
+            return false;
+        }
+
+        static readonly List<int> ComponentCells = new List<int>();
+        static readonly HashSet<int> Visited = new HashSet<int>();
+        static readonly Stack<int> Pending = new Stack<int>();
+
+        /// <summary>
+        /// Depois que um pixel saiu de (<paramref name="x"/>, <paramref name="y"/>): todo pedaço de planta ao redor que
+        /// perdeu a ligação (8 vizinhos) com a raiz vira pixel solto marcado e cai com a física granular, em vez de
+        /// ficar flutuando no ar. Devolve quantos pixels soltou.
+        /// </summary>
+        public static int DropDisconnected(PixelGrid grid, int x, int y)
+        {
+            Visited.Clear();
+            int dropped = 0;
+            for (int k = 0; k < 8; k++)
+            {
+                int nx = x + Colony.AntNavigation.Dx[k], ny = y + Colony.AntNavigation.Dy[k];
+                if (!CellMaterials.IsPlant(grid.Get(nx, ny)) || Visited.Contains(ny * grid.Width + nx))
+                    continue;
+
+                // Busca o pedaço inteiro; se tocar uma raiz, está preso à planta.
+                ComponentCells.Clear();
+                bool rooted = false;
+                Pending.Push(ny * grid.Width + nx);
+                Visited.Add(ny * grid.Width + nx);
+                while (Pending.Count > 0)
+                {
+                    int i = Pending.Pop();
+                    int cx = i % grid.Width, cy = i / grid.Width;
+                    ComponentCells.Add(i);
+                    rooted |= cy <= grid.GetSurfaceY(cx) + 1;
+                    for (int d = 0; d < 8; d++)
+                    {
+                        int mx = cx + Colony.AntNavigation.Dx[d], my = cy + Colony.AntNavigation.Dy[d];
+                        int j = my * grid.Width + mx;
+                        if (CellMaterials.IsPlant(grid.Get(mx, my)) && Visited.Add(j))
+                            Pending.Push(j);
+                    }
+                }
+                if (rooted)
+                    continue;
+
+                foreach (int i in ComponentCells)
+                {
+                    int cx = i % grid.Width, cy = i / grid.Width;
+                    CellMaterial debris = CellMaterials.ToDebris(grid.Get(cx, cy));
+                    byte shade = grid.GetShade(cx, cy);
+                    // Passa por Empty: planta -> material não-planta guardaria a planta atrás da célula.
+                    grid.Set(cx, cy, CellMaterial.Empty, 0);
+                    grid.Set(cx, cy, debris, shade);
+                    grid.SetMarked(cx, cy, true);
+                    dropped++;
+                }
+            }
+            return dropped;
         }
 
         // ---------------------------------------------------------------- layout
@@ -249,7 +348,8 @@ namespace Fabula.Incrementant.World
 
             for (int cx = x + shape.MinDx; cx <= x + shape.MaxDx; cx++)
             {
-                if (NearLayout(cx))
+                // A forma inteira precisa caber no mundo (senão ela nasceria cortada na borda) e longe da entrada e do despejo.
+                if (cx < 1 || cx >= _populated.Length - 1 || NearLayout(cx))
                     return false;
             }
             return true;
@@ -302,8 +402,13 @@ namespace Fabula.Incrementant.World
                 int root = grid.GetSurfaceY(x) + 1;
                 if (root < area.yMin || root >= area.yMax)
                     continue; // o solo desta coluna ainda não foi gerado
+                bool hasPlant = TryGetPlant(x, out PlantKind kind, out PlantShape shape, out _);
+                // Planta que passa da borda da área gerada espera: fora dela as células não existem (IsOpen é falso) e a
+                // planta nasceria cortada ali para sempre. Sem marcar a coluna, é tentada de novo quando a área crescer.
+                if (hasPlant && !Fits(area, x, shape))
+                    continue;
                 _populated[x] = true;
-                if (!TryGetPlant(x, out PlantKind kind, out PlantShape shape, out _))
+                if (!hasPlant)
                     continue;
                 _plants.Add(x);
                 Vector2 growth = _settings.InitialGrowth;
@@ -312,6 +417,10 @@ namespace Fabula.Incrementant.World
                 Sprout(grid, x, shape, MaterialOf(kind), shape.Height - rows);
             }
         }
+
+        /// <summary>A forma da planta com raiz em <paramref name="x"/> cabe inteira (com folga de 1 coluna) na área gerada.</summary>
+        static bool Fits(RectInt area, int x, PlantShape shape) =>
+            x + shape.MinDx > area.xMin && x + shape.MaxDx < area.xMax - 1;
 
         /// <summary>
         /// Dá as colunas de <paramref name="area"/> por vistas sem mexer na grade (ao carregar um save, as plantas
@@ -323,8 +432,11 @@ namespace Fabula.Incrementant.World
             {
                 if (_populated[x])
                     continue;
+                bool hasPlant = TryGetPlant(x, out _, out PlantShape shape, out _);
+                if (hasPlant && !Fits(area, x, shape))
+                    continue; // não estava no save (não coube na área): nasce quando a área crescer
                 _populated[x] = true;
-                if (TryGetPlant(x, out _, out PlantShape _, out _))
+                if (hasPlant)
                     _plants.Add(x);
             }
             _populatedArea = default; // o próximo Populate confere a área ativa de novo

@@ -16,8 +16,9 @@ namespace Fabula.Incrementant.Colony
     /// nunca fecha a própria saída.
     /// Rainha (<see cref="Queen"/>): o dobro do tamanho no desenho; só anda dentro da sala da rainha pintada pelo
     /// jogador (a maior, se houver várias). As formigas ociosas vagam por toda a região do formigueiro ligada a ela.
-    /// Nutrientes: pixels de planta marcados para colheita são colhidos da ponta para a base e levados para um slot livre
-    /// da sala de nutrientes (sem slot livre, ninguém colhe); de lá, outra formiga leva cada nutriente à rainha, que o
+    /// Nutrientes: as jardineiras (<see cref="AntRole.Gardener"/>) escolhem sozinhas a planta-alvo (a maior que já cresceu o
+    /// mínimo e, no empate, a mais perto da entrada), cortam-na de cima para baixo e levam cada pixel para um slot livre
+    /// da sala de nutrientes (sem slot livre, ninguém colhe); de lá, qualquer formiga leva cada nutriente à rainha, que o
     /// consome e soma em <see cref="Nutrients"/>, a moeda das formigas novas.
     /// </summary>
     public sealed class AntColony
@@ -67,6 +68,11 @@ namespace Fabula.Incrementant.Colony
         readonly FlowField _queenRoomField;
         // Região do formigueiro (só túnel, sem atravessar marcas de construção) ligada à rainha: onde as ociosas vagam.
         readonly FlowField _colonyField;
+        // Criação: o ciclo de ovo/larva/pupa e o espaço que o limita (recontado quando o formigueiro muda).
+        readonly BroodCycle _brood;
+        readonly List<AntRole> _born = new List<AntRole>();
+        int _usableCells;
+        int _nurseryCells;
         int _labelCounter;
         int _queenLabel;
         int _homeAnchor = int.MinValue;
@@ -77,11 +83,27 @@ namespace Fabula.Incrementant.Colony
         readonly FlowField _storeField;
         readonly FlowField _nutrientField;
         int _freeSlots;
+
+        // Jardineiras: campo até o que elas colhem (a linha de cima da planta-alvo e os pixels soltos) e a planta-alvo.
+        // O alvo é escolhido sozinho (ver PickGardenTarget) e mantido até não restar o que cortar.
+        readonly FlowField _gardenField;
+        VegetationSimulation _vegetation;
+        int _gardeners;
+        // Pixels de planta (em pé ou soltos) que alguma formiga está cortando/pegando: travados para as outras irem a outro.
+        readonly HashSet<int> _claimed = new HashSet<int>();
+        long _claimHash;
+        long _builtClaimHash;
+        int _gardenTarget = -1;
+        int _gardenRow, _gardenMinX, _gardenMaxX;
+        bool _gardenDirty;
+        float _gardenRepickTimer;
+        /// <summary>Intervalo (s) entre tentativas de escolher uma planta quando não há alvo.</summary>
+        const float GardenRepickSeconds = 1f;
         bool _nutrientsReachQueen;
         int _plantsInFlight;
         int _fetchers;
         int _builtNutrientVersion = -1;
-        bool _builtHarvestOpen;
+        (bool, bool) _builtHarvestOpen;
 
         int _builtStructureVersion = -1;
         int _builtMarkVersion = -1;
@@ -124,7 +146,10 @@ namespace Fabula.Incrementant.Colony
         public int FreeNutrientSlots => _freeSlots;
 
         /// <summary>Há slot livre para mais um pixel de planta (contando os que já estão sendo colhidos ou levados).</summary>
-        public bool CanHarvest => _freeSlots - _plantsInFlight > 0;
+        public bool CanHarvest => _freeSlots - _plantsInFlight - _grid.PlantDebrisCount > 0;
+
+        /// <summary>Há slot para levar um pixel que já está solto no chão (ele mesmo já está contado em <c>PlantDebrisCount</c>).</summary>
+        bool CanStoreDebris => _freeSlots - _plantsInFlight > 0;
 
         /// <summary>Formigas que morreram afogadas desde o começo do mapa.</summary>
         public int DrownedAnts { get; private set; }
@@ -140,9 +165,23 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Tempo simulado acumulado (s). Referência para <see cref="Ant.MoveStart"/>.</summary>
         public float SimulationTime { get; private set; }
 
-        public int NextAntCost =>
-            Mathf.RoundToInt(_settings.AntBaseCost *
-                             Mathf.Pow(_settings.AntCostGrowth, Mathf.Max(0, _ants.Count - _settings.InitialAnts)));
+        /// <summary>Limite de formigas da colônia (<see cref="ColonySettings.MaxAnts"/>).</summary>
+        public int MaxAnts => _settings.MaxAnts;
+
+        /// <summary>O ciclo de criação: ovos, larvas e pupas reservados e o relógio da postura.</summary>
+        public BroodCycle Brood => _brood;
+
+        /// <summary>Vagas de adulta: área escavada e acessível do formigueiro dividida por <see cref="ColonySettings.CellsPerAdultSlot"/>, limitada por <see cref="ColonySettings.MaxAnts"/>.</summary>
+        public int AdultCapacity => Mathf.Min(_settings.MaxAnts, _usableCells / Mathf.Max(1, _settings.CellsPerAdultSlot));
+
+        /// <summary>Vagas de cria: células vazias e alcançáveis do berçário dividido por <see cref="ColonySettings.CellsPerNurserySlot"/>.</summary>
+        public int NurserySlots => _nurseryCells / Mathf.Max(1, _settings.CellsPerNurserySlot);
+
+        /// <summary>Reserva de nutrientes que a rainha preserva antes de pôr um ovo.</summary>
+        public int MinNutrientReserve => _settings.MinNutrientReserve;
+
+        /// <summary>Por que a rainha está (ou não) pondo ovos agora.</summary>
+        public BreedingState Breeding => _brood.State;
 
         public AntColony(PixelGrid grid, ColonySettings settings, TerrainLayout layout, int seed)
         {
@@ -162,8 +201,10 @@ namespace Fabula.Incrementant.Colony
             _roomLabel = new int[grid.Width * grid.Height];
             _queenRoomField = new FlowField(grid.Width, grid.Height);
             _colonyField = new FlowField(grid.Width, grid.Height);
+            _brood = new BroodCycle(settings);
             _storeField = new FlowField(grid.Width, grid.Height);
             _nutrientField = new FlowField(grid.Width, grid.Height);
+            _gardenField = new FlowField(grid.Width, grid.Height);
             // Sem sorteio aqui: a rainha não muda a sequência aleatória das formigas.
             Queen = new Ant { X = layout.Nest.x, Y = layout.Nest.y, FacingX = 1 };
             PushOutOfSolid(Queen);
@@ -171,28 +212,134 @@ namespace Fabula.Incrementant.Colony
             // As faixas já existem desde o começo (os campos delas vêm no primeiro Tick).
             UpdateDumpSides();
 
+            // As iniciais: as primeiras são jardineiras (InitialGardeners), o resto comuns.
             for (int i = 0; i < settings.InitialAnts; i++)
-                Spawn();
+                Spawn(i < settings.InitialGardeners ? AntRole.Gardener : AntRole.Worker);
         }
 
-        /// <summary>Nova formiga, nascida onde a rainha está.</summary>
-        public Ant Spawn()
+        /// <summary>Nova formiga do papel dado, nascida onde a rainha está.</summary>
+        public Ant Spawn(AntRole role)
         {
-            var ant = new Ant { X = Queen.X, Y = Queen.Y, FacingX = _rng.Next(2) == 0 ? -1 : 1 };
+            var ant = new Ant { X = Queen.X, Y = Queen.Y, FacingX = _rng.Next(2) == 0 ? -1 : 1, Role = role };
             PushOutOfSolid(ant);
             SnapVisual(ant);
             _ants.Add(ant);
             return ant;
         }
 
-        public bool TryBuyAnt()
+        /// <summary>
+        /// Papel da próxima formiga: o escolhido no modo específico; no automático, o que está mais abaixo da parte
+        /// desejada (<see cref="AntRoles.TargetWeight"/>, entre os papéis que existem), com empate pela ordem de <see cref="AntRoles.All"/>.
+        /// </summary>
+        AntRole NextRole()
         {
-            int cost = NextAntCost;
-            if (Nutrients < cost || _ants.Count >= _settings.MaxAnts)
-                return false;
-            Nutrients -= cost;
-            Spawn();
-            return true;
+            if (QueenMode == QueenMode.Specific)
+                return QueenTarget;
+            // As crias já reservadas contam como adultas do papel delas, senão o automático repetiria o mesmo papel.
+            int total = _ants.Count + _brood.Count + 1;
+            float totalWeight = 0f;
+            foreach (AntRole role in AntRoles.All)
+                totalWeight += AntRoles.TargetWeight(role);
+            AntRole best = AntRole.Worker;
+            float bestDeficit = float.NegativeInfinity;
+            foreach (AntRole role in AntRoles.All)
+            {
+                float deficit = AntRoles.TargetWeight(role) / totalWeight * total - CountOf(role) - _brood.CountOf(role);
+                if (deficit > bestDeficit + 0.0001f)
+                {
+                    best = role;
+                    bestDeficit = deficit;
+                }
+            }
+            return best;
+        }
+
+        /// <summary>Custo (nutrientes) de criar uma formiga do papel dado: o alimento por cria do design, estável (não cresce com a colônia).</summary>
+        public int CostOf(AntRole role) => AntRoles.FoodCost(role);
+
+        /// <summary>Quantas formigas vivas têm o papel dado.</summary>
+        public int CountOf(AntRole role)
+        {
+            int count = 0;
+            foreach (Ant a in _ants)
+                count += a.Role == role ? 1 : 0;
+            return count;
+        }
+
+        /// <summary>Como a rainha escolhe o papel das próximas formigas (política da rainha).</summary>
+        public QueenMode QueenMode { get; private set; }
+
+        /// <summary>Papel criado no modo <see cref="QueenMode.Specific"/>.</summary>
+        public AntRole QueenTarget { get; private set; }
+
+        /// <summary>Papel que a próxima formiga terá, ou <c>null</c> com a rainha pausada.</summary>
+        public AntRole? NextAntRole => QueenMode == QueenMode.Paused ? (AntRole?)null : NextRole();
+
+        /// <summary>Define a política da rainha. Não muda as formigas que já existem.</summary>
+        public void SetQueenPolicy(QueenMode mode, AntRole target)
+        {
+            QueenMode = mode;
+            QueenTarget = target;
+        }
+
+        /// <summary>Liga a vegetação de onde as jardineiras escolhem as plantas. Sem ela, ninguém colhe.</summary>
+        public void AttachVegetation(VegetationSimulation vegetation)
+        {
+            _vegetation = vegetation;
+            _gardenTarget = -1;
+            _gardenDirty = true;
+        }
+
+        /// <summary>Planta (coluna da raiz) que as jardineiras estão colhendo; -1 = nenhuma.</summary>
+        public int GardenTarget => _gardenTarget;
+
+        /// <summary>
+        /// Avança o ciclo de criação: debita o alimento de um ovo novo, desenvolve as crias e faz nascer as adultas prontas
+        /// (onde a rainha está). Pausada, a rainha não põe ovos novos, mas as crias existentes seguem.
+        /// </summary>
+        void TickBrood(float deltaTime)
+        {
+            AntRole role = NextAntRole ?? AntRole.Worker;
+            var context = new BroodContext
+            {
+                Mode = QueenMode, Role = role, Cost = CostOf(role), Nutrients = Nutrients, Adults = _ants.Count,
+                AdultCapacity = AdultCapacity, NurserySlots = NurserySlots,
+            };
+            _born.Clear();
+            Nutrients -= _brood.Tick(deltaTime, context, _born);
+            foreach (AntRole born in _born)
+                Spawn(born);
+        }
+
+        /// <summary>Restaura a cria e o relógio da postura de um save.</summary>
+        public void RestoreBrood(IEnumerable<BroodRecord> brood, float layTimer) => _brood.Restore(brood, layTimer);
+
+        /// <summary>Recalcula o espaço útil (vagas de adulta) e o do berçário a partir da região alcançável do formigueiro.</summary>
+        void RecountUsableSpace()
+        {
+            _usableCells = _colonyField.ReachedCount;
+            _nurseryCells = 0;
+            if (_grid.NurseryRoomCount == 0)
+                return;
+            RectInt area = _grid.Active;
+            int cxMin = area.xMin >> PixelGrid.ChunkShift, cxMax = (area.xMax - 1) >> PixelGrid.ChunkShift;
+            int cyMin = area.yMin >> PixelGrid.ChunkShift, cyMax = (area.yMax - 1) >> PixelGrid.ChunkShift;
+            for (int cy = cyMin; cy <= cyMax; cy++)
+            for (int cx = cxMin; cx <= cxMax; cx++)
+            {
+                if (_grid.GetChunkNurseryRoomCount(cx, cy) == 0)
+                    continue;
+                int x0 = Mathf.Max(area.xMin, cx << PixelGrid.ChunkShift);
+                int x1 = Mathf.Min(area.xMax, (cx + 1) << PixelGrid.ChunkShift);
+                int y0 = Mathf.Max(area.yMin, cy << PixelGrid.ChunkShift);
+                int y1 = Mathf.Min(area.yMax, (cy + 1) << PixelGrid.ChunkShift);
+                for (int y = y0; y < y1; y++)
+                for (int x = x0; x < x1; x++)
+                {
+                    if (_grid.IsNurseryRoom(x, y) && _colonyField.Get(x, y) != FlowField.Unreachable)
+                        _nurseryCells++;
+                }
+            }
         }
 
         /// <summary>
@@ -218,6 +365,18 @@ namespace Fabula.Incrementant.Colony
                 ant.MoveStart = simulationTime;
                 _ants.Add(ant);
             }
+            // Save anterior aos papéis (ou sem ninguém que colha): promove as primeiras às jardineiras iniciais.
+            bool anyHarvester = false;
+            foreach (Ant ant in _ants)
+                anyHarvester |= AntRoles.Harvests(ant.Role);
+            if (!anyHarvester)
+            {
+                int missing = _settings.InitialGardeners;
+                for (int i = 0; i < _ants.Count && missing > 0; i++, missing--)
+                    _ants[i].Role = AntRole.Gardener;
+            }
+            _gardenTarget = -1;
+            _gardenDirty = true;
         }
 
         /// <summary>Restaura a economia de nutrientes de um save (depois de <see cref="RestoreState"/>).</summary>
@@ -247,9 +406,16 @@ namespace Fabula.Incrementant.Colony
             _activeBuilders = 0;
             _plantsInFlight = 0;
             _fetchers = 0;
+            _gardeners = 0;
+            _claimed.Clear();
+            _claimHash = 0;
             _reserved.Clear();
             foreach (Ant ant in _ants)
             {
+                if (ant.State == AntState.Digging)
+                    ClaimTarget(ant);
+                if (AntRoles.Harvests(ant.Role))
+                    _gardeners++;
                 if (ant.State == AntState.Gathering || ant.State == AntState.Hauling || ant.State == AntState.Placing)
                     _activeBuilders++;
                 if (ant.State == AntState.Placing)
@@ -262,6 +428,7 @@ namespace Fabula.Incrementant.Colony
             _grid.AdvanceNutrientCure(deltaTime);
             RefreshFields(deltaTime);
             UpdateQueen(deltaTime);
+            TickBrood(deltaTime);
             for (int i = 0; i < _ants.Count; i++)
                 UpdateAnt(_ants[i], deltaTime);
             Drown(deltaTime);
@@ -301,8 +468,11 @@ namespace Fabula.Incrementant.Colony
             bool queenMoved = HomeAnchor() != _homeAnchor;
             bool nutrientsChanged = _grid.NutrientVersion != _builtNutrientVersion;
             // Encheu (ou abriu vaga): as plantas marcadas saem (ou voltam) do campo de escavação.
-            bool harvestChanged = CanHarvest != _builtHarvestOpen;
-            if (!structureChanged && !marksChanged && !queenMoved && !nutrientsChanged && !harvestChanged)
+            bool harvestChanged = (CanHarvest, CanStoreDebris) != _builtHarvestOpen;
+            // Alguém travou ou largou um pixel de planta: os campos precisam deixar de apontar para o travado.
+            bool claimsChanged = _claimHash != _builtClaimHash;
+            _gardenDirty |= GardenNeedsRefresh(deltaTime) || claimsChanged;
+            if (!structureChanged && !marksChanged && !queenMoved && !nutrientsChanged && !harvestChanged && !_gardenDirty)
                 return;
             // Areia escorrendo muda a estrutura quase todo passo; o intervalo limita o custo dos BFS.
             if (_fieldTimer > 0f && _builtStructureVersion >= 0)
@@ -319,59 +489,96 @@ namespace Fabula.Incrementant.Colony
                 BuildHomeField();
             if (homeChanged || nutrientsChanged)
                 BuildNutrientFields();
-            if (structureChanged || marksChanged || nutrientsChanged || harvestChanged)
+            if (structureChanged || marksChanged || nutrientsChanged || harvestChanged || claimsChanged)
                 BuildDigField();
+            // Depois dos campos dos slots: o alvo só vale se a sala de nutrientes for alcançável de onde se corta.
+            BuildGardenField();
             if (structureChanged || marksChanged)
                 BuildConstructionFields();
             _builtStructureVersion = _grid.StructureVersion;
             _builtMarkVersion = _grid.MarkVersion;
             _builtNutrientVersion = _grid.NutrientVersion;
+            _builtClaimHash = _claimHash;
         }
 
         void BuildDigField()
         {
-            _sources.Clear();
-            if (_grid.MarkedCount > 0)
-            {
-                // Origens = células caminháveis com algum vizinho marcado. Procura pelo lado caminhável (poucas células,
-                // só nos blocos com marca ou encostados neles), não pelo marcado (a área marcada costuma ser grande e
-                // quase toda maciça). A distância do BFS não depende da ordem das origens, então o campo é o mesmo.
-                int w = _grid.Width;
-                RectInt area = _grid.Active;
-                int cxMin = area.xMin >> PixelGrid.ChunkShift, cxMax = (area.xMax - 1) >> PixelGrid.ChunkShift;
-                int cyMin = area.yMin >> PixelGrid.ChunkShift, cyMax = (area.yMax - 1) >> PixelGrid.ChunkShift;
-                for (int cy = cyMin; cy <= cyMax; cy++)
-                for (int cx = cxMin; cx <= cxMax; cx++)
-                {
-                    if (!HasMarksAround(cx, cy))
-                        continue;
-                    int x0 = Mathf.Max(area.xMin, cx << PixelGrid.ChunkShift);
-                    int x1 = Mathf.Min(area.xMax, (cx + 1) << PixelGrid.ChunkShift);
-                    int y0 = Mathf.Max(area.yMin, cy << PixelGrid.ChunkShift);
-                    int y1 = Mathf.Min(area.yMax, (cy + 1) << PixelGrid.ChunkShift);
-                    for (int y = y0; y < y1; y++)
-                    for (int x = x0; x < x1; x++)
-                    {
-                        if (!_walkability.IsWalkableAt(y * w + x))
-                            continue;
-                        for (int k = 0; k < 8; k++)
-                        {
-                            if (!IsWorkTarget(x + AntNavigation.Dx[k], y + AntNavigation.Dy[k], x, y))
-                                continue;
-                            _sources.Add(y * w + x);
-                            break;
-                        }
-                    }
-                }
-            }
-            _builtHarvestOpen = CanHarvest;
+            CollectMarkedSources();
+            _builtHarvestOpen = (CanHarvest, CanStoreDebris);
             _digField.Build(_walkability, _sources);
         }
 
+        /// <summary>Campo das jardineiras: a linha de cima da planta-alvo, sem os pixels que outra formiga já travou.</summary>
+        void BuildGardenField()
+        {
+            _gardenDirty = false;
+            if (_vegetation != null && _gardeners > 0 && _gardenTarget < 0)
+                PickGardenTarget();
+            _sources.Clear();
+            if (_gardenTarget >= 0)
+            {
+                int w = _grid.Width;
+                for (int x = _gardenMinX; x <= _gardenMaxX; x++)
+                {
+                    if (!IsPlantTarget(x, _gardenRow))
+                        continue;
+                    for (int k = 0; k < 8; k++)
+                    {
+                        int nx = x + AntNavigation.Dx[k], ny = _gardenRow + AntNavigation.Dy[k];
+                        if (_grid.InBounds(nx, ny) && _walkability.IsWalkableAt(ny * w + nx) &&
+                            _storeField.Get(nx, ny) != FlowField.Unreachable)
+                            _sources.Add(ny * w + nx);
+                    }
+                }
+            }
+            _gardenField.Build(_walkability, _sources);
+        }
+
         /// <summary>
-        /// Pixel marcado que a formiga em (<paramref name="standX"/>, <paramref name="standY"/>) pode pegar: terra
-        /// escavável, ou planta que dá para colher agora (a ponta dela, com slot livre e a sala de nutrientes alcançável
-        /// de onde a formiga está).
+        /// Origens das comuns = células caminháveis com algum vizinho marcado que dá para pegar: terra escavável ou
+        /// pixel solto de planta (as jardineiras só cortam; quem recolhe os pixels são as comuns). Procura pelo lado caminhável (poucas
+        /// células, só nos blocos com marca ou encostados neles), não pelo marcado (a área marcada costuma ser grande e
+        /// quase toda maciça). A distância do BFS não depende da ordem das origens, então o campo é o mesmo.
+        /// </summary>
+        void CollectMarkedSources()
+        {
+            _sources.Clear();
+            if (_grid.MarkedCount == 0)
+                return;
+            int w = _grid.Width;
+            RectInt area = _grid.Active;
+            int cxMin = area.xMin >> PixelGrid.ChunkShift, cxMax = (area.xMax - 1) >> PixelGrid.ChunkShift;
+            int cyMin = area.yMin >> PixelGrid.ChunkShift, cyMax = (area.yMax - 1) >> PixelGrid.ChunkShift;
+            for (int cy = cyMin; cy <= cyMax; cy++)
+            for (int cx = cxMin; cx <= cxMax; cx++)
+            {
+                if (!HasMarksAround(cx, cy))
+                    continue;
+                int x0 = Mathf.Max(area.xMin, cx << PixelGrid.ChunkShift);
+                int x1 = Mathf.Min(area.xMax, (cx + 1) << PixelGrid.ChunkShift);
+                int y0 = Mathf.Max(area.yMin, cy << PixelGrid.ChunkShift);
+                int y1 = Mathf.Min(area.yMax, (cy + 1) << PixelGrid.ChunkShift);
+                for (int y = y0; y < y1; y++)
+                for (int x = x0; x < x1; x++)
+                {
+                    if (!_walkability.IsWalkableAt(y * w + x))
+                        continue;
+                    for (int k = 0; k < 8; k++)
+                    {
+                        int tx = x + AntNavigation.Dx[k], ty = y + AntNavigation.Dy[k];
+                        if (!IsWorkTarget(tx, ty, x, y))
+                            continue;
+                        _sources.Add(y * w + x);
+                        break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Pixel marcado que a comum em (<paramref name="standX"/>, <paramref name="standY"/>) pode pegar: terra escavável
+        /// ou pixel solto de planta (colhido onde parou). O solto pede slot livre e sala de nutrientes alcançável de onde
+        /// ela está, para não pegar o que ninguém guardará, e não pode estar travado por outra formiga.
         /// </summary>
         bool IsWorkTarget(int x, int y, int standX, int standY)
         {
@@ -380,13 +587,113 @@ namespace Fabula.Incrementant.Colony
             CellMaterial material = _grid.Get(x, y);
             if (CellMaterials.IsDiggable(material))
                 return true;
-            return CanHarvest && VegetationSimulation.CanHarvest(_grid, x, y) &&
+            return CellMaterials.IsPlantDebris(material) && CanStoreDebris && !_claimed.Contains(_grid.ToIndex(x, y)) &&
                    _storeField.Get(standX, standY) != FlowField.Unreachable;
         }
 
+        /// <summary>Trava o pixel que a formiga está cortando/pegando, se for de planta (em pé ou solto).</summary>
+        void ClaimTarget(Ant ant)
+        {
+            CellMaterial material = _grid.Get(ant.DigX, ant.DigY);
+            if (!CellMaterials.IsPlant(material) && !CellMaterials.IsPlantDebris(material))
+                return;
+            int index = _grid.ToIndex(ant.DigX, ant.DigY);
+            if (_claimed.Add(index))
+                _claimHash += index * 2654435761L;
+        }
+
+        /// <summary>Pixel cortável da linha de cima da planta-alvo (corta-se sempre de cima para baixo).</summary>
+        bool IsPlantTarget(int x, int y) =>
+            _gardenTarget >= 0 && y == _gardenRow && x >= _gardenMinX && x <= _gardenMaxX && CanHarvest &&
+            VegetationSimulation.CanHarvest(_grid, x, y) && !_claimed.Contains(_grid.ToIndex(x, y));
+
+        /// <summary>
+        /// A planta-alvo mudou de linha, acabou ou ainda não existe: o campo das jardineiras precisa ser refeito. Sem alvo,
+        /// tenta escolher outro a cada <see cref="GardenRepickSeconds"/>.
+        /// </summary>
+        bool GardenNeedsRefresh(float deltaTime)
+        {
+            if (_vegetation == null || _gardeners == 0)
+            {
+                if (_gardenTarget < 0)
+                    return false;
+                _gardenTarget = -1;
+                return true;
+            }
+            if (_gardenTarget >= 0)
+            {
+                if (_vegetation.TryGetHarvestRow(_grid, _gardenTarget, out int row, out int minX, out int maxX))
+                {
+                    if (row == _gardenRow && minX == _gardenMinX && maxX == _gardenMaxX)
+                        return false;
+                    _gardenRow = row;
+                    _gardenMinX = minX;
+                    _gardenMaxX = maxX;
+                    return true;
+                }
+                _gardenTarget = -1; // nada mais a cortar: escolhe outra planta já
+                return true;
+            }
+            _gardenRepickTimer -= deltaTime;
+            if (_gardenRepickTimer > 0f)
+                return false;
+            _gardenRepickTimer = GardenRepickSeconds;
+            return true;
+        }
+
+        readonly List<Vector3Int> _gardenCandidates = new List<Vector3Int>();
+
+        /// <summary>
+        /// Escolhe a planta-alvo: entre as que cresceram o mínimo (<see cref="VegetationSettings.MinHarvestGrowth"/>) e
+        /// têm caminho até a sala de nutrientes, a maior; no empate, a mais perto da entrada do formigueiro. Ela fica
+        /// como alvo até não restar o que cortar.
+        /// </summary>
+        void PickGardenTarget()
+        {
+            _gardenCandidates.Clear();
+            foreach (int rootX in _vegetation.Plants)
+            {
+                if (_vegetation.IsHarvestable(_grid, rootX, out int rows))
+                    _gardenCandidates.Add(new Vector3Int(rootX, rows, Mathf.Abs(rootX - _layout.EntranceX)));
+            }
+            _gardenCandidates.Sort((a, b) => a.y != b.y ? b.y.CompareTo(a.y) : a.z != b.z ? a.z.CompareTo(b.z) : a.x.CompareTo(b.x));
+            foreach (Vector3Int c in _gardenCandidates)
+            {
+                if (!_vegetation.TryGetHarvestRow(_grid, c.x, out int row, out int minX, out int maxX) ||
+                    !RowReachable(row, minX, maxX))
+                    continue;
+                _gardenTarget = c.x;
+                _gardenRow = row;
+                _gardenMinX = minX;
+                _gardenMaxX = maxX;
+                return;
+            }
+        }
+
+        /// <summary>Algum pixel cortável da linha tem uma célula caminhável ao lado, de onde a sala de nutrientes se alcança.</summary>
+        bool RowReachable(int row, int minX, int maxX)
+        {
+            int w = _grid.Width;
+            for (int x = minX; x <= maxX; x++)
+            {
+                if (!VegetationSimulation.CanHarvest(_grid, x, row))
+                    continue;
+                for (int k = 0; k < 8; k++)
+                {
+                    int nx = x + AntNavigation.Dx[k], ny = row + AntNavigation.Dy[k];
+                    if (_grid.InBounds(nx, ny) && _walkability.IsWalkableAt(ny * w + nx) &&
+                        _storeField.Get(nx, ny) != FlowField.Unreachable)
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>Quanto o papel encurta (ou não) o tempo de escavar, construir ou cortar.</summary>
+        static float WorkTimeFactor(Ant ant) => AntRoles.DigTimeFactor(ant.Role) * AntRoles.CutTimeFactor(ant.Role);
+
         bool IsHarvesting(Ant ant) =>
-            ant.State == AntState.Carrying && CellMaterials.IsPlant(ant.Carried) ||
-            ant.State == AntState.Digging && CellMaterials.IsPlant(_grid.Get(ant.DigX, ant.DigY));
+            ant.State == AntState.Carrying && CellMaterials.IsPlant(ant.Carried); // o pixel solto, no chão ou sendo pego, reserva via PlantDebrisCount
 
         // ---------------------------------------------------------------- nutrientes
 
@@ -488,7 +795,9 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Ociosa: se houver nutriente guardado com caminho até a rainha e ninguém indo buscá-lo, vai buscar.</summary>
         bool TryStartFetch(Ant ant)
         {
-            if (!_nutrientsReachQueen || _fetchers >= _grid.ReadyNutrientCount || _fetchers >= MaxFetchers)
+            // A carregadora busca mesmo com o teto de buscadoras cheio: transportar é o trabalho dela.
+            bool capped = _fetchers >= MaxFetchers && ant.Role != AntRole.Carrier;
+            if (!_nutrientsReachQueen || _fetchers >= _grid.ReadyNutrientCount || capped)
                 return false;
             if (_nutrientField.Get(ant.X, ant.Y) == FlowField.Unreachable)
                 return false;
@@ -1235,6 +1544,7 @@ namespace Fabula.Incrementant.Colony
                     _sources.RemoveAt(n);
             }
             _colonyField.Build(_walkability, _sources, anthillOnly: true);
+            RecountUsableSpace();
             _homeAnchor = HomeAnchor();
         }
 
@@ -1273,7 +1583,8 @@ namespace Fabula.Incrementant.Colony
         bool UpdateSupport(Ant ant, float deltaTime)
         {
             // Material granular pode cair por cima da formiga: ela sobe até achar espaço.
-            if (_grid.IsSolid(ant.X, ant.Y))
+            // (Planta marcada é sólida mas caminhável: a formiga fica dentro dela.)
+            if (_grid.IsSolid(ant.X, ant.Y) && !AntNavigation.IsWalkable(_grid, ant.X, ant.Y))
                 PushOutOfSolid(ant);
 
             // Perdeu o apoio (ex.: cavou o próprio piso): agarra a superfície vizinha se houver;
@@ -1333,6 +1644,13 @@ namespace Fabula.Incrementant.Colony
 
         void UpdateIdle(Ant ant)
         {
+            // A jardineira só corta: quem busca nutriente, recolhe pixel solto, cava e constrói são as comuns.
+            if (AntRoles.Harvests(ant.Role))
+            {
+                UpdateGardenerIdle(ant);
+                return;
+            }
+
             if (_grid.ReadyNutrientCount > 0 && TryStartFetch(ant))
                 return;
 
@@ -1364,14 +1682,43 @@ namespace Fabula.Incrementant.Colony
             Wander(ant);
         }
 
+        /// <summary>
+        /// Jardineira ociosa: vai à linha de cima da planta-alvo pelo campo das jardineiras e corta. Se todos os pixels
+        /// da linha estão travados por outras, espera ali por perto; sem alvo, volta a vagar pelo formigueiro.
+        /// </summary>
+        void UpdateGardenerIdle(Ant ant)
+        {
+            if (_gardenTarget < 0)
+            {
+                WanderHome(ant);
+                return;
+            }
+            int d = _gardenField.Get(ant.X, ant.Y);
+            if (d == 0 && TryStartDig(ant))
+                return;
+            if (d != FlowField.Unreachable && d > 0 && StepDownhill(ant, _gardenField))
+                return;
+            if (d != FlowField.Unreachable || IsNearPlant(ant))
+                Hold(ant);
+            else
+                Wander(ant);
+        }
+
+        /// <summary>A formiga está na faixa de colunas da planta-alvo (espera ali em vez de ir embora).</summary>
+        bool IsNearPlant(Ant ant) => ant.X >= _gardenMinX - 2 && ant.X <= _gardenMaxX + 2;
+
         bool TryStartDig(Ant ant)
         {
+            bool gardener = AntRoles.Harvests(ant.Role);
+            // A jardineira só corta se a sala de nutrientes é alcançável de onde ela está.
+            if (gardener && _storeField.Get(ant.X, ant.Y) == FlowField.Unreachable)
+                return false;
             int count = 0;
             for (int k = 0; k < 8; k++)
             {
                 int nx = ant.X + AntNavigation.Dx[k];
                 int ny = ant.Y + AntNavigation.Dy[k];
-                if (IsWorkTarget(nx, ny, ant.X, ant.Y))
+                if (gardener ? IsPlantTarget(nx, ny) : IsWorkTarget(nx, ny, ant.X, ant.Y))
                     _candidates[count++] = k;
             }
             if (count == 0)
@@ -1383,7 +1730,8 @@ namespace Fabula.Incrementant.Colony
             if (ant.DigX != ant.X)
                 ant.FacingX = ant.DigX > ant.X ? 1 : -1;
             ant.State = AntState.Digging;
-            ant.Cooldown = CellMaterials.DigSeconds(_grid.Get(ant.DigX, ant.DigY)) * _settings.DigTimeMultiplier;
+            ClaimTarget(ant);
+            ant.Cooldown = CellMaterials.DigSeconds(_grid.Get(ant.DigX, ant.DigY)) * _settings.DigTimeMultiplier * WorkTimeFactor(ant);
             if (IsHarvesting(ant))
                 _plantsInFlight++; // reserva o slot já agora, para não colherem mais do que cabe
             return true;
@@ -1392,25 +1740,34 @@ namespace Fabula.Incrementant.Colony
         void FinishDig(Ant ant)
         {
             ant.State = AntState.Idle;
-            // A planta cresce pela base e sobe inteira (VegetationSimulation.Grow): o pixel marcado que a formiga colhia
-            // pode ter subido 1 linha durante a colheita. Ela acompanha, se ainda alcança.
-            if (!_grid.IsMarked(ant.DigX, ant.DigY) && _grid.IsMarked(ant.DigX, ant.DigY + 1) &&
-                CellMaterials.IsPlant(_grid.Get(ant.DigX, ant.DigY + 1)))
-                ant.DigY++;
             bool adjacent = Mathf.Abs(ant.DigX - ant.X) <= 1 && Mathf.Abs(ant.DigY - ant.Y) <= 1;
             CellMaterial material = _grid.Get(ant.DigX, ant.DigY);
-            // Outra formiga pode ter levado o pixel, ou ele caiu/foi desmarcado durante a escavação.
+            // Outra formiga pode ter levado o pixel, ou ele caiu/foi desmarcado durante a escavação. A planta em pé não
+            // tem marca (o alvo é escolhido pela colônia): basta ainda ser um pixel cortável.
             bool plant = CellMaterials.IsPlant(material);
-            if (!adjacent || !_grid.IsMarked(ant.DigX, ant.DigY) ||
-                !(plant ? VegetationSimulation.CanHarvest(_grid, ant.DigX, ant.DigY) : CellMaterials.IsDiggable(material)))
+            bool debris = CellMaterials.IsPlantDebris(material);
+            if (!adjacent || !(plant ? VegetationSimulation.CanHarvest(_grid, ant.DigX, ant.DigY)
+                                     : _grid.IsMarked(ant.DigX, ant.DigY) && (debris || CellMaterials.IsDiggable(material))))
                 return;
 
-            ant.Carried = material;
+            if (plant)
+            {
+                // A formiga só solta o pixel: ele ganha a física granular, cai e mantém a marca de colheita. Passa por
+                // Empty porque trocar planta por material não-planta guardaria a planta atrás da célula (PushBehindAt).
+                byte shade = _grid.GetShade(ant.DigX, ant.DigY);
+                _grid.Set(ant.DigX, ant.DigY, CellMaterial.Empty, 0);
+                _grid.Set(ant.DigX, ant.DigY, CellMaterials.ToDebris(material), shade);
+                _grid.SetMarked(ant.DigX, ant.DigY, true);
+                VegetationSimulation.DropDisconnected(_grid, ant.DigX, ant.DigY);
+                return;
+            }
+
+            // Pixel solto de planta volta a ser planta na mão e vai para a sala de nutrientes (UpdateStoring).
+            ant.Carried = debris ? CellMaterials.FromDebris(material) : material;
             ant.CarriedShade = _grid.GetShade(ant.DigX, ant.DigY);
             _grid.Set(ant.DigX, ant.DigY, CellMaterial.Empty, 0);
             ant.State = AntState.Carrying;
-            // Planta vai para a sala de nutrientes (UpdateStoring), não para o despejo.
-            if (!plant)
+            if (!debris)
                 AssignDumpSide(ant);
         }
 
@@ -1448,7 +1805,7 @@ namespace Fabula.Incrementant.Colony
             if (ant.DigX != ant.X)
                 ant.FacingX = ant.DigX > ant.X ? 1 : -1;
             ant.State = AntState.Gathering;
-            ant.Cooldown = CellMaterials.DigSeconds(_grid.Get(ant.DigX, ant.DigY)) * _settings.DigTimeMultiplier;
+            ant.Cooldown = CellMaterials.DigSeconds(_grid.Get(ant.DigX, ant.DigY)) * _settings.DigTimeMultiplier * WorkTimeFactor(ant);
             _activeBuilders++;
             return true;
         }
@@ -1724,7 +2081,8 @@ namespace Fabula.Incrementant.Colony
                 ant.Cooldown = 0f;
         }
 
-        float SpeedOf(Ant ant) => ReferenceEquals(ant, Queen) ? _settings.QueenSpeed : _settings.AntSpeed;
+        float SpeedOf(Ant ant) =>
+            ReferenceEquals(ant, Queen) ? _settings.QueenSpeed : _settings.AntSpeed * AntRoles.SpeedFactor(ant.Role);
 
         void PushOutOfSolid(Ant ant)
         {
