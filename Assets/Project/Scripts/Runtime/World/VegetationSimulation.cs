@@ -497,8 +497,9 @@ namespace Fabula.Incrementant.World
         /// buracos colhidos e marcas de colheita vão junto) e põe a linha seguinte da forma na linha da raiz, sem marca.
         /// Toda para fora, para de crescer enquanto ainda tiver algum pixel que dê para colher; quando só sobra a linha do
         /// chão (que nunca é colhida), reinicia: volta inteira para debaixo da terra, sem nada para fora, e sobe de
-        /// novo nos passos seguintes (pedido do desenvolvedor em 2026-10-17). Precisa de chão firme sob a raiz; se algo que
-        /// não é planta tapa a subida, espera. Devolve quantos pixels a planta ganhou.
+        /// novo nos passos seguintes (pedido do desenvolvedor em 2026-10-17). Precisa de chão firme sob a raiz. Grão,
+        /// construção ou pixel solto no caminho não a param: o pixel que cai numa célula ocupada cresce atrás do material
+        /// (<see cref="PlaceCell"/>) e reaparece quando ela esvaziar. Devolve quantos pixels a planta ganhou.
         /// </summary>
         int Grow(PixelGrid grid, int x, PlantShape shape, CellMaterial material)
         {
@@ -521,17 +522,17 @@ namespace Fabula.Incrementant.World
             }
 
             // Sobe: de cima para baixo (Cells está em ordem de crescimento), cada célula presente vai 1 linha para cima.
-            // Confere antes que só há planta (dela ou de uma vizinha que se sobrepõe) ou vazio no caminho.
+            // Grão, construção ou pixel solto no caminho não seguram a planta: ela passa por trás deles (GetBehind),
+            // como o grão que cai atravessa a planta. Só a borda da área ativa a faz esperar.
             for (int i = cells.Length - 1; i >= 0; i--)
             {
                 Vector2Int c = cells[i];
                 if (c.y < sunk)
                     break;
                 int cx = x + c.x, cy = rootY + c.y - sunk;
-                if (!CellMaterials.IsPlant(grid.Get(cx, cy)))
+                if (!CellMaterials.IsPlant(grid.Get(cx, cy)) && !CellMaterials.IsPlant(grid.GetBehind(cx, cy)))
                     continue;
-                CellMaterial above = grid.Get(cx, cy + 1);
-                if (cy + 1 >= grid.Height || above != CellMaterial.Empty && !CellMaterials.IsPlant(above))
+                if (!grid.InBounds(cx, cy + 1))
                     return 0;
             }
             for (int i = cells.Length - 1; i >= 0; i--)
@@ -542,10 +543,30 @@ namespace Fabula.Incrementant.World
                 int cx = x + c.x, cy = rootY + c.y - sunk;
                 CellMaterial here = grid.Get(cx, cy);
                 if (!CellMaterials.IsPlant(here))
+                {
+                    // Pedaço coberto por terra ou grão (GetBehind) sobe junto: se ficasse na linha antiga, o sprite o
+                    // redesenharia deslocado e ele reapareceria solto no ar quando a cobertura saísse.
+                    CellMaterial hidden = grid.GetBehind(cx, cy);
+                    if (!CellMaterials.IsPlant(hidden))
+                        continue;
+                    byte hiddenShade = grid.GetBehindShade(cx, cy);
+                    grid.SetBehind(cx, cy, CellMaterial.Empty);
+                    PlaceCell(grid, cx, cy + 1, hidden, hiddenShade);
                     continue;
-                bool marked = grid.IsMarked(cx, cy);
-                grid.Set(cx, cy + 1, here, grid.GetShade(cx, cy));
-                grid.SetMarked(cx, cy + 1, marked);
+                }
+                CellMaterial above = grid.Get(cx, cy + 1);
+                if (above == CellMaterial.Empty || CellMaterials.IsPlant(above))
+                {
+                    bool marked = grid.IsMarked(cx, cy);
+                    grid.Set(cx, cy + 1, here, grid.GetShade(cx, cy));
+                    grid.SetMarked(cx, cy + 1, marked);
+                }
+                else
+                {
+                    // Grão ou construção em cima: o pixel passa para trás dele (sem a marca de colheita, como o pixel que
+                    // o grão cobre ao cair).
+                    PlaceCell(grid, cx, cy + 1, here, grid.GetShade(cx, cy));
+                }
                 grid.Set(cx, cy, CellMaterial.Empty, 0);
             }
 
@@ -560,12 +581,33 @@ namespace Fabula.Incrementant.World
                 if (c.y < sunk)
                     continue;
                 int cx = x + c.x, cy = rootY + c.y - sunk;
-                if (cy != Mathf.Max(rootY, grid.GetSurfaceY(cx) + 1) || !grid.IsOpen(cx, cy))
+                if (cy != Mathf.Max(rootY, grid.GetSurfaceY(cx) + 1))
                     continue;
-                grid.Set(cx, cy, material, Shade(cx, c.y));
-                grown++;
+                if (PlaceCell(grid, cx, cy, material, Shade(cx, c.y)))
+                    grown++;
             }
             return grown;
+        }
+
+        /// <summary>
+        /// Põe um pixel de planta em (<paramref name="cx"/>, <paramref name="cy"/>): à frente se a célula está vazia (com
+        /// ou sem água, que ele expulsa); atrás do material se há grão, construção ou pixel solto ali
+        /// (<see cref="PixelGrid.SetBehind"/>), para a planta reaparecer quando a célula esvaziar. Célula que já tem
+        /// planta (de uma vizinha que se sobrepõe, à frente ou atrás) fica com quem chegou primeiro. Devolve se pôs.
+        /// </summary>
+        static bool PlaceCell(PixelGrid grid, int cx, int cy, CellMaterial plant, byte shade)
+        {
+            if (!grid.InBounds(cx, cy))
+                return false;
+            CellMaterial here = grid.Get(cx, cy);
+            if (here == CellMaterial.Empty)
+            {
+                grid.Set(cx, cy, plant, shade);
+                return true;
+            }
+            if (CellMaterials.IsPlant(here) || CellMaterials.IsPlant(grid.GetBehind(cx, cy)))
+                return false;
+            return grid.SetBehind(cx, cy, plant, shade);
         }
 
         /// <summary>
@@ -592,6 +634,8 @@ namespace Fabula.Incrementant.World
                 removed++;
             }
 
+            ClearStrayCells(grid, x, shape, rootY);
+
             _sunk[x] = sunk;
             int placed = 0;
             foreach (Vector2Int c in shape.Cells)
@@ -599,12 +643,46 @@ namespace Fabula.Incrementant.World
                 if (c.y < sunk)
                     continue;
                 int cx = x + c.x, cy = rootY + c.y - sunk;
-                if (!grid.IsOpen(cx, cy) || cy <= grid.GetSurfaceY(cx))
+                if (cy <= grid.GetSurfaceY(cx))
                     continue;
-                grid.Set(cx, cy, material, Shade(cx, c.y));
-                placed++;
+                if (PlaceCell(grid, cx, cy, material, Shade(cx, c.y)))
+                    placed++;
             }
             return Mathf.Max(0, placed - removed);
+        }
+
+        /// <summary>
+        /// Tira o que sobrou de planta (à frente ou coberta por terra/grão) dentro da caixa da planta com raiz em
+        /// <paramref name="x"/>, fora das colunas de plantas vizinhas. Com a planta toda reiniciada nada ali pertence a
+        /// ela: restos de versões antigas do crescimento reapareceriam soltos no ar quando a cobertura saísse.
+        /// </summary>
+        void ClearStrayCells(PixelGrid grid, int x, PlantShape shape, int rootY)
+        {
+            for (int cx = x + shape.MinDx; cx <= x + shape.MaxDx; cx++)
+            {
+                if (OverlapsOtherPlant(x, cx))
+                    continue;
+                for (int cy = rootY; cy < rootY + shape.Height + 2; cy++)
+                {
+                    if (CellMaterials.IsPlant(grid.Get(cx, cy)))
+                        grid.Set(cx, cy, CellMaterial.Empty, 0);
+                    else if (CellMaterials.IsPlant(grid.GetBehind(cx, cy)))
+                        grid.SetBehind(cx, cy, CellMaterial.Empty);
+                }
+            }
+        }
+
+        /// <summary>A coluna <paramref name="cx"/> também é coberta pela forma de outra planta que não a de <paramref name="x"/>.</summary>
+        bool OverlapsOtherPlant(int x, int cx)
+        {
+            foreach (int other in _plants)
+            {
+                if (other == x || !TryGetPlant(other, out _, out PlantShape s, out _))
+                    continue;
+                if (cx >= other + s.MinDx && cx <= other + s.MaxDx)
+                    return true;
+            }
+            return false;
         }
 
         /// <summary>Tom fixo de cada célula da forma (acompanha a célula quando a planta sobe).</summary>

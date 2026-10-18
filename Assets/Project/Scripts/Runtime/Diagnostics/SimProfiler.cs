@@ -21,9 +21,11 @@ namespace Fabula.Incrementant.Diagnostics
         FieldDig,
         FieldGarden,
         FieldConstruction,
+        FieldRaid,
         Queen,
         Brood,
         Ants,
+        Termites,
         Drown,
         RenderTerrain,
         RenderAnts,
@@ -51,6 +53,7 @@ namespace Fabula.Incrementant.Diagnostics
         CauseClaims,
         CauseGarden,
         CauseNursery,
+        CauseRaid,
         Count,
     }
 

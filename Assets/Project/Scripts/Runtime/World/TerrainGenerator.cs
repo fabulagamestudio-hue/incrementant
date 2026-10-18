@@ -6,8 +6,8 @@ namespace Fabula.Incrementant.World
     [Serializable]
     public sealed class TerrainSettings
     {
-        [SerializeField, Min(32)] int _width = 320;
-        [SerializeField, Min(32)] int _height = 200;
+        [SerializeField, Min(32)] int _width = 640;
+        [SerializeField, Min(32)] int _height = 400;
         [Tooltip("Altura média do solo, em fração da altura do mapa.")]
         [SerializeField, Range(0.1f, 0.95f)] float _surfaceLevel = 0.74f;
         [SerializeField, Min(0f)] float _surfaceAmplitude = 5f;
@@ -36,9 +36,9 @@ namespace Fabula.Incrementant.World
         [SerializeField, Min(0)] int _lakeClearance = 12;
         [Header("Mundo expansível")]
         [Tooltip("Largura máxima do mundo, em células. O mapa cresce para os lados até aqui; a área inicial (Width) fica no centro.")]
-        [SerializeField, Min(32)] int _maxWidth = 960;
+        [SerializeField, Min(32)] int _maxWidth = 1920;
         [Tooltip("Altura máxima do mundo, em células. O mapa cresce para baixo até aqui; a área inicial (Height) fica no topo.")]
-        [SerializeField, Min(32)] int _maxHeight = 520;
+        [SerializeField, Min(32)] int _maxHeight = 1040;
         [Tooltip("O mundo é gerado em blocos deste tamanho (células).")]
         [SerializeField, Range(8, 128)] int _chunkSize = 32;
         [Tooltip("Folga, em células, além da borda da câmera que já fica gerada.")]

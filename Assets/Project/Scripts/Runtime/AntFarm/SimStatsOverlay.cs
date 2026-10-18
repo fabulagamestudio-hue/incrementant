@@ -19,14 +19,15 @@ namespace Fabula.Incrementant.AntFarm
         {
             "Chuva", "Água", "Vegetação", "Granular", "Colônia (Tick)", "  preparo", "  campos (rebuild)", "    walkability",
             "    sala da rainha", "    despejo", "    casa/colônia", "    berçário", "    nutrientes", "    escavação", "    jardim",
-            "    construção", "  rainha", "  criação", "  formigas (UpdateAnt)", "  afogamento", "Render terreno", "Render formigas",
+            "    construção", "    cupins/resíduos", "  rainha", "  criação", "  formigas (UpdateAnt)", "  cupins/combate",
+            "  afogamento", "Render terreno", "Render formigas",
             "Render crias", "Render cenário/plantas",
         };
 
         // Mesma ordem de ProfileCounter, a partir de CauseUnderground.
         static readonly string[] CauseLabels =
         {
-            "túnel", "céu", "perto-marca", "obra", "marcas", "rainha", "nutrientes", "colheita", "claims", "jardim", "berçário",
+            "túnel", "céu", "perto-marca", "obra", "marcas", "rainha", "nutrientes", "colheita", "claims", "jardim", "berçário", "cupins",
         };
 
         readonly StringBuilder _text = new StringBuilder(1536);
@@ -87,7 +88,7 @@ namespace Fabula.Incrementant.AntFarm
             }
 
             CountAnts(colony);
-            t.Append($"\n<b>Formigas: {colony.Ants.Count}</b> (máx {colony.MaxAnts}) · afogadas {colony.DrownedAnts}\n");
+            t.Append($"\n<b>Formigas: {colony.Ants.Count}</b> (máx {colony.MaxAnts}) · afogadas {colony.DrownedAnts} · velhice {colony.AgedAnts}\n");
             AppendCounts(t, _byRole, typeof(AntRole));
             AppendCounts(t, _byState, typeof(AntState));
 
@@ -95,7 +96,9 @@ namespace Fabula.Incrementant.AntFarm
             t.Append($"\n<b>Mundo</b> {active.width}x{active.height} de {grid.Width}x{grid.Height}\n");
             t.Append($"Plantas {vegetation.PlantCount} · resíduo solto {grid.PlantDebrisCount} · colhido {colony.HarvestedPixels}\n");
             t.Append($"Marcados {grid.MarkedCount} cavar · {grid.BuildMarkedCount} construir\n");
-            t.Append($"Nutrientes {grid.NutrientCount} ({grid.CuringNutrientCount} curando) · slots livres {colony.FreeNutrientSlots}\n");
+            t.Append($"Nutrientes {grid.NutrientCount} prontos · {colony.GrownNutrients} brotados · água tirada {colony.WaterCollected}\n");
+            t.Append($"Canteiros {grid.BedCount}: {colony.BedsAwaitingPlant} sem planta · {colony.BedsAwaitingWater} sem água · " +
+                     $"{grid.GrowingBedCount} brotando · pontos livres {colony.BedSpots}\n");
             t.Append($"Água {grid.WaterCount} px · cria {colony.Brood.Count} · colheita {(colony.HarvestPaused ? "PAUSADA" : "ativa")}\n");
             _cached = t.ToString();
         }

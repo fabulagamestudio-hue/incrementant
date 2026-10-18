@@ -17,6 +17,21 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField] Sprite[] _walkFrames;
         [Tooltip("Quadros da caminhada vista de cima, virados para a direita, usados no fundo do formigueiro. Vazio = usa os de lado.")]
         [SerializeField] Sprite[] _topFrames;
+        [Tooltip("Arte própria de cada papel (pastas Art/Ants/<Papel>). Papel sem entrada usa os quadros acima; a rainha sempre usa os de cima.")]
+        [SerializeField] RoleArt[] _roleArt;
+        [Header("Cupins (Art/Ants/InimigaAlada)")]
+        [Tooltip("Chegada em voo (4 quadros).")]
+        [SerializeField] Sprite[] _termiteFly;
+        [Tooltip("Pouso, as asas caem (4 quadros, tocados uma vez).")]
+        [SerializeField] Sprite[] _termiteLand;
+        [SerializeField] Sprite[] _termiteWalk;
+        [SerializeField] Sprite[] _termiteTop;
+        [Tooltip("Quadros por segundo do bater de asas.")]
+        [SerializeField, Min(1f)] float _termiteFlyFps = 14f;
+        [Tooltip("Cor do cupim que acabou de levar uma mordida (pisca por um instante).")]
+        [SerializeField] Color _termiteHitColor = new Color(1f, 0.45f, 0.4f, 1f);
+        [Tooltip("Cor do corpo do cupim morto, à espera de ser desmembrado.")]
+        [SerializeField] Color _termiteCorpseColor = new Color(0.55f, 0.5f, 0.5f, 1f);
         [Tooltip("Quadros de animação trocados por célula andada.")]
         [SerializeField, Min(0.1f)] float _framesPerCell = 1.5f;
         [Tooltip("Quadros por segundo enquanto cava.")]
@@ -28,11 +43,18 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField] Vector2 _carriedOffset = new Vector2(1.2f, 0.5f);
         [Tooltip("Posição do pixel carregado na vista de cima (pivô no centro do sprite).")]
         [SerializeField] Vector2 _carriedOffsetTop = new Vector2(1.35f, 0f);
-        [SerializeField, Range(0.2f, 1.5f)] float _carriedSize = 0.8f;
+        [Tooltip("Tamanho do pixel carregado, em células (1 = o mesmo bloco que estava no terreno).")]
+        [SerializeField, Range(0.2f, 1.5f)] float _carriedSize = 1f;
+        [Tooltip("Desenha a terra/planta carregada como o bloco 16x16 da célula de onde saiu (textura do material, CellTileArt). Desligado: um quadrado da cor do pixel.")]
+        [SerializeField] bool _carriedAsBlock = true;
+        [Tooltip("Contorno de 1 texel do bloco carregado (o mesmo escurecimento da borda do terreno).")]
+        [SerializeField, Range(0f, 1f)] float _carriedEdgeDarkening = 0.5f;
         [Tooltip("Posição da cria carregada (arte do BroodView, 3x2 células) em relação ao pivô, formiga virada para a direita.")]
         [SerializeField] Vector2 _carriedBroodOffset = new Vector2(2.4f, 0.5f);
         [Tooltip("Cor do nutriente que a formiga leva à rainha (a mesma do nutriente guardado no AntFarmView).")]
         [SerializeField] Color32 _nutrientColor = new Color32(232, 214, 92, 255);
+        [Tooltip("Cor do bloco de água que a formiga leva para regar um canteiro.")]
+        [SerializeField] Color32 _waterColor = new Color32(84, 150, 220, 235);
         [Tooltip("Cor do ovo que a formiga leva ao berçário (a do ovo desenhado no BroodView).")]
         [SerializeField] Color32 _eggColor = new Color32(240, 222, 190, 255);
         [Tooltip("Tamanho da rainha em relação às formigas (mesmos quadros, escalados).")]
@@ -48,6 +70,15 @@ namespace Fabula.Incrementant.AntFarm
         [Tooltip("Cor do preenchimento quando a rainha não pode pôr (sem recursos, vaga ou pausada).")]
         [SerializeField] Color _layBarBlockedColor = new Color(0.55f, 0.52f, 0.5f, 1f);
 
+        /// <summary>Quadros de um papel: caminhada de lado e vista de cima, virados para a direita.</summary>
+        [System.Serializable]
+        public sealed class RoleArt
+        {
+            public AntRole Role;
+            public Sprite[] Walk;
+            public Sprite[] Top;
+        }
+
         sealed class AntVisual
         {
             public GameObject GameObject;
@@ -61,14 +92,20 @@ namespace Fabula.Incrementant.AntFarm
             public bool Initialized;
             /// <summary>Escala do sprite (rainha &gt; 1); a base é levantada para as patas continuarem na superfície.</summary>
             public float Scale = 1f;
+            /// <summary>A rainha tem arte própria e não segue o papel da simulação.</summary>
+            public bool IsQueen;
         }
 
         readonly List<AntVisual> _visuals = new List<AntVisual>();
+        readonly List<AntVisual> _termiteVisuals = new List<AntVisual>();
+        const float HitFlashSeconds = 0.15f;
         AntVisual _queenVisual;
         SpriteRenderer _layBarBack;
         SpriteRenderer _layBarFill;
         Texture2D _pixelTexture;
         Sprite _pixelSprite;
+        // Blocos carregados já montados: material, tom (16 faixas) e posição da célula no ciclo de 4x4 da textura.
+        readonly Dictionary<int, Sprite> _blockSprites = new Dictionary<int, Sprite>();
 
         BroodCycle _brood;
         BroodView _broodView;
@@ -81,7 +118,81 @@ namespace Fabula.Incrementant.AntFarm
         }
 
         public bool HasFrames => _walkFrames != null && _walkFrames.Length > 0 && _walkFrames[0] != null;
-        bool HasTopFrames => _topFrames != null && _topFrames.Length > 0 && _topFrames[0] != null;
+
+        static bool HasAll(Sprite[] frames) => frames != null && frames.Length > 0 && frames[0] != null;
+
+        /// <summary>
+        /// Cupins: descendo do céu com os quadros de voo, perdendo as asas no pouso, andando (como as formigas, com os quadros
+        /// sem asas) e, mortos, de barriga para cima e apagados. Sem os quadros na cena, não desenha nada.
+        /// </summary>
+        public void RenderTermites(PixelGrid grid, IReadOnlyList<Termite> termites, Vector3 origin, float simulationTime, float deltaTime)
+        {
+            bool art = HasAll(_termiteWalk) && HasAll(_termiteFly) && HasAll(_termiteLand);
+            int count = art ? termites.Count : 0;
+            while (_termiteVisuals.Count < count)
+                _termiteVisuals.Add(CreateVisual($"Termite_{_termiteVisuals.Count:000}", 1f, _sortingOrder + 2));
+            for (int i = 0; i < count; i++)
+                UpdateTermiteVisual(_termiteVisuals[i], termites[i], grid, origin, simulationTime, deltaTime);
+            for (int i = count; i < _termiteVisuals.Count; i++)
+            {
+                if (_termiteVisuals[i].GameObject.activeSelf)
+                    _termiteVisuals[i].GameObject.SetActive(false);
+                _termiteVisuals[i].Initialized = false;
+            }
+        }
+
+        void UpdateTermiteVisual(AntVisual visual, Termite termite, PixelGrid grid, Vector3 origin, float time, float deltaTime)
+        {
+            Ant body = termite.Body;
+            Sprite[] top = HasAll(_termiteTop) ? _termiteTop : _termiteWalk;
+            switch (termite.Phase)
+            {
+                case TermitePhase.Raiding:
+                case TermitePhase.Leaving:
+                    UpdateVisual(visual, body, grid, origin, time, deltaTime, _termiteWalk, top);
+                    break;
+                case TermitePhase.Dead:
+                    UpdateVisual(visual, body, grid, origin, time, 0f, top, top);
+                    visual.Body.sprite = top[0];
+                    visual.Transform.rotation = Quaternion.Euler(0f, 0f, visual.Angle + 180f);
+                    break;
+                default:
+                {
+                    if (!visual.GameObject.activeSelf)
+                        visual.GameObject.SetActive(true);
+                    visual.Carried.gameObject.SetActive(false);
+                    float progress = Mathf.Clamp01((time - termite.PhaseStart) / Mathf.Max(0.01f, termite.PhaseDuration));
+                    var landing = new Vector2(body.X, body.Y);
+                    Vector2 cell = landing;
+                    Sprite[] frames;
+                    int frame;
+                    if (termite.Phase == TermitePhase.Flying)
+                    {
+                        // Desacelera ao chegar, como quem plana até o chão.
+                        float eased = 1f - (1f - progress) * (1f - progress);
+                        cell = Vector2.Lerp(new Vector2(termite.FlyFromX, termite.FlyFromY), landing, eased);
+                        frames = _termiteFly;
+                        frame = (int)(time * _termiteFlyFps);
+                        visual.FlipX = termite.FlyFromX > landing.x;
+                    }
+                    else
+                    {
+                        frames = _termiteLand;
+                        frame = Mathf.Min(frames.Length - 1, (int)(progress * frames.Length));
+                        visual.FlipX = body.FacingX < 0;
+                    }
+                    visual.Angle = 0f;
+                    visual.Initialized = false; // ao andar, começa do zero (posição e lado)
+                    visual.Transform.rotation = Quaternion.identity;
+                    visual.Body.flipX = visual.FlipX;
+                    visual.Body.sprite = frames[frame % frames.Length];
+                    visual.Transform.position = origin + new Vector3(cell.x + 0.5f, cell.y + 0.5f, 0f);
+                    break;
+                }
+            }
+            bool hit = time - termite.LastHitTime < HitFlashSeconds;
+            visual.Body.color = !termite.Alive ? _termiteCorpseColor : hit ? _termiteHitColor : Color.white;
+        }
 
         /// <param name="simulationTime">Tempo simulado atual, incluindo a fração ainda não processada do passo.</param>
         /// <param name="queen">Rainha, desenhada maior (<c>_queenScale</c>) e atrás das operárias. Null = sem rainha.</param>
@@ -92,7 +203,10 @@ namespace Fabula.Incrementant.AntFarm
             if (queen != null)
             {
                 if (_queenVisual == null)
+                {
                     _queenVisual = CreateVisual("Queen", _queenScale, _sortingOrder - 2);
+                    _queenVisual.IsQueen = true;
+                }
                 UpdateVisual(_queenVisual, queen, grid, origin, simulationTime, deltaTime);
                 UpdateLayBar(layProgress, laying);
             }
@@ -158,7 +272,9 @@ namespace Fabula.Incrementant.AntFarm
             return renderer;
         }
 
-        void UpdateVisual(AntVisual visual, Ant ant, PixelGrid grid, Vector3 origin, float time, float deltaTime)
+        /// <param name="walkOverride">Quadros de lado no lugar dos do papel (cupins); <paramref name="topOverride"/> idem, vista de cima.</param>
+        void UpdateVisual(AntVisual visual, Ant ant, PixelGrid grid, Vector3 origin, float time, float deltaTime,
+                          Sprite[] walkOverride = null, Sprite[] topOverride = null)
         {
             if (!visual.GameObject.activeSelf)
                 visual.GameObject.SetActive(true);
@@ -167,7 +283,8 @@ namespace Fabula.Incrementant.AntFarm
             var cell = new Vector2(Mathf.Lerp(ant.FromX, ant.X, t), Mathf.Lerp(ant.FromY, ant.Y, t));
 
             // Direção: o último passo, ou o pixel que está cavando.
-            bool working = ant.State == AntState.Digging || ant.State == AntState.Gathering || ant.State == AntState.Placing;
+            // Mordendo um cupim ou desmembrando um corpo também anima como trabalho, virada para o alvo (DigX/DigY).
+            bool working = ant.State == AntState.Digging || ant.State == AntState.Gathering || ant.State == AntState.Placing || ant.Biting;
             Vector2 heading = working
                 ? new Vector2(ant.DigX - ant.X, ant.DigY - ant.Y)
                 : new Vector2(ant.X - ant.FromX, ant.Y - ant.FromY);
@@ -179,10 +296,15 @@ namespace Fabula.Incrementant.AntFarm
                 visual.Initialized = true;
             }
 
-            // No meio de um túnel, sem nada encostado, ela está na parede de trás: vista de cima, girando livre.
-            bool topView = HasTopFrames
-                           && AntNavigation.IsTunnelBackground(grid, ant.X, ant.Y)
-                           && !AntNavigation.TouchesSolid(grid, ant.X, ant.Y);
+            // No meio de um túnel ou sobre a arte do cenário, sem nada encostado, ela está no fundo: vista de cima,
+            // girando livre. Dentro da obra de fora também (anda pela face da obra, não pelo contorno).
+            Sprite[] walkFrames = walkOverride ?? _walkFrames;
+            Sprite[] topFrames = topOverride ?? _topFrames;
+            if (!visual.IsQueen && walkOverride == null)
+                ApplyRoleArt(ant.Role, ref walkFrames, ref topFrames);
+            bool topView = topFrames != null && topFrames.Length > 0 && topFrames[0] != null
+                           && (AntNavigation.IsBackground(grid, ant.X, ant.Y) && !AntNavigation.TouchesSolid(grid, ant.X, ant.Y)
+                               || AntNavigation.IsOutdoorBuilt(grid, ant.X, ant.Y));
             if (topView)
                 UpdateTopOrientation(visual, heading, deltaTime);
             else
@@ -200,13 +322,13 @@ namespace Fabula.Incrementant.AntFarm
             int frame = working
                 ? (int)(time * _digFramesPerSecond)
                 : (int)(visual.Walked * _framesPerCell);
-            Sprite[] frames = topView ? _topFrames : _walkFrames;
+            Sprite[] frames = topView ? topFrames : walkFrames;
             visual.Body.sprite = frames[frame % frames.Length];
-            visual.Body.color = RoleTint(ant.Role);
 
             bool delivering = ant.State == AntState.Delivering;
             bool carryingEgg = ant.State == AntState.CarryingEgg || ant.State == AntState.MovingBrood;
-            bool carrying = ant.CarriedCount > 0 || delivering || carryingEgg;
+            bool carryingWater = ant.State == AntState.CarryingWater;
+            bool carrying = ant.CarriedCount > 0 || delivering || carryingEgg || carryingWater;
             if (visual.Carried.gameObject.activeSelf != carrying)
                 visual.Carried.gameObject.SetActive(carrying);
             if (carrying)
@@ -216,15 +338,21 @@ namespace Fabula.Incrementant.AntFarm
                 if (carryingEgg && _broodView != null && _broodView.HasFrames && _brood != null
                     && _brood.TryGet(ant.EggId, out BroodRecord carriedBrood))
                     broodArt = _broodView.FrameOf(carriedBrood);
-                visual.Carried.sprite = broodArt != null ? broodArt : _pixelSprite;
+                bool block = broodArt == null && !carryingEgg && !delivering && !carryingWater && _carriedAsBlock;
+                visual.Carried.sprite = broodArt != null ? broodArt
+                    : block ? BlockSprite(ant.Carried, ant.CarriedShade, ant.CarriedFrom >= 0 ? ant.CarriedFrom % grid.Width : ant.X,
+                                          ant.CarriedFrom >= 0 ? ant.CarriedFrom / grid.Width : ant.Y)
+                    : _pixelSprite;
                 visual.Carried.flipX = broodArt != null && visual.FlipX;
                 visual.Carried.transform.localScale = broodArt != null
                     ? Vector3.one
                     : new Vector3(_carriedSize, _carriedSize, 1f);
-                if (broodArt != null)
+                if (broodArt != null || block)
                     visual.Carried.color = Color.white;
                 else if (carryingEgg)
                     visual.Carried.color = _eggColor;
+                else if (carryingWater)
+                    visual.Carried.color = _waterColor;
                 else
                     visual.Carried.color = delivering ? (Color)_nutrientColor : CellMaterials.ShadedColor(ant.Carried, ant.CarriedShade);
                 Vector2 offset = broodArt != null ? _carriedBroodOffset : topView ? _carriedOffsetTop : _carriedOffset;
@@ -297,16 +425,35 @@ namespace Fabula.Incrementant.AntFarm
             return ground;
         }
 
-        /// <summary>Matiz de cada papel sobre o sprite único (a silhueta própria de cada um ainda não existe).</summary>
-        public static Color RoleTint(AntRole role)
+        /// <summary>Troca os quadros padrão pelos do papel, quando ele tem arte própria completa.</summary>
+        void ApplyRoleArt(AntRole role, ref Sprite[] walk, ref Sprite[] top)
+        {
+            if (_roleArt == null)
+                return;
+            for (int i = 0; i < _roleArt.Length; i++)
+            {
+                RoleArt art = _roleArt[i];
+                if (art == null || art.Role != role || art.Walk == null || art.Walk.Length == 0 || art.Walk[0] == null)
+                    continue;
+                walk = art.Walk;
+                if (art.Top != null && art.Top.Length > 0 && art.Top[0] != null)
+                    top = art.Top;
+                return;
+            }
+        }
+
+        /// <summary>Cor principal da arte de cada papel (ícones do HUD), a mesma das variantes em Art/Ants/README.md.</summary>
+        public static Color RoleColor(AntRole role)
         {
             switch (role)
             {
-                case AntRole.Gardener: return new Color(0.6f, 1f, 0.55f);
-                case AntRole.Carrier: return new Color(0.6f, 0.8f, 1f);
-                case AntRole.Cutter: return new Color(1f, 0.65f, 0.45f);
-                case AntRole.Digger: return new Color(1f, 0.92f, 0.4f);
-                default: return Color.white;
+                case AntRole.Carrier: return new Color32(0x31, 0x8B, 0x39, 255);
+                case AntRole.Cutter: return new Color32(0x1F, 0x9E, 0x8E, 255);
+                case AntRole.Gardener: return new Color32(0xC2, 0x47, 0x7F, 255);
+                case AntRole.Digger: return new Color32(0xD3, 0x63, 0x18, 255);
+                case AntRole.Nurse: return new Color32(0x41, 0x9E, 0xC7, 255);
+                case AntRole.Soldier: return new Color32(0x6F, 0x33, 0x9E, 255);
+                default: return new Color32(0x9E, 0x31, 0x1E, 255);
             }
         }
 
@@ -342,12 +489,55 @@ namespace Fabula.Incrementant.AntFarm
             _pixelSprite.name = "AntCarriedPixel";
         }
 
+        /// <summary>
+        /// O bloco 16x16 da célula (<paramref name="cellX"/>, <paramref name="cellY"/>) como estava no terreno: a cor do
+        /// material com o tom, vezes a textura do material naquela posição, e o contorno. A textura repete a cada 4
+        /// células e o tom é agrupado em 16 faixas, então há no máximo 16 x 16 sprites por material, montados sob demanda.
+        /// </summary>
+        Sprite BlockSprite(CellMaterial material, byte shade, int cellX, int cellY)
+        {
+            int ox = cellX & 3, oy = cellY & 3;
+            byte band = (byte)(shade & 0xF0 | 0x08);
+            int key = (((int)material * 16 + (shade >> 4)) * 4 + ox) * 4 + oy;
+            if (_blockSprites.TryGetValue(key, out Sprite sprite))
+                return sprite;
+
+            const int size = CellTileArt.TexelsPerCell;
+            Color32 baseColor = CellMaterials.ShadedColor(material, band);
+            var pixels = new Color32[size * size];
+            for (int ty = 0; ty < size; ty++)
+            for (int tx = 0; tx < size; tx++)
+            {
+                float f = CellTileArt.Detail(material, ox, oy, tx, ty);
+                if (tx == 0 || ty == 0 || tx == size - 1 || ty == size - 1)
+                    f *= 1f - _carriedEdgeDarkening;
+                pixels[ty * size + tx] = new Color32((byte)Mathf.Min(255f, baseColor.r * f), (byte)Mathf.Min(255f, baseColor.g * f),
+                                                     (byte)Mathf.Min(255f, baseColor.b * f), 255);
+            }
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false)
+            {
+                name = "AntCarriedBlock", filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp, hideFlags = HideFlags.DontSave,
+            };
+            texture.SetPixels32(pixels);
+            texture.Apply(false, true);
+            sprite = Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size, 0, SpriteMeshType.FullRect);
+            sprite.name = "AntCarriedBlock";
+            _blockSprites[key] = sprite;
+            return sprite;
+        }
+
         void OnDestroy()
         {
             if (_pixelSprite != null)
                 Destroy(_pixelSprite);
             if (_pixelTexture != null)
                 Destroy(_pixelTexture);
+            foreach (Sprite sprite in _blockSprites.Values)
+            {
+                Destroy(sprite.texture);
+                Destroy(sprite);
+            }
+            _blockSprites.Clear();
         }
     }
 }

@@ -332,7 +332,15 @@ namespace Fabula.Incrementant.Tests
                 colony.Spawn(role.Value);
             }
             foreach (AntRole role in AntRoles.All)
+            {
+                // O soldado só existe depois do primeiro ataque de cupins (não liberado aqui): o automático não o cria.
+                if (!colony.Tree.IsRoleUnlocked(role))
+                {
+                    Assert.AreEqual(0, colony.CountOf(role), $"{role} bloqueado não nasce.");
+                    continue;
+                }
                 Assert.GreaterOrEqual(colony.CountOf(role), 2, $"O automático também cria {role}.");
+            }
             Assert.Greater(colony.CountOf(AntRole.Carrier), colony.CountOf(AntRole.Cutter), "Carregadoras têm parte maior que cortadeiras.");
         }
 

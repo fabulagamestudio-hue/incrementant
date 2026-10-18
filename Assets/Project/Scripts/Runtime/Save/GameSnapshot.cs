@@ -20,6 +20,8 @@ namespace Fabula.Incrementant.Save
         public float UnderwaterSeconds;
         /// <summary><see cref="AntRole"/> como byte. Saves anteriores à versão 7 não têm: voltam todas comuns e a colônia promove jardineiras.</summary>
         public byte Role;
+        /// <summary>Idade e tempo de vida em segundos (versão 10). Saves anteriores voltam com vida 0 e a colônia sorteia uma nova.</summary>
+        public float Age, Lifespan;
     }
 
     /// <summary>
@@ -29,6 +31,14 @@ namespace Fabula.Incrementant.Save
     /// das formigas (o sorteio recomeça da seed) e o tempo de contato da terra com a água (a erosão recomeça a contar).
     /// As plantas da superfície são células comuns (vão em <see cref="Cells"/>); a fase de crescimento delas recomeça.
     /// </summary>
+    /// <summary>Um canteiro da sala de nutrientes (versão 12): célula, etapa e segundos que faltam para brotar.</summary>
+    public struct BedRecord
+    {
+        public int X, Y;
+        public BedStage Stage;
+        public float Grow;
+    }
+
     public sealed class GameSnapshot
     {
         /// <summary>
@@ -39,14 +49,20 @@ namespace Fabula.Incrementant.Save
         /// 7: papel de cada formiga.
         /// 8: berçário pintado, ovos/larvas/pupas, relógio da postura e política da rainha.
         /// 9: nós comprados da árvore da rainha (saves anteriores já tinham as classes: voltam com elas liberadas).
+        /// 10: idade e tempo de vida de cada formiga.
+        /// 11: obra (<c>PixelGrid.IsBuilt</c>) no bit 4 de <see cref="Marked"/>.
+        /// 12: canteiros da sala de nutrientes (<see cref="Beds"/>); os nutrientes não curam mais (todo nutriente é pronto).
         /// </summary>
-        public const int CurrentVersion = 9;
+        public const int CurrentVersion = 13;
         /// <summary>
         /// Versão mais antiga que ainda carrega (a 2 volta sem sala pintada e com a rainha no ninho; a 2 e a 3 voltam sem
         /// sala de nutrientes e com 0 nutrientes).
         /// </summary>
         const int OldestReadableVersion = 2;
         const int Magic = 0x544E4349;
+        /// <summary>Em <see cref="Marked"/>: os 2 bits de baixo são a marca (1 = escavar, 2 = construir); o bit 4 é obra (versão 11).</summary>
+        const int MarkMask = 3;
+        const int BuiltBit = 4;
 
         /// <summary>Origem do mapa (<c>MapSource</c> como int): um save não carrega em outro modo.</summary>
         public int MapSource;
@@ -105,6 +121,12 @@ namespace Fabula.Incrementant.Save
         /// <summary>Por célula: planta atrás do material (material como byte, 0 = nenhuma) e o tom dela. Vazios antes da versão 6.</summary>
         public byte[] Behind = Array.Empty<byte>();
         public byte[] BehindShades = Array.Empty<byte>();
+        /// <summary>Canteiros (versão 12). Vazio antes: a sala volta sem canteiros e as formigas os montam de novo.</summary>
+        public BedRecord[] Beds = Array.Empty<BedRecord>();
+        // Versão 13: ataques de cupins (o ataque em curso não vai; volta sem cupins). A área de resíduos é o bit 1 do bloco do berçário.
+        public bool RaidsUnlocked;
+        public int RaidsSurvived;
+        public float SecondsToNextRaid;
 
         public static GameSnapshot Capture(PixelGrid grid, AntColony colony, RainSimulation rain, WaterSimulation water,
                                            int mapSource, int seed, double matchSeconds, VegetationSimulation vegetation = null)
@@ -151,6 +173,9 @@ namespace Fabula.Incrementant.Save
                 Brood = new List<BroodRecord>(colony.Brood.Brood).ToArray(),
                 Behind = new byte[count],
                 BehindShades = new byte[count],
+                RaidsUnlocked = colony.RaidsUnlocked,
+                RaidsSurvived = colony.RaidsSurvived,
+                SecondsToNextRaid = colony.RaidState == RaidState.Calm ? colony.SecondsToNextRaid : 0f,
             };
 
             int i = 0;
@@ -159,17 +184,26 @@ namespace Fabula.Incrementant.Save
             {
                 snapshot.Cells[i] = (byte)grid.Get(x, y);
                 snapshot.Shades[i] = grid.GetShade(x, y);
-                snapshot.Marked[i] = grid.IsMarked(x, y) ? (byte)1 : grid.IsBuildMarked(x, y) ? (byte)2 : (byte)0;
+                int mark = grid.IsMarked(x, y) ? 1 : grid.IsBuildMarked(x, y) ? 2 : 0;
+                snapshot.Marked[i] = (byte)(mark | (grid.IsBuilt(x, y) ? BuiltBit : 0));
                 snapshot.Wetness[i] = grid.GetWetness(x, y);
                 snapshot.Water[i] = grid.HasWater(x, y) ? (byte)1 : (byte)0;
                 snapshot.QueenRoom[i] = grid.IsQueenRoom(x, y) ? (byte)1 : (byte)0;
-                snapshot.NurseryRoom[i] = grid.IsNurseryRoom(x, y) ? (byte)1 : (byte)0;
+                // Bit 0 berçário, bit 1 área de resíduos (versão 13; antes só 0 ou 1).
+                snapshot.NurseryRoom[i] = (byte)((grid.IsNurseryRoom(x, y) ? 1 : 0) | (grid.IsWasteRoom(x, y) ? 2 : 0));
                 snapshot.Behind[i] = (byte)grid.GetBehind(x, y);
                 snapshot.BehindShades[i] = grid.GetBehindShade(x, y);
-                // Bits 2-7: segundos de cura que faltam (arredondados para cima, até 63). Saves antigos têm 0 = pronto.
-                int cure = Mathf.Min(63, Mathf.CeilToInt(grid.GetNutrientCure(x, y)));
-                snapshot.NutrientRoom[i] = (byte)((grid.IsNutrientRoom(x, y) ? 1 : 0) | (grid.HasNutrient(x, y) ? 2 : 0) | (cure << 2));
+                // Bits 2-7 eram a cura que faltava (até a versão 11); hoje vão sempre 0 e são ignorados ao ler.
+                snapshot.NutrientRoom[i] = (byte)((grid.IsNutrientRoom(x, y) ? 1 : 0) | (grid.HasNutrient(x, y) ? 2 : 0));
             }
+
+            var beds = new List<BedRecord>(grid.BedCount);
+            for (int k = 0; k < grid.BedCount; k++)
+            {
+                if (grid.TryGetBed(k, out int bx, out int by))
+                    beds.Add(new BedRecord { X = bx, Y = by, Stage = grid.GetBedStage(bx, by), Grow = grid.GetBedGrow(bx, by) });
+            }
+            snapshot.Beds = beds.ToArray();
 
             snapshot.PlantSunk = new byte[area.width];
             if (vegetation != null)
@@ -188,7 +222,7 @@ namespace Fabula.Incrementant.Save
                     X = ant.X, Y = ant.Y, FacingX = ant.FacingX, State = (byte)ant.State, Cooldown = ant.Cooldown,
                     DigX = ant.DigX, DigY = ant.DigY, DumpTargetX = ant.DumpTargetX,
                     Carried = (byte)ant.Carried, CarriedShade = ant.CarriedShade, UnderwaterSeconds = ant.UnderwaterSeconds,
-                    Role = (byte)ant.Role,
+                    Role = (byte)ant.Role, Age = ant.Age, Lifespan = ant.Lifespan,
                 };
             }
             return snapshot;
@@ -215,10 +249,13 @@ namespace Fabula.Incrementant.Save
                 if (Behind.Length != 0 && Behind[i] != 0)
                     grid.SetBehind(x, y, (CellMaterial)Behind[i], BehindShades[i]);
                 // Planta em pé não tem mais marca (saves antigos a guardam): as jardineiras escolhem sozinhas o que cortar.
-                if (Marked[i] == 1 && !CellMaterials.IsPlant((CellMaterial)Cells[i]))
+                int mark = Marked[i] & MarkMask;
+                if (mark == 1 && !CellMaterials.IsPlant((CellMaterial)Cells[i]))
                     grid.SetMarked(x, y, true);
-                else if (Marked[i] == 2)
+                else if (mark == 2)
                     grid.SetBuildMarked(x, y, true);
+                if ((Marked[i] & BuiltBit) != 0)
+                    grid.SetBuilt(x, y, true);
                 if (Wetness[i] != 0)
                     grid.SetWetness(x, y, Wetness[i]);
                 // Sobrescreve também a água que o gerador pôs (laguinhos) ou que Set empurrou para cima.
@@ -228,11 +265,18 @@ namespace Fabula.Incrementant.Save
                 if (NutrientRoom.Length != 0)
                 {
                     grid.SetNutrientRoom(x, y, (NutrientRoom[i] & 1) != 0);
-                    grid.SetNutrient(x, y, (NutrientRoom[i] & 2) != 0, NutrientRoom[i] >> 2);
+                    // Até a versão 11 o nutriente podia estar curando (bits 2-7): volta pronto.
+                    grid.SetNutrient(x, y, (NutrientRoom[i] & 2) != 0);
                 }
                 if (NurseryRoom.Length != 0)
-                    grid.SetNurseryRoom(x, y, NurseryRoom[i] != 0);
+                {
+                    grid.SetNurseryRoom(x, y, (NurseryRoom[i] & 1) != 0);
+                    grid.SetWasteRoom(x, y, (NurseryRoom[i] & 2) != 0);
+                }
             }
+            // Depois das células: só terra fofa vira canteiro.
+            foreach (BedRecord bed in Beds)
+                grid.SetBed(bed.X, bed.Y, bed.Stage, bed.Grow);
         }
 
         public void ApplyTo(AntColony colony)
@@ -245,7 +289,7 @@ namespace Fabula.Incrementant.Save
                     X = r.X, Y = r.Y, FacingX = r.FacingX, State = (AntState)r.State, Cooldown = r.Cooldown,
                     DigX = r.DigX, DigY = r.DigY, DumpTargetX = r.DumpTargetX,
                     Carried = (CellMaterial)r.Carried, CarriedShade = r.CarriedShade, UnderwaterSeconds = r.UnderwaterSeconds,
-                    Role = (AntRole)r.Role,
+                    Role = (AntRole)r.Role, Age = r.Age, Lifespan = r.Lifespan,
                 });
             }
             colony.RestoreState(StoredPixels, TotalDelivered, SimulationTime, ants, DrownedAnts);
@@ -255,6 +299,7 @@ namespace Fabula.Incrementant.Save
             colony.SetQueenPolicy((QueenMode)QueenMode, (AntRole)QueenTarget);
             colony.RestoreBrood(Brood, LayTimer);
             colony.Tree.Restore(TreeMask);
+            colony.RestoreRaids(RaidsUnlocked, RaidsSurvived, SecondsToNextRaid);
         }
 
         /// <summary>Linhas enterradas das plantas (chame depois de <c>MarkPopulated</c>; as células já vêm da grade).</summary>
@@ -308,6 +353,7 @@ namespace Fabula.Incrementant.Save
                     w.Write(a.X); w.Write(a.Y); w.Write(a.FacingX); w.Write(a.State); w.Write(a.Cooldown);
                     w.Write(a.DigX); w.Write(a.DigY); w.Write(a.DumpTargetX); w.Write(a.Carried); w.Write(a.CarriedShade);
                     w.Write(a.UnderwaterSeconds); w.Write(a.Role);
+                    w.Write(a.Age); w.Write(a.Lifespan);
                 }
                 w.Write(QueenX); w.Write(QueenY); w.Write(QueenFacingX);
                 w.Write(Nutrients); w.Write(TotalNutrients); w.Write(HarvestedPixels);
@@ -330,6 +376,12 @@ namespace Fabula.Incrementant.Save
                     w.Write((byte)b.Role); w.Write((byte)b.Stage); w.Write(b.Remaining);
                 }
                 w.Write(TreeMask);
+                w.Write(Beds.Length);
+                foreach (BedRecord b in Beds)
+                {
+                    w.Write(b.X); w.Write(b.Y); w.Write((byte)b.Stage); w.Write(b.Grow);
+                }
+                w.Write(RaidsUnlocked); w.Write(RaidsSurvived); w.Write(SecondsToNextRaid);
             }
         }
 
@@ -390,6 +442,11 @@ namespace Fabula.Incrementant.Save
                             Carried = r.ReadByte(), CarriedShade = r.ReadByte(), UnderwaterSeconds = r.ReadSingle(),
                             Role = version >= 7 ? r.ReadByte() : (byte)0,
                         };
+                        if (version >= 10)
+                        {
+                            s.Ants[i].Age = r.ReadSingle();
+                            s.Ants[i].Lifespan = r.ReadSingle();
+                        }
                     }
                     if (version >= 3)
                     {
@@ -431,6 +488,21 @@ namespace Fabula.Incrementant.Save
                     }
                     if (version >= 9)
                         s.TreeMask = r.ReadUInt64();
+                    if (version >= 12)
+                    {
+                        int bedCount = r.ReadInt32();
+                        if (bedCount < 0 || bedCount > count)
+                            throw new InvalidDataException("O save tem uma contagem de canteiros inválida.");
+                        s.Beds = new BedRecord[bedCount];
+                        for (int i = 0; i < bedCount; i++)
+                            s.Beds[i] = new BedRecord { X = r.ReadInt32(), Y = r.ReadInt32(), Stage = (BedStage)r.ReadByte(), Grow = r.ReadSingle() };
+                    }
+                    if (version >= 13)
+                    {
+                        s.RaidsUnlocked = r.ReadBoolean();
+                        s.RaidsSurvived = r.ReadInt32();
+                        s.SecondsToNextRaid = r.ReadSingle();
+                    }
                     return s;
                 }
             }

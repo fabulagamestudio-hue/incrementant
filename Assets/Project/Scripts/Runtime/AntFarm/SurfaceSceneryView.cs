@@ -7,7 +7,8 @@ namespace Fabula.Incrementant.AntFarm
     /// Cenário da superfície (céu, grama, trevos, flor, cogumelos, galhos, folhas secas, pedrinhas) na escala das formigas,
     /// montado por <see cref="SurfaceSceneryPainter"/> a cada mapa novo com os PNGs de <see cref="SceneryArtSet"/>. SpriteRenderers filhos, criados em runtime:
     /// céu e duas faixas de grama distante com paralaxe (<see cref="UpdateParallax"/>), perto atrás do terreno
-    /// (o céu do terreno fica transparente) e frente sobre as formigas. Só visual: não entra na grade nem na navegação.
+    /// (o céu do terreno fica transparente) e frente sobre as formigas. Não entra na grade como material; a área da
+    /// camada de perto vira fundo caminhável (<see cref="PixelGrid.IsBackdrop"/>).
     /// Também desenha as plantas colhíveis da grade com a mesma arte (<see cref="PlantSprites"/>, <see cref="UpdatePlants"/>).
     /// </summary>
     public sealed class SurfaceSceneryView : MonoBehaviour
@@ -68,6 +69,8 @@ namespace Fabula.Incrementant.AntFarm
             EnsureLibrary();
             _plants?.Clear();
             SceneryLayers layers = SurfaceSceneryPainter.Paint(grid, layout, _settings, seed, _skyTop, _skyBottom, skyBaseY, _library, isLakeColumn, skyAbove);
+            // A arte de perto vira fundo onde a formiga anda (navegação); o resto continua só visual.
+            SurfaceSceneryPainter.ApplyBackdrop(grid, layers);
             Apply(ref _sky, "ScenerySky", _skySortingOrder, layers.Sky, SpriteDrawMode.Simple);
             Apply(ref _far, "SceneryFar", _farSortingOrder, layers.Far, SpriteDrawMode.Tiled);
             Apply(ref _mid, "SceneryMid", _midSortingOrder, layers.Mid, SpriteDrawMode.Tiled);

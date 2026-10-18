@@ -2,16 +2,17 @@
 
 **Projeto:** Incrementant
 **Setor:** AUDIO
-**Última avaliação:** 2026-10-17
+**Última avaliação:** 2026-10-18
 
 ## Resumo
 
-Projeto recém-criado a partir do template Unity (URP). Não há conteúdo autoral neste setor ainda; nada foi verificado além da estrutura de pastas.
+Ainda sem áudio no jogo. Os efeitos sonoros (SFX) são a próxima tarefa anunciada pelo desenvolvedor (REQ-023); a tela de configurações já guarda os volumes geral, de música e de efeitos sonoros (PRG-031), e só o geral tem efeito até haver fontes de áudio.
 
 ## Itens
 
 | ID | Título | Estado | Prioridade | Evidência | Dependências | Verificado em |
 |---|---|---|---|---|---|---|
+| AUD-001 | Efeitos sonoros (SFX) do jogo, respeitando o volume de efeitos das configurações | PLANNED | UNDEFINED | — | REQ-023, PRG-031 | — |
 
 ## Detalhes
 

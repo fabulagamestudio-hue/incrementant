@@ -15,14 +15,16 @@ Como o HUD (uGUI) funciona e como mexer nele. Onde estão os arquivos: [Runtime/
 | Elemento | Estado |
 |---|---|
 | Cartões Nutrientes / Formigas / Rainha | Reais: nutrientes e consumidos; adultas / capacidade e ovos, larvas e pupas; estado da sala da rainha |
-| Menu Colônia → Pintar → 5 pincéis | Real (troca o pincel de `AntFarmGame`; o 5º é o Berçário) |
-| Menu Colônia → Rainha | Real: modo (Automático, Tipo específico, Pausado), tipo (Comum, Carregadora, Cortadeira, Escavadora, Jardineira, Cuidadora; a lista vem de `AntRoles.All`, então ao mudá-la rode **Incrementant/Setup/Montar HUD da partida**), próxima formiga com custo, contagem por tipo e botão Criar formiga (ver "Política da rainha") |
+| Menu Colônia → Pintar → 6 pincéis | Real (troca o pincel de `AntFarmGame`; o 5º é o Berçário e o 6º, Resíduos, fica apagado e sem clique até o primeiro ataque de cupins, `AntFarmGame.IsBrushUnlocked`) |
+| Alerta dos cupins (centro do topo, abaixo do cartão Formigas) | Real: `AntFarmHud._raidAlert` (sprite `panels/notification`, ícone de alerta, sem raycast). Mostra a contagem do ataque iminente, "CUPINS ATACANDO: N" com o objetivo e, por 6 s, o fim do ataque. Regras em [RaidGuide](../Colony/RaidGuide.md) |
+| Menu Colônia → Rainha | Real: modo (Automático, Tipo específico, Pausado), tipo (Comum, Carregadora, Cortadeira, Escavadora, Jardineira, Cuidadora, Soldado; a lista vem de `AntRoles.All`, então ao mudá-la rode **Incrementant/Setup/Montar HUD da partida**), próxima formiga com custo, contagem por tipo e botão Criar formiga (ver "Política da rainha") |
 | Menu Colônia → Evolução | Real: tela cheia `TelaEvolucao` com duas abas (ver "Tela Evolução"): Rainha e classes (compra de verdade) e Formigueiro (só exibição) |
 | Ambientes, Avisos | Desativados (sem sistema por trás) |
 | Pausa e 1x/3x/8x | Reais (P também pausa; 1/2/3 trocam a velocidade) |
-| FPS e tempo jogado (canto superior direito, abaixo do cartão Rainha) | Real: FPS médio a cada 0,25 s e relógio da sessão em HH:MM:SS (tempo real, ignora pausa e velocidade; não vai no save) |
+| FPS e tempo jogado (canto superior direito, abaixo do cartão Rainha) | Real (some com "Mostrar FPS e tempo" desligado nas configurações): FPS médio a cada 0,25 s e relógio da sessão em HH:MM:SS (tempo real, ignora pausa e velocidade; não vai no save) |
 | Dica do rodapé | Mostra o aviso de salvar/carregar por 5 s |
-| "Próxima" postura e reservadas do cartão, taxa de nutrientes, [ESC] MENU | Só o painel Rainha mostra a próxima postura; o resto não existe |
+| Menu do ESC e Configurações | Reais (ver "Menu do ESC e configurações") |
+| "Próxima" postura e reservadas do cartão, taxa de nutrientes | Só o painel Rainha mostra a próxima postura; o resto não existe |
 
 O HUD IMGUI antigo (contadores de simulação, clima, salvar/carregar) continua no `AntFarmGame`, escondido; **F2** o mostra (`_showDebugHud`; o F1 é o cheat de formigas, ver [AntFarmGuide](../AntFarm/AntFarmGuide.md)).
 
@@ -37,9 +39,17 @@ O botão EVOLUÇÃO abre `TelaEvolucao` (`SkillTreeScreen`), em tela cheia sobre
 - **Rainha e classes** (aba aberta por padrão): os 26 nós da árvore da rainha, um ramo por coluna, com o centro (a rainha) e um tronco que sobe até o primeiro nó de cada ramo. Clicar num nó o seleciona; DESBLOQUEAR chama `AntColony.TryBuy`. Regras e efeitos: [QueenTreeGuide](../Colony/QueenTreeGuide.md).
 - **Formigueiro:** cultivo, berçário, depósito e resíduos nas posições da referência. É só exibição: os sistemas por trás não existem, então todos os nós aparecem bloqueados e o botão diz EM BREVE. Os dados são `HiveTreeInfo` (seções 17 a 21 do design).
 - **Estados.** Cada nó é feito de camadas (`SkillNodeWidget`): losango (adquirido, disponível ou bloqueado, sprites `Nodes/diamond_*`), ícone, cadeado nos bloqueados e anel de seleção por cima (a seleção não apaga o estado). As ligações usam o segmento `Connections/link_*` repetido: verde quando pai e filho estão adquiridos, dourado quando o filho pode ser comprado, apagado nos demais. A legenda do rodapé explica os quatro estados.
+- **Fechar.** VOLTAR ou ESC; o ESC é tratado pelo `AntFarmHud` (ver "Menu do ESC e configurações").
 - **Arte.** Os sprites vêm de `Art/UI/Sprites/FormigueiroSkillTree/Textures`, importados por `SkillTreeSpriteImporter` e desenhados a 2 pixels de tela por pixel de sprite (`PixelScale` em `AntFarmHudSetup`). Esse kit só tem ícones do formigueiro (C, B, D, R); os nós da rainha usam os ícones gerais de `Sprites/icons` (ovo, formiga, caixa, folha, pá, cogumelo, larva, alerta) por não haver arte própria.
 - **Tempo.** Abrir a tela não pausa o jogo (regra em aberto no design, seção 34). A tela cobre o mundo, mas a simulação segue.
 - **Montagem.** `BuildTreeScreen` (em `Editor/UI/AntFarmHudSetup.cs`) recria tudo junto com o HUD; as posições dos nós da rainha são `QueenColumn0`/`QueenColumnStep`/`QueenRows`/`QueenSlot`. Ajustes à mão se perdem. O `AntFarmHud` só abre e fecha a tela e mostra as classes ainda bloqueadas no painel Rainha.
+
+## Menu do ESC e configurações
+
+- **ESC.** Só o `AntFarmHud` lê o ESC, e cada toque fecha uma camada: configurações → menu → jogo; sem menu aberto, fecha a tela Evolução ou o submenu da colônia (Pintar, Rainha); sem nada aberto, abre o menu. Tela nova que feche com ESC entra nessa ordem em `HandleEscape`, em vez de ler a tecla sozinha (duas telas reagiriam ao mesmo ESC).
+- **Menu (`PauseMenu`, objeto `MenuPausa`).** Fundo escurecido em tela cheia que bloqueia cliques no mundo e no HUD, e o painel MENU: Continuar, Configurações, Salvar partida (F5), Carregar partida (F9), Sair do jogo. Abrir pausa a simulação e liga `AntFarmGame.InputLocked` (sem atalhos, câmera nem pincel); fechar devolve a pausa como estava. O aviso de salvar/carregar aparece no próprio painel. Sair no Editor só mostra um aviso.
+- **Configurações (`SettingsScreen`, objeto `TelaConfiguracoes`).** Troca de lugar com o painel do menu. Linhas: volume geral, música, efeitos sonoros (sliders com %), efeitos visuais (Completo/Reduzido/Desligado), tela cheia, resolução (nativa + as do monitor), VSync, limite de FPS (apagado com VSync ligado) e mostrar FPS e tempo; rodapé com PADRÃO e VOLTAR. Cada mudança é aplicada na hora; o arquivo é gravado ao sair da tela. Dados e aplicação: [SettingsGuide.md](../Settings/SettingsGuide.md).
+- **Montagem.** `BuildPauseMenu` e `BuildSettingsScreen` em `Editor/UI/AntFarmHudSetup.cs`, por último sob o canvas (cobrem até a tela Evolução). Sliders, interruptores (`controls/toggle_*`) e alças em escala 2 (`BuildScaledSprite`); o Slider estica a alça na altura da área, então só a largura vai no `sizeDelta`.
 
 ## Como estender
 

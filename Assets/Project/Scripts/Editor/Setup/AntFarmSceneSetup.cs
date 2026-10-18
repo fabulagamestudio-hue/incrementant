@@ -1,5 +1,6 @@
 using System.Linq;
 using Fabula.Incrementant.AntFarm;
+using Fabula.Incrementant.Colony;
 using Fabula.Incrementant.EditorTools.AntFarm;
 using Fabula.Incrementant.EditorTools.UI;
 using Fabula.Incrementant.World;
@@ -25,6 +26,7 @@ namespace Fabula.Incrementant.EditorTools.Setup
         const string DumpEndName = "DumpEnd";
         const string AntsName = "Ants";
         const string BroodName = "Brood";
+        const string CultivationName = "Cultivation";
         const string SceneryName = "Scenery";
         const int DefaultSeed = 1234;
 
@@ -57,6 +59,7 @@ namespace Fabula.Incrementant.EditorTools.Setup
             }
             GetOrAdd<SpriteRenderer>(viewTransform.gameObject);
             AntFarmView view = GetOrAdd<AntFarmView>(viewTransform.gameObject);
+            AssignTileMaterial(view);
 
             bool antsCreated = false;
             AntSwarmView antsView = GetOrAdd<AntSwarmView>(FindOrCreateChild(root.transform, AntsName, ref antsCreated).gameObject);
@@ -65,6 +68,10 @@ namespace Fabula.Incrementant.EditorTools.Setup
             bool broodCreated = false;
             BroodView broodView = GetOrAdd<BroodView>(FindOrCreateChild(root.transform, BroodName, ref broodCreated).gameObject);
             AssignBroodFrames(broodView);
+
+            bool cultivationCreated = false;
+            CultivationView cultivationView =
+                GetOrAdd<CultivationView>(FindOrCreateChild(root.transform, CultivationName, ref cultivationCreated).gameObject);
 
             bool sceneryCreated = false;
             SurfaceSceneryView scenery = GetOrAdd<SurfaceSceneryView>(FindOrCreateChild(root.transform, SceneryName, ref sceneryCreated).gameObject);
@@ -80,6 +87,7 @@ namespace Fabula.Incrementant.EditorTools.Setup
             serialized.FindProperty("_view").objectReferenceValue = view;
             serialized.FindProperty("_antsView").objectReferenceValue = antsView;
             serialized.FindProperty("_broodView").objectReferenceValue = broodView;
+            serialized.FindProperty("_cultivationView").objectReferenceValue = cultivationView;
             serialized.FindProperty("_scenery").objectReferenceValue = scenery;
             serialized.FindProperty("_nestMarker").objectReferenceValue = nest;
             serialized.FindProperty("_dumpStartMarker").objectReferenceValue = dumpStart;
@@ -117,6 +125,33 @@ namespace Fabula.Incrementant.EditorTools.Setup
             Debug.Log($"[AntFarmSceneSetup] Cena pronta em {ScenePath}.");
         }
 
+        const string TileMaterialPath = "Assets/Project/Materials/TerrainTiles.mat";
+        const string TileShaderName = "Incrementant/TerrainTiles";
+
+        /// <summary>Material do shader de tiles 16x16 do terreno: cria se faltar e só atribui se o campo estiver vazio.</summary>
+        static void AssignTileMaterial(AntFarmView view)
+        {
+            var material = AssetDatabase.LoadAssetAtPath<Material>(TileMaterialPath);
+            if (material == null)
+            {
+                Shader shader = Shader.Find(TileShaderName);
+                if (shader == null)
+                {
+                    Debug.LogError($"[AntFarmSceneSetup] Shader {TileShaderName} não encontrado (Assets/Project/Materials/TerrainTiles.shader); o terreno fica com 1 texel por célula.", view);
+                    return;
+                }
+                material = new Material(shader) { name = "TerrainTiles" };
+                AssetDatabase.CreateAsset(material, TileMaterialPath);
+            }
+            var serialized = new SerializedObject(view);
+            SerializedProperty property = serialized.FindProperty("_tileMaterial");
+            if (property.objectReferenceValue == null)
+            {
+                property.objectReferenceValue = material;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+
         static void EnsureInBuildSettings()
         {
             var scenes = EditorBuildSettings.scenes.ToList();
@@ -137,8 +172,84 @@ namespace Fabula.Incrementant.EditorTools.Setup
             var serialized = new SerializedObject(antsView);
             SetSprites(serialized.FindProperty("_walkFrames"), AntSpriteGenerator.Generate(overwrite: false));
             SetSprites(serialized.FindProperty("_topFrames"), AntSpriteGenerator.GenerateTop(overwrite: false));
+            AssignRoleArt(serialized.FindProperty("_roleArt"));
+            AssignTermiteArt(serialized);
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
+
+        /// <summary>Pasta dos cupins (a arte "formiga inimiga alada" do REQ-027).</summary>
+        const string TermiteFolder = "InimigaAlada";
+
+        /// <summary>Quadros dos cupins: voo, pouso (asas caindo), caminhada de lado e vista de cima.</summary>
+        static void AssignTermiteArt(SerializedObject antsView)
+        {
+            string folder = $"{AntSpriteImporter.AntsFolder}{TermiteFolder}/";
+            SetSprites(antsView.FindProperty("_termiteFly"), LoadFrames(folder, "Ant_Fly_"));
+            SetSprites(antsView.FindProperty("_termiteLand"), LoadFrames(folder, "Ant_Land_"));
+            SetSprites(antsView.FindProperty("_termiteWalk"), LoadFrames(folder, "Ant_Walk_"));
+            SetSprites(antsView.FindProperty("_termiteTop"), LoadFrames(folder, AntSpriteImporter.TopViewPrefix));
+        }
+
+        /// <summary>Papel → pasta de arte em Art/Ants (a rainha fica de fora: usa os quadros da raiz).</summary>
+        static readonly (AntRole role, string folder)[] RoleArtFolders =
+        {
+            (AntRole.Worker, "Operaria"),
+            (AntRole.Gardener, "Jardineira"),
+            (AntRole.Carrier, "Coletora"),
+            (AntRole.Cutter, "Cortadeira"),
+            (AntRole.Digger, "Escavadora"),
+            (AntRole.Nurse, "Cuidadora"),
+            (AntRole.Soldier, "Soldado"),
+        };
+
+        /// <summary>Atualiza só a arte por papel do AntSwarmView na cena já pronta, sem refazer o resto (HUD, mapa, cenário).</summary>
+        [MenuItem("Incrementant/Arte/Ligar arte das formigas por papel e dos cupins")]
+        static void AssignRoleArtToScene()
+        {
+            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                return;
+            Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            AntSwarmView antsView = Object.FindFirstObjectByType<AntSwarmView>();
+            if (antsView == null)
+            {
+                Debug.LogError("[AntFarmSceneSetup] AntSwarmView não encontrado: rode Incrementant/Setup/Criar cena AntFarm.");
+                return;
+            }
+            var serialized = new SerializedObject(antsView);
+            AssignRoleArt(serialized.FindProperty("_roleArt"));
+            AssignTermiteArt(serialized);
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            Debug.Log("[AntFarmSceneSetup] Arte por papel e dos cupins ligada em AntSwarmView.");
+        }
+
+        /// <summary>Primeiro quadro de caminhada do papel (usado como ícone no HUD). Null se a pasta não tiver arte.</summary>
+        public static Sprite RoleIcon(AntRole role)
+        {
+            foreach ((AntRole r, string folder) in RoleArtFolders)
+                if (r == role)
+                    return AssetDatabase.LoadAssetAtPath<Sprite>($"{AntSpriteImporter.AntsFolder}{folder}/Ant_Walk_0.png");
+            return null;
+        }
+
+        static void AssignRoleArt(SerializedProperty list)
+        {
+            list.arraySize = RoleArtFolders.Length;
+            for (int i = 0; i < RoleArtFolders.Length; i++)
+            {
+                SerializedProperty entry = list.GetArrayElementAtIndex(i);
+                entry.FindPropertyRelative("Role").enumValueIndex = (int)RoleArtFolders[i].role; // valores 0..6 contíguos
+                string folder = $"{AntSpriteImporter.AntsFolder}{RoleArtFolders[i].folder}/";
+                SetSprites(entry.FindPropertyRelative("Walk"), LoadFrames(folder, "Ant_Walk_"));
+                SetSprites(entry.FindPropertyRelative("Top"), LoadFrames(folder, AntSpriteImporter.TopViewPrefix));
+            }
+        }
+
+        static Sprite[] LoadFrames(string folder, string prefix) => Enumerable.Range(0, AntSpriteGenerator.FrameCount)
+            .Select(i => AssetDatabase.LoadAssetAtPath<Sprite>($"{folder}{prefix}{i}.png"))
+            .Where(sprite => sprite != null)
+            .ToArray();
 
         /// <summary>Liga os quadros de ovo, larva e pupa (PNGs em Art/Ants, desenhados à mão: nunca são gerados nem sobrescritos).</summary>
         static void AssignBroodFrames(BroodView broodView)

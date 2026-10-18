@@ -99,9 +99,9 @@ namespace Fabula.Incrementant.Colony
             new QueenNodeDef(QueenNode.N1, QueenBranch.Nurse, "Alimentação em lote", "4 crias por viagem → 8 crias por viagem", 240, true, false, QueenNode.N0),
             new QueenNodeDef(QueenNode.N2, QueenBranch.Nurse, "Resgate de crias", "Sem evacuação → transporta 2 crias por viagem, com prioridade de emergência", 320, false, false, QueenNode.N1),
 
-            new QueenNodeDef(QueenNode.S0, QueenBranch.Soldier, "Soldado", "Libera a classe: dano 3/s, vida 18", 220, false),
-            new QueenNodeDef(QueenNode.S1, QueenBranch.Soldier, "Mandíbulas fortes", "Dano 3/s → 4,5/s (+50%)", 220, false, false, QueenNode.S0),
-            new QueenNodeDef(QueenNode.S2, QueenBranch.Soldier, "Carapaça resistente", "Vida 18 → 27 (+50%)", 220, false, false, QueenNode.S0),
+            new QueenNodeDef(QueenNode.S0, QueenBranch.Soldier, "Soldado", "Libera a classe: dano 3/s, vida 18 (depois do primeiro ataque de cupins)", 220, true),
+            new QueenNodeDef(QueenNode.S1, QueenBranch.Soldier, "Mandíbulas fortes", "Dano 3/s → 4,5/s (+50%)", 220, true, false, QueenNode.S0),
+            new QueenNodeDef(QueenNode.S2, QueenBranch.Soldier, "Carapaça resistente", "Vida 18 → 27 (+50%)", 220, true, false, QueenNode.S0),
             new QueenNodeDef(QueenNode.S3, QueenBranch.Soldier, "Contenção", "Combate sem empurrão → empurra a invasora 4 células a cada 3 s", 500, false, false, QueenNode.S1, QueenNode.S2),
         };
 
@@ -149,6 +149,12 @@ namespace Fabula.Incrementant.Colony
 
         public bool Owns(QueenNode node) => (_mask & Bit(node)) != 0;
 
+        /// <summary>
+        /// O ramo do soldado só abre depois que a colônia sobreviveu ao primeiro ataque de cupins (a colônia liga isto; vai
+        /// para o save junto com o estado dos ataques).
+        /// </summary>
+        public bool SoldiersAvailable { get; set; }
+
         /// <summary>Substitui o que foi comprado (os nós iniciais sempre contam; bits fora da tabela são descartados).</summary>
         public void Restore(ulong mask)
         {
@@ -179,6 +185,8 @@ namespace Fabula.Incrementant.Colony
                 return BuyBlock.Owned;
             if (!d.Implemented)
                 return BuyBlock.NotAvailableYet;
+            if (d.Branch == QueenBranch.Soldier && !SoldiersAvailable)
+                return BuyBlock.NeedsFirstRaid;
             foreach (QueenNode req in d.Requires)
             {
                 if (!Owns(req))
@@ -208,6 +216,7 @@ namespace Fabula.Incrementant.Colony
                 case AntRole.Digger: return Owns(QueenNode.E0);
                 case AntRole.Gardener: return Owns(QueenNode.J0);
                 case AntRole.Nurse: return Owns(QueenNode.N0);
+                case AntRole.Soldier: return Owns(QueenNode.S0);
                 default: return true;
             }
         }
@@ -222,6 +231,7 @@ namespace Fabula.Incrementant.Colony
                 case AntRole.Digger: return QueenNode.E0;
                 case AntRole.Gardener: return QueenNode.J0;
                 case AntRole.Nurse: return QueenNode.N0;
+                case AntRole.Soldier: return QueenNode.S0;
                 default: return null;
             }
         }
@@ -289,6 +299,14 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Só a escavadora com E2 quebra rocha (a taxa não depende da velocidade de escavar).</summary>
         public bool CanBreakRock(AntRole role) => role == AntRole.Digger && Owns(QueenNode.E2);
 
+        /// <summary>Vida máxima do papel (tabela 15 do design); o soldado com S2 passa de 18 para 27.</summary>
+        public float MaxHealth(AntRole role) =>
+            role == AntRole.Soldier && Owns(QueenNode.S2) ? 27f : AntRoles.BaseHealth(role);
+
+        /// <summary>Dano por segundo do papel; o soldado com S1 passa de 3 para 4,5.</summary>
+        public float Damage(AntRole role) =>
+            role == AntRole.Soldier && Owns(QueenNode.S1) ? 4.5f : AntRoles.BaseDamage(role);
+
         /// <summary>Multiplicador do tempo de escavar e de pegar material: a escavadora passa de 32 para 48 células/s com E1 (E0 já vale em <see cref="AntRoles.DigTimeFactor"/>).</summary>
         public float DigTimeFactor(AntRole role) =>
             role == AntRole.Digger && Owns(QueenNode.E1) ? 2f / 3f : 1f;
@@ -303,5 +321,7 @@ namespace Fabula.Incrementant.Colony
         /// <summary>O sistema que o nó muda ainda não existe no jogo.</summary>
         NotAvailableYet,
         InsufficientNutrients,
+        /// <summary>O ramo do soldado espera o primeiro ataque de cupins.</summary>
+        NeedsFirstRaid,
     }
 }

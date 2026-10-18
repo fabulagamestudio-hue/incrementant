@@ -260,6 +260,16 @@ namespace Fabula.Incrementant.Colony
 
         public void PickUpEgg(int id) => SetPhase(IndexOf(id), EggPhase.Carried);
 
+        /// <summary>A cria foi destruída (cupins): sai da lista e libera a vaga do berçário e a adulta reservada. O alimento não volta.</summary>
+        public bool Remove(int id)
+        {
+            int i = IndexOf(id);
+            if (i < 0)
+                return false;
+            _brood.RemoveAt(i);
+            return true;
+        }
+
         /// <summary>O ovo chegou ao ponto <paramref name="slot"/> do berçário e passa a se desenvolver.</summary>
         public void PlaceEgg(int id, int slot)
         {

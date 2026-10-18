@@ -32,6 +32,8 @@ namespace Fabula.Incrementant.AntFarm
         [Tooltip("Formigas em sprite (arte em resolução maior que o terreno). Vazio = formigas de 3 pixels na textura.")]
         [SerializeField] AntSwarmView _antsView;
         [SerializeField] BroodView _broodView;
+        [Tooltip("Animação dos canteiros da sala de nutrientes. Vazio: é criado como filho deste objeto ao iniciar.")]
+        [SerializeField] CultivationView _cultivationView;
         [Tooltip("Cenário da superfície na escala das formigas. Vazio = só o céu em gradiente da textura do terreno.")]
         [SerializeField] SurfaceSceneryView _scenery;
         [Tooltip("Procedural: mapa novo gerado no Play. Image: usa a imagem e os marcadores abaixo.")]
@@ -50,6 +52,11 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField] bool _randomizeSeed = true;
         [Header("Simulação")]
         [SerializeField] ColonySettings _colonySettings = new ColonySettings();
+        [Tooltip("Formigas morrem de velhice e afogadas. Desligado (padrão desde 2026-10-18, pedido do desenvolvedor), a idade e o tempo debaixo d'água ficam parados. No Play, troque com F3 ou pelo HUD de depuração (F2).")]
+        [SerializeField] bool _antDeath;
+        [Tooltip("Ataques de cupins (a partir de Min Ants formigas, a cada 1 a 5 minutos). Desligado, nunca vêm.")]
+        [SerializeField] bool _termiteRaids = true;
+        [SerializeField] RaidSettings _raidSettings = new RaidSettings();
         [SerializeField, Min(1f)] float _ticksPerSecond = 60f;
         [Tooltip("Limite de passos por frame, para um frame lento não virar uma espiral de atraso.")]
         [SerializeField, Min(1)] int _maxTicksPerFrame = 12;
@@ -76,9 +83,9 @@ namespace Fabula.Incrementant.AntFarm
         /// a rainha pode ficar ou a sala onde os nutrientes são guardados. Plantas não se marcam: as jardineiras escolhem
         /// sozinhas o que colher. A ordem casa com <see cref="BrushTint"/>.
         /// </summary>
-        enum BrushMode { Dig, Build, QueenRoom, NutrientRoom, NurseryRoom }
+        enum BrushMode { Dig, Build, QueenRoom, NutrientRoom, NurseryRoom, WasteRoom }
 
-        static readonly string[] BrushLabels = { "Cavar", "Construir", "Sala da rainha", "Sala de nutrientes", "Berçário" };
+        static readonly string[] BrushLabels = { "Cavar", "Construir", "Sala da rainha", "Sala de nutrientes", "Berçário", "Resíduos" };
         static readonly string[] WeatherLabels = { "Seco", "Chuva leve", "Chuva forte" };
 
         PixelGrid _grid;
@@ -140,10 +147,26 @@ namespace Fabula.Incrementant.AntFarm
         /// <summary>Pausa a simulação (o cronômetro, a câmera e o input seguem em tempo real).</summary>
         public void SetPaused(bool paused) => _paused = paused;
 
+        /// <summary>
+        /// Com um menu em tela cheia aberto (ESC), atalhos de teclado, câmera e pincel ficam travados. Quem abre o menu
+        /// liga e quem fecha desliga.
+        /// </summary>
+        public bool InputLocked { get; set; }
+
         public static int BrushCount => BrushLabels.Length;
         public static string BrushLabel(int index) => BrushLabels[index];
         public int BrushIndex => (int)_brushMode;
-        public void SetBrush(int index) => _brushMode = (BrushMode)Mathf.Clamp(index, 0, BrushLabels.Length - 1);
+
+        /// <summary>O pincel pode ser usado agora: a área de resíduos só depois do primeiro ataque de cupins.</summary>
+        public bool IsBrushUnlocked(int index) =>
+            (BrushMode)index != BrushMode.WasteRoom || _colony != null && _colony.WasteUnlocked;
+
+        public void SetBrush(int index)
+        {
+            index = Mathf.Clamp(index, 0, BrushLabels.Length - 1);
+            if (IsBrushUnlocked(index))
+                _brushMode = (BrushMode)index;
+        }
 
         /// <summary>Último aviso de salvar/carregar enquanto ainda vale (5 s); vazio depois.</summary>
         public string SaveStatus => !string.IsNullOrEmpty(_saveStatus) && Time.unscaledTime < _saveStatusUntil ? _saveStatus : string.Empty;
@@ -163,6 +186,13 @@ namespace Fabula.Incrementant.AntFarm
             {
                 enabled = false;
                 return;
+            }
+            if (_cultivationView == null)
+            {
+                // Cenas montadas antes dos canteiros não têm o componente: os sprites são gerados por código, então basta criá-lo.
+                var cultivation = new GameObject("Cultivation");
+                cultivation.transform.SetParent(transform, false);
+                _cultivationView = cultivation.AddComponent<CultivationView>();
             }
             Regenerate();
         }
@@ -234,9 +264,15 @@ namespace Fabula.Incrementant.AntFarm
                 _vegetation.MarkPopulated(_grid.Active);
                 snapshot.ApplyTo(_vegetation);
             }
-            _colony = new AntColony(_grid, _colonySettings, _layout, _seed);
+            _colony = new AntColony(_grid, _colonySettings, _layout, _seed)
+            {
+                DeathEnabled = _antDeath, RaidSettings = _raidSettings, RaidsEnabled = _termiteRaids,
+            };
             _colony.AttachVegetation(_vegetation);
             snapshot?.ApplyTo(_colony);
+            // Mapa novo ou save sem área de resíduos liberada: o pincel volta a um que existe.
+            if (!IsBrushUnlocked((int)_brushMode))
+                _brushMode = BrushMode.Dig;
             _matchTimer.Set(snapshot?.MatchSeconds ?? 0.0);
             _accumulator = 0f;
 
@@ -246,7 +282,9 @@ namespace Fabula.Incrementant.AntFarm
             // A vista inicial enquadra só o solo e o céu de sempre; as linhas de céu extras (SkyHeadroom) ficam para cima.
             int skyHeadroom = _generator != null ? _terrainSettings.SkyHeadroom : 0;
             var startView = new Rect(origin.x + _startArea.x, origin.y + _startArea.y, _startArea.width, _startArea.height - skyHeadroom);
-            _cameraControl.Reset(_camera, bounds, startView, _cameraMargin);
+            // Começa perto, no ninho (zoom inicial por célula em MapCamera); o zoom abre até a área inicial inteira.
+            var focus = new Vector2(origin.x + _layout.Nest.x + 0.5f, origin.y + _layout.Nest.y + 0.5f);
+            _cameraControl.Reset(_camera, bounds, startView, _cameraMargin, focus);
 
             _view.Initialize(_grid, transparentSky: _scenery != null, skyBaseY: _startArea.yMin, plantsAsSprites: _scenery != null);
             if (_scenery != null)
@@ -377,9 +415,13 @@ namespace Fabula.Incrementant.AntFarm
         void Update()
         {
             _matchTimer.Advance(Time.unscaledDeltaTime);
-            _cameraControl.Update(_camera, Time.unscaledDeltaTime, PointerOverHud());
+            if (!InputLocked)
+                _cameraControl.Update(_camera, Time.unscaledDeltaTime, PointerOverHud());
             EnsureGenerated();
-            HandleInput();
+            if (InputLocked)
+                _pointerOverWorld = false;
+            else
+                HandleInput();
 
             float tickDuration = 1f / _ticksPerSecond;
             if (!_paused)
@@ -432,11 +474,14 @@ namespace Fabula.Incrementant.AntFarm
                 _antsView.SetBrood(_colony.Brood, _broodView);
                 _antsView.Render(_grid, _colony.Ants, _view.transform.position, _colony.SimulationTime + _accumulator, Time.deltaTime,
                                  _colony.Queen, _colony.Brood.LayProgress, _colony.Breeding == BreedingState.Available);
+                _antsView.RenderTermites(_grid, _colony.Termites, _view.transform.position, _colony.SimulationTime + _accumulator,
+                                         Time.deltaTime);
             }
             profiler.Add(ProfileStage.RenderAnts, renderStart);
             renderStart = SimProfiler.Now();
             if (_broodView != null && _broodView.HasFrames)
                 _broodView.Render(_colony.Brood.Brood, _colony.NurserySpots, _view.transform.position);
+            _cultivationView.Render(_grid, _colony.NutrientCureSeconds, _view.transform.position, Time.time);
             profiler.Add(ProfileStage.RenderBrood, renderStart);
             renderStart = SimProfiler.Now();
             if (_scenery != null)
@@ -538,6 +583,26 @@ namespace Fabula.Incrementant.AntFarm
             Debug.Log($"[AntFarmGame] Cheat F1: +{CheatWorkers} operárias e +{CheatCutters} cortadeiras (total {_colony.Ants.Count}).");
         }
 
+        /// <summary>
+        /// Cheat de teste (F4): começa um ataque de cupins agora (com o alerta), mesmo antes do mínimo de formigas. Só em Editor
+        /// e builds de desenvolvimento.
+        /// </summary>
+        void ForceTermiteRaid()
+        {
+            if (_colony == null || !Debug.isDebugBuild)
+                return;
+            _colony.ForceRaid();
+            Debug.Log($"[AntFarmGame] Cheat F4: ataque de cupins em {_raidSettings.WarningSeconds:0} s.");
+        }
+
+        /// <summary>Liga ou desliga a morte das formigas (velhice e afogamento); vale também para os próximos mapas.</summary>
+        public void SetAntDeath(bool enabled)
+        {
+            _antDeath = enabled;
+            if (_colony != null)
+                _colony.DeathEnabled = enabled;
+        }
+
         void HandleInput()
         {
             Keyboard keyboard = Keyboard.current;
@@ -549,6 +614,8 @@ namespace Fabula.Incrementant.AntFarm
                 if (keyboard.pKey.wasPressedThisFrame) SetPaused(!_paused);
                 if (keyboard.f1Key.wasPressedThisFrame) SpawnCheatAnts();
                 if (keyboard.f2Key.wasPressedThisFrame) _showDebugHud = !_showDebugHud;
+                if (keyboard.f3Key.wasPressedThisFrame) SetAntDeath(!_antDeath);
+                if (keyboard.f4Key.wasPressedThisFrame) ForceTermiteRaid();
                 if (keyboard.f11Key.wasPressedThisFrame)
                 {
                     // F11: estatísticas; Ctrl+F11: linhas dos blocos 16x16 do mapa.
@@ -558,7 +625,10 @@ namespace Fabula.Incrementant.AntFarm
                         _showStats = !_showStats;
                 }
                 if (keyboard.bKey.wasPressedThisFrame)
-                    _brushMode = (BrushMode)(((int)_brushMode + 1) % BrushLabels.Length);
+                {
+                    int next = ((int)_brushMode + 1) % BrushLabels.Length;
+                    _brushMode = (BrushMode)(IsBrushUnlocked(next) ? next : 0);
+                }
                 if (keyboard.cKey.wasPressedThisFrame)
                     SetWeather((Weather)(((int)_weather + 1) % WeatherLabels.Length));
                 if (keyboard.rKey.wasPressedThisFrame)
@@ -637,6 +707,9 @@ namespace Fabula.Incrementant.AntFarm
                     case BrushMode.NurseryRoom:
                         _grid.SetNurseryRoom(x, y, marked);
                         break;
+                    case BrushMode.WasteRoom:
+                        _grid.SetWasteRoom(x, y, marked);
+                        break;
                     default:
                         // Cavar não marca plantas: quem as colhe é a jardineira, por conta própria.
                         if (!CellMaterials.IsAnyPlant(_grid.Get(x, y)))
@@ -662,13 +735,17 @@ namespace Fabula.Incrementant.AntFarm
             GUILayout.BeginArea(_hudRect, GUI.skin.box);
             GUILayout.Label("<b>Formigário — protótipo</b>", RichLabel());
             GUILayout.Label($"Tempo de partida: {MatchTimer.Format(_matchTimer.Seconds)}");
-            GUILayout.Label($"Formigas: {_colony.Ants.Count}   (afogadas: {_colony.DrownedAnts})");
+            GUILayout.Label($"Formigas: {_colony.Ants.Count}   (afogadas: {_colony.DrownedAnts} · velhice: {_colony.AgedAnts})");
+            bool antDeath = GUILayout.Toggle(_antDeath, " Morte das formigas  [F3]");
+            if (antDeath != _antDeath)
+                SetAntDeath(antDeath);
             GUILayout.Label($"<b>Nutrientes: {_colony.Nutrients}</b>   (consumidos pela rainha: {_colony.TotalNutrients})", RichLabel());
             GUILayout.Label($"Sala de nutrientes: {NutrientRoomStatus()}");
             GUILayout.Label($"Plantas: {_vegetation.PlantCount} · colhidos: {_colony.HarvestedPixels} px · cresceram: {_vegetation.GrownCells} px");
             GUILayout.Label($"Terra retirada: {_colony.TotalDelivered}");
             GUILayout.Label($"Pixels marcados: {_grid.MarkedCount} para cavar · {_grid.BuildMarkedCount} para construir");
             GUILayout.Label($"Rainha: {QueenStatus()}");
+            GUILayout.Label($"Cupins  [F4]: {RaidStatus()}");
             GUILayout.Label($"Criação: {_colony.Breeding} · ovos {_colony.Brood.Eggs} larvas {_colony.Brood.Larvae} pupas {_colony.Brood.Pupae} · vagas {_colony.AdultCapacity} (berçário {_colony.NurserySlots})");
             GUILayout.Label($"Tempo  [C]   dissolvidos: {_rain.DissolvedCells} · compactados: {_rain.PackedCells}");
             GUILayout.Label($"Água: {_grid.WaterCount} px · terra amolecida: {_water.ErodedCells}");
@@ -684,7 +761,7 @@ namespace Fabula.Incrementant.AntFarm
             if (!string.IsNullOrEmpty(_saveStatus) && Time.unscaledTime < _saveStatusUntil)
                 GUILayout.Label(_saveStatus);
             GUILayout.Label("Pincel  [B]");
-            _brushMode = (BrushMode)GUILayout.SelectionGrid((int)_brushMode, BrushLabels, 3);
+            SetBrush(GUILayout.SelectionGrid((int)_brushMode, BrushLabels, 3));
             GUILayout.Label($"Velocidade: x{SpeedSteps[_speedIndex]}  [1/2/3]   Pincel: {_brushRadius}  [scroll]");
             GUILayout.Label(_mapSource == MapSource.Image ?"Esq.: marcar · Dir.: desmarcar · R: reiniciar mapa" : "Esq.: marcar · Dir.: desmarcar · R: novo mapa");
             GUILayout.Label("WASD / botão do meio: mover · Q/E ou Ctrl+scroll: zoom");
@@ -733,10 +810,30 @@ namespace Fabula.Incrementant.AntFarm
         {
             if (_grid.NutrientRoomCount == 0 && _grid.NutrientCount == 0)
                 return "nenhuma (pinte uma com o pincel Sala de nutrientes)";
-            string full = _colony.FreeNutrientSlots == 0 ? " — cheia: a colheita para" : "";
-            int curing = _grid.NutrientCount - _grid.ReadyNutrientCount;
-            string curingText = curing > 0 ? $" ({curing} curando)" : "";
-            return $"{_grid.NutrientCount} guardados{curingText} · {_colony.FreeNutrientSlots} slots livres{full}";
+            if (_grid.BedCount == 0)
+                return _colony.BedSpots > 0
+                    ? $"{_grid.NutrientCount} prontos · sem canteiro (as formigas trazem terra fofa ao cavar)"
+                    : $"{_grid.NutrientCount} prontos · sem lugar para canteiro (cave a sala: chão firme e 2 de altura)";
+            string paused = _colony.HarvestPaused ? " — colheita pausada" : "";
+            return $"{_grid.BedCount} canteiros: {_colony.BedsAwaitingPlant} sem planta, {_colony.BedsAwaitingWater} sem água, " +
+                   $"{_grid.GrowingBedCount} brotando · {_grid.NutrientCount} prontos{paused}";
+        }
+
+        string RaidStatus()
+        {
+            switch (_colony.RaidState)
+            {
+                case RaidState.Warning:
+                    return $"ataque em {Mathf.CeilToInt(_colony.SecondsToNextRaid)} s";
+                case RaidState.Active:
+                    return $"{_colony.LiveTermites} vivos ({_colony.RaidObjective}) · mortos {_colony.TermitesKilled} · formigas mortas {_colony.AntsKilledInCombat}";
+                default:
+                    if (!_termiteRaids)
+                        return "desligados";
+                    return _colony.RaidsUnlocked
+                        ? $"próximo em {Mathf.CeilToInt(_colony.SecondsToNextRaid)} s · {_colony.RaidsSurvived} repelidos · até {_colony.TermiteCap:P0} das formigas"
+                        : $"começam com {_raidSettings.MinAnts} formigas";
+            }
         }
 
         string QueenStatus()

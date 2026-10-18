@@ -14,7 +14,7 @@ namespace Fabula.Incrementant.Colony
         [SerializeField, Min(0.01f)] float _digTimeMultiplier = 1f;
         [Tooltip("Pausa ao soltar o pixel no despejo.")]
         [SerializeField, Min(0f)] float _dropSeconds = 0.1f;
-        [Tooltip("Segundos (de jogo) que o pixel de planta guardado na sala de nutrientes leva para virar nutriente que pode ser levado à rainha. A formiga não espera: larga e volta ao trabalho.")]
+        [Tooltip("Segundos (de jogo) que um canteiro da sala de nutrientes (terra fofa + planta + água) leva para brotar e pôr um nutriente pronto em cada lado livre. Só corre com formiga cuidando da sala; a formiga que rega não espera.")]
         [SerializeField, Min(0f)] float _nutrientCureSeconds = 30f;
         [Tooltip("Intervalo mínimo entre recálculos dos campos de navegação.")]
         [SerializeField, Min(0f)] float _fieldRebuildInterval = 0.1f;
@@ -32,10 +32,15 @@ namespace Fabula.Incrementant.Colony
         [SerializeField, Min(0.05f)] float _rockBreakSeconds = 1f;
         [Tooltip("Segundos que a comum leva para pegar ou largar uma cria no berçário; a cuidadora é 4/3 mais rápida.")]
         [SerializeField, Min(0.05f)] float _carePauseSeconds = 1f;
-        [Tooltip("Blocos (crias, pixels que curam) por formiga que a região chama: quanto mais blocos, mais formigas vão trabalhar nela.")]
+        [Tooltip("Blocos (crias, canteiros que brotam) por formiga que a região chama: quanto mais blocos, mais formigas vão trabalhar nela.")]
         [SerializeField, Min(1)] int _blocksPerTender = 2;
         [Tooltip("Parte das comuns que pode estar cuidando de regiões ao mesmo tempo (o resto continua cavando, construindo e cortando).")]
         [SerializeField, Range(0f, 1f)] float _commonTenderShare = 0.5f;
+        [Header("Vida das formigas")]
+        [Tooltip("Tempo de vida médio de uma formiga adulta, em segundos de jogo. 0 = as formigas não envelhecem.")]
+        [SerializeField, Min(0f)] float _antLifespanSeconds = 600f;
+        [Tooltip("Variação sorteada por formiga em torno do tempo de vida (0,2 = de 80% a 120%), para a colônia não morrer toda de uma vez.")]
+        [SerializeField, Range(0f, 0.9f)] float _antLifespanVariation = 0.2f;
         [Header("Criação (seções 11, 12 e 19 do design)")]
         [Tooltip("Segundos entre uma postura e a seguinte.")]
         [SerializeField, Min(0.1f)] float _layIntervalSeconds = 18f;
@@ -63,6 +68,8 @@ namespace Fabula.Incrementant.Colony
         public float QueenRestSeconds => _queenRestSeconds;
         public int MaxDumpOpenings => _maxDumpOpenings;
         public float DrownSeconds => _drownSeconds;
+        public float AntLifespanSeconds => _antLifespanSeconds;
+        public float AntLifespanVariation => _antLifespanVariation;
         public float RockBreakSeconds => _rockBreakSeconds;
         public float CarePauseSeconds => _carePauseSeconds;
         public int BlocksPerTender => _blocksPerTender;

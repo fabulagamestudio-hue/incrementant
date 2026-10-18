@@ -26,6 +26,13 @@ namespace Fabula.Incrementant.World
         FallenGrass = 12,
         /// <summary>Pixel de muda folhosa solto da planta (ver <see cref="FallenGrass"/>).</summary>
         FallenLeaf = 13,
+        /// <summary>
+        /// Entulho: parede que os cupins arrancaram (ou canteiro que destruíram). Granular e já nasce marcado para as formigas
+        /// levarem embora, de preferência para a área de resíduos.
+        /// </summary>
+        Rubble = 14,
+        /// <summary>Resíduo depositado na área de resíduos (restos de cupim, entulho). Fixo; some sozinho ao se decompor.</summary>
+        Refuse = 15,
     }
 
     /// <summary>Regras e cores por material. Tabela fixa enquanto o protótipo não pede dados configuráveis.</summary>
@@ -36,7 +43,7 @@ namespace Fabula.Incrementant.World
         /// <summary>Materiais que caem e escorregam em diagonal (formam pilhas).</summary>
         public static bool IsGranular(CellMaterial material) =>
             material == CellMaterial.Sand || material == CellMaterial.Spoil || material == CellMaterial.Mud ||
-            IsPlantDebris(material);
+            material == CellMaterial.Rubble || IsPlantDebris(material);
 
         /// <summary>Terra fixa que a água amolece (vira <see cref="CellMaterial.Mud"/>) dentro do formigueiro.</summary>
         public static bool IsErodible(CellMaterial material) =>
@@ -89,7 +96,7 @@ namespace Fabula.Incrementant.World
             material == CellMaterial.Dirt || material == CellMaterial.Grass ||
             material == CellMaterial.Sand || material == CellMaterial.Spoil ||
             material == CellMaterial.PackedSpoil || material == CellMaterial.PackedSand ||
-            material == CellMaterial.Mud;
+            material == CellMaterial.Mud || material == CellMaterial.Rubble;
 
         /// <summary>Segundos que uma formiga leva para soltar (ou colher) um pixel deste material.</summary>
         public static float DigSeconds(CellMaterial material)
@@ -103,6 +110,7 @@ namespace Fabula.Incrementant.World
                 case CellMaterial.PackedSpoil: return 0.3f;
                 case CellMaterial.PackedSand: return 0.2f;
                 case CellMaterial.Mud: return 0.1f;
+                case CellMaterial.Rubble: return 0.1f;
                 case CellMaterial.PlantGrass: return 0.15f;
                 case CellMaterial.PlantLeaf: return 0.2f;
                 case CellMaterial.FallenGrass: return 0.15f;
@@ -110,6 +118,9 @@ namespace Fabula.Incrementant.World
                 default: return float.PositiveInfinity;
             }
         }
+
+        /// <summary>Vai para a área de resíduos quando há uma: entulho dos cupins e restos de cupim (<see cref="CellMaterial.Refuse"/> na mão).</summary>
+        public static bool IsWaste(CellMaterial material) => material == CellMaterial.Rubble || material == CellMaterial.Refuse;
 
         /// <summary>No que um pixel carregado vira ao ser despejado fora do formigueiro (o que foi compactado volta a soltar).</summary>
         public static CellMaterial ToDumped(CellMaterial carried) =>
@@ -132,6 +143,8 @@ namespace Fabula.Incrementant.World
                 case CellMaterial.PlantLeaf: return new Color32(62, 132, 70, 255);
                 case CellMaterial.FallenGrass: return new Color32(110, 168, 64, 255);
                 case CellMaterial.FallenLeaf: return new Color32(62, 132, 70, 255);
+                case CellMaterial.Rubble: return new Color32(132, 96, 66, 255);
+                case CellMaterial.Refuse: return new Color32(92, 80, 70, 255);
                 default: return new Color32(0, 0, 0, 0);
             }
         }

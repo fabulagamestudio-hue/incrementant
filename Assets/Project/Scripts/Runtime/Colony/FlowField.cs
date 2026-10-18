@@ -6,7 +6,8 @@ namespace Fabula.Incrementant.Colony
 {
     /// <summary>
     /// Regras de onde uma formiga pode ficar. Abaixo do solo original, todo vazio é caminhável: é túnel e tem
-    /// o fundo do formigueiro (a parede de trás) como apoio. No céu, só células encostadas (8 vizinhos) em algo sólido.
+    /// o fundo do formigueiro (a parede de trás) como apoio. No céu, células encostadas (8 vizinhos) em algo sólido e,
+    /// em qualquer lugar, as cobertas pela arte do cenário de perto (<see cref="PixelGrid.IsBackdrop"/>) e as de obra.
     /// </summary>
     public static class AntNavigation
     {
@@ -19,15 +20,27 @@ namespace Fabula.Incrementant.Colony
                 return false;
             if (grid.IsSolid(x, y))
                 // Planta é como o túnel do formigueiro: a formiga entra nela e sobe por ela (pedido do desenvolvedor em
-                // 2026-10-17); o resto do sólido é parede.
-                return CellMaterials.IsPlant(grid.Get(x, y));
-            if (IsTunnelBackground(grid, x, y))
+                // 2026-10-17). Obra do lado de fora também (pedido de 2026-10-18); o resto do sólido é parede.
+                return CellMaterials.IsPlant(grid.Get(x, y)) || IsOutdoorBuilt(grid, x, y);
+            if (IsBackground(grid, x, y))
                 return true;
             return TouchesSolid(grid, x, y);
         }
 
         /// <summary>Vazio abaixo do solo original: a formiga se apoia na parede de trás do formigueiro.</summary>
         public static bool IsTunnelBackground(PixelGrid grid, int x, int y) => y <= grid.GetSurfaceY(x);
+
+        /// <summary>
+        /// Há um fundo para a formiga se apoiar: a parede de trás do formigueiro ou, no céu, a arte de um elemento do
+        /// cenário (cogumelo, graveto, folha seca, pedrinha; pedido do desenvolvedor em 2026-10-18). Antes ela só andava
+        /// pelo contorno do que é sólido.
+        /// </summary>
+        public static bool IsBackground(PixelGrid grid, int x, int y) =>
+            IsTunnelBackground(grid, x, y) || grid.IsBackdrop(x, y);
+
+        /// <summary>Obra (<see cref="PixelGrid.IsBuilt"/>) acima do solo original: a formiga anda por dentro dela.</summary>
+        public static bool IsOutdoorBuilt(PixelGrid grid, int x, int y) =>
+            y > grid.GetSurfaceY(x) && grid.IsBuilt(x, y);
 
         /// <summary>
         /// Algum dos 8 vizinhos é sólido. Acima do topo do mundo é céu aberto, não apoio: sem isso a última linha da

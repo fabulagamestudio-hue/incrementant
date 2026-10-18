@@ -5,9 +5,9 @@ using UnityEngine;
 namespace Fabula.Incrementant.Colony
 {
     /// <summary>
-    /// Cuidado de região (design 14/18/19/26): o berçário (crias) e a sala de nutrientes (pixels que curam, o cultivo) só
-    /// avançam com formigas trabalhando dentro deles, e trabalhar é mover os blocos de um ponto a outro. A formiga
-    /// escolhe blocos variados, e só o bloco com que ela interage recebe o ritmo da especialista (cuidadora 4/3,
+    /// Cuidado de região (design 14/18/19/26): o berçário (crias) e a sala de nutrientes (canteiros que brotam, o cultivo)
+    /// só avançam com formigas trabalhando dentro deles. No berçário, trabalhar é mover as crias de um ponto a outro; na
+    /// sala, é ir de canteiro em canteiro mexendo em cada um. A formiga escolhe blocos variados, e só o bloco com que ela interage recebe o ritmo da especialista (cuidadora 4/3,
     /// jardineira com J1 ×1,3); os demais avançam no ritmo normal enquanto houver cobertura. Quanto mais blocos a
     /// região tem, mais formigas ela chama (<see cref="Desired"/>), escolhendo a região mais carente.
     /// </summary>
@@ -16,7 +16,7 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Quem trabalha numa região neste passo (recontado a cada <see cref="Tick"/>).</summary>
         struct RegionLoad
         {
-            /// <summary>Blocos que pedem cuidado: crias no berçário, pixels que curam na sala de nutrientes.</summary>
+            /// <summary>Blocos que pedem cuidado: crias no berçário, canteiros que brotam na sala de nutrientes.</summary>
             public int Blocks;
             public int Specialists;
             public int Commons;
@@ -33,19 +33,16 @@ namespace Fabula.Incrementant.Colony
         readonly HashSet<int> _nurseryTargets = new HashSet<int>();
         readonly HashSet<int> _gardenTargets = new HashSet<int>();
 
-        // Sala de nutrientes: campo até os pixels que curam, slots livres e pixels que a jardineira tirou do slot.
-        readonly List<int> _freeSlotCells = new List<int>();
+        // Sala de nutrientes: campo até os canteiros que brotam (de onde se cuida deles).
         readonly List<int> _curingSources = new List<int>();
         readonly FlowField _curingField;
-        int _movingNutrients;
 
         void ResetCare()
         {
             _nursery = new RegionLoad { Blocks = _brood.CaredCount };
-            _garden = new RegionLoad { Blocks = _grid.CuringNutrientCount };
+            _garden = new RegionLoad { Blocks = _grid.GrowingBedCount };
             _workerCount = 0;
             _commonTenders = 0;
-            _movingNutrients = 0;
             _boosts.Clear();
             _nurseryTargets.Clear();
             _gardenTargets.Clear();
@@ -56,7 +53,7 @@ namespace Fabula.Incrementant.Colony
             if (ant.Role == AntRole.Worker)
                 _workerCount++;
             bool nursery = ant.State == AntState.Tending || ant.State == AntState.MovingBrood;
-            bool garden = ant.State == AntState.Gardening || ant.State == AntState.MovingNutrient;
+            bool garden = ant.State == AntState.Gardening;
             if (!nursery && !garden)
                 return;
 
@@ -80,13 +77,8 @@ namespace Fabula.Incrementant.Colony
                 if (ant.Interacting)
                     _boosts.Add(new BlockBoost { Id = ant.EggId, Rate = Tree.CareRate(ant.Role) });
             }
-            if (garden)
-            {
-                if (ant.EggId != 0)
-                    _gardenTargets.Add(ant.EggId);
-                if (ant.State == AntState.MovingNutrient)
-                    _movingNutrients++;
-            }
+            if (garden && ant.EggId != 0)
+                _gardenTargets.Add(ant.EggId);
         }
 
         // ---------------------------------------------------------------- prioridade das regiões
@@ -320,6 +312,15 @@ namespace Fabula.Incrementant.Colony
                 WalkToCell(ant, destination, _nurseryField, _grid.IsNurseryRoom(ant.X, ant.Y));
                 return;
             }
+            // O destino foi escolhido vazio, mas no caminho outra cria pode ter sido largada nele (um ovo recém-trazido,
+            // por exemplo): com um ponto menos cheio, vai para ele em vez de empilhar as duas.
+            int better = PickMoveDestination(cria.Slot);
+            if (better >= 0 && better != ant.DigX && _brood.PlacedAt(better) < _brood.PlacedAt(ant.DigX))
+            {
+                ant.DigX = better;
+                WalkToCell(ant, _nurserySpots[better], _nurseryField, _grid.IsNurseryRoom(ant.X, ant.Y));
+                return;
+            }
             _brood.EndMove(ant.EggId, ant.DigX);
             _nurseryDirty = true;
             ant.LastBlock = ant.EggId;
@@ -331,12 +332,12 @@ namespace Fabula.Incrementant.Colony
 
         // ---------------------------------------------------------------- sala de nutrientes (cultivo)
 
-        /// <summary>Pixels de cura que o papel cobre: blocos (B) do design vezes as células de um B no protótipo.</summary>
+        /// <summary>Canteiros que o papel cobre: blocos (B) do design vezes as células de um B no protótipo.</summary>
         int GardenCapacity(Ant ant) => Tree.GardenBlocks(ant.Role) * Mathf.Max(1, _settings.CellsPerAdultSlot);
 
         /// <summary>
-        /// Ritmo da cura de quem não está em interação: a parte dos pixels que cabe na cobertura de quem está na sala avança
-        /// no ritmo normal e o resto fica parado; sem ninguém na sala, nada cura.
+        /// Ritmo dos canteiros que brotam sem ninguém em interação: a parte que cabe na cobertura de quem está na sala
+        /// avança no ritmo normal e o resto fica parado; sem ninguém na sala, nada brota.
         /// </summary>
         float GardenCureRate()
         {
@@ -346,43 +347,40 @@ namespace Fabula.Incrementant.Colony
             return Mathf.Min(1f, _garden.CapacityInside / (float)total);
         }
 
-        /// <summary>O ritmo da jardineira vale só para o bloco que ela segura ou toca; o pixel na mão cura sem o grid.</summary>
+        /// <summary>O ritmo da jardineira vale só para o canteiro que ela toca.</summary>
         void ApplyGardenBoosts(float deltaTime)
         {
             foreach (Ant ant in _ants)
             {
-                if (ant.State == AntState.MovingNutrient)
-                {
-                    ant.CarriedCure = Mathf.Max(0f, ant.CarriedCure - deltaTime * Tree.GardenRate(ant.Role));
-                }
-                else if (ant.State == AntState.Gardening && ant.Interacting && ant.EggId != 0)
-                {
-                    float rate = Tree.GardenRate(ant.Role);
-                    if (rate > 1f)
-                        _grid.ShaveNutrientCure(ant.TargetX, ant.TargetY, deltaTime * (rate - 1f));
-                }
+                if (ant.State != AntState.Gardening || !ant.Interacting || ant.EggId == 0)
+                    continue;
+                float rate = Tree.GardenRate(ant.Role);
+                if (rate > 1f)
+                    GrownNutrients += _grid.ShaveBedGrowth(ant.TargetX, ant.TargetY, deltaTime * (rate - 1f));
             }
         }
 
-        /// <summary>Pixel que cura e que outra formiga ainda não escolheu (e não foi o último mexido por esta): blocos variados.</summary>
+        /// <summary>Canteiro brotando que outra formiga ainda não escolheu (e não foi o último cuidado por esta): canteiros variados.</summary>
         bool PickGardenTarget(Ant ant, out int x, out int y)
         {
-            int count = _grid.CuringNutrientCount;
+            int count = _grid.BedCount;
             x = y = 0;
             for (int pass = 0; pass < 3; pass++)
             {
                 int seen = 0;
                 for (int k = 0; k < count; k++)
                 {
-                    if (!_grid.TryGetCuringCell(k, out int cx, out int cy))
+                    if (!_grid.TryGetBed(k, out int bx, out int by))
                         break;
-                    int key = _grid.ToIndex(cx, cy) + 1;
+                    if (_grid.GetBedStage(bx, by) != BedStage.Growing)
+                        continue;
+                    int key = _grid.ToIndex(bx, by) + 1;
                     if (pass < 2 && _gardenTargets.Contains(key) || pass < 1 && key == ant.LastBlock)
                         continue;
                     if (_rng.Next(++seen) == 0)
                     {
-                        x = cx;
-                        y = cy;
+                        x = bx;
+                        y = by;
                     }
                 }
                 if (seen > 0)
@@ -392,8 +390,9 @@ namespace Fabula.Incrementant.Colony
         }
 
         /// <summary>
-        /// Cuidando da sala: escolhe um pixel que cura (variando), vai até ele, pega-o e o leva a outro slot livre (o trabalho
-        /// visível). Sem pixel curando, ou com formigas demais para a região, sai e volta a procurar outra tarefa.
+        /// Cuidando da sala: escolhe um canteiro que brota (variando), vai até ele e mexe nele por um instante (o trabalho
+        /// visível), depois passa a outro. Sem canteiro brotando, ou com formigas demais para a região, sai e volta a
+        /// procurar outra tarefa.
         /// </summary>
         void UpdateGardening(Ant ant)
         {
@@ -403,9 +402,11 @@ namespace Fabula.Incrementant.Colony
                 return;
             }
 
-            // O alvo some quando termina de curar ou alguém o leva.
-            if (ant.EggId != 0 && (!_grid.HasNutrient(ant.TargetX, ant.TargetY) || _grid.HasReadyNutrient(ant.TargetX, ant.TargetY)))
+            // Terminou de mexer no canteiro (ou ele brotou, ou se desfez): passa a outro.
+            if (ant.EggId != 0 && (ant.Interacting || _grid.GetBedStage(ant.TargetX, ant.TargetY) != BedStage.Growing))
             {
+                if (ant.Interacting)
+                    ant.LastBlock = ant.EggId;
                 ant.EggId = 0;
                 ant.Interacting = false;
             }
@@ -425,89 +426,15 @@ namespace Fabula.Incrementant.Colony
             var cell = new Vector2Int(ant.TargetX, ant.TargetY);
             if (!NearCell(ant, cell))
             {
-                ant.Interacting = false;
                 WalkToCell(ant, cell, _curingField, _grid.IsNutrientRoom(ant.X, ant.Y));
                 return;
             }
 
-            // Ao lado do pixel: pega-o.
+            // Ao lado do canteiro: cuida dele por um instante (só ele recebe o ritmo da especialista).
             ant.Interacting = true;
-            ant.CarriedCure = _grid.GetNutrientCure(cell.x, cell.y);
-            _grid.SetNutrient(cell.x, cell.y, false);
-            _freeSlots++; // o slot de onde saiu abre; a planta na mão o reserva (IsHarvesting) até ser largada
-            ant.PickUp(CellMaterial.PlantGrass, 128);
-            ant.DigX = cell.x;
-            ant.DigY = cell.y;
-            ant.LastBlock = ant.EggId;
-            ChooseNutrientDestination(ant);
-            ant.State = AntState.MovingNutrient;
+            if (cell.x != ant.X)
+                ant.FacingX = cell.x > ant.X ? 1 : -1;
             ant.Cooldown = CarePause(ant);
-        }
-
-        /// <summary>Sorteia o slot livre de destino (de preferência outro que não o de onde o pixel saiu); falso se não há nenhum.</summary>
-        bool ChooseNutrientDestination(Ant ant)
-        {
-            if (_freeSlotCells.Count == 0)
-                return false;
-            int origin = _grid.ToIndex(ant.DigX, ant.DigY);
-            int pick = _freeSlotCells[_rng.Next(_freeSlotCells.Count)];
-            if (pick == origin && _freeSlotCells.Count > 1)
-                pick = _freeSlotCells[(_freeSlotCells.IndexOf(pick) + 1) % _freeSlotCells.Count];
-            ant.TargetX = pick % _grid.Width;
-            ant.TargetY = pick / _grid.Width;
-            return true;
-        }
-
-        /// <summary>Leva o pixel até o slot livre escolhido e o larga com a cura que faltava.</summary>
-        void UpdateMovingNutrient(Ant ant)
-        {
-            if (!_grid.IsNutrientRoom(ant.TargetX, ant.TargetY) || _grid.HasNutrient(ant.TargetX, ant.TargetY))
-            {
-                // Destino tomado ou sala mudada: sorteia outro; sem nenhum, larga onde estiver.
-                if (!ChooseNutrientDestination(ant))
-                {
-                    PutDownNutrient(ant);
-                    return;
-                }
-            }
-            var cell = new Vector2Int(ant.TargetX, ant.TargetY);
-            if (!NearCell(ant, cell))
-            {
-                if (!_grid.IsNutrientRoom(ant.X, ant.Y) && _storeField.Get(ant.X, ant.Y) != FlowField.Unreachable &&
-                    StepDownhill(ant, _storeField))
-                    return;
-                if (StepTowardsCell(ant, cell.x, cell.y, keepQueenRoom: false))
-                    return;
-                Wander(ant);
-                return;
-            }
-            PutDownNutrient(ant, cell.x, cell.y);
-        }
-
-        /// <summary>Larga o pixel no slot dado (ou no mais perto livre ao lado da formiga) e volta a cuidar.</summary>
-        void PutDownNutrient(Ant ant, int x = -1, int y = -1)
-        {
-            for (int k = -1; k < 8; k++)
-            {
-                int tx = x >= 0 ? (k < 0 ? x : x + AntNavigation.Dx[k]) : (k < 0 ? ant.X : ant.X + AntNavigation.Dx[k]);
-                int ty = y >= 0 ? (k < 0 ? y : y + AntNavigation.Dy[k]) : (k < 0 ? ant.Y : ant.Y + AntNavigation.Dy[k]);
-                if (!_grid.IsNutrientRoom(tx, ty) || _grid.HasNutrient(tx, ty) || !AntNavigation.IsWalkable(_grid, tx, ty))
-                    continue;
-                _grid.SetNutrient(tx, ty, true, Mathf.Max(0.01f, ant.CarriedCure));
-                _freeSlots = Mathf.Max(0, _freeSlots - 1);
-                ant.DropTop();
-                ant.CarriedCure = 0f;
-                ant.State = AntState.Gardening;
-                ant.EggId = 0;
-                ant.Interacting = false;
-                ant.Cooldown = CarePause(ant);
-                return;
-            }
-            // Sem slot livre ao alcance (a sala mudou): segue guardando como um pixel de planta qualquer, com a cura toda.
-            ant.CarriedCure = 0f;
-            ant.EggId = 0;
-            ant.Interacting = false;
-            ant.State = AntState.Carrying;
         }
     }
 }

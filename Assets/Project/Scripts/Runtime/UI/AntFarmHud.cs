@@ -1,7 +1,9 @@
 using Fabula.Incrementant.AntFarm;
 using Fabula.Incrementant.Colony;
+using Fabula.Incrementant.Settings;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace Fabula.Incrementant.UI
@@ -23,6 +25,9 @@ namespace Fabula.Incrementant.UI
         [SerializeField] Text _queenValue;
         [SerializeField] Text _queenDetail;
         [SerializeField] Text _hint;
+        [Header("Alerta dos cupins")]
+        [SerializeField] GameObject _raidAlert;
+        [SerializeField] Text _raidAlertText;
 
         [Header("Canto: FPS e tempo jogado")]
         [SerializeField] Text _stats;
@@ -53,6 +58,9 @@ namespace Fabula.Incrementant.UI
         [SerializeField] Image _treeButtonImage;
         [SerializeField] GameObject _treePanel;
 
+        [Header("Menu do ESC (pausa e configurações)")]
+        [SerializeField] PauseMenu _pauseMenu;
+
         [Header("Velocidade")]
         [SerializeField] Button _pauseButton;
         [SerializeField] Image _pauseImage;
@@ -65,7 +73,7 @@ namespace Fabula.Incrementant.UI
         [SerializeField] Sprite _iconButtonIdle;
         [SerializeField] Sprite _iconButtonActive;
 
-        const string DefaultHint = "WASD / BOTÃO DO MEIO: MOVER CÂMERA";
+        const string DefaultHint = "WASD / BOTÃO DO MEIO: MOVER CÂMERA · ESC: MENU";
         const float TextRefreshSeconds = 0.25f;
 
         /// <summary>Papéis que a rainha pode criar, na ordem dos botões de tipo.</summary>
@@ -97,7 +105,7 @@ namespace Fabula.Incrementant.UI
                 _modeButtons == null || _modeButtons.Length != 3 ||
                 _typeButtons == null || _typeButtons.Length != CreatableRoles.Length || _typeLabels == null ||
                 _typeLabels.Length != CreatableRoles.Length ||
-                _treeButton == null || _treePanel == null)
+                _treeButton == null || _treePanel == null || _pauseMenu == null || _raidAlert == null || _raidAlertText == null)
             {
                 Debug.LogError($"{name}: AntFarmHud com referências faltando (rode Incrementant/Setup/Montar HUD da partida).", this);
                 enabled = false;
@@ -130,6 +138,8 @@ namespace Fabula.Incrementant.UI
             _paintPanel.SetActive(false);
             _queenPanel.SetActive(false);
             _treePanel.SetActive(false);
+            _pauseMenu.gameObject.SetActive(false);
+            _raidAlert.SetActive(false);
         }
 
         void OnEnable()
@@ -197,12 +207,33 @@ namespace Fabula.Incrementant.UI
 
         void TogglePause() => _game.SetPaused(!_game.Paused);
 
+        /// <summary>
+        /// Um ESC fecha a camada de cima: configurações → menu → jogo; sem menu aberto, fecha a tela de evolução ou o
+        /// submenu da colônia; sem nada aberto, abre o menu. Fica tudo aqui para duas telas não reagirem ao mesmo ESC.
+        /// </summary>
+        void HandleEscape()
+        {
+            if (_pauseMenu.IsOpen)
+                _pauseMenu.Back();
+            else if (_menu != Menu.None || _treePanel.activeSelf)
+                OpenMenu(Menu.None);
+            else
+                _pauseMenu.Open();
+        }
+
         void Update()
         {
+            Keyboard keyboard = Keyboard.current;
+            if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
+                HandleEscape();
+
             // Tempo de relógio real desta sessão (ignora pausa e velocidade); FPS médio entre duas atualizações do texto.
             _playedSeconds += Time.unscaledDeltaTime;
             _statsFrames++;
             _statsElapsed += Time.unscaledDeltaTime;
+            bool showStats = GameSettings.Current.ShowStats;
+            if (_stats != null && _stats.enabled != showStats)
+                _stats.enabled = showStats;
             if (_stats != null && _statsElapsed >= TextRefreshSeconds)
             {
                 _stats.text = $"FPS {Mathf.RoundToInt(_statsFrames / _statsElapsed)}\nTEMPO {FormatPlayTime(_playedSeconds)}";
@@ -248,7 +279,13 @@ namespace Fabula.Incrementant.UI
             }
 
             for (int i = 0; i < _brushImages.Length; i++)
+            {
                 _brushImages[i].sprite = i == _game.BrushIndex ? _buttonActive : _buttonIdle;
+                // A área de resíduos só abre depois do primeiro ataque de cupins.
+                bool unlocked = _game.IsBrushUnlocked(i);
+                if (_brushButtons[i].interactable != unlocked)
+                    _brushButtons[i].interactable = unlocked;
+            }
             _pauseImage.sprite = _game.Paused ? _iconButtonActive : _iconButtonIdle;
             for (int i = 0; i < _speedImages.Length; i++)
                 _speedImages[i].sprite = !_game.Paused && i == _game.SpeedIndex ? _iconButtonActive : _iconButtonIdle;
@@ -288,6 +325,55 @@ namespace Fabula.Incrementant.UI
 
             string status = _game.SaveStatus;
             _hint.text = status.Length > 0 ? status.ToUpperInvariant() : DefaultHint;
+            RefreshRaidAlert(colony);
+        }
+
+        int _seenRaids = -1;
+        float _raidOverUntil;
+        bool _raidOverFirst;
+        const float RaidOverSeconds = 6f;
+
+        /// <summary>Alerta no topo: ataque iminente (contagem), cupins atacando (quantos e o que fazem) e o fim do ataque.</summary>
+        void RefreshRaidAlert(AntColony colony)
+        {
+            // Ataque que acabou de terminar: avisa por alguns segundos (o primeiro libera o soldado e a área de resíduos).
+            if (_seenRaids >= 0 && colony.RaidsSurvived > _seenRaids)
+            {
+                _raidOverUntil = Time.unscaledTime + RaidOverSeconds;
+                _raidOverFirst = _seenRaids == 0;
+            }
+            _seenRaids = colony.RaidsSurvived;
+
+            string text = null;
+            switch (colony.RaidState)
+            {
+                case RaidState.Warning:
+                    text = $"ATAQUE DE CUPINS IMINENTE! CHEGAM EM {Mathf.CeilToInt(colony.SecondsToNextRaid)} S";
+                    break;
+                case RaidState.Active:
+                    text = $"CUPINS ATACANDO: {colony.LiveTermites} · {ObjectiveText(colony.RaidObjective)}";
+                    break;
+                default:
+                    if (Time.unscaledTime < _raidOverUntil)
+                        text = _raidOverFirst ? "ATAQUE REPELIDO! SOLDADO E ÁREA DE RESÍDUOS LIBERADOS" : "ATAQUE DE CUPINS TERMINOU";
+                    break;
+            }
+            bool show = text != null;
+            if (_raidAlert.activeSelf != show)
+                _raidAlert.SetActive(show);
+            if (show)
+                _raidAlertText.text = text;
+        }
+
+        static string ObjectiveText(RaidObjective objective)
+        {
+            switch (objective)
+            {
+                case RaidObjective.Brood: return "ATRÁS DAS CRIAS";
+                case RaidObjective.Farms: return "DESTRUINDO CANTEIROS";
+                case RaidObjective.Walls: return "DERRUBANDO PAREDES";
+                default: return "INDO EMBORA";
+            }
         }
 
         /// <summary>Estado da reprodução em palavras, sem sugerir defeito da rainha (seção 11 do design).</summary>

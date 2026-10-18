@@ -5,12 +5,6 @@ using UnityEngine;
 
 namespace Fabula.Incrementant.AntFarm
 {
-    /// <summary>
-    /// Desenha grade, formigas e pincel numa textura (1 célula = 1 texel, filtro Point) que cobre só uma janela da
-    /// grade em volta da vista da câmera, para o custo não crescer com o mundo. A janela é exibida por um
-    /// SpriteRenderer filho (criado no Play) com 1 unidade de mundo por célula; o SpriteRenderer deste objeto
-    /// fica só para o preview do mapa no Editor. A posição deste objeto é a origem do mapa (célula 0,0).
-    /// </summary>
     /// <summary>Modo do pincel, para a cor do contorno desenhado na textura.</summary>
     public enum BrushTint
     {
@@ -19,8 +13,17 @@ namespace Fabula.Incrementant.AntFarm
         QueenRoom,
         NutrientRoom,
         NurseryRoom,
+        WasteRoom,
     }
 
+    /// <summary>
+    /// Desenha grade, formigas e pincel numa textura (1 célula = 1 texel, filtro Point) que cobre só uma janela da
+    /// grade em volta da vista da câmera, para o custo não crescer com o mundo. A janela é exibida por um
+    /// SpriteRenderer filho (criado no Play) com 1 unidade de mundo por célula; o SpriteRenderer deste objeto
+    /// fica só para o preview do mapa no Editor. A posição deste objeto é a origem do mapa (célula 0,0).
+    /// Com <b>Tile Material</b> (shader <c>Incrementant/TerrainTiles</c>), cada célula aparece como um bloco de
+    /// 16x16 texels com a textura do material (<see cref="CellTileArt"/>); a cor por célula continua vindo daqui.
+    /// </summary>
     [RequireComponent(typeof(SpriteRenderer))]
     public sealed class AntFarmView : MonoBehaviour
     {
@@ -38,12 +41,12 @@ namespace Fabula.Incrementant.AntFarm
         [Tooltip("Cor da sala de nutrientes pintada (slots livres) e do pincel no modo sala de nutrientes.")]
         [SerializeField] Color32 _nutrientRoomColor = new Color32(120, 200, 90, 255);
         [SerializeField] Color32 _nurseryRoomColor = new Color32(240, 160, 190, 255);
+        [Tooltip("Cor da área de resíduos pintada e do pincel no modo área de resíduos.")]
+        [SerializeField] Color32 _wasteRoomColor = new Color32(170, 150, 90, 255);
         [Tooltip("Força da tinta da sala de nutrientes; células ainda maciças ficam com metade.")]
         [SerializeField, Range(0f, 1f)] float _nutrientRoomStrength = 0.35f;
-        [Tooltip("Cor do nutriente guardado num slot (e carregado até a rainha, no fallback sem sprites).")]
+        [Tooltip("Cor do nutriente pronto que brotou de um canteiro (e carregado até a rainha, no fallback sem sprites).")]
         [SerializeField] Color32 _nutrientColor = new Color32(232, 214, 92, 255);
-        [Tooltip("Cor do pixel de planta recém-guardado; vai mudando para a cor do nutriente enquanto cura.")]
-        [SerializeField] Color32 _curingNutrientColor = new Color32(96, 168, 64, 255);
         [SerializeField] Color32 _antBody = new Color32(20, 12, 10, 255);
         [SerializeField] Color32 _antHead = new Color32(48, 26, 18, 255);
         [SerializeField] Color32 _brushColor = new Color32(255, 255, 255, 255);
@@ -66,6 +69,14 @@ namespace Fabula.Incrementant.AntFarm
         [Tooltip("Cor da linha de cima da água (superfície da poça).")]
         [SerializeField] Color32 _waterSurfaceColor = new Color32(120, 180, 235, 255);
         [SerializeField, Range(0f, 1f)] float _waterOpacity = 0.7f;
+        [Header("Tiles 16x16")]
+        [Tooltip("Material com o shader Incrementant/TerrainTiles. Vazio: 1 célula = 1 texel liso, como antes.")]
+        [SerializeField] Material _tileMaterial;
+        [Tooltip("Atlas desenhado (64 x 64 por material, empilhados na vertical na ordem de CellMaterial, cinza 128 = sem mudança). Vazio: gerado por código (CellTileArt).")]
+        [SerializeField] Texture2D _tileAtlas;
+        [SerializeField, Range(0f, 2f)] float _tileDetail = 1f;
+        [Tooltip("Escurecimento do contorno de 1 texel do lado sólido, onde a célula encosta no vazio.")]
+        [SerializeField, Range(0f, 1f)] float _tileEdgeDarkening = 0.5f;
 
         /// <summary>A janela cresce em passos deste tamanho, para não recriar a textura a cada mudança de zoom.</summary>
         const int WindowStep = 16;
@@ -74,6 +85,13 @@ namespace Fabula.Incrementant.AntFarm
         Texture2D _texture;
         Sprite _sprite;
         Color32[] _pixels;
+        // Tiles: material de cada célula da janela (CellTileArt.SkyId = céu) e o material instanciado do shader.
+        Texture2D _materialTexture;
+        byte[] _materialIds;
+        Material _tileInstance;
+        Texture2D _generatedAtlas;
+        static readonly int WindowOriginId = Shader.PropertyToID("_WindowOrigin");
+        static readonly int CellMaterialsId = Shader.PropertyToID("_CellMaterials");
         Color32[] _skyRows;
         int _width;
         int _height;
@@ -100,7 +118,7 @@ namespace Fabula.Incrementant.AntFarm
                 _windowRenderer = go.AddComponent<SpriteRenderer>();
                 _windowRenderer.sortingLayerID = own.sortingLayerID;
                 _windowRenderer.sortingOrder = own.sortingOrder;
-                _windowRenderer.sharedMaterial = own.sharedMaterial;
+                _windowRenderer.sharedMaterial = CreateTileMaterial() ?? own.sharedMaterial;
                 // O sprite próprio é só o preview do Editor (PNG do modo Image); no Play quem desenha é a janela.
                 own.enabled = false;
             }
@@ -111,6 +129,24 @@ namespace Fabula.Incrementant.AntFarm
                 _skyRows[y] = transparentSky
                     ? new Color32(0, 0, 0, 0)
                     : Color32.Lerp(_skyBottom, _skyTop, Mathf.Clamp01((y - skyBaseY) / (float)Mathf.Max(1, top - skyBaseY)));
+        }
+
+        /// <summary>Tiles ligados: instância do material com o atlas e os parâmetros; null sem Tile Material.</summary>
+        Material CreateTileMaterial()
+        {
+            if (_tileMaterial == null)
+                return null;
+            Texture atlas = _tileAtlas;
+            if (atlas == null)
+                atlas = _generatedAtlas = CellTileArt.CreateAtlas();
+            _tileInstance = new Material(_tileMaterial) { name = "TerrainTiles (instância)", hideFlags = HideFlags.DontSave };
+            _tileInstance.SetTexture("_TileAtlas", atlas);
+            _tileInstance.SetFloat("_TileCount", CellTileArt.TileCount);
+            _tileInstance.SetFloat("_TileSize", CellTileArt.TileSize);
+            _tileInstance.SetFloat("_TexelsPerCell", CellTileArt.TexelsPerCell);
+            _tileInstance.SetFloat("_DetailStrength", _tileDetail);
+            _tileInstance.SetFloat("_EdgeDarkening", _tileEdgeDarkening);
+            return _tileInstance;
         }
 
         /// <summary>Recorte da grade (em células) que cobre <paramref name="view"/> (retângulo local ao mapa) com folga.</summary>
@@ -141,6 +177,8 @@ namespace Fabula.Incrementant.AntFarm
             _originX = window.x;
             _originY = window.y;
             _windowRenderer.transform.localPosition = new Vector3(_originX, _originY, 0f);
+            if (_tileInstance != null)
+                _tileInstance.SetVector(WindowOriginId, new Vector4(_originX, _originY, _width, _height));
 
             DrawCells(grid, colony);
             DrawDumpMarkers(grid, dumpStrips);
@@ -157,6 +195,11 @@ namespace Fabula.Incrementant.AntFarm
 
             _texture.SetPixels32(_pixels);
             _texture.Apply(false);
+            if (_tileInstance != null)
+            {
+                _materialTexture.SetPixelData(_materialIds, 0);
+                _materialTexture.Apply(false);
+            }
         }
 
         Color32 BrushColor(BrushTint brush)
@@ -167,6 +210,7 @@ namespace Fabula.Incrementant.AntFarm
                 case BrushTint.QueenRoom: return _queenRoomColor;
                 case BrushTint.NutrientRoom: return _nutrientRoomColor;
                 case BrushTint.NurseryRoom: return _nurseryRoomColor;
+                case BrushTint.WasteRoom: return _wasteRoomColor;
                 default: return _brushColor;
             }
         }
@@ -186,6 +230,17 @@ namespace Fabula.Incrementant.AntFarm
             _sprite = Sprite.Create(_texture, new Rect(0, 0, width, height), Vector2.zero, 1f, 0, SpriteMeshType.FullRect);
             _sprite.name = "AntFarmWorld";
             _windowRenderer.sprite = _sprite;
+            if (_tileInstance != null)
+            {
+                _materialIds = new byte[width * height];
+                _materialTexture = new Texture2D(width, height, TextureFormat.R8, false, true)
+                {
+                    name = "AntFarmCellMaterials",
+                    filterMode = FilterMode.Point,
+                    wrapMode = TextureWrapMode.Clamp,
+                };
+                _tileInstance.SetTexture(CellMaterialsId, _materialTexture);
+            }
         }
 
         void DrawCells(PixelGrid grid, AntColony colony)
@@ -195,6 +250,7 @@ namespace Fabula.Incrementant.AntFarm
             if (radius > 0)
                 ComputeOpenness(grid, radius);
             int stride = _width + 2 * radius;
+            bool tiles = _materialIds != null && _tileInstance != null;
             for (int wy = 0; wy < _height; wy++)
             {
                 int row = wy * _width;
@@ -205,15 +261,18 @@ namespace Fabula.Incrementant.AntFarm
                     CellMaterial material = grid.Get(x, y);
                     Color32 color;
                     bool solid = false;
+                    byte tileId = (byte)material;
                     if (_plantsAsSprites && CellMaterials.IsPlant(material))
                     {
                         color = _skyRows[y];
+                        tileId = CellTileArt.SkyId;
                     }
                     else if (material == CellMaterial.Empty)
                     {
                         if (y > grid.GetSurfaceY(x))
                         {
                             color = _skyRows[y];
+                            tileId = CellTileArt.SkyId;
                             if (grid.IsBuildMarked(x, y))
                                 color = Color32.Lerp(color, _buildMarkColor, _markStrength);
                         }
@@ -231,9 +290,11 @@ namespace Fabula.Incrementant.AntFarm
                                 color = Color32.Lerp(color, _nutrientRoomColor, _nutrientRoomStrength);
                             if (grid.IsNurseryRoom(x, y))
                                 color = Color32.Lerp(color, _nurseryRoomColor, _nutrientRoomStrength);
+                            if (grid.IsWasteRoom(x, y))
+                                color = Color32.Lerp(color, _wasteRoomColor, _nutrientRoomStrength);
                         }
                         if (grid.HasNutrient(x, y))
-                            color = NutrientAt(x, y, grid.GetNutrientCure(x, y), colony);
+                            color = NutrientAt(x, y);
                         if (grid.HasWater(x, y))
                             color = WaterOver(color, grid.HasWater(x, y + 1) ? _waterColor : _waterSurfaceColor);
                     }
@@ -262,8 +323,12 @@ namespace Fabula.Incrementant.AntFarm
                             color = Color32.Lerp(color, _nutrientRoomColor, _nutrientRoomStrength * 0.5f);
                         if (grid.IsNurseryRoom(x, y))
                             color = Color32.Lerp(color, _nurseryRoomColor, _nutrientRoomStrength * 0.5f);
+                        if (grid.IsWasteRoom(x, y))
+                            color = Color32.Lerp(color, _wasteRoomColor, _nutrientRoomStrength * 0.5f);
                     }
                     _pixels[row + wx] = color;
+                    if (tiles)
+                        _materialIds[row + wx] = tileId;
                 }
             }
         }
@@ -344,19 +409,10 @@ namespace Fabula.Incrementant.AntFarm
             return best;
         }
 
-        /// <summary>
-        /// Nutriente guardado: a cor fixa com um leve granulado por posição, para os slots cheios não virarem um bloco liso.
-        /// Ainda curando, sai da cor de planta e chega à do nutriente quando fica pronto.
-        /// </summary>
-        Color32 NutrientAt(int x, int y, float cure, AntColony colony)
+        /// <summary>Nutriente pronto: a cor fixa com um leve granulado por posição, para vários juntos não virarem um bloco liso.</summary>
+        Color32 NutrientAt(int x, int y)
         {
             Color32 baseColor = _nutrientColor;
-            if (cure > 0f)
-            {
-                float total = colony != null ? colony.NutrientCureSeconds : 0f;
-                float progress = total > 0f ? Mathf.Clamp01(1f - cure / total) : 0f;
-                baseColor = Color32.Lerp(_curingNutrientColor, _nutrientColor, progress * 0.6f);
-            }
             int n = ((x * 19349663) ^ (y * 83492791)) & 15;
             return new Color32((byte)Mathf.Max(0, baseColor.r - n), (byte)Mathf.Max(0, baseColor.g - n),
                                (byte)Mathf.Max(0, baseColor.b - n / 2), 255);
@@ -477,7 +533,14 @@ namespace Fabula.Incrementant.AntFarm
                 _pixels[i] = Color32.Lerp(under, new Color32(color.r, color.g, color.b, under.a), t);
         }
 
-        void OnDestroy() => ReleaseTexture();
+        void OnDestroy()
+        {
+            ReleaseTexture();
+            if (_tileInstance != null)
+                Destroy(_tileInstance);
+            if (_generatedAtlas != null)
+                Destroy(_generatedAtlas);
+        }
 
         void ReleaseTexture()
         {
@@ -485,8 +548,11 @@ namespace Fabula.Incrementant.AntFarm
                 Destroy(_sprite);
             if (_texture != null)
                 Destroy(_texture);
+            if (_materialTexture != null)
+                Destroy(_materialTexture);
             _sprite = null;
             _texture = null;
+            _materialTexture = null;
         }
     }
 }

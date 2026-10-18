@@ -76,7 +76,7 @@ namespace Fabula.Incrementant.World
         /// <summary>Solo já solto ou mole, que dentro do formigueiro só absorve a água (não amolece).</summary>
         public static bool IsPorous(CellMaterial material) =>
             material == CellMaterial.Dirt || material == CellMaterial.Grass || material == CellMaterial.Sand ||
-            material == CellMaterial.Spoil || material == CellMaterial.Mud;
+            material == CellMaterial.Spoil || material == CellMaterial.Mud || material == CellMaterial.Rubble;
 
         public void Step(PixelGrid grid, float deltaTime)
         {

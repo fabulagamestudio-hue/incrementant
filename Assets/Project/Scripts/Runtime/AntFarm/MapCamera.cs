@@ -20,6 +20,8 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField, Range(1.02f, 2f)] float _zoomStep = 1.15f;
         [Tooltip("Velocidade do zoom por teclado (Q/E), em fator por segundo.")]
         [SerializeField, Min(1.1f)] float _keyZoomSpeed = 2.5f;
+        [Tooltip("Zoom inicial em pixels da tela por célula (16 = cada célula vira um bloco de 16x16 na tela). 0 = enquadra a área inicial inteira.")]
+        [SerializeField, Min(0f)] float _startPixelsPerCell = 16f;
 
         [NonSerialized] Rect _bounds;
         [NonSerialized] Rect _startView;
@@ -29,9 +31,10 @@ namespace Fabula.Incrementant.AntFarm
 
         /// <summary>
         /// Enquadra <paramref name="startView"/> (com <paramref name="margin"/>) e passa a limitar a câmera a
-        /// <paramref name="bounds"/>, ambos em unidades de mundo.
+        /// <paramref name="bounds"/>, ambos em unidades de mundo. Com <b>Start Pixels Per Cell</b>, começa mais
+        /// perto, centrada em <paramref name="focus"/> (ou no centro da vista inicial, se não vier).
         /// </summary>
-        public void Reset(Camera camera, Rect bounds, Rect startView, float margin)
+        public void Reset(Camera camera, Rect bounds, Rect startView, float margin, Vector2? focus = null)
         {
             _bounds = bounds;
             _startView = startView;
@@ -39,7 +42,13 @@ namespace Fabula.Incrementant.AntFarm
             _dragging = false;
             camera.orthographic = true;
             camera.orthographicSize = MaxHalfHeight(camera.aspect);
-            camera.transform.position = new Vector3(startView.center.x, startView.center.y, camera.transform.position.z);
+            Vector2 center = startView.center;
+            if (_startPixelsPerCell > 0f)
+            {
+                camera.orthographicSize = camera.pixelHeight / (2f * _startPixelsPerCell);
+                center = focus ?? center;
+            }
+            camera.transform.position = new Vector3(center.x, center.y, camera.transform.position.z);
             Clamp(camera);
         }
 

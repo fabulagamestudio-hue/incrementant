@@ -3,7 +3,6 @@ using Fabula.Incrementant.AntFarm;
 using Fabula.Incrementant.Colony;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace Fabula.Incrementant.UI
@@ -149,18 +148,14 @@ namespace Fabula.Incrementant.UI
                 case BuyBlock.MissingRequirement: return "FALTA UM PRÉ-REQUISITO";
                 case BuyBlock.NotAvailableYet: return "EM BREVE: O JOGO AINDA NÃO TEM ESSE SISTEMA";
                 case BuyBlock.InsufficientNutrients: return "NUTRIENTES INSUFICIENTES";
+                case BuyBlock.NeedsFirstRaid: return "LIBERA DEPOIS DO PRIMEIRO ATAQUE DE CUPINS";
                 default: return "COMPRADO";
             }
         }
 
         void Update()
         {
-            Keyboard keyboard = Keyboard.current;
-            if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
-            {
-                Close();
-                return;
-            }
+            // O ESC que fecha esta tela é tratado pelo AntFarmHud (uma camada por ESC).
             AntColony colony = _game.Colony;
             if (colony == null)
                 return;
@@ -203,6 +198,8 @@ namespace Fabula.Incrementant.UI
             _title.text = $"{def.Id} · {def.Name.ToUpperInvariant()}";
             _effect.text = def.Effect.ToUpperInvariant();
             string requires = def.Requires.Count == 0 ? "NENHUM" : string.Join(" E ", def.Requires);
+            if (colony.Tree.Check(_selectedQueen) == BuyBlock.NeedsFirstRaid)
+                requires = "PRIMEIRO ATAQUE DE CUPINS";
             _info.text = _message.Length > 0 ? _message : $"REQUISITO: {requires}";
             bool owned = colony.Tree.Owns(_selectedQueen);
             _buyLabel.text = owned ? "ADQUIRIDO" : !def.Implemented ? "EM BREVE" : $"DESBLOQUEAR · {def.Cost} N";

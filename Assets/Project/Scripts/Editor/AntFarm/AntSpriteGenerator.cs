@@ -6,7 +6,7 @@ namespace Fabula.Incrementant.EditorTools.AntFarm
 {
     /// <summary>
     /// Gera a arte provisória das formigas como PNGs editáveis em <see cref="AntSpriteImporter.AntsFolder"/>,
-    /// um arquivo por quadro de caminhada, pixel art 18x12 virada para a direita:
+    /// um arquivo por quadro de caminhada, base 18x12 ampliada para 108x72, virada para a direita:
     /// <c>Ant_Walk_*</c> de lado (patas para baixo, para piso/parede/teto) e <c>Ant_Top_*</c> vista de cima
     /// (para quando anda no fundo do formigueiro).
     /// Os arquivos existentes não são sobrescritos pelo setup, só pelo menu (para não perder retoques de arte).
@@ -192,10 +192,17 @@ namespace Fabula.Incrementant.EditorTools.AntFarm
 
         static void WritePng(string path, Color32[] pixels)
         {
-            var texture = new Texture2D(Width, Height, TextureFormat.RGBA32, false);
+            int scale = AntSpriteImporter.AdultArtScale;
+            int width = Width * scale;
+            int height = Height * scale;
+            var enlarged = new Color32[width * height];
+            for (int y = 0; y < height; y++)
+            for (int x = 0; x < width; x++)
+                enlarged[y * width + x] = pixels[(y / scale) * Width + x / scale];
+            var texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
             try
             {
-                texture.SetPixels32(pixels);
+                texture.SetPixels32(enlarged);
                 texture.Apply(false);
                 File.WriteAllBytes(path, texture.EncodeToPNG());
             }

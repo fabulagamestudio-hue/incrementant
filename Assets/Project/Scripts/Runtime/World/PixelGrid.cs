@@ -5,6 +5,22 @@ using UnityEngine;
 namespace Fabula.Incrementant.World
 {
     /// <summary>
+    /// Etapa de um canteiro da sala de nutrientes (valor gravado no save: não renumerar). A formiga põe a terra fofa
+    /// (<see cref="Soil"/>), depois a planta (<see cref="Planted"/>) e depois a água (<see cref="Growing"/>); brotado, ele
+    /// gera nutrientes prontos nos lados livres e volta a <see cref="Soil"/>.
+    /// </summary>
+    public enum BedStage : byte
+    {
+        None = 0,
+        /// <summary>Só a terra fofa: espera um pedaço de planta.</summary>
+        Soil = 1,
+        /// <summary>Terra com planta: espera um bloco de água.</summary>
+        Planted = 2,
+        /// <summary>Regado: brota no tempo de <c>ColonySettings.NutrientCureSeconds</c>, com formiga cuidando da sala.</summary>
+        Growing = 3,
+    }
+
+    /// <summary>
     /// Grade de células do terreno. Origem no canto inferior esquerdo, y para cima, índice = y * Width + x.
     /// <see cref="Width"/>/<see cref="Height"/> são a capacidade (o mundo inteiro); só a área ativa
     /// (<see cref="Active"/>, já gerada) existe para o jogo. Fora dela é tratado como <see cref="CellMaterial.Bedrock"/>.
@@ -18,22 +34,30 @@ namespace Fabula.Incrementant.World
         readonly bool[] _buildMarked;
         // Sala da rainha: lugar pintado pelo jogador, independente do material (não acompanha grãos que caem).
         readonly bool[] _queenRoom;
-        // Sala de nutrientes: lugar pintado (como a sala da rainha). Cada célula vazia pintada é um slot.
+        // Sala de nutrientes: lugar pintado (como a sala da rainha). É onde as formigas montam os canteiros.
         readonly bool[] _nutrientRoom;
         // Berçário: lugar pintado (como as outras salas). Cada célula vazia e alcançável conta para as vagas de cria.
         readonly bool[] _nurseryRoom;
-        // Nutriente guardado: camada à parte, só em célula sem material. Não bloqueia a passagem (a célula continua vazia).
+        // Área de resíduos: lugar pintado (como as outras salas). As formigas empilham ali entulho e restos, que se decompõem.
+        readonly bool[] _wasteRoom;
+        // Nutriente pronto: camada à parte, só em célula sem material. Não bloqueia a passagem (a célula continua vazia).
         readonly bool[] _nutrient;
-        // Segundos que faltam para o pixel guardado virar nutriente que pode ser levado (0 = pronto).
-        readonly float[] _nutrientCure;
-        // Células guardadas ainda curando (as com _nutrientCure > 0), para avançar só elas.
-        readonly List<int> _curingNutrients = new List<int>();
+        // Canteiro: etapa do cultivo de uma célula de terra fofa (Spoil) e segundos que faltam para ele brotar.
+        readonly BedStage[] _bedStage;
+        readonly float[] _bedGrow;
+        // Células com canteiro, para percorrer só elas.
+        readonly List<int> _beds = new List<int>();
         readonly byte[] _wetness;
         // Água: camada à parte, só em células sem material. Para navegação e estrutura a célula continua vazia.
         readonly bool[] _water;
         // Planta atrás do material: pixel de planta que terra (ou outro sólido) cobriu. Volta quando a célula esvazia.
         readonly CellMaterial[] _behind;
         readonly byte[] _behindShades;
+        // Fundo do cenário: célula coberta pela arte de um elemento de perto (cogumelo, graveto, folha seca, pedrinha).
+        // Não é material: só diz que ali há algo atrás do vidro em que a formiga pode andar (AntNavigation.IsWalkable).
+        readonly bool[] _backdrop;
+        // Obra: sólido encaixado por uma formiga construindo. Some quando o material da célula muda.
+        readonly bool[] _built;
         readonly int[] _surfaceY;
 
         // Blocos de ChunkSize x ChunkSize células. Toda mudança de célula "toca" o bloco dela e os vizinhos que
@@ -48,6 +72,7 @@ namespace Fabula.Incrementant.World
         readonly int[] _chunkQueenRoom;
         readonly int[] _chunkNutrientRoom;
         readonly int[] _chunkNurseryRoom;
+        readonly int[] _chunkWasteRoom;
         readonly int[] _chunkNutrient;
         readonly int[] _chunkWater;
         readonly int[] _rowWater;
@@ -88,17 +113,26 @@ namespace Fabula.Incrementant.World
         /// <summary>Células pintadas como berçário.</summary>
         public int NurseryRoomCount { get; private set; }
 
-        /// <summary>Nutrientes guardados (células com a camada de nutriente).</summary>
+        /// <summary>Células pintadas como área de resíduos.</summary>
+        public int WasteRoomCount { get; private set; }
+
+        /// <summary>Nutrientes prontos no chão (células com a camada de nutriente), à espera de serem levados à rainha.</summary>
         public int NutrientCount { get; private set; }
 
-        /// <summary>Nutrientes guardados que ainda estão curando (só avançam com formiga trabalhando na sala).</summary>
-        public int CuringNutrientCount => _curingNutrients.Count;
+        /// <summary>Canteiros (terra fofa posta pelas formigas na sala de nutrientes), em qualquer etapa.</summary>
+        public int BedCount => _beds.Count;
 
-        /// <summary>Nutrientes guardados que já terminaram de curar e podem ser levados à rainha.</summary>
-        public int ReadyNutrientCount => NutrientCount - _curingNutrients.Count;
+        /// <summary>Canteiros regados que estão brotando (<see cref="BedStage.Growing"/>).</summary>
+        public int GrowingBedCount { get; private set; }
 
-        /// <summary>Muda quando a sala de nutrientes é pintada/apagada ou um nutriente é guardado, retirado ou perdido.</summary>
+        /// <summary>
+        /// Muda quando a sala de nutrientes é pintada/apagada, um nutriente aparece, é retirado ou perdido, ou um canteiro
+        /// é montado, muda de etapa ou se desfaz.
+        /// </summary>
         public int NutrientVersion { get; private set; }
+
+        /// <summary>Muda sempre que alguma célula ganha ou perde água (a água que escorre muda isto a cada passo).</summary>
+        public int WaterVersion { get; private set; }
 
         /// <summary>Quantas células têm umidade (chuva leve) maior que zero.</summary>
         public int WetCount { get; private set; }
@@ -120,12 +154,16 @@ namespace Fabula.Incrementant.World
             _queenRoom = new bool[width * height];
             _nutrientRoom = new bool[width * height];
             _nurseryRoom = new bool[width * height];
+            _wasteRoom = new bool[width * height];
             _nutrient = new bool[width * height];
-            _nutrientCure = new float[width * height];
+            _bedStage = new BedStage[width * height];
+            _bedGrow = new float[width * height];
             _wetness = new byte[width * height];
             _water = new bool[width * height];
             _behind = new CellMaterial[width * height];
             _behindShades = new byte[width * height];
+            _backdrop = new bool[width * height];
+            _built = new bool[width * height];
             _surfaceY = new int[width];
             for (int x = 0; x < width; x++)
                 _surfaceY[x] = -1;
@@ -145,6 +183,7 @@ namespace Fabula.Incrementant.World
             _chunkQueenRoom = new int[chunks];
             _chunkNutrientRoom = new int[chunks];
             _chunkNurseryRoom = new int[chunks];
+            _chunkWasteRoom = new int[chunks];
             _chunkNutrient = new int[chunks];
             _chunkWater = new int[chunks];
             _rowWater = new int[ChunkRows];
@@ -222,15 +261,19 @@ namespace Fabula.Incrementant.World
         /// <summary>Célula pintada como berçário (vale o lugar, não o material).</summary>
         public bool IsNurseryRoom(int x, int y) => InBounds(x, y) && _nurseryRoom[y * Width + x];
 
+        /// <summary>A célula está pintada como área de resíduos.</summary>
+        public bool IsWasteRoom(int x, int y) => InBounds(x, y) && _wasteRoom[y * Width + x];
+
         /// <summary>A célula guarda um nutriente (só células sem material guardam).</summary>
         public bool HasNutrient(int x, int y) => InBounds(x, y) && _nutrient[y * Width + x];
 
-        /// <summary>A célula guarda um nutriente que já curou (pode ser levado à rainha).</summary>
-        public bool HasReadyNutrient(int x, int y) =>
-            InBounds(x, y) && _nutrient[y * Width + x] && _nutrientCure[y * Width + x] <= 0f;
+        /// <summary>Etapa do canteiro na célula (<see cref="BedStage.None"/> = não é canteiro).</summary>
+        public BedStage GetBedStage(int x, int y) => InBounds(x, y) ? _bedStage[y * Width + x] : BedStage.None;
 
-        /// <summary>Segundos que faltam para o nutriente guardado na célula curar (0 = pronto ou sem nutriente).</summary>
-        public float GetNutrientCure(int x, int y) => InBounds(x, y) ? _nutrientCure[y * Width + x] : 0f;
+        internal bool IsBedAt(int index) => _bedStage[index] != BedStage.None;
+
+        /// <summary>Segundos que faltam para o canteiro regado brotar (0 fora de <see cref="BedStage.Growing"/>).</summary>
+        public float GetBedGrow(int x, int y) => InBounds(x, y) ? _bedGrow[y * Width + x] : 0f;
 
         /// <summary>
         /// Umidade acumulada pela chuva leve (0 = seca). Acompanha a célula quando ela cai e zera quando o material
@@ -300,6 +343,60 @@ namespace Fabula.Incrementant.World
             return true;
         }
 
+        /// <summary>
+        /// Célula coberta pela arte do cenário de perto (<see cref="SetBackdrop"/>). Não é material: a célula continua
+        /// vazia para a física e a água; só a navegação a usa (a formiga anda sobre a arte, como no fundo do túnel).
+        /// </summary>
+        public bool IsBackdrop(int x, int y) => InBounds(x, y) && _backdrop[y * Width + x];
+
+        /// <summary>
+        /// Marca/desmarca a célula como coberta pela arte do cenário. Vale fora da área ativa também (o cenário é pintado
+        /// para o mundo inteiro e a área cresce depois). Muda a navegação: toca o bloco e a <see cref="StructureVersion"/>.
+        /// </summary>
+        public void SetBackdrop(int x, int y, bool backdrop)
+        {
+            if ((uint)x >= (uint)Width || (uint)y >= (uint)Height)
+                return;
+            int i = y * Width + x;
+            if (_backdrop[i] == backdrop)
+                return;
+            _backdrop[i] = backdrop;
+            StructureVersion++;
+            Touch(x, y);
+        }
+
+        /// <summary>Tira o fundo do cenário de todas as células (antes de pintar o cenário de um mapa novo).</summary>
+        public void ClearBackdrop()
+        {
+            for (int i = 0; i < _backdrop.Length; i++)
+            {
+                if (_backdrop[i])
+                    SetBackdrop(i % Width, i / Width, false);
+            }
+        }
+
+        /// <summary>Sólido encaixado por uma formiga construindo (<see cref="SetBuilt"/>); deixa de ser quando o material muda.</summary>
+        public bool IsBuilt(int x, int y) => InBounds(x, y) && _built[y * Width + x];
+
+        /// <summary>
+        /// Marca/desmarca a célula como obra. Só célula sólida aceita a marca; <see cref="Set"/> a apaga. Muda a navegação
+        /// (fora do formigueiro a formiga anda por dentro da obra). Devolve false se não aceitou.
+        /// </summary>
+        public bool SetBuilt(int x, int y, bool built)
+        {
+            if (!InBounds(x, y))
+                return false;
+            int i = y * Width + x;
+            if (built && _cells[i] == CellMaterial.Empty)
+                return false;
+            if (_built[i] == built)
+                return true;
+            _built[i] = built;
+            StructureVersion++;
+            Touch(x, y);
+            return true;
+        }
+
         /// <summary>Grão pode cair na célula: vazia ou planta (que fica atrás dele).</summary>
         internal bool CanFallIntoAt(int index)
         {
@@ -344,9 +441,15 @@ namespace Fabula.Incrementant.World
             _cells[i] = material;
             _shades[i] = shade;
             SetWetnessAt(i, 0);
-            // Material sólido por cima de um nutriente guardado o destrói (terra caindo, obra).
+            // A obra é a peça encaixada: trocar o material (cavar, virar lama) desfaz a marca. Quem constrói marca de novo.
+            bool wasBuilt = _built[i];
+            _built[i] = false;
+            // Material sólido por cima de um nutriente o destrói (terra caindo, obra).
             if (_nutrient[i] && material != CellMaterial.Empty)
                 SetNutrientAt(i, false);
+            // O canteiro é a terra fofa: cavada ou trocada por outro material, ele se desfaz (planta e água junto).
+            if (_bedStage[i] != BedStage.None && material != CellMaterial.Spoil)
+                RemoveBedAt(i);
             if (_water[i] && material != CellMaterial.Empty)
             {
                 SetWaterAt(i, false);
@@ -358,7 +461,7 @@ namespace Fabula.Incrementant.World
                 ClearMarkAt(i);
             if (_buildMarked[i] && material != CellMaterial.Empty)
                 ClearBuildMarkAt(i);
-            if (wasSolid != (material != CellMaterial.Empty))
+            if (wasSolid != (material != CellMaterial.Empty) || wasBuilt)
                 StructureVersion++;
             Touch(x, y);
         }
@@ -421,7 +524,7 @@ namespace Fabula.Incrementant.World
             int i = y * Width + x;
             if (_queenRoom[i] == room)
                 return false;
-            if (room && (y > GetSurfaceY(x) || _nutrientRoom[i] || _nurseryRoom[i]))
+            if (room && (y > GetSurfaceY(x) || _nutrientRoom[i] || _nurseryRoom[i] || _wasteRoom[i]))
                 return false;
 
             _queenRoom[i] = room;
@@ -443,12 +546,34 @@ namespace Fabula.Incrementant.World
             int i = y * Width + x;
             if (_nurseryRoom[i] == room)
                 return false;
-            if (room && (y > GetSurfaceY(x) || _queenRoom[i] || _nutrientRoom[i]))
+            if (room && (y > GetSurfaceY(x) || _queenRoom[i] || _nutrientRoom[i] || _wasteRoom[i]))
                 return false;
 
             _nurseryRoom[i] = room;
             NurseryRoomCount += room ? 1 : -1;
             _chunkNurseryRoom[ChunkOf(i)] += room ? 1 : -1;
+            MarkVersion++;
+            return true;
+        }
+
+        /// <summary>
+        /// Pinta/apaga a área de resíduos. Como o berçário: só células do formigueiro (no solo original ou abaixo), sólidas ou
+        /// não, e nunca por cima de outra sala. Apagar não tira o resíduo já depositado (ele termina de se decompor).
+        /// </summary>
+        public bool SetWasteRoom(int x, int y, bool room)
+        {
+            if (!InBounds(x, y))
+                return false;
+
+            int i = y * Width + x;
+            if (_wasteRoom[i] == room)
+                return false;
+            if (room && (y > GetSurfaceY(x) || _queenRoom[i] || _nutrientRoom[i] || _nurseryRoom[i]))
+                return false;
+
+            _wasteRoom[i] = room;
+            WasteRoomCount += room ? 1 : -1;
+            _chunkWasteRoom[ChunkOf(i)] += room ? 1 : -1;
             MarkVersion++;
             return true;
         }
@@ -466,7 +591,7 @@ namespace Fabula.Incrementant.World
             int i = y * Width + x;
             if (_nutrientRoom[i] == room)
                 return false;
-            if (room && (y > GetSurfaceY(x) || _queenRoom[i] || _nurseryRoom[i]))
+            if (room && (y > GetSurfaceY(x) || _queenRoom[i] || _nurseryRoom[i] || _wasteRoom[i]))
                 return false;
 
             _nutrientRoom[i] = room;
@@ -477,11 +602,10 @@ namespace Fabula.Incrementant.World
         }
 
         /// <summary>
-        /// Guarda ou retira um nutriente. Só célula sem material guarda (a sala não exige: nutriente guardado continua
-        /// lá se a pintura for apagada). Guardado com <paramref name="cureSeconds"/> &gt; 0, ocupa o slot mas só vira
-        /// nutriente pronto depois desse tempo (<see cref="AdvanceNutrientCure"/>). Devolve false se nada mudou.
+        /// Põe ou retira um nutriente pronto. Só célula sem material aceita (a sala não exige: o nutriente continua lá se a
+        /// pintura for apagada). Devolve false se nada mudou.
         /// </summary>
-        public bool SetNutrient(int x, int y, bool nutrient, float cureSeconds = 0f)
+        public bool SetNutrient(int x, int y, bool nutrient)
         {
             if (!InBounds(x, y))
                 return false;
@@ -489,76 +613,145 @@ namespace Fabula.Incrementant.World
             if (_nutrient[i] == nutrient || (nutrient && _cells[i] != CellMaterial.Empty))
                 return false;
             SetNutrientAt(i, nutrient);
-            if (nutrient && cureSeconds > 0f)
-            {
-                _nutrientCure[i] = cureSeconds;
-                _curingNutrients.Add(i);
-            }
             return true;
         }
 
-        /// <summary>
-        /// Avança a cura dos pixels guardados. Os que terminam viram nutrientes prontos e mudam
-        /// <see cref="NutrientVersion"/> (refaz o campo de busca das formigas).
-        /// </summary>
-        public void AdvanceNutrientCure(float deltaTime, float rate = 1f)
+        void SetNutrientAt(int index, bool nutrient)
         {
-            deltaTime *= rate;
-            bool cured = false;
-            for (int k = _curingNutrients.Count - 1; k >= 0; k--)
-            {
-                int i = _curingNutrients[k];
-                _nutrientCure[i] -= deltaTime;
-                if (_nutrientCure[i] > 0f)
-                    continue;
-                _nutrientCure[i] = 0f;
-                _curingNutrients.RemoveAt(k);
-                cured = true;
-            }
-            if (cured)
-                NutrientVersion++;
+            _nutrient[index] = nutrient;
+            NutrientCount += nutrient ? 1 : -1;
+            _chunkNutrient[ChunkOf(index)] += nutrient ? 1 : -1;
+            NutrientVersion++;
         }
 
-        /// <summary>O pixel que cura de índice <paramref name="k"/> (0 a <see cref="CuringNutrientCount"/>-1) e sua célula.</summary>
-        public bool TryGetCuringCell(int k, out int x, out int y)
+        // ---------------------------------------------------------------- canteiros
+
+        /// <summary>
+        /// Muda a etapa do canteiro da célula. Só terra fofa (<see cref="CellMaterial.Spoil"/>) vira canteiro;
+        /// <see cref="BedStage.None"/> o desfaz. Em <see cref="BedStage.Growing"/>, brota depois de
+        /// <paramref name="growSeconds"/> (<see cref="AdvanceBedGrowth"/>). Devolve false se nada mudou.
+        /// </summary>
+        public bool SetBed(int x, int y, BedStage stage, float growSeconds = 0f)
         {
-            if (k < 0 || k >= _curingNutrients.Count)
+            if (!InBounds(x, y))
+                return false;
+            int i = y * Width + x;
+            if (stage == BedStage.None)
+            {
+                if (_bedStage[i] == BedStage.None)
+                    return false;
+                RemoveBedAt(i);
+                return true;
+            }
+            if (_cells[i] != CellMaterial.Spoil)
+                return false;
+            if (_bedStage[i] == BedStage.None)
+                _beds.Add(i);
+            else if (_bedStage[i] == BedStage.Growing)
+                GrowingBedCount--;
+            _bedStage[i] = stage;
+            _bedGrow[i] = stage == BedStage.Growing ? Mathf.Max(0f, growSeconds) : 0f;
+            if (stage == BedStage.Growing)
+                GrowingBedCount++;
+            NutrientVersion++;
+            return true;
+        }
+
+        /// <summary>O canteiro de índice <paramref name="k"/> (0 a <see cref="BedCount"/>-1) e sua célula.</summary>
+        public bool TryGetBed(int k, out int x, out int y)
+        {
+            if (k < 0 || k >= _beds.Count)
             {
                 x = y = 0;
                 return false;
             }
-            int i = _curingNutrients[k];
+            int i = _beds[k];
             x = i % Width;
             y = i / Width;
             return true;
         }
 
-        /// <summary>Adianta a cura de um pixel (o bônus de quem interage com ele); se terminar, vira nutriente pronto.</summary>
-        public void ShaveNutrientCure(int x, int y, float seconds)
+        /// <summary>
+        /// Avança os canteiros regados. O que termina de brotar põe um nutriente pronto em cada um dos 4 lados livres
+        /// (célula sem material e sem nutriente; lado bloqueado não gera) e volta a <see cref="BedStage.Soil"/>: a terra
+        /// fica, a planta e a água se gastam. Devolve quantos nutrientes nasceram.
+        /// </summary>
+        public int AdvanceBedGrowth(float deltaTime, float rate = 1f)
         {
-            if (!InBounds(x, y) || seconds <= 0f)
-                return;
-            int i = y * Width + x;
-            if (_nutrientCure[i] <= 0f)
-                return;
-            _nutrientCure[i] -= seconds;
-            if (_nutrientCure[i] > 0f)
-                return;
-            _nutrientCure[i] = 0f;
-            _curingNutrients.Remove(i);
-            NutrientVersion++;
+            if (GrowingBedCount == 0 || deltaTime * rate <= 0f)
+                return 0;
+            deltaTime *= rate;
+            int born = 0;
+            for (int k = 0; k < _beds.Count; k++)
+            {
+                int i = _beds[k];
+                if (_bedStage[i] != BedStage.Growing)
+                    continue;
+                _bedGrow[i] -= deltaTime;
+                if (_bedGrow[i] <= 0f)
+                    born += FinishBed(i);
+            }
+            return born;
         }
 
-        void SetNutrientAt(int index, bool nutrient)
+        /// <summary>Adianta o canteiro (o bônus de quem cuida dele); se terminar, brota na hora. Devolve os nutrientes que nasceram.</summary>
+        public int ShaveBedGrowth(int x, int y, float seconds)
         {
-            if (!nutrient && _nutrientCure[index] > 0f)
+            if (!InBounds(x, y) || seconds <= 0f)
+                return 0;
+            int i = y * Width + x;
+            if (_bedStage[i] != BedStage.Growing)
+                return 0;
+            _bedGrow[i] -= seconds;
+            return _bedGrow[i] <= 0f ? FinishBed(i) : 0;
+        }
+
+        /// <summary>Lados do canteiro onde um nutriente pode nascer (célula da área ativa, sem material e sem nutriente).</summary>
+        public int FreeBedSides(int x, int y)
+        {
+            int free = 0;
+            for (int k = 0; k < 4; k++)
             {
-                _nutrientCure[index] = 0f;
-                _curingNutrients.Remove(index);
+                int nx = x + SideDx[k], ny = y + SideDy[k];
+                if (InBounds(nx, ny) && _cells[ny * Width + nx] == CellMaterial.Empty && !_nutrient[ny * Width + nx])
+                    free++;
             }
-            _nutrient[index] = nutrient;
-            NutrientCount += nutrient ? 1 : -1;
-            _chunkNutrient[ChunkOf(index)] += nutrient ? 1 : -1;
+            return free;
+        }
+
+        /// <summary>Os 4 lados do canteiro, na ordem esquerda, direita, cima, baixo.</summary>
+        public static readonly int[] SideDx = { -1, 1, 0, 0 };
+        public static readonly int[] SideDy = { 0, 0, 1, -1 };
+
+        int FinishBed(int index)
+        {
+            int x = index % Width, y = index / Width;
+            int born = 0;
+            for (int k = 0; k < 4; k++)
+            {
+                int nx = x + SideDx[k], ny = y + SideDy[k];
+                if (!InBounds(nx, ny))
+                    continue;
+                int n = ny * Width + nx;
+                if (_cells[n] != CellMaterial.Empty || _nutrient[n])
+                    continue;
+                SetNutrientAt(n, true);
+                born++;
+            }
+            _bedStage[index] = BedStage.Soil;
+            _bedGrow[index] = 0f;
+            GrowingBedCount--;
+            NutrientVersion++;
+            return born;
+        }
+
+        void RemoveBedAt(int index)
+        {
+            if (_bedStage[index] == BedStage.Growing)
+                GrowingBedCount--;
+            _bedStage[index] = BedStage.None;
+            _bedGrow[index] = 0f;
+            _beds.Remove(index);
             NutrientVersion++;
         }
 
@@ -586,10 +779,15 @@ namespace Fabula.Incrementant.World
                 _chunkMarked[ChunkOf(to)]++;
             }
             _marked[to] = _marked[from];
+            _built[to] = _built[from];
+            _built[from] = false;
             if (_buildMarked[to])
                 ClearBuildMarkAt(to);
             if (_nutrient[to])
                 SetNutrientAt(to, false);
+            // A física não move canteiro (GranularSimulation); se algo mover a terra, o canteiro não vai junto.
+            if (_bedStage[from] != BedStage.None)
+                RemoveBedAt(from);
             SetWetnessAt(to, _wetness[from]);
             SetWetnessAt(from, 0);
             _cells[from] = _behind[from];
@@ -642,6 +840,7 @@ namespace Fabula.Incrementant.World
             if (_water[index] == water)
                 return;
             _water[index] = water;
+            WaterVersion++;
             int delta = water ? 1 : -1;
             WaterCount += delta;
             int y = index / Width;
@@ -703,6 +902,8 @@ namespace Fabula.Incrementant.World
 
         /// <summary>Quantas células pintadas como berçário há no bloco.</summary>
         public int GetChunkNurseryRoomCount(int cx, int cy) => _chunkNurseryRoom[cy * ChunkColumns + cx];
+
+        public int GetChunkWasteRoomCount(int cx, int cy) => _chunkWasteRoom[cy * ChunkColumns + cx];
 
         /// <summary>Quantos nutrientes guardados há no bloco.</summary>
         public int GetChunkNutrientCount(int cx, int cy) => _chunkNutrient[cy * ChunkColumns + cx];

@@ -144,7 +144,7 @@ namespace Fabula.Incrementant.EditorTools.UI
 
             // --- submenu Pintar (ao lado do menu; escondido até clicar em Pintar)
             int brushCount = AntFarmGame.BrushCount;
-            string[] brushIcons = { "icons/shovel", "icons/crate", "icons/crown", "icons/mushroom", "icons/egg" };
+            string[] brushIcons = { "icons/shovel", "icons/crate", "icons/crown", "icons/mushroom", "icons/egg", "icons/close" };
             Image paint = BuildPanelWithHeader(root, "SubmenuPintar", new Vector2(0, 1), new Vector2(286, -214),
                                                new Vector2(400, 62 + brushCount * 50 + 12), "PINTAR");
             var brushButtons = new Button[brushCount];
@@ -159,6 +159,7 @@ namespace Fabula.Incrementant.EditorTools.UI
             SetArray(refs, "_brushImages", brushImages);
 
             BuildQueenPanel(root, refs);
+            BuildRaidAlert(root, refs);
 
             // --- velocidade (canto inferior esquerdo)
             Image speedPanel = BuildSprite(root, "Velocidade", "panels/hud_card", new Vector2(0, 0), new Vector2(0, 0),
@@ -189,6 +190,8 @@ namespace Fabula.Incrementant.EditorTools.UI
 
             // A tela de evolução vai por último: cobre o resto do HUD e fica escondida até o botão EVOLUÇÃO.
             SetObject(refs, "_treePanel", BuildTreeScreen(root, game));
+            // O menu do ESC fica acima de tudo, inclusive da tela de evolução.
+            SetObject(refs, "_pauseMenu", BuildPauseMenu(root, game));
 
             SetObject(refs, "_buttonIdle", Load("buttons/button_normal"));
             SetObject(refs, "_buttonActive", Load("buttons/button_focus"));
@@ -199,6 +202,31 @@ namespace Fabula.Incrementant.EditorTools.UI
         }
 
         // ---------------------------------------------------------------- blocos
+
+        /// <summary>
+        /// Alerta dos ataques de cupins: faixa no centro do topo, logo abaixo do cartão Formigas. Escondida fora do ataque; não
+        /// bloqueia o pincel (sem raycast).
+        /// </summary>
+        static void BuildRaidAlert(Transform root, SerializedObject refs)
+        {
+            Image panel = BuildSprite(root, "AlertaCupins", "panels/notification", new Vector2(0.5f, 1), new Vector2(0.5f, 1),
+                                      new Vector2(0, -128), new Vector2(1000, 60));
+            panel.raycastTarget = false;
+            Image icon = BuildSprite(panel.transform, "Icone", "icons/warning", new Vector2(0, 0.5f), new Vector2(0, 0.5f),
+                                     new Vector2(18, 0), new Vector2(36, 36));
+            icon.type = Image.Type.Simple;
+            icon.preserveAspect = true;
+            icon.raycastTarget = false;
+            Text text = BuildText(panel.transform, "Texto", "", TextSmall, Ink, TextAnchor.MiddleCenter);
+            var rect = text.rectTransform;
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = new Vector2(64, 0);
+            rect.offsetMax = new Vector2(-16, 0);
+            panel.gameObject.SetActive(false);
+            SetObject(refs, "_raidAlert", panel.gameObject);
+            SetText(refs, "_raidAlertText", text);
+        }
 
         /// <summary>Submenu da rainha: modo (automático, específico, pausado), tipo, o que vem a seguir e o botão de criar.</summary>
         static void BuildQueenPanel(Transform root, SerializedObject refs)
@@ -222,7 +250,12 @@ namespace Fabula.Incrementant.EditorTools.UI
                 typeButtons[i] = BuildButton(panel.transform, "Tipo" + i, new Vector2(0.5f, 1), new Vector2(0, -typesTop - i * 50),
                                              new Vector2(528, 42), "icons/ant", AntFarmHud.RoleLabel(AntFarmHud.CreatableRoles[i]),
                                              true, out typeImages[i]);
-                typeImages[i].transform.Find("Icone").GetComponent<Image>().color = AntSwarmView.RoleTint(AntFarmHud.CreatableRoles[i]);
+                // O ícone é a própria arte da classe (já colorida); sem ela, cai no ícone genérico tingido.
+                Image roleIcon = typeImages[i].transform.Find("Icone").GetComponent<Image>();
+                Sprite roleArt = Setup.AntFarmSceneSetup.RoleIcon(AntFarmHud.CreatableRoles[i]);
+                if (roleArt != null)
+                    roleIcon.sprite = roleArt;
+                roleIcon.color = roleArt != null ? Color.white : AntSwarmView.RoleColor(AntFarmHud.CreatableRoles[i]);
                 typeLabels[i] = typeButtons[i].transform.Find("Texto").GetComponent<Text>();
                 typeLabels[i].fontSize = TextSmall;
             }
@@ -248,6 +281,243 @@ namespace Fabula.Incrementant.EditorTools.UI
             SetText(refs, "_queenNext", next);
             SetText(refs, "_queenBrood", brood);
             SetText(refs, "_queenSpace", space);
+        }
+
+        // ---------------------------------------------------------------- menu do ESC e configurações
+
+        /// <summary>
+        /// Menu do ESC: fundo escurecido em tela cheia (bloqueia cliques no mundo e no HUD), o painel do menu no centro e a
+        /// tela de configurações, que troca de lugar com ele. Começa escondido; o <see cref="AntFarmHud"/> abre no ESC.
+        /// </summary>
+        static PauseMenu BuildPauseMenu(Transform root, AntFarmGame game)
+        {
+            var go = new GameObject("MenuPausa", typeof(RectTransform), typeof(Image), typeof(PauseMenu));
+            go.layer = LayerMask.NameToLayer("UI");
+            go.transform.SetParent(root, false);
+            Stretch((RectTransform)go.transform);
+            var backdrop = go.GetComponent<Image>();
+            backdrop.color = new Color(0.05f, 0.03f, 0.02f, 0.6f);
+            backdrop.raycastTarget = true;
+
+            string[] labels = { "CONTINUAR", "CONFIGURAÇÕES", "SALVAR PARTIDA", "CARREGAR PARTIDA", "SAIR DO JOGO" };
+            string[] icons = { "icons/play", "icons/gear", "icons/arrow_down", "icons/arrow_up", "icons/close" };
+            const float width = 520f;
+            Image panel = BuildPanelWithHeader(go.transform, "PainelMenu", new Vector2(0.5f, 0.5f), Vector2.zero,
+                                               new Vector2(width, 62 + labels.Length * 56 + 52), "MENU");
+            panel.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            var buttons = new Button[labels.Length];
+            for (int i = 0; i < labels.Length; i++)
+            {
+                buttons[i] = BuildButton(panel.transform, "Botao" + i, new Vector2(0.5f, 1), new Vector2(0, -56 - i * 56),
+                                         new Vector2(width - 48, 46), icons[i], labels[i], true, out Image image);
+                if (i == labels.Length - 1)
+                    image.sprite = Load("buttons/button_danger");
+            }
+            Text status = BuildText(panel.transform, "Aviso", "", TextSmall, Ink, TextAnchor.MiddleCenter);
+            Place(status.rectTransform, new Vector2(16, -56 - labels.Length * 56 - 4), new Vector2(width - 32, 32));
+
+            SettingsScreen settings = BuildSettingsScreen(go.transform);
+
+            var so = new SerializedObject(go.GetComponent<PauseMenu>());
+            SetObject(so, "_game", game);
+            SetObject(so, "_mainPanel", panel.gameObject);
+            SetObject(so, "_settings", settings);
+            SetObject(so, "_resume", buttons[0]);
+            SetObject(so, "_settingsButton", buttons[1]);
+            SetObject(so, "_save", buttons[2]);
+            SetObject(so, "_load", buttons[3]);
+            SetObject(so, "_quit", buttons[4]);
+            SetText(so, "_status", status);
+            so.ApplyModifiedPropertiesWithoutUndo();
+            go.SetActive(false);
+            return go.GetComponent<PauseMenu>();
+        }
+
+        // Tela de configurações: uma linha por opção, rótulo à esquerda e controle à direita.
+        const float SettingsWidth = 980f, SettingsRow = 64f, SettingsTop = 64f, SettingsControlX = 500f;
+
+        static SettingsScreen BuildSettingsScreen(Transform parent)
+        {
+            string[] rows =
+            {
+                "VOLUME GERAL", "MÚSICA", "EFEITOS SONOROS", "EFEITOS VISUAIS", "TELA CHEIA", "RESOLUÇÃO", "VSYNC",
+                "LIMITE DE FPS", "MOSTRAR FPS E TEMPO",
+            };
+            Image panel = BuildPanelWithHeader(parent, "TelaConfiguracoes", new Vector2(0.5f, 0.5f), Vector2.zero,
+                                               new Vector2(SettingsWidth, SettingsTop + rows.Length * SettingsRow + 84), "CONFIGURAÇÕES");
+            panel.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            var screen = panel.gameObject.AddComponent<SettingsScreen>();
+            var so = new SerializedObject(screen);
+            Transform t = panel.transform;
+
+            for (int i = 0; i < rows.Length; i++)
+            {
+                Text label = BuildText(t, "Rotulo" + i, rows[i], TextSmall, Ink, TextAnchor.MiddleLeft);
+                Place(label.rectTransform, new Vector2(40, -RowTop(i)), new Vector2(440, SettingsRow));
+                if (i > 0)
+                {
+                    Image line = BuildPlain(t, "Divisoria" + i, new Color(0.23f, 0.13f, 0.07f, 0.15f));
+                    Place(line.rectTransform, new Vector2(32, -RowTop(i)), new Vector2(SettingsWidth - 64, 2));
+                }
+            }
+
+            BuildSliderRow(t, 0, so, "_master", "_masterValue");
+            BuildSliderRow(t, 1, so, "_music", "_musicValue");
+            BuildSliderRow(t, 2, so, "_sfx", "_sfxValue");
+            BuildCyclerRow(t, 3, so, "_vfxPrevious", "_vfxNext", "_vfxValue");
+            BuildToggleRow(t, 4, so, "_fullscreen", "_fullscreenImage");
+            BuildCyclerRow(t, 5, so, "_resolutionPrevious", "_resolutionNext", "_resolutionValue");
+            BuildToggleRow(t, 6, so, "_vsync", "_vsyncImage");
+            BuildCyclerRow(t, 7, so, "_fpsPrevious", "_fpsNext", "_fpsValue");
+            BuildToggleRow(t, 8, so, "_showStats", "_showStatsImage");
+
+            float footer = RowTop(rows.Length) + 16;
+            Button defaults = BuildButton(t, "Padrao", new Vector2(0.5f, 1), new Vector2(-150, -footer), new Vector2(280, 48),
+                                          "icons/gear", "PADRÃO", true, out _);
+            Button back = BuildButton(t, "Voltar", new Vector2(0.5f, 1), new Vector2(150, -footer), new Vector2(280, 48),
+                                      "icons/arrow_left", "[ESC] VOLTAR", true, out Image backImage);
+            backImage.sprite = Load("buttons/button_action");
+            SetObject(so, "_defaults", defaults);
+            SetObject(so, "_back", back);
+            SetObject(so, "_toggleOn", Load("controls/toggle_on"));
+            SetObject(so, "_toggleOff", Load("controls/toggle_off"));
+            so.ApplyModifiedPropertiesWithoutUndo();
+            panel.gameObject.SetActive(false);
+            return screen;
+        }
+
+        static float RowTop(int row) => SettingsTop + row * SettingsRow;
+
+        /// <summary>Centro vertical da linha, a partir do topo do painel (y para baixo).</summary>
+        static float RowCenter(int row) => RowTop(row) + SettingsRow * 0.5f;
+
+        /// <summary>Slider de 0 a 1 em escala 2 (trilho, preenchimento e alça do kit) e o valor em % à direita.</summary>
+        static void BuildSliderRow(Transform panel, int row, SerializedObject so, string sliderField, string valueField)
+        {
+            const float scale = 2f, width = 330f;
+            var go = new GameObject("Slider" + row, typeof(RectTransform), typeof(Slider));
+            go.layer = LayerMask.NameToLayer("UI");
+            go.transform.SetParent(panel, false);
+            var rect = (RectTransform)go.transform;
+            rect.anchorMin = rect.anchorMax = new Vector2(0, 1);
+            rect.pivot = new Vector2(0, 0.5f);
+            rect.anchoredPosition = new Vector2(SettingsControlX, -RowCenter(row));
+            rect.sizeDelta = new Vector2(width, 56);
+
+            Image track = BuildScaledSprite(go.transform, "Trilho", "sliders/slider_track", scale);
+            var trackRect = track.rectTransform;
+            trackRect.anchorMin = new Vector2(0, 0.5f);
+            trackRect.anchorMax = new Vector2(1, 0.5f);
+            trackRect.sizeDelta = new Vector2(0, 12 * scale);
+            track.raycastTarget = true; // clicar no trilho também move o valor
+
+            var fillArea = new GameObject("AreaPreenchimento", typeof(RectTransform));
+            fillArea.layer = go.layer;
+            fillArea.transform.SetParent(go.transform, false);
+            var fillAreaRect = (RectTransform)fillArea.transform;
+            fillAreaRect.anchorMin = new Vector2(0, 0.5f);
+            fillAreaRect.anchorMax = new Vector2(1, 0.5f);
+            fillAreaRect.sizeDelta = new Vector2(0, 12 * scale);
+            Image fill = BuildScaledSprite(fillArea.transform, "Preenchimento", "sliders/slider_fill", scale);
+            Stretch(fill.rectTransform);
+
+            var handleArea = new GameObject("AreaAlca", typeof(RectTransform));
+            handleArea.layer = go.layer;
+            handleArea.transform.SetParent(go.transform, false);
+            var handleAreaRect = (RectTransform)handleArea.transform;
+            handleAreaRect.anchorMin = Vector2.zero;
+            handleAreaRect.anchorMax = Vector2.one;
+            handleAreaRect.offsetMin = new Vector2(18, 0); // meia alça de folga: ela não sai do trilho nos extremos
+            handleAreaRect.offsetMax = new Vector2(-18, 0);
+            Image handle = BuildScaledSprite(handleArea.transform, "Alca", "sliders/slider_handle", scale);
+            handle.type = Image.Type.Simple;
+            handle.raycastTarget = true;
+            // O Slider estica a alça na altura da área (56 = 28 px do sprite em escala 2): só a largura vai no sizeDelta.
+            handle.rectTransform.sizeDelta = new Vector2(18 * scale, 0);
+
+            var slider = go.GetComponent<Slider>();
+            slider.fillRect = fill.rectTransform;
+            slider.handleRect = handle.rectTransform;
+            slider.targetGraphic = handle;
+            slider.transition = Selectable.Transition.None;
+            slider.direction = Slider.Direction.LeftToRight;
+            slider.minValue = 0f;
+            slider.maxValue = 1f;
+            slider.wholeNumbers = false;
+            slider.value = 1f;
+
+            Text value = BuildText(panel, "Valor" + row, "100%", TextSmall, Ink, TextAnchor.MiddleRight);
+            float valueX = SettingsControlX + width + 8;
+            Place(value.rectTransform, new Vector2(valueX, -RowTop(row)), new Vector2(SettingsWidth - 40 - valueX, SettingsRow));
+            SetObject(so, sliderField, slider);
+            SetText(so, valueField, value);
+        }
+
+        /// <summary>Seletor com duas setas e o valor escolhido no meio.</summary>
+        static void BuildCyclerRow(Transform panel, int row, SerializedObject so, string previousField, string nextField, string valueField)
+        {
+            const float arrow = 52f, span = 440f;
+            Button previous = BuildArrowButton(panel, "Anterior" + row, "icons/arrow_left", new Vector2(SettingsControlX, -RowCenter(row)), arrow);
+            Button next = BuildArrowButton(panel, "Proximo" + row, "icons/arrow_right",
+                                           new Vector2(SettingsControlX + span - arrow, -RowCenter(row)), arrow);
+            Text value = BuildText(panel, "Valor" + row, "", TextSmall, Ink, TextAnchor.MiddleCenter);
+            Place(value.rectTransform, new Vector2(SettingsControlX + arrow, -RowTop(row)), new Vector2(span - 2 * arrow, SettingsRow));
+            SetObject(so, previousField, previous);
+            SetObject(so, nextField, next);
+            SetText(so, valueField, value);
+        }
+
+        static Button BuildArrowButton(Transform panel, string name, string icon, Vector2 position, float size)
+        {
+            Image image = BuildSprite(panel, name, "buttons/icon_button", new Vector2(0, 1), new Vector2(0, 1), position, new Vector2(size, size));
+            image.rectTransform.pivot = new Vector2(0, 0.5f);
+            var button = image.gameObject.AddComponent<Button>();
+            button.targetGraphic = image;
+            button.transition = Selectable.Transition.SpriteSwap;
+            button.spriteState = new SpriteState
+            {
+                pressedSprite = Load("buttons/icon_button_focus"),
+                disabledSprite = Load("buttons/icon_button_disabled"),
+            };
+            Image iconImage = BuildSprite(image.transform, "Icone", icon, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                                          Vector2.zero, new Vector2(28, 22));
+            iconImage.type = Image.Type.Simple;
+            iconImage.preserveAspect = true;
+            iconImage.raycastTarget = false;
+            iconImage.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            return button;
+        }
+
+        /// <summary>Interruptor liga/desliga (sprites <c>controls/toggle_*</c> em escala 2); a tela troca o sprite.</summary>
+        static void BuildToggleRow(Transform panel, int row, SerializedObject so, string buttonField, string imageField)
+        {
+            Image image = BuildScaledSprite(panel, "Interruptor" + row, "controls/toggle_on", 2f);
+            image.type = Image.Type.Simple;
+            image.raycastTarget = true;
+            var rect = image.rectTransform;
+            rect.anchorMin = rect.anchorMax = new Vector2(0, 1);
+            rect.pivot = new Vector2(0, 0.5f);
+            rect.anchoredPosition = new Vector2(SettingsControlX, -RowCenter(row));
+            rect.sizeDelta = new Vector2(50 * 2, 26 * 2);
+            var button = image.gameObject.AddComponent<Button>();
+            button.targetGraphic = image;
+            button.transition = Selectable.Transition.None;
+            SetObject(so, buttonField, button);
+            SetObject(so, imageField, image);
+        }
+
+        /// <summary>Sprite do kit geral desenhado a <paramref name="scale"/> pixels de canvas por pixel de sprite (9-slice incluso).</summary>
+        static Image BuildScaledSprite(Transform parent, string name, string key, float scale)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+            go.layer = LayerMask.NameToLayer("UI");
+            go.transform.SetParent(parent, false);
+            var image = go.GetComponent<Image>();
+            image.sprite = Load(key);
+            image.type = Image.Type.Sliced;
+            image.pixelsPerUnitMultiplier = 1f / scale;
+            image.raycastTarget = false;
+            return image;
         }
 
         // ---------------------------------------------------------------- tela de evolução (árvore)

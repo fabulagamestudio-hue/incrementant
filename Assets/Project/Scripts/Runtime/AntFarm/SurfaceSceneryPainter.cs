@@ -96,14 +96,21 @@ namespace Fabula.Incrementant.AntFarm
         public readonly SceneryLayer Mid;
         public readonly SceneryLayer Near;
         public readonly SceneryLayer Front;
+        /// <summary>
+        /// Células cobertas pela arte de cogumelos, galhos, folhas secas e pedrinhas (sem os grãos): índice
+        /// <c>(y - Near.OriginY) * larguraDoMapa + x</c>. Vira o fundo caminhável da grade (<see cref="SurfaceSceneryPainter.ApplyBackdrop"/>).
+        /// </summary>
+        public readonly bool[] Backdrop;
 
-        public SceneryLayers(SceneryLayer sky, SceneryLayer far, SceneryLayer mid, SceneryLayer near, SceneryLayer front)
+        public SceneryLayers(SceneryLayer sky, SceneryLayer far, SceneryLayer mid, SceneryLayer near, SceneryLayer front,
+                             bool[] backdrop = null)
         {
             Sky = sky;
             Far = far;
             Mid = mid;
             Near = near;
             Front = front;
+            Backdrop = backdrop ?? Array.Empty<bool>();
         }
     }
 
@@ -113,7 +120,8 @@ namespace Fabula.Incrementant.AntFarm
     /// 25 células e sai pelo alto do mapa, um trevo tem ~12 de largura e as pedrinhas têm de 1 a 6.
     /// Grama, flores, trevos, cogumelos, galhos, folhas secas, pedrinhas e grãos são carimbos isolados
     /// (<see cref="SceneryStamp"/>, vindos dos PNGs ou de <see cref="PaintElement"/>) que <see cref="Paint"/> só posiciona;
-    /// céu e faixas distantes são pintados aqui. Só visual: nada entra na grade nem na navegação. Determinístico pela seed.
+    /// céu e faixas distantes são pintados aqui. Nada entra na grade como material; só a área coberta pelos elementos
+    /// (<see cref="SceneryLayers.Backdrop"/>) vira fundo caminhável para as formigas. Determinístico pela seed.
     /// </summary>
     public static class SurfaceSceneryPainter
     {
@@ -201,6 +209,8 @@ namespace Fabula.Incrementant.AntFarm
             Repeat(rng, settings.Twigs * per100, () => PlaceSpaced(Pick(SceneryElement.Twig), bigUsed, 12f));
             Repeat(rng, settings.DryLeaves * per100, () => PlaceSpaced(Pick(SceneryElement.DryLeaf), bigUsed, 12f));
             Repeat(rng, settings.Pebbles * per100, () => PlaceSpaced(Pick(SceneryElement.Pebble), pebbleUsed, 6f, bury: Range(rng, 0.6f, 1f)));
+            // Antes dos grãos: migalhas de menos de 1 célula não viram fundo caminhável.
+            bool[] backdrop = CoveredCells(near, grid.Width);
             Repeat(rng, settings.Grains * per100, () => PlaceSpaced(Pick(SceneryElement.Grain), grainUsed, 3f));
 
             // Camada da frente (na frente das formigas) vazia: os tufos que ficavam nela viraram plantas colhíveis
@@ -208,7 +218,43 @@ namespace Fabula.Incrementant.AntFarm
             var front = new SceneryLayer(width, height, originY, PixelsPerCell);
             front.Fill(Clear);
 
-            return new SceneryLayers(sky, far, mid, near, front);
+            return new SceneryLayers(sky, far, mid, near, front, backdrop);
+        }
+
+        /// <summary>Células (de <paramref name="cellColumns"/> colunas) com algum pixel opaco da camada.</summary>
+        static bool[] CoveredCells(SceneryLayer layer, int cellColumns)
+        {
+            int rows = layer.Height / PixelsPerCell;
+            var covered = new bool[cellColumns * rows];
+            for (int py = 0; py < layer.Height; py++)
+            {
+                int row = py * layer.Width;
+                int cellRow = (py / PixelsPerCell) * cellColumns;
+                for (int px = 0; px < layer.Width; px++)
+                {
+                    if (layer.Pixels[row + px].a != 0)
+                        covered[cellRow + px / PixelsPerCell] = true;
+                }
+            }
+            return covered;
+        }
+
+        /// <summary>
+        /// Passa a área coberta pelo cenário de perto (<see cref="SceneryLayers.Backdrop"/>) para a grade
+        /// (<see cref="PixelGrid.SetBackdrop"/>), tirando a do mapa anterior. A formiga anda por ela como pelo fundo do túnel.
+        /// </summary>
+        public static void ApplyBackdrop(PixelGrid grid, SceneryLayers layers)
+        {
+            grid.ClearBackdrop();
+            bool[] backdrop = layers.Backdrop;
+            if (backdrop.Length == 0)
+                return;
+            int originY = layers.Near.OriginY;
+            for (int i = 0; i < backdrop.Length; i++)
+            {
+                if (backdrop[i])
+                    grid.SetBackdrop(i % grid.Width, originY + i / grid.Width, true);
+            }
         }
 
         /// <summary>Pedrinha meio enterrada: <paramref name="bury"/> = 1 afunda 70% do raio vertical.</summary>

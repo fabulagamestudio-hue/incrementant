@@ -26,6 +26,15 @@
 | REQ-017 | 2026-10-17 | Árvore da rainha (classes e melhorias) | PROGRAMMING | UNDEFINED | IMPLEMENTED |
 | REQ-018 | 2026-10-17 | Revisar as funções de cada formiga por papel contra o design | PROGRAMMING, GAME_DESIGN | UNDEFINED | IN_PROGRESS |
 | REQ-019 | 2026-10-18 | Variantes de cor das formigas em pastas por função | ART | UNDEFINED | IMPLEMENTED |
+| REQ-020 | 2026-10-18 | Formigas andam livres do lado de fora (meio da arte do cenário e das obras) | PROGRAMMING | UNDEFINED | IMPLEMENTED |
+| REQ-021 | 2026-10-18 | Reserva do pixel a coletar: uma formiga por pixel, sem bando indo e voltando | PROGRAMMING | UNDEFINED | IMPLEMENTED |
+| REQ-022 | 2026-10-18 | Menu do ESC e menu de configurações do jogo | PROGRAMMING | UNDEFINED | IMPLEMENTED |
+| REQ-023 | 2026-10-18 | Alimentar o jogo com SFX e VFX | AUDIO, ART, PROGRAMMING | UNDEFINED | PLANNED |
+| REQ-024 | 2026-10-18 | Experimento: célula desenhada em 16x16 e mapa gerado dobrado (branch `experimento/pixel-16x16`) | ART, PROGRAMMING | UNDEFINED | IMPLEMENTED |
+| REQ-025 | 2026-10-18 | Ampliar a resolução da arte das formigas em 6x mantendo o tamanho no jogo | ART, PROGRAMMING | UNDEFINED | IMPLEMENTED |
+| REQ-026 | 2026-10-18 | Melhorar formigas adultas e cenário em pixel art sem blur nas bordas | ART | UNDEFINED | IMPLEMENTED |
+| REQ-027 | 2026-10-18 | Arte de formiga inimiga com asas na chegada e sem asas após pousar | ART | UNDEFINED | IMPLEMENTED |
+| REQ-029 | 2026-10-18 | Ataques de cupins, formigas de ataque (soldado) e área de resíduos | PROGRAMMING, GAME_DESIGN, ART | UNDEFINED | IMPLEMENTED |
 
 ## Registros
 
@@ -356,3 +365,183 @@
 - **Histórico:**
   - 2026-10-18 — PLANNED: pedido registrado.
   - 2026-10-18 — IMPLEMENTED: 48 PNGs em seis pastas; comparação de 10.368 pixels e hashes confirmou dimensões, transparência, paleta e preservação dos originais; prévia inspecionada pelo agente. Importação/reprodução na Unity não verificadas.
+
+### REQ-020 — Formigas andam livres do lado de fora (meio da arte do cenário e das obras)
+
+- **Data de registro:** 2026-10-18
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING
+- **Descrição:** "As formigas podem andar livremente na área externa, incluindo o meio de props e construções. Antes só podiam andar pelo contorno da arte." Esclarecido pelo desenvolvedor: todo pixel coberto pela arte de cogumelo, graveto, folha seca e pedrinha vira fundo caminhável, como a parede de trás do túnel; construções do lado de fora do formigueiro também ficam completamente caminháveis.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-002, REQ-016
+- **Itens relacionados:** PRG-029
+- **Referências:** [AntFarmGuide.md](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md) ("Andar livre do lado de fora")
+- **Decisões pendentes:** Grãos (migalhas de menos de 1 célula) ficaram fora do fundo caminhável; confirmar.
+- **Histórico:**
+  - 2026-10-18 — PLANNED: pedido registrado.
+  - 2026-10-18 — IMPLEMENTED: PRG-029; 7 testes novos passando e Play Mode pelo agente (8.266 células do céu cobertas pela arte, todas caminháveis). Sem uso por uma pessoa.
+
+### REQ-021 — Reserva do pixel a coletar: uma formiga por pixel, sem bando indo e voltando
+
+- **Data de registro:** 2026-10-18
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING
+- **Descrição:** "Comportamento de busca de pixel das formigas leva um grande grupo. O pixel que vai ser coletado precisa de uma flag para informar que ele já vai ser interagido para impedir outras formigas de irem atrás do mesmo, e um grande grupo se mover de uma vez e ficar voltando quando for coletado."
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-001, REQ-018
+- **Itens relacionados:** PRG-030
+- **Referências:** [AntFarmGuide.md](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md) ("Reserva do pixel marcado")
+- **Decisões pendentes:** Nenhuma
+- **Histórico:**
+  - 2026-10-18 — PLANNED: pedido registrado.
+  - 2026-10-18 — IMPLEMENTED: PRG-030; 2 testes novos passando e Play Mode pelo agente (16 formigas, 136 pixels marcados, nenhuma reserva repetida). Sem uso por uma pessoa.
+
+### REQ-022 — Menu do ESC e menu de configurações do jogo
+
+- **Data de registro:** 2026-10-18
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING
+- **Descrição:** "Apertar ESC abre o menu. Crie já o menu de configurações do jogo."
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-010
+- **Itens relacionados:** PRG-031
+- **Referências:** [HudGuide.md](../Assets/Project/Scripts/Runtime/UI/HudGuide.md) ("Menu do ESC e configurações"), [SettingsGuide.md](../Assets/Project/Scripts/Runtime/Settings/SettingsGuide.md)
+- **Decisões pendentes:** Lista de opções escolhida pelo agente (volumes geral/música/efeitos, efeitos visuais, tela cheia, resolução, VSync, limite de FPS, mostrar FPS e tempo); confirmar se falta alguma (idioma, velocidade da câmera, teclas). Abrir o menu pausa a simulação; confirmar.
+- **Histórico:**
+  - 2026-10-18 — PLANNED: pedido registrado.
+  - 2026-10-18 — IMPLEMENTED: PRG-031; 4 testes novos passando e Play Mode pelo agente (menu, camadas do ESC, aplicação das opções e arquivo gravado). Sem uso por uma pessoa.
+
+### REQ-023 — Alimentar o jogo com SFX e VFX
+
+- **Data de registro:** 2026-10-18
+- **Estado:** PLANNED
+- **Prioridade:** UNDEFINED
+- **Setores:** AUDIO, ART, PROGRAMMING
+- **Descrição:** "A nossa próxima tarefa vai ser alimentar com SFX e VFX."
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-022
+- **Itens relacionados:** AUD-001, ART-007, PRG-031
+- **Referências:** [SettingsGuide.md](../Assets/Project/Scripts/Runtime/Settings/SettingsGuide.md) ("Como ligar SFX, música e VFX")
+- **Decisões pendentes:** Quais eventos ganham som e efeito, origem dos arquivos (biblioteca, gerados, encomendados) e se haverá música.
+- **Histórico:**
+  - 2026-10-18 — PLANNED: anunciado pelo desenvolvedor como a próxima tarefa.
+
+### REQ-024 — Experimento: célula desenhada em 16x16 e mapa gerado dobrado
+
+- **Data de registro:** 2026-10-18
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** ART, PROGRAMMING
+- **Descrição:** "Vamos fazer uma experimentação de dobrar o elemento artístico. Hoje, cada pixel equivale a 1 pixel. Vamos fazer ser 16x16 cada pixel, e aumentar o geracional de mapa." Esclarecido: "tudo aumenta de tamanho"; a formiga continua pegando uma célula, que agora tem 16 px; mapa dobrado (1920×1040, área inicial 640×400). Feito na branch `experimento/pixel-16x16`.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** —
+- **Itens relacionados:** ART-008, PRG-032
+- **Referências:** [AntFarmGuide.md](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md) ("Tiles 16x16"), KI-016 em [KnownIssues.md](../Assets/Project/Scripts/KnownIssues.md)
+- **Decisões pendentes:** Se o experimento vai para a `main`; redesenhar formigas e cenário a 16 px por célula (hoje 6); texturas de material definitivas e bordas (autotile); se o mapa dobrado compensa a memória a mais (ver Histórico).
+- **Histórico:**
+  - 2026-10-18 — IMPLEMENTED: shader de tiles, zoom inicial de 16 px por célula e mapa dobrado; Play Mode pelo agente (textura e contorno vistos em captura). Sem uso por uma pessoa.
+  - 2026-10-18 — Testes de coleta e física: 64/67, as 3 falhas eram as de antes (KI-015), com os mesmos números.
+  - 2026-10-18 — Falhas antigas corrigidas (KI-015 resolvido); suíte EditMode 173/173 na Unity com o mapa dobrado.
+  - 2026-10-18 — Pedido complementar: "Faça as formigas carregarem o pixel relativo que foi eliminado, assim como fisicamente, faça o elemento ser referente aquele bloco." A formiga leva o mesmo bloco 16x16 da célula de onde tirou o pixel, do tamanho de uma célula. Visto em Play Mode pelo agente. Custo medido do mapa dobrado (pergunta do desenvolvedor): ver KI-016.
+
+### REQ-025 — Ampliar a resolução da arte das formigas em 6x mantendo o tamanho no jogo
+
+- **Data de registro:** 2026-10-18
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** ART, PROGRAMMING
+- **Descrição:** Aumentar em 6x a resolução das artes das formigas para permitir melhor detalhamento, mantendo o tamanho delas no jogo, conforme esclarecimento do desenvolvedor.
+- **Critérios de aceitação:** Resolução 6x em cada eixo e mesmo tamanho no jogo.
+- **Dependências:** —
+- **Itens relacionados:** ART-009, PRG-006
+- **Referências:** [Arte e validação](../Assets/Project/Art/Ants/README.md); [guia](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md)
+- **Decisões pendentes:** —
+- **Histórico:**
+  - 2026-10-18 — PLANNED: pedido registrado; desenvolvedor esclareceu que o tamanho no jogo deve ser mantido.
+  - 2026-10-18 — IMPLEMENTED: 72 PNGs adultos em 108x72, densidade 36 px/unidade; gerador e importador atualizados. Comparados 559.872 pixels RGBA e metadados, preservando GUIDs e pivôs. Confirmação final na Unity pendente (refresh excedeu o tempo de espera; constante nova ainda ausente no tipo carregado); console sem erros na consulta. Sem build.
+
+### REQ-026 — Melhorar formigas adultas e cenário em pixel art sem blur nas bordas
+
+- **Data de registro:** 2026-10-18
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** ART
+- **Descrição:** Melhorar a qualidade gráfica das formigas adultas e dos elementos de cenário, mantendo o estilo pixel art, pixel perfect e sem blur nas bordas. O desenvolvedor confirmou ambas as categorias.
+- **Critérios de aceitação:** Melhorar as duas categorias mantendo pixel art e bordas nítidas, sem blur.
+- **Dependências:** ART-009
+- **Itens relacionados:** ART-010
+- **Referências:** [Formigas](../Assets/Project/Art/Ants/README.md); [cenário](../Assets/Project/Art/Scenery/README.md); [prompts](../Assets/Project/Art/PixelArtGeneration.json)
+- **Decisões pendentes:** —
+- **Histórico:**
+  - 2026-10-18 — PLANNED: pedido registrado após esclarecimento do escopo (formigas adultas e cenário).
+  - 2026-10-18 — IMPLEMENTED: refinados 72 quadros adultos e 69 elementos de cenário; alpha binário, paletas limitadas, dimensões e metadados preservados. Validados 1.390.673 pixels; prévias inspecionadas; Unity reconheceu 141 sprites sem falhas nas configurações e reimportou todos de forma síncrona. Aprovação visual e reprodução em Play Mode pendentes. Sem build.
+
+### REQ-027 — Cultivo de nutrientes com terra fofa, planta e água
+
+- **Data de registro:** 2026-10-18
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, GAME_DESIGN, ART
+- **Descrição:** Pedido do desenvolvedor: "além do pedaço da planta, também vai precisar de água e de terra fofa (a terra que tem física). A terra fofa será colocada na sala de nutrição, depois a formiga vai colocar a planta neste mesmo bloco e depois vai colocar o bloco de água. Nisso vai fazer com que os 4 lados gerem um bloco de nutrição já pronto, no mesmo tempo anterior que era feito para converter em nutrição. Pode fazer animação do crescimento." Decisões do desenvolvedor em 2026-10-18: a água vem de qualquer água do mapa; a terra fica (só planta e água se gastam); só lados livres geram nutriente (no chão, 3).
+- **Critérios de aceitação:** UNDEFINED
+- **Dependências:** REQ-008
+- **Itens relacionados:** PRG-033, GD-005
+- **Referências:** [AntFarmGuide.md](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md) ("Canteiros"); KI-017 em [KnownIssues.md](../Assets/Project/Scripts/KnownIssues.md)
+- **Decisões pendentes:** Arte definitiva do broto e do nutriente brotando.
+- **Histórico:**
+  - 2026-10-18 — IMPLEMENTED: canteiros (terra fofa → planta → água → brota em 30 s e põe nutriente pronto nos lados livres), animação do crescimento e save versão 12. Suíte EditMode 176/176 na Unity. Sprites vistos em captura de câmera pelo agente; ciclo completo não exercitado por uma pessoa em Play Mode.
+  - 2026-10-18 — Pedido complementar: "A terra fofa pode ser coletada da área externa, que já existe" e "ela também pode ser colocada nas paredes da colônia". Formigas ociosas buscam terra fofa na pilha de fora quando não há terra cavada a caminho; o canteiro pode ficar no chão ou na parede e fica preso onde foi posto. Testes de cultivo, nutrientes e cuidado passando no harness .NET (35/35; suíte 133 de 148, as 15 restantes usam código nativo da Unity); a Unity estava desconectada do MCP e não rodou esta versão.
+  - 2026-10-18 — Pedido complementar (com imagem da sala marcada no meio): "tem que colocar os blocos de terra fofa nesta região também. No estilo de construir um bloco nas regiões". O canteiro pode ficar em qualquer ponto da sala (chão, parede ou meio), espaçado de 3 células e sem fechar a passagem. Testes de cultivo, nutrientes e cuidado 36/36 no harness .NET (salão 11x8 recebe 6 ou mais canteiros, com algum no meio, sem célula isolada); sem Unity e sem Play Mode.
+
+
+### REQ-029 — Ataques de cupins, formigas de ataque (soldado) e área de resíduos
+
+- **Data de registro:** 2026-10-18
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, GAME_DESIGN, ART
+- **Descrição:** Pedido do desenvolvedor: depois de a colônia ter no mínimo 15 formigas, a cada 1 a 5 minutos acontece um ataque de cupins (arte já existente), com alerta no centro do topo da tela. Vêm 40% do número de formigas em cupins voando, que pousam em locais aleatórios, largam as asas e vão ao formigueiro destruir todas as crias, depois as fazendas (canteiros) e depois 2 camadas de parede em volta de todos os setores, menos a sala da rainha; feito isso, saem pelas laterais do mapa. As formigas param o trabalho e atacam os cupins. Depois do primeiro ataque, o jogador pode liberar as formigas de ataque. Cupins mortos são desmembrados em "folha" para o cultivo. Libera também a área de resíduos, onde as formigas põem os restos dos cupins e a terra fofa das paredes destruídas.
+- **Critérios de aceitação:** UNDEFINED
+- **Dependências:** REQ-027 (arte da inimiga alada), PRG-033 (canteiros), PRG-024 (árvore da rainha)
+- **Itens relacionados:** PRG-034, GD-007, ART-011
+- **Referências:** [RaidGuide.md](../Assets/Project/Scripts/Runtime/Colony/RaidGuide.md); [KnownIssues.md](../Assets/Project/Scripts/KnownIssues.md) (KI-018)
+- **Decisões pendentes:** balanceamento (vida, dano, intervalo) e o valor de X (crescimento do teto por ataque, hoje 20 pontos); se a rainha pode ser atacada (game over no design); se a área de resíduos passa a ser compra (R0) na árvore do formigueiro.
+- **Histórico:**
+  - 2026-10-18 — PLANNED: pedido registrado. Decisões do desenvolvedor na mesma conversa: parede destruída vira terra fofa solta; a área de resíduos é uma sala pintada (pincel novo); formigas podem morrer em combate mesmo com a morte desligada.
+  - 2026-10-18 — IMPLEMENTED: ataques, cupins (voo, pouso, objetivos, saída), combate, corpos em folhas e restos, área de resíduos com decomposição, soldado (S0 a S2) liberado após o primeiro ataque, alerta no HUD, cheat F4 e save versão 13. Testes novos 6/6 no harness .NET (suíte 152 de 186; as 34 restantes dependem de código nativo da Unity ou do módulo JSON e já não rodavam no harness); compilação da Unity sem erros. HUD remontado, arte dos cupins ligada na cena e Play Mode pendentes: a instância Incrementant não estava conectada ao MCP.
+  - 2026-10-18 — Pedido complementar: "Apenas formigas guerreiras vão atrás dos cupins. Formigas que não são guerreiras apenas defendem quando o cupim começa a atacar." e "limite crescente até 200% [...] no padrão aleatório. No mínimo 40% do total de formigas e no máximo 200% (começando em 40% e crescendo em X a cada ataque)". Implementado: só o soldado caça; as demais mordem de volta só quando mordidas e voltam ao trabalho; fração sorteada entre 40% e um teto que sobe 20 pontos por ataque (valor de X escolhido pelo agente, ajustável em Raid Settings) até 200%. Suíte EditMode 190/190 na Unity; Play Mode pelo agente: com 4 soldados e 18 outras, nenhuma operária perseguiu cupim, os mordidos se defenderam e mataram os 5 cupins junto aos canteiros sem perder crias; 10 cupins para 22 formigas (41% sorteado com teto de 60%) e teto de 100% depois de 3 ataques.
+  - 2026-10-18 — IMPLEMENTED (validação): com o MCP conectado, HUD remontado (6 pincéis, 7 tipos, alerta) e arte dos cupins e do soldado ligada na cena. Suíte EditMode 186/186 na Unity. Play Mode pelo agente em 2026-10-18 (cena AntFarm, HUD remontado e arte ligada): F4 com 20 formigas trouxe 8 cupins voando, alerta com contagem e "CUPINS ATACANDO", pouso e caminhada com a arte nova, todas as formigas lutando; sem alvos, saíram pelas laterais e o fim liberou o pincel Resíduos e o soldado; num segundo ataque dentro do formigueiro, 5 cupins mortos sem baixa, 2 paredes viraram entulho, corpos desmembrados, folhas plantadas nos 3 canteiros e restos empilhados na área de resíduos. O Play Mode achou um bug (o alerta do F4 virava o intervalo do próximo ataque ao chegar a 15 formigas), corrigido com teste novo (RaidTests 7/7). Falta uma pessoa jogar.
+
+### REQ-028 — Formigas não morrem por padrão
+
+- **Data de registro:** 2026-10-18
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, GAME_DESIGN
+- **Descrição:** Pedido do desenvolvedor: "Coloque que, por padrão, as formigas não morrem mais." A morte (velhice e afogamento) começa desligada; continua podendo ser ligada pelo Inspector (**Ant Death**), pelo F3 ou pelo HUD de depuração (F2).
+- **Critérios de aceitação:** UNDEFINED
+- **Dependências:** —
+- **Itens relacionados:** PRG-020
+- **Referências:** [AntFarmGuide.md](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md) (tabela de teclas, F3)
+- **Decisões pendentes:** —
+- **Histórico:**
+  - 2026-10-18 — IMPLEMENTED: padrão de `AntFarmGame._antDeath` e valor da cena `AntFarm.unity` passaram a desligado. Sem Play Mode (Unity desconectada do MCP).
+
+### REQ-027 — Arte de formiga inimiga com asas na chegada e sem asas após pousar
+
+- **Data de registro:** 2026-10-18
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** ART
+- **Descrição:** Criar arte de inimigos no mesmo estilo das formigas: elas chegam com asas, pousam, perdem as asas e passam a andar pelo ambiente.
+- **Critérios de aceitação:** Mesmo estilo das formigas existentes; arte com asas para chegada e sem asas para caminhada após pousar.
+- **Dependências:** —
+- **Itens relacionados:** ART-011
+- **Referências:** [Pacote de sprites](../Assets/Project/Art/Ants/InimigaAlada/README.md); [prompt](../Assets/Project/Art/Ants/InimigaAlada/Generation.json)
+- **Decisões pendentes:** —
+- **Histórico:**
+  - 2026-10-18 — PLANNED: pedido de arte registrado.
+  - 2026-10-18 — IMPLEMENTED: 16 PNGs de 144x144 (4 voo, 4 pouso/perda de asas, 4 caminhada lateral e 4 superior), com alpha 0/255 e paleta comum de 24 cores. Validados 331.776 pixels e prévias. Importador estendido para Fly/Land a 36 PPU. Compilação/importação na Unity e Play Mode pendentes porque Incrementant não estava conectado. Mecânicas de inimigos não implementadas; nenhuma build gerada.

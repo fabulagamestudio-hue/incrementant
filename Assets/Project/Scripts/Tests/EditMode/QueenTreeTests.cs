@@ -111,9 +111,24 @@ namespace Fabula.Incrementant.Tests
         {
             AntColony colony = MakeColony(21, 5000);
             Assert.AreEqual(BuyBlock.NotAvailableYet, colony.TryBuy(QueenNode.O3));
-            Assert.AreEqual(BuyBlock.NotAvailableYet, colony.TryBuy(QueenNode.S0));
+            Assert.AreEqual(BuyBlock.NotAvailableYet, colony.TryBuy(QueenNode.S3));
             Assert.AreEqual(BuyBlock.NotAvailableYet, colony.TryBuy(QueenNode.N2));
             Assert.AreEqual(5000, colony.Nutrients, "Sem bônus invisível: nada é cobrado.");
+        }
+
+        [Test]
+        public void TheSoldier_OnlyOpensAfterTheFirstTermiteRaid()
+        {
+            AntColony colony = MakeColony(21, 5000);
+            Assert.AreEqual(BuyBlock.NeedsFirstRaid, colony.TryBuy(QueenNode.S0));
+            Assert.IsFalse(colony.Tree.IsRoleUnlocked(AntRole.Soldier));
+
+            colony.RestoreRaids(raidsUnlocked: true, raidsSurvived: 1, secondsToNextRaid: 120f);
+            Assert.AreEqual(BuyBlock.None, colony.TryBuy(QueenNode.S0));
+            Assert.IsTrue(colony.Tree.IsRoleUnlocked(AntRole.Soldier));
+            Assert.AreEqual(18f, colony.Tree.MaxHealth(AntRole.Soldier));
+            Assert.AreEqual(BuyBlock.None, colony.TryBuy(QueenNode.S2));
+            Assert.AreEqual(27f, colony.Tree.MaxHealth(AntRole.Soldier));
         }
 
         [Test]
@@ -246,7 +261,7 @@ namespace Fabula.Incrementant.Tests
             legacy.Restore(QueenTree.LegacyMask);
             foreach (AntRole role in AntRoles.All)
             {
-                if (role != AntRole.Nurse) // a cuidadora não existia nesses saves
+                if (role != AntRole.Nurse && role != AntRole.Soldier) // cuidadora e soldado não existiam nesses saves
                     Assert.IsTrue(legacy.IsRoleUnlocked(role), $"{role} liberada num save antigo.");
             }
         }
