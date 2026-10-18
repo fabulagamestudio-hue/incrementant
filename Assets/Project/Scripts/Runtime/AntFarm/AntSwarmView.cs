@@ -31,6 +31,8 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField, Range(0.2f, 1.5f)] float _carriedSize = 0.8f;
         [Tooltip("Cor do nutriente que a formiga leva à rainha (a mesma do nutriente guardado no AntFarmView).")]
         [SerializeField] Color32 _nutrientColor = new Color32(232, 214, 92, 255);
+        [Tooltip("Cor do ovo que a formiga leva ao berçário (a do ovo desenhado no BroodView).")]
+        [SerializeField] Color32 _eggColor = new Color32(240, 222, 190, 255);
         [Tooltip("Tamanho da rainha em relação às formigas (mesmos quadros, escalados).")]
         [SerializeField, Min(1f)] float _queenScale = 2f;
 
@@ -134,12 +136,16 @@ namespace Fabula.Incrementant.AntFarm
             visual.Body.color = RoleTint(ant.Role);
 
             bool delivering = ant.State == AntState.Delivering;
-            bool carrying = ant.State == AntState.Carrying || ant.State == AntState.Hauling || delivering;
+            bool carryingEgg = ant.State == AntState.CarryingEgg || ant.State == AntState.MovingBrood;
+            bool carrying = ant.CarriedCount > 0 || delivering || carryingEgg;
             if (visual.Carried.gameObject.activeSelf != carrying)
                 visual.Carried.gameObject.SetActive(carrying);
             if (carrying)
             {
-                visual.Carried.color = delivering ? (Color)_nutrientColor : CellMaterials.ShadedColor(ant.Carried, ant.CarriedShade);
+                if (carryingEgg)
+                    visual.Carried.color = _eggColor;
+                else
+                    visual.Carried.color = delivering ? (Color)_nutrientColor : CellMaterials.ShadedColor(ant.Carried, ant.CarriedShade);
                 Vector2 offset = topView ? _carriedOffsetTop : _carriedOffset;
                 visual.Carried.transform.localPosition = new Vector3(visual.FlipX ? -offset.x : offset.x, offset.y, 0f);
             }

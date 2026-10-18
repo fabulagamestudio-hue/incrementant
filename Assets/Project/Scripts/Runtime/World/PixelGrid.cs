@@ -91,6 +91,9 @@ namespace Fabula.Incrementant.World
         /// <summary>Nutrientes guardados (células com a camada de nutriente).</summary>
         public int NutrientCount { get; private set; }
 
+        /// <summary>Nutrientes guardados que ainda estão curando (só avançam com formiga trabalhando na sala).</summary>
+        public int CuringNutrientCount => _curingNutrients.Count;
+
         /// <summary>Nutrientes guardados que já terminaram de curar e podem ser levados à rainha.</summary>
         public int ReadyNutrientCount => NutrientCount - _curingNutrients.Count;
 
@@ -385,8 +388,8 @@ namespace Fabula.Incrementant.World
         }
 
         /// <summary>
-        /// Marca/desmarca uma célula para construção. Só células vazias abaixo do solo original aceitam marca (o céu
-        /// não se constrói); a marca some quando a célula vira sólida.
+        /// Marca/desmarca uma célula para construção. Só células vazias aceitam marca, dentro do formigueiro ou no
+        /// céu acima do solo original (construção do lado de fora); a marca some quando a célula vira sólida.
         /// </summary>
         public bool SetBuildMarked(int x, int y, bool marked)
         {
@@ -396,7 +399,7 @@ namespace Fabula.Incrementant.World
             int i = y * Width + x;
             if (_buildMarked[i] == marked)
                 return false;
-            if (marked && (_cells[i] != CellMaterial.Empty || y > GetSurfaceY(x)))
+            if (marked && _cells[i] != CellMaterial.Empty)
                 return false;
 
             _buildMarked[i] = marked;
@@ -498,8 +501,9 @@ namespace Fabula.Incrementant.World
         /// Avança a cura dos pixels guardados. Os que terminam viram nutrientes prontos e mudam
         /// <see cref="NutrientVersion"/> (refaz o campo de busca das formigas).
         /// </summary>
-        public void AdvanceNutrientCure(float deltaTime)
+        public void AdvanceNutrientCure(float deltaTime, float rate = 1f)
         {
+            deltaTime *= rate;
             bool cured = false;
             for (int k = _curingNutrients.Count - 1; k >= 0; k--)
             {
@@ -513,6 +517,36 @@ namespace Fabula.Incrementant.World
             }
             if (cured)
                 NutrientVersion++;
+        }
+
+        /// <summary>O pixel que cura de índice <paramref name="k"/> (0 a <see cref="CuringNutrientCount"/>-1) e sua célula.</summary>
+        public bool TryGetCuringCell(int k, out int x, out int y)
+        {
+            if (k < 0 || k >= _curingNutrients.Count)
+            {
+                x = y = 0;
+                return false;
+            }
+            int i = _curingNutrients[k];
+            x = i % Width;
+            y = i / Width;
+            return true;
+        }
+
+        /// <summary>Adianta a cura de um pixel (o bônus de quem interage com ele); se terminar, vira nutriente pronto.</summary>
+        public void ShaveNutrientCure(int x, int y, float seconds)
+        {
+            if (!InBounds(x, y) || seconds <= 0f)
+                return;
+            int i = y * Width + x;
+            if (_nutrientCure[i] <= 0f)
+                return;
+            _nutrientCure[i] -= seconds;
+            if (_nutrientCure[i] > 0f)
+                return;
+            _nutrientCure[i] = 0f;
+            _curingNutrients.Remove(i);
+            NutrientVersion++;
         }
 
         void SetNutrientAt(int index, bool nutrient)

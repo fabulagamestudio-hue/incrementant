@@ -16,6 +16,8 @@ Código exclusivo do Editor da Unity (namespace `Fabula.Incrementant.Editor` ou 
 | `AntFarm/AntFarmGameEditor.cs` | Inspector do `AntFarmGame`: preview da cena e câmera conforme o modo do mapa. |
 | `Setup/AntFarmMapImporter.cs` | Configurações de importação dos PNGs em `Assets/Project/Art/Maps/`. |
 | `UI/UiSpriteImporter.cs` | Importa `Art/UI/Sprites` como sprites de UI e grava as bordas 9-slice; menu **Incrementant/UI/Aplicar importação e 9-slice dos sprites**. |
+| `UI/UiFontImporter.cs` | Configura o TTF da Press Start 2P em `Art/UI/Fontes/PressStart2P` (dinâmico, Hinted Raster); menu **Incrementant/UI/Aplicar importação das fontes**, chamado pelo setup do HUD. |
+| `UI/SkillTreeSpriteImporter.cs` | Importa o kit `Art/UI/Sprites/FormigueiroSkillTree/Textures` como sprite de pixel art (Point, malha completa) e grava as bordas 9-slice de abas, painel e botões; menu **Incrementant/UI/Aplicar importação dos sprites da árvore** (também chamado pelo setup do HUD). |
 | `UI/AntFarmHudSetup.cs` | Menu **Incrementant/Setup/Montar HUD da partida**: recria o objeto `HUD` (Canvas) e o EventSystem na cena do AntFarm. Guia: [HudGuide](../Runtime/UI/HudGuide.md). |
 | `Validation/` | Validadores de conteúdo e de referências, executáveis por menu e em batch. |
 

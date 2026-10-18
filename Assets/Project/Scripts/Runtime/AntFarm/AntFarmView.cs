@@ -48,6 +48,11 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField] Color32 _antHead = new Color32(48, 26, 18, 255);
         [SerializeField] Color32 _brushColor = new Color32(255, 255, 255, 255);
         [SerializeField] Color32 _dumpMarkerColor = new Color32(255, 255, 255, 255);
+        [Header("Névoa")]
+        [Tooltip("Ligada, só a terra até Reveal Radius células de uma célula aberta (túnel ou céu) aparece; o resto é preto.")]
+        [SerializeField] bool _fogOfWar = true;
+        [Tooltip("Quantas células ao lado de uma célula aberta continuam visíveis, escurecendo até o preto.")]
+        [SerializeField, Range(1, 8)] int _revealRadius = 5;
         [Header("Chuva")]
         [SerializeField] Color32 _lightDropColor = new Color32(225, 238, 252, 255);
         [SerializeField] Color32 _heavyDropColor = new Color32(205, 225, 250, 255);
@@ -75,6 +80,9 @@ namespace Fabula.Incrementant.AntFarm
         int _originX;
         int _originY;
         bool _plantsAsSprites;
+        // Névoa: célula aberta (sem material, ou acima do solo original) e a distância horizontal até uma, por linha.
+        bool[] _open;
+        byte[] _fogRows;
 
         /// <param name="transparentSky">Deixa o céu transparente, para um cenário desenhado atrás (SurfaceSceneryView) aparecer.</param>
         /// <param name="skyBaseY">Linha onde o gradiente do céu começa (cor de baixo); o topo da grade tem a cor de cima.</param>
@@ -181,6 +189,10 @@ namespace Fabula.Incrementant.AntFarm
         void DrawCells(PixelGrid grid, AntColony colony)
         {
             float faintRoom = _queenRoomStrength * 0.5f;
+            int radius = _fogOfWar ? _revealRadius : 0;
+            if (radius > 0)
+                ComputeOpenness(grid, radius);
+            int stride = _width + 2 * radius;
             for (int wy = 0; wy < _height; wy++)
             {
                 int row = wy * _width;
@@ -190,6 +202,7 @@ namespace Fabula.Incrementant.AntFarm
                     int x = _originX + wx;
                     CellMaterial material = grid.Get(x, y);
                     Color32 color;
+                    bool solid = false;
                     if (_plantsAsSprites && CellMaterials.IsPlant(material))
                     {
                         color = _skyRows[y];
@@ -199,6 +212,8 @@ namespace Fabula.Incrementant.AntFarm
                         if (y > grid.GetSurfaceY(x))
                         {
                             color = _skyRows[y];
+                            if (grid.IsBuildMarked(x, y))
+                                color = Color32.Lerp(color, _buildMarkColor, _markStrength);
                         }
                         else
                         {
@@ -226,6 +241,17 @@ namespace Fabula.Incrementant.AntFarm
                         byte wetness = grid.GetWetness(x, y);
                         if (wetness != 0)
                             color = Darken(color, Mathf.Max(0.4f, 1f - wetness * _wetDarkening));
+                        solid = true;
+                    }
+                    if (radius > 0)
+                    {
+                        int d = FogDistance(wx, wy, radius, stride);
+                        if (d > 0)
+                            color = Darken(color, d > radius ? 0f : 1f - d / (float)(radius + 1));
+                    }
+                    // A marca de cavar e a pintura de sala vêm depois da névoa: não escurecem com ela.
+                    if (solid)
+                    {
                         if (grid.IsMarked(x, y))
                             color = Color32.Lerp(color, _markColor, _markStrength);
                         if (grid.IsQueenRoom(x, y))
@@ -238,6 +264,59 @@ namespace Fabula.Incrementant.AntFarm
                     _pixels[row + wx] = color;
                 }
             }
+        }
+
+        /// <summary>
+        /// Névoa: marca as células abertas da janela mais <paramref name="radius"/> de folga (o que está fora da janela
+        /// também ilumina a borda) e a menor distância horizontal até uma delas, em cada célula.
+        /// </summary>
+        void ComputeOpenness(PixelGrid grid, int radius)
+        {
+            int stride = _width + 2 * radius;
+            int rows = _height + 2 * radius;
+            if (_open == null || _open.Length != stride * rows)
+            {
+                _open = new bool[stride * rows];
+                _fogRows = new byte[stride * rows];
+            }
+
+            for (int r = 0; r < rows; r++)
+            {
+                int y = _originY - radius + r;
+                for (int c = 0; c < stride; c++)
+                {
+                    int x = _originX - radius + c;
+                    _open[r * stride + c] = grid.InBounds(x, y) &&
+                                            (grid.Get(x, y) == CellMaterial.Empty || y > grid.GetSurfaceY(x));
+                }
+            }
+
+            // Distância horizontal (até radius + 1 = longe) para cada coluna da janela, em todas as linhas com folga.
+            for (int r = 0; r < rows; r++)
+            for (int wx = 0; wx < _width; wx++)
+            {
+                int best = radius + 1;
+                int center = r * stride + wx + radius;
+                for (int dx = 0; dx <= radius && dx < best; dx++)
+                {
+                    if (_open[center + dx] || _open[center - dx])
+                        best = dx;
+                }
+                _fogRows[r * stride + wx] = (byte)best;
+            }
+        }
+
+        /// <summary>Distância de xadrez (0 = aberta) até a célula aberta mais próxima; radius + 1 = fora do alcance.</summary>
+        int FogDistance(int wx, int wy, int radius, int stride)
+        {
+            int best = radius + 1;
+            for (int dy = -radius; dy <= radius; dy++)
+            {
+                int d = Mathf.Max(Mathf.Abs(dy), _fogRows[(wy + radius + dy) * stride + wx]);
+                if (d < best)
+                    best = d;
+            }
+            return best;
         }
 
         /// <summary>

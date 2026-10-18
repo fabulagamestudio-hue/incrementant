@@ -28,14 +28,14 @@ Protótipo de viabilidade do formigário (REQ-001) implementado na cena `AntFarm
 ### Arte
 
 - **Entregas verificadas:** Nenhuma
-- **Pendências:** ART-001 e ART-002 Sprites provisórios das formigas; ART-003 Cenário da superfície (aprovação visual); ART-004 Sprites de UI 9-slice (bordas e fonte a aprovar)
+- **Pendências:** ART-001 e ART-002 Sprites provisórios das formigas; ART-005 Sprites da cria (ovo, larva, pupa; aprovação visual); ART-003 Cenário da superfície (aprovação visual); ART-004 Sprites de UI 9-slice (bordas e fonte a aprovar)
 - **Bloqueios:** Nenhum
 - **Riscos:** Nenhum
 
 ### Programação
 
 - **Entregas verificadas:** PRG-001 Grade e física granular; PRG-002 Formigas; PRG-004 Cena por setup; PRG-005 Modo do mapa; PRG-006 Formigas em sprite; PRG-007 Agarre em paredes; PRG-008 Andar no fundo do formigueiro; PRG-009 Cenário da superfície em camadas; PRG-010 Mundo expansível; PRG-012 Simulação por blocos (8x no mesmo FPS); PRG-013 Chuva leve e forte; PRG-014 Água; PRG-015 Rainha e sala da rainha; PRG-016 Plantas, sala de nutrientes e nutrientes
-- **Pendências:** PRG-003 Render, input e HUD; PRG-017 HUD uGUI e PRG-018 Política da rainha e PRG-019 Tipos de formiga e PRG-020 Ciclo de criação (faltam uso com mouse; só Pintar e Rainha funcionam; sem ovo/larva/pupa); PRG-011 Câmera, limitador e paralaxe (falta uso real por mouse/teclado)
+- **Pendências:** PRG-003 Render, input e HUD; PRG-017 HUD uGUI e PRG-018 Política da rainha e PRG-019 Tipos de formiga e PRG-025 Corte de plantas corrigido e PRG-026 Carga, rocha e prioridades e PRG-027 Cuidado do berçário e PRG-028 Cuidado da sala de nutrientes e PRG-020 Ciclo de criação, PRG-021 Cria desenhada no berçário e PRG-022 Transporte do ovo e cheat F1 e PRG-023 Construção de fora (sem Play Mode) e PRG-024 Árvore da rainha (tela Evolução) (faltam uso com mouse; só Pintar e Rainha funcionam; cria vista só em captura do agente); PRG-011 Câmera, limitador e paralaxe (falta uso real por mouse/teclado)
 - **Bloqueios:** Nenhum
 - **Riscos:** Render passou a ser o maior custo por frame (KI-001); soluço único ao montar o cache de navegação de áreas grandes (KI-004)
 
@@ -79,6 +79,11 @@ Protótipo de viabilidade do formigário (REQ-001) implementado na cena `AntFarm
 | Água: laguinhos, escoamento, terra mole e afogamento | VERIFIED | PRG-014 |
 | Rainha e sala da rainha pintável | VERIFIED | PRG-015 |
 | Plantas, colheita, sala de nutrientes e nutrientes como moeda | VERIFIED | PRG-016 |
+| Ciclo de criação: berçário, ovo/larva/pupa, capacidade | IMPLEMENTED | PRG-020 |
+| Cria desenhada no chão do berçário | IMPLEMENTED | PRG-021 |
+| Operária leva o ovo ao berçário; cheat F1 (+50 operárias, +50 cortadeiras) | IMPLEMENTED | PRG-022 |
+| Construção do lado de fora do formigueiro | IMPLEMENTED | PRG-023 |
+| Árvore da rainha: classes por compra, Q1, Q2, O2, L3, E1 e tela Evolução | IMPLEMENTED | PRG-024 |
 
 ## Problemas e riscos
 
@@ -96,6 +101,11 @@ Protótipo de viabilidade do formigário (REQ-001) implementado na cena `AntFarm
 | REQ-006 | Água: laguinhos, chuva que cria água, erosão da terra e afogamento | IMPLEMENTED | UNDEFINED |
 | REQ-007 | Formiga rainha e pintura da sala da rainha | IMPLEMENTED | UNDEFINED |
 | REQ-008 | Sala de nutrientes, colheita de plantas da superfície e nutrientes como moeda | IMPLEMENTED | UNDEFINED |
+| REQ-014 | Sprites e desenho da cria (ovo, larva, pupa) no berçário | IMPLEMENTED | UNDEFINED |
+| REQ-015 | Operária leva o ovo da rainha ao berçário e cheat F1 de formigas | IMPLEMENTED | UNDEFINED |
+| REQ-016 | Construir do lado de fora do formigueiro | IMPLEMENTED | UNDEFINED |
+| REQ-017 | Árvore da rainha (classes e melhorias) | IMPLEMENTED | UNDEFINED |
+| REQ-018 | Revisar as funções de cada formiga por papel contra o design | IN_PROGRESS | UNDEFINED |
 
 Registro completo: [REQUESTS.md](REQUESTS.md)
 
@@ -119,6 +129,7 @@ Registro completo: [REQUESTS.md](REQUESTS.md)
 
 ## Decisões necessárias
 
+- Árvore da rainha: o que fazer com os 15 nós sem sistema no jogo (EM BREVE) e se a árvore do formigueiro entra no protótipo; a jardineira (J0) não tem tarefa até existir o cultivo de fungo (REQ-018, KI-014)
 - Tamanho do mundo (960x520) e zoom máximo aberto preso ao enquadramento inicial estão bons? (REQ-003)
 - Regras da chuva: quando chove (manual × ciclo automático), compactação permanente ou temporária, se a chuva leve afeta areia despejada e o compactado (GD-002)
 - Regras da água: valores de X e Y, se as formigas devem evitar a água (GD-003); conferir se a superfície inunda com chuva forte agora que a água só some no formigueiro (KI-009)

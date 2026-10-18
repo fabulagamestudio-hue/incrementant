@@ -79,8 +79,11 @@ namespace Fabula.Incrementant.World
         public static CellMaterial FromDebris(CellMaterial debris) =>
             debris == CellMaterial.FallenGrass ? CellMaterial.PlantGrass : CellMaterial.PlantLeaf;
 
-        /// <summary>Aceita marca de trabalho (<see cref="PixelGrid.SetMarked"/>): escavável, planta ou pixel solto de planta.</summary>
-        public static bool IsMarkable(CellMaterial material) => IsDiggable(material) || IsAnyPlant(material);
+        /// <summary>
+        /// Aceita marca de trabalho (<see cref="PixelGrid.SetMarked"/>): escavável, planta, pixel solto de planta ou rocha.
+        /// A marca na rocha pode existir antes de E2; a frente só avança quando há escavadora com E2 (design 25).
+        /// </summary>
+        public static bool IsMarkable(CellMaterial material) => IsDiggable(material) || IsAnyPlant(material) || material == CellMaterial.Rock;
 
         public static bool IsDiggable(CellMaterial material) =>
             material == CellMaterial.Dirt || material == CellMaterial.Grass ||

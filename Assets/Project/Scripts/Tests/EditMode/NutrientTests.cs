@@ -44,7 +44,7 @@ namespace Fabula.Incrementant.Tests
 
         /// <summary>
         /// Mundo largo com uma única planta nascida da seed (longe da entrada e do despejo), completa, e a sala de nutrientes
-        /// pintada. As outras plantas da seed são apagadas para o alvo das jardineiras ser sempre esta.
+        /// pintada. As outras plantas da seed são apagadas para o alvo de corte ser sempre esta.
         /// </summary>
         static (PixelGrid grid, VegetationSimulation vegetation, int plantX, PlantShape shape) MakeGarden(PlantShape[] shapes = null)
         {
@@ -99,7 +99,7 @@ namespace Fabula.Incrementant.Tests
             return Surface;
         }
 
-        /// <summary>Pixels que as jardineiras podem cortar na forma (tudo menos a linha do chão, que é a raiz).</summary>
+        /// <summary>Pixels que podem ser cortados na forma (tudo menos a linha do chão, que é a raiz).</summary>
         static int HarvestableCells(PlantShape shape)
         {
             int cells = 0;
@@ -432,7 +432,7 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
-        public void Gardeners_HarvestThePlantOnTheirOwn_TopDown_AndTheQueenConsumesIt()
+        public void Colony_HarvestsThePlantOnItsOwn_TopDown_AndTheQueenConsumesIt()
         {
             var (grid, vegetation, plantX, shape) = MakeGarden();
             var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 7);
@@ -462,25 +462,26 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
-        public void Colony_WithoutGardeners_NeverTouchesPlants()
+        public void Gardeners_AndDiggers_NeverTouchPlants()
         {
             var (grid, vegetation, plantX, shape) = MakeGarden();
             var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 7);
             colony.AttachVegetation(vegetation);
             foreach (Ant ant in colony.Ants)
-                ant.Role = AntRole.Worker;
+                ant.Role = AntRole.Gardener;
+            colony.Ants[0].Role = AntRole.Digger;
             int before = PlantCells(grid, plantX, shape);
 
             for (int i = 0; i < 60 * 40; i++)
                 colony.Tick(Dt);
 
-            Assert.AreEqual(before, PlantCells(grid, plantX, shape), "Comuns não colhem planta.");
+            Assert.AreEqual(before, PlantCells(grid, plantX, shape), "Jardineira (cultivo de fungo) e escavadora não cortam planta.");
             Assert.AreEqual(0, colony.HarvestedPixels);
             Assert.AreEqual(-1, colony.GardenTarget);
         }
 
         [Test]
-        public void Gardeners_PickTheBiggestPlant_ThenTheNearestToTheEntrance()
+        public void Colony_PicksTheBiggestPlant_ThenTheNearestToTheEntrance()
         {
             PixelGrid grid = MakeWorld(400);
             var vegetation = new VegetationSimulation(new VegetationSettings(), seed: 11, Layout, grid.Width);
@@ -574,7 +575,7 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
-        public void Gardeners_HarvestAWidePlant()
+        public void Colony_HarvestsAWidePlant()
         {
             // Touceira larga: 13 colunas, mais alta no meio (silhueta de sprite), com furos.
             var cells = new System.Collections.Generic.List<Vector2Int>();
@@ -600,13 +601,13 @@ namespace Fabula.Incrementant.Tests
                 colony.Tick(Dt);
                 granular.Step(grid);
             }
-            // A touceira fica longe da sala de nutrientes: duas jardineiras levam um pixel por vez, então a colheita é lenta.
+            // A touceira fica longe da sala de nutrientes: as comuns levam um pixel por vez, então a colheita é lenta.
             Assert.AreEqual(expected, colony.HarvestedPixels,
                             $"colhidos; plantas restantes {PlantCells(grid, plantX, shape)} (raiz: {shape.Cells.Length - expected})");
         }
 
         [Test]
-        public void Gardeners_ReleaseThePixelFirst_AndOnlyThenCollectItFromTheGround()
+        public void Colony_ReleasesThePixelFirst_AndOnlyThenCollectsItFromTheGround()
         {
             var (grid, vegetation, plantX, shape) = MakeGarden();
             var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 7);
@@ -675,11 +676,61 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
-        public void Colony_StartsWithOneGardener_AndTheRestAreWorkers()
+        public void Harvesters_GoHomeWhenTheRoomIsFull_AndOnlyReturnBelowHalf()
+        {
+            var (grid, vegetation, plantX, _) = MakeGarden();
+            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 5);
+            colony.AttachVegetation(vegetation);
+            // Sala cheia de pixels que nunca terminam de curar: ninguém os leva à rainha e a sala não esvazia sozinha.
+            var slots = new System.Collections.Generic.List<Vector2Int>();
+            for (int x = 30; x <= 35; x++)
+            for (int y = 1; y <= 3; y++)
+            {
+                grid.SetNutrient(x, y, true, 1_000_000f);
+                slots.Add(new Vector2Int(x, y));
+            }
+            // A cortadeira começa no pé da planta, onde esperaria se a sala estivesse cheia.
+            Ant gardener = colony.Ants[0];
+            gardener.Role = AntRole.Cutter;
+            gardener.X = plantX;
+            gardener.Y = Surface + 1;
+            gardener.FromX = gardener.X;
+            gardener.FromY = gardener.Y;
+
+            var granular = new GranularSimulation();
+            void Run(float seconds)
+            {
+                for (float t = 0f; t < seconds; t += Dt)
+                {
+                    colony.Tick(Dt);
+                    granular.Step(grid);
+                }
+            }
+
+            Run(90f);
+            Assert.IsTrue(colony.HarvestPaused, "Sala cheia: a colheita pausa.");
+            Assert.LessOrEqual(gardener.Y, Surface, "A cortadora volta ao formigueiro em vez de esperar no pé da planta.");
+
+            // Metade livre ainda não basta (18 slots, 9 guardados): é preciso ficar abaixo da metade.
+            for (int i = 0; i < 9; i++)
+                grid.SetNutrient(slots[i].x, slots[i].y, false);
+            Run(3f);
+            Assert.IsTrue(colony.HarvestPaused, "Com exatamente metade guardada ainda não volta a cortar.");
+
+            grid.SetNutrient(slots[9].x, slots[9].y, false);
+            Run(1f);
+            Assert.IsFalse(colony.HarvestPaused, "Abaixo da metade, a colheita reabre.");
+
+            int harvested = colony.HarvestedPixels;
+            Run(240f);
+            Assert.Greater(colony.HarvestedPixels, harvested, "Reaberta, a cortadora volta ao corte e guarda pixels novos.");
+        }
+
+        [Test]
+        public void Colony_StartsWithOnlyWorkers()
         {
             var colony = new AntColony(MakeWorld(), new ColonySettings(), Layout, seed: 1);
-            Assert.AreEqual(1, colony.CountOf(AntRole.Gardener));
-            Assert.AreEqual(colony.Ants.Count - 1, colony.CountOf(AntRole.Worker));
+            Assert.AreEqual(colony.Ants.Count, colony.CountOf(AntRole.Worker), "Classes só existem depois de compradas.");
         }
 
         [Test]
@@ -689,8 +740,9 @@ namespace Fabula.Incrementant.Tests
             Assert.AreEqual(18, colony.CostOf(AntRole.Worker), "Comum: 18 N, do design.");
             Assert.Greater(colony.CostOf(AntRole.Digger), colony.CostOf(AntRole.Carrier));
             Assert.Greater(colony.CostOf(AntRole.Carrier), colony.CostOf(AntRole.Worker));
-            Assert.IsTrue(AntRoles.Harvests(AntRole.Gardener) && AntRoles.Harvests(AntRole.Cutter));
-            Assert.IsFalse(AntRoles.Harvests(AntRole.Worker) || AntRoles.Harvests(AntRole.Digger) || AntRoles.Harvests(AntRole.Carrier));
+            Assert.IsTrue(AntRoles.Harvests(AntRole.Worker) && AntRoles.Harvests(AntRole.Carrier) && AntRoles.Harvests(AntRole.Cutter));
+            Assert.IsFalse(AntRoles.Harvests(AntRole.Gardener) || AntRoles.Harvests(AntRole.Digger), "Jardineira cuida do fungo; escavadora, das obras.");
+            Assert.IsTrue(AntRoles.CutsFirst(AntRole.Cutter) && !AntRoles.CutsFirst(AntRole.Worker));
             Assert.AreEqual(0.5f, AntRoles.DigTimeFactor(AntRole.Digger), "Escavadora: 32 contra 16 células/s.");
             Assert.AreEqual(0.5f, AntRoles.CutTimeFactor(AntRole.Cutter), "Cortadeira: 1 s contra 2 s.");
             Assert.Greater(AntRoles.SpeedFactor(AntRole.Carrier), 1f);

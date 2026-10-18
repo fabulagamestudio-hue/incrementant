@@ -45,6 +45,11 @@ namespace Fabula.Incrementant.UI
         [SerializeField] Text _queenBrood;
         [SerializeField] Text _queenSpace;
 
+        [Header("Menu Evolução (tela da árvore: SkillTreeScreen)")]
+        [SerializeField] Button _treeButton;
+        [SerializeField] Image _treeButtonImage;
+        [SerializeField] GameObject _treePanel;
+
         [Header("Velocidade")]
         [SerializeField] Button _pauseButton;
         [SerializeField] Image _pauseImage;
@@ -68,7 +73,7 @@ namespace Fabula.Incrementant.UI
         public static string ModeLabel(QueenMode mode) =>
             mode == QueenMode.Automatic ? "AUTOMÁTICO" : mode == QueenMode.Specific ? "TIPO ESPECÍFICO" : "PAUSADO";
 
-        enum Menu { None, Paint, Queen }
+        enum Menu { None, Paint, Queen, Tree }
 
         UnityAction[] _brushHandlers;
         UnityAction[] _speedHandlers;
@@ -85,7 +90,8 @@ namespace Fabula.Incrementant.UI
                 _queenButton == null || _queenPanel == null ||
                 _modeButtons == null || _modeButtons.Length != 3 ||
                 _typeButtons == null || _typeButtons.Length != CreatableRoles.Length || _typeLabels == null ||
-                _typeLabels.Length != CreatableRoles.Length)
+                _typeLabels.Length != CreatableRoles.Length ||
+                _treeButton == null || _treePanel == null)
             {
                 Debug.LogError($"{name}: AntFarmHud com referências faltando (rode Incrementant/Setup/Montar HUD da partida).", this);
                 enabled = false;
@@ -117,6 +123,7 @@ namespace Fabula.Incrementant.UI
             }
             _paintPanel.SetActive(false);
             _queenPanel.SetActive(false);
+            _treePanel.SetActive(false);
         }
 
         void OnEnable()
@@ -124,6 +131,7 @@ namespace Fabula.Incrementant.UI
             _paintButton.onClick.AddListener(TogglePaint);
             _pauseButton.onClick.AddListener(TogglePause);
             _queenButton.onClick.AddListener(ToggleQueen);
+            _treeButton.onClick.AddListener(ToggleTree);
             for (int i = 0; i < _modeButtons.Length; i++)
                 _modeButtons[i].onClick.AddListener(_modeHandlers[i]);
             for (int i = 0; i < _typeButtons.Length; i++)
@@ -139,6 +147,7 @@ namespace Fabula.Incrementant.UI
             _paintButton.onClick.RemoveListener(TogglePaint);
             _pauseButton.onClick.RemoveListener(TogglePause);
             _queenButton.onClick.RemoveListener(ToggleQueen);
+            _treeButton.onClick.RemoveListener(ToggleTree);
             for (int i = 0; i < _modeButtons.Length; i++)
                 _modeButtons[i].onClick.RemoveListener(_modeHandlers[i]);
             for (int i = 0; i < _typeButtons.Length; i++)
@@ -153,12 +162,16 @@ namespace Fabula.Incrementant.UI
 
         void ToggleQueen() => OpenMenu(_menu == Menu.Queen ? Menu.None : Menu.Queen);
 
-        /// <summary>Um submenu por vez, ao lado do menu Colônia.</summary>
+        void ToggleTree() => OpenMenu(_menu == Menu.Tree ? Menu.None : Menu.Tree);
+
+        /// <summary>Um submenu por vez, ao lado do menu Colônia (a árvore abre no centro da tela).</summary>
         void OpenMenu(Menu menu)
         {
             _menu = menu;
             _paintPanel.SetActive(menu == Menu.Paint);
             _queenPanel.SetActive(menu == Menu.Queen);
+            _treePanel.SetActive(menu == Menu.Tree);
+            _nextTextRefresh = 0f;
         }
 
         void SetMode(QueenMode mode)
@@ -169,7 +182,12 @@ namespace Fabula.Incrementant.UI
         }
 
         /// <summary>Escolher um tipo já põe a rainha no modo específico.</summary>
-        void ChooseType(AntRole role) => _game.Colony?.SetQueenPolicy(QueenMode.Specific, role);
+        void ChooseType(AntRole role)
+        {
+            AntColony colony = _game.Colony;
+            if (colony != null && colony.Tree.IsRoleUnlocked(role))
+                colony.SetQueenPolicy(QueenMode.Specific, role);
+        }
 
         void TogglePause() => _game.SetPaused(!_game.Paused);
 
@@ -179,6 +197,9 @@ namespace Fabula.Incrementant.UI
             if (colony == null)
                 return;
 
+            // A tela de evolução se fecha sozinha (ESC ou VOLTAR): o menu volta a ficar sem submenu aberto.
+            if (_menu == Menu.Tree && !_treePanel.activeSelf)
+                _menu = Menu.None;
             RefreshStates();
             if (Time.unscaledTime < _nextTextRefresh)
                 return;
@@ -190,12 +211,18 @@ namespace Fabula.Incrementant.UI
         {
             _paintButtonImage.sprite = _menu == Menu.Paint ? _buttonActive : _buttonIdle;
             _queenButtonImage.sprite = _menu == Menu.Queen ? _buttonActive : _buttonIdle;
+            _treeButtonImage.sprite = _menu == Menu.Tree ? _buttonActive : _buttonIdle;
             AntColony colony = _game.Colony;
+
             for (int i = 0; i < _modeImages.Length; i++)
                 _modeImages[i].sprite = i == (int)colony.QueenMode ? _buttonActive : _buttonIdle;
             for (int i = 0; i < _typeImages.Length; i++)
-                _typeImages[i].sprite = colony.QueenMode == QueenMode.Specific && colony.QueenTarget == CreatableRoles[i]
-                    ? _buttonActive : _buttonIdle;
+            {
+                AntRole role = CreatableRoles[i];
+                _typeImages[i].sprite = colony.QueenMode == QueenMode.Specific && colony.QueenTarget == role &&
+                                        colony.Tree.IsRoleUnlocked(role) ? _buttonActive : _buttonIdle;
+                _typeImages[i].color = colony.Tree.IsRoleUnlocked(role) ? Color.white : BlockedTint;
+            }
 
             for (int i = 0; i < _brushImages.Length; i++)
                 _brushImages[i].sprite = i == _game.BrushIndex ? _buttonActive : _buttonIdle;
@@ -203,6 +230,8 @@ namespace Fabula.Incrementant.UI
             for (int i = 0; i < _speedImages.Length; i++)
                 _speedImages[i].sprite = !_game.Paused && i == _game.SpeedIndex ? _iconButtonActive : _iconButtonIdle;
         }
+
+        static readonly Color BlockedTint = new Color(0.62f, 0.62f, 0.62f);
 
         void RefreshTexts(AntColony colony)
         {
@@ -217,15 +246,21 @@ namespace Fabula.Incrementant.UI
 
             AntRole? next = colony.NextAntRole;
             _queenState.text = BreedingText(colony);
-            _queenNext.text = next.HasValue ? $"PRÓXIMO OVO: {RoleLabel(next.Value)}  ·  {colony.CostOf(next.Value)} N" : "PRÓXIMO OVO: —";
+            _queenNext.text = next.HasValue ? $"PRÓXIMO OVO: {RoleLabel(next.Value)} · {colony.CostOf(next.Value)} N" : "PRÓXIMO OVO: —";
             _queenBrood.text = $"OVOS {colony.Brood.Eggs} · LARVAS {colony.Brood.Larvae} · PUPAS {colony.Brood.Pupae}";
-            _queenSpace.text = $"ADULTAS {colony.Ants.Count + colony.Brood.Count} / {colony.AdultCapacity}  ·  BERÇÁRIO {colony.Brood.Count} / {colony.NurserySlots}";
+            _queenSpace.text = $"ADULTAS {colony.Ants.Count + colony.Brood.Count} / {colony.AdultCapacity} · BERÇÁRIO {colony.Brood.Count} / {colony.NurserySlots}";
             for (int i = 0; i < _typeLabels.Length; i++)
             {
                 AntRole role = CreatableRoles[i];
+                if (!colony.Tree.IsRoleUnlocked(role))
+                {
+                    QueenNode unlock = QueenTree.UnlockNodeOf(role).Value;
+                    _typeLabels[i].text = $"{RoleLabel(role)} · BLOQ. ({unlock})";
+                    continue;
+                }
                 int reserved = colony.Brood.CountOf(role);
-                string count = reserved > 0 ? $"×{colony.CountOf(role)} (+{reserved})" : $"×{colony.CountOf(role)}";
-                _typeLabels[i].text = $"{RoleLabel(role)}  {count}  ·  {colony.CostOf(role)} N";
+                string count = reserved > 0 ? $"×{colony.CountOf(role)}+{reserved}" : $"×{colony.CountOf(role)}";
+                _typeLabels[i].text = $"{RoleLabel(role)} {count} · {colony.CostOf(role)} N";
             }
 
             string status = _game.SaveStatus;
@@ -256,7 +291,7 @@ namespace Fabula.Incrementant.UI
                 return "SEM SALA";
             if (colony.QueenInRoom)
                 return "NA SALA";
-            return colony.QueenCanReachRoom ? "INDO PARA A SALA" : "SEM CAMINHO";
+            return colony.QueenCanReachRoom ? "INDO À SALA" : "SEM CAMINHO";
         }
     }
 }

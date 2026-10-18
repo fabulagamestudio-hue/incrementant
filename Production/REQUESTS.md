@@ -20,6 +20,11 @@
 | REQ-011 | 2026-10-17 | Painel da rainha para escolher qual formiga criar | PROGRAMMING | UNDEFINED | IMPLEMENTED |
 | REQ-012 | 2026-10-17 | Mais tipos de formiga e início com 1 jardineira | PROGRAMMING | UNDEFINED | IMPLEMENTED |
 | REQ-013 | 2026-10-17 | Ciclo de criação (ovo, larva, pupa, berçário) seguindo o design | PROGRAMMING | UNDEFINED | IMPLEMENTED |
+| REQ-014 | 2026-10-17 | Sprites e desenho da cria (ovo, larva, pupa) no berçário | ART, PROGRAMMING | UNDEFINED | IMPLEMENTED |
+| REQ-015 | 2026-10-17 | Operária leva o ovo da rainha ao berçário e cheat F1 de formigas | PROGRAMMING | UNDEFINED | IMPLEMENTED |
+| REQ-016 | 2026-10-17 | Construir do lado de fora do formigueiro | PROGRAMMING | UNDEFINED | IMPLEMENTED |
+| REQ-017 | 2026-10-17 | Árvore da rainha (classes e melhorias) | PROGRAMMING | UNDEFINED | IMPLEMENTED |
+| REQ-018 | 2026-10-17 | Revisar as funções de cada formiga por papel contra o design | PROGRAMMING, GAME_DESIGN | UNDEFINED | IN_PROGRESS |
 
 ## Registros
 
@@ -167,6 +172,7 @@
   - 2026-10-17 — Ajuste pedido: no crescimento máximo, só voltar a crescer quando não houver mais pixel para colher, reiniciando a planta para subir completa. Feito em `VegetationSimulation.Grow`/`Sprout` (suíte 85/85; Play Mode pelo agente com crescimento acelerado).
   - 2026-10-17 — Ajuste pedido: a jardineira escolhe sozinha as plantas maiores e mais próximas do formigueiro (nesta ordem), corta sempre de cima para baixo, o jogador não marca mais a colheita e a planta só vale depois de crescer um mínimo. Feito: papel `AntRole.Gardener` (só ele colhe; sem a classe completa da árvore da rainha), planta-alvo em `AntColony`, `VegetationSettings.MinHarvestGrowth` (padrão 1 = completa), pincel "Colher" removido, save versão 7 (suíte 94/94; sem Play Mode).
   - 2026-10-17 — Ajuste pedido: a jardineira só corta (as comuns recolhem os pixels soltos) e o pixel que uma formiga está cortando/pegando fica travado para as outras buscarem outro. Feito em `AntColony` (`_claimed`); teste em Play Mode a 8× com 50 jardineiras e 10 comuns pelo agente: 0 travas duplicadas, colheita e consumo pela rainha funcionando, gargalo nas poucas comuns (suíte 94/94).
+  - 2026-10-17 — Ajuste pedido: aumentar o tempo da folha até virar nutriente e, com a sala de nutrientes cheia, os cortadores voltarem ao formigueiro e só retomarem abaixo da metade. Feito: cura de 10 s para 30 s (padrão e valor da cena) e pausa da colheita com histerese em `AntColony` (`HarvestPaused`); teste novo, suíte 128/128; sem Play Mode.
 
 ### REQ-009 — Ler o design revisado e organizar Markdown por assunto em Docs
 
@@ -248,3 +254,88 @@
 - **Histórico:**
   - 2026-10-17 — PLANNED: pedido registrado.
   - 2026-10-17 — IMPLEMENTED: ciclo mínimo, berçário, capacidade e custo estável; suíte 105/105 e Play Mode pelo agente, sem uso por uma pessoa.
+  - 2026-10-17 — Corrigido, a pedido do desenvolvedor, o excesso de capacidade no passo do nascimento (adultas + crias = capacidade + 1); teste de regressão, suíte 109/109 e Play Mode (7 adultas + 0 crias com capacidade 7 depois do nascimento).
+
+### REQ-014 — Sprites e desenho da cria (ovo, larva, pupa) no berçário
+
+- **Data de registro:** 2026-10-17
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** ART, PROGRAMMING
+- **Descrição:** "Precisamos então criar a larva e a pupa no mesmo estilo das formigas, pode fazer 2 sprites de cada para elas serem animadas em idle." Depois, em playtest: "o fato de não estar aparecendo no berçário o ovo, larva e pupa". O ovo ganhou 2 sprites também, por ser a primeira etapa.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-013
+- **Itens relacionados:** ART-005, PRG-021, PRG-020
+- **Referências:** [AntFarmGuide.md](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md) ("Desenho da cria"), [Art/Ants/](../Assets/Project/Art/Ants/)
+- **Decisões pendentes:** Aprovação visual dos sprites (ovo, larva e pupa em vista lateral; vista de cima não foi feita); o que acontece quando há mais crias que pontos de chão (hoje se sobrepõem).
+- **Histórico:**
+  - 2026-10-17 — PLANNED: pedido registrado.
+  - 2026-10-17 — IMPLEMENTED: 6 sprites (2 quadros por etapa), `BroodView` e pontos de chão no berçário; suíte 109/109 e Play Mode com captura pelo agente (ovo e larva vistos no chão, pupa só por estado e sprite ativo), sem avaliação visual do desenvolvedor.
+
+### REQ-015 — Operária leva o ovo da rainha ao berçário e cheat F1 de formigas
+
+- **Data de registro:** 2026-10-17
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING
+- **Descrição:** "A rainha bota o ovo, a formiga operária pega o ovo e leva para o berçário, em uma célula vazia. Adiciona também um cheat para adicionar 50 formigas operárias e 50 formigas cortadeiras para facilitar os testes para mim. Pode adicionar no atalho F1." O F1 já alternava o HUD de depuração; o agente moveu esse alternador para o F2.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-013, REQ-014
+- **Itens relacionados:** PRG-022, PRG-020, PRG-021
+- **Referências:** [AntFarmGuide.md](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md) ("Transporte do ovo", tabela de teclas), [KnownIssues.md](../Assets/Project/Scripts/KnownIssues.md) (KI-013)
+- **Decisões pendentes:** Quem carrega o ovo (hoje operária comum e carregadora; o pedido diz só "operária"); o cheat ignora capacidade adulta e berçário, então a rainha para de pôr ovos até a área escavada acompanhar; o tempo do ovo só corre depois de largado no berçário (escolha do agente).
+- **Histórico:**
+  - 2026-10-17 — PLANNED: pedido registrado.
+  - 2026-10-17 — IMPLEMENTED: transporte do ovo e cheat F1; suíte 113/113 e Play Mode pelo agente (F1 injetado pelo Input System: +50/+50; ovo `Claimed` → `Carried` → `Placed`, segundo ovo em outro ponto), sem uso por uma pessoa.
+
+### REQ-016 — Construir do lado de fora do formigueiro
+
+- **Data de registro:** 2026-10-17
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING
+- **Descrição:** "Vamos adicionar a opção de poder construir do lado de fora do formigueiro."
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** —
+- **Itens relacionados:** PRG-023
+- **Referências:** [AntFarmGuide.md](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md) ("Modo construir")
+- **Decisões pendentes:** A obra de fora pode fechar a entrada do formigueiro (nada impede); a terra compactada (inclusive a crosta de chuva forte) não serve mais de material; sem pedido de limite de altura nem de tipo de material da obra.
+- **Histórico:**
+  - 2026-10-17 — PLANNED: pedido registrado.
+  - 2026-10-17 — IMPLEMENTED: marcas de construção no céu, obra que cresce do chão para cima; suíte 114/114 (teste novo), sem Play Mode nem avaliação visual.
+
+### REQ-017 — Árvore da rainha (classes e melhorias)
+
+- **Data de registro:** 2026-10-17
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING
+- **Descrição:** "Precisamos de montar a árvore de habilidades", começando pela árvore da rainha ("vamos começar com a rainha"), a partir das seções 22 a 28 do design.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-011, REQ-012, REQ-013
+- **Itens relacionados:** PRG-024, GD-004
+- **Referências:** [QueenTreeGuide.md](../Assets/Project/Scripts/Runtime/Colony/QueenTreeGuide.md), [22](../Docs/01_Design/22_Mapa_da_arvore_da_rainha.md), [28](../Docs/04_Data/28_Custos_totais_e_regras_de_aplicacao_de_melhorias.md), [KnownIssues.md](../Assets/Project/Scripts/KnownIssues.md) (KI-014)
+- **Decisões pendentes:** O que fazer com os 15 nós sem sistema no jogo (hoje EM BREVE); a colônia começa com 1 jardineira mesmo sem J0 (escolha do agente, para a economia partir); a árvore do formigueiro (cultivo, berçário, depósito, resíduos) ainda não foi pedida; custos são as propostas do design, sem balanceamento; abrir a árvore não pausa o jogo (regra em aberto no design).
+- **Histórico:**
+  - 2026-10-17 — PLANNED: pedido registrado.
+  - 2026-10-17 — IMPLEMENTED: nós, compra, classes liberadas, Q1, Q2, O2, L3, E1, save versão 9 e tela Evolução; suíte 127/127 e Play Mode pelo agente, sem uso por uma pessoa.
+  - 2026-10-17 — Ajuste pedido: "Cria a HUD de skillTree". Feito: tela cheia com o kit de arte da árvore (abas Formigueiro, só exibição, e Rainha e classes), nós em camadas, ligações por estado, detalhe e legenda; capturas e compra pelo botão em Play Mode pelo agente.
+
+### REQ-018 — Revisar as funções de cada formiga por papel contra o design
+
+- **Data de registro:** 2026-10-17
+- **Estado:** IN_PROGRESS
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, GAME_DESIGN
+- **Descrição:** Trabalhar nas funções das formigas, por setor/papel (comum, carregadora, cortadeira, escavadora, jardineira). Primeiro exemplo apontado: a jardineira estava errada (cortava plantas; no design ela cuida do cultivo de fungo).
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-012, REQ-017
+- **Itens relacionados:** PRG-025
+- **Referências:** [14](../Docs/01_Design/14_Tipos_de_formiga_e_divisao_do_trabalho.md), [15](../Docs/04_Data/15_Valores_base_de_cada_formiga.md), [24](../Docs/01_Design/24_Carregadora_e_cortadeira_habilidades_e_numeros.md), [25](../Docs/01_Design/25_Escavadora_habilidades_e_numeros.md), [26](../Docs/01_Design/26_Jardineira_e_cuidadora_habilidades_e_numeros.md)
+- **Decisões pendentes:** Cultivo de fungo (C0, J0 a J2) ainda não existe: a jardineira fica sem tarefa até ser implementado; revisão dos demais papéis (carregadora, cortadeira, escavadora, comum) contra os documentos 14, 15 e 24 a 26.
+- **Histórico:**
+  - 2026-10-17 — registrado; desenvolvedor escolheu passar o corte à cortadeira (com comum e carregadora cortando quando ociosas) e revisar papel por papel.
+  - 2026-10-17 — IN_PROGRESS: corte corrigido (PRG-025); carga por viagem, prioridades, escavadora sem ovo/nutriente, O1/L1/F1/E2 e rocha quebrável (PRG-026, suíte 133/133); faltam o cultivo de fungo e vida/dano/longevidade (sessão separada).
+  - 2026-10-17 — cuidado do berçário e cuidadora (PRG-027, suíte 138/138); a região do cultivo de fungo (jardineira) reaproveita o modelo.
+  - 2026-10-17 — cuidado da sala de nutrientes pela jardineira e comuns (PRG-028, suíte 143/143, sem Play Mode).
+  - 2026-10-17 — cuidado reformulado: bloco em interação recebe o ritmo da especialista, blocos variados e prioridade pelo número de blocos da região (PRG-027/028, suíte 147/147, sem Play Mode).

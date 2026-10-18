@@ -15,7 +15,7 @@ namespace Fabula.Incrementant.Colony
         [Tooltip("Pausa ao soltar o pixel no despejo.")]
         [SerializeField, Min(0f)] float _dropSeconds = 0.1f;
         [Tooltip("Segundos (de jogo) que o pixel de planta guardado na sala de nutrientes leva para virar nutriente que pode ser levado à rainha. A formiga não espera: larga e volta ao trabalho.")]
-        [SerializeField, Min(0f)] float _nutrientCureSeconds = 10f;
+        [SerializeField, Min(0f)] float _nutrientCureSeconds = 30f;
         [Tooltip("Intervalo mínimo entre recálculos dos campos de navegação.")]
         [SerializeField, Min(0f)] float _fieldRebuildInterval = 0.1f;
         [Tooltip("Velocidade da rainha (células por segundo). Ela só anda dentro da maior sala da rainha pintada.")]
@@ -28,8 +28,14 @@ namespace Fabula.Incrementant.Colony
         [SerializeField, Min(1)] int _maxDumpOpenings = 4;
         [Tooltip("Segundos seguidos debaixo d'água até a formiga se afogar.")]
         [SerializeField, Min(0.1f)] float _drownSeconds = 5f;
-        [Tooltip("Quantas das formigas iniciais nascem jardineiras (colhem as plantas sozinhas). As demais são comuns.")]
-        [SerializeField, Min(0)] int _initialGardeners = 1;
+        [Tooltip("Segundos que a escavadora com E2 leva para quebrar uma célula de rocha (design: 4 células/s; o protótipo escava cerca de 4x mais devagar que o design, então 1 s).")]
+        [SerializeField, Min(0.05f)] float _rockBreakSeconds = 1f;
+        [Tooltip("Segundos que a comum leva para pegar ou largar uma cria no berçário; a cuidadora é 4/3 mais rápida.")]
+        [SerializeField, Min(0.05f)] float _carePauseSeconds = 1f;
+        [Tooltip("Blocos (crias, pixels que curam) por formiga que a região chama: quanto mais blocos, mais formigas vão trabalhar nela.")]
+        [SerializeField, Min(1)] int _blocksPerTender = 2;
+        [Tooltip("Parte das comuns que pode estar cuidando de regiões ao mesmo tempo (o resto continua cavando, construindo e cortando).")]
+        [SerializeField, Range(0f, 1f)] float _commonTenderShare = 0.5f;
         [Header("Criação (seções 11, 12 e 19 do design)")]
         [Tooltip("Segundos entre uma postura e a seguinte.")]
         [SerializeField, Min(0.1f)] float _layIntervalSeconds = 18f;
@@ -57,7 +63,10 @@ namespace Fabula.Incrementant.Colony
         public float QueenRestSeconds => _queenRestSeconds;
         public int MaxDumpOpenings => _maxDumpOpenings;
         public float DrownSeconds => _drownSeconds;
-        public int InitialGardeners => _initialGardeners;
+        public float RockBreakSeconds => _rockBreakSeconds;
+        public float CarePauseSeconds => _carePauseSeconds;
+        public int BlocksPerTender => _blocksPerTender;
+        public float CommonTenderShare => _commonTenderShare;
         public float LayIntervalSeconds => _layIntervalSeconds;
         public float EggSeconds => _eggSeconds;
         public float LarvaSeconds => _larvaSeconds;

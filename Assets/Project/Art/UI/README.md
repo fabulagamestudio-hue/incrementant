@@ -112,6 +112,8 @@ Base: `Sprites/FormigueiroSkillTree/Textures/`.
 | R | Resíduos | R0 → R1 |
 | HUB | Centro visual da colônia | Não presumir custo ou compra apenas pela existência do sprite |
 
+Importação: `Incrementant/UI/Aplicar importação dos sprites da árvore` (`SkillTreeSpriteImporter`) configura esta pasta como sprite Point, sem compressão, e grava as bordas 9-slice (abas 12, painel e botões 8). A tela que usa o conjunto é a Evolução ([HudGuide](../../Scripts/Runtime/UI/HudGuide.md)), com os nós do formigueiro só em exibição.
+
 Fonte dos requisitos: [Mapa da árvore do formigueiro](../../../../Docs/01_Design/17_Mapa_da_arvore_do_formigueiro.md). A geometria de uma conexão não define a regra de desbloqueio.
 
 ### Composição e estados
@@ -133,6 +135,8 @@ O ZIP contém `PixelifySans-Regular.ttf`, `PixelifySans-Bold.ttf`, `Caracteres-P
 5. Conferir: `Colônia · Evolução · Berçário · Resíduos · Configurações · Próxima cria · 0,25 N · +2,40 N/s`.
 
 O relatório incluído informa 125 caracteres testados, sem ausências nos TTFs. Isso não valida o atlas nem a exibição no Editor. Escolher renderização e material do Font Asset após conferir a nitidez; o filtro dos sprites não resolve a renderização do texto.
+
+O HUD atual usa `Text` legado e a **Press Start 2P** (`Fontes/PressStart2P`, baixada do repositório google/fonts, SIL OFL), no lugar da Pixelify Sans do ZIP: a Pixelify fechava o C e o G em vários tamanhos e não mantinha a espessura do traço. Detalhes e regras de tamanho em [HudGuide](../../Scripts/Runtime/UI/HudGuide.md) ("Fonte"). O atlas do TextMeshPro só será necessário se o HUD migrar.
 
 Não executar `prepare_fonts.py` para importar: os TTFs já estão no pacote. Preservar a licença junto dos arquivos da fonte. Prévia, ZIP, relatório e script são materiais de apoio, sem referências necessárias no runtime.
 

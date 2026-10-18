@@ -63,7 +63,10 @@ namespace Fabula.Incrementant.Tests
         {
             PixelGrid grid = MakeFloorGrid(5, 5);
             grid.Set(1, 1, CellMaterial.Dirt);
-            Assert.IsFalse(grid.SetMarked(2, 0, true), "Rocha não pode ser marcada.");
+            Assert.IsTrue(grid.SetMarked(2, 0, true), "Rocha aceita marca: a frente espera por uma escavadora com E2.");
+            Assert.IsTrue(grid.SetMarked(2, 0, false));
+            grid.Set(3, 0, CellMaterial.Bedrock);
+            Assert.IsFalse(grid.SetMarked(3, 0, true), "Rocha de base não pode ser marcada.");
             Assert.IsTrue(grid.SetMarked(1, 1, true));
             Assert.AreEqual(1, grid.MarkedCount);
 
@@ -370,7 +373,7 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
-        public void BuildMarks_OnlyApplyToEmptyUndergroundCells_AndClearWhenFilled()
+        public void BuildMarks_OnlyApplyToEmptyCells_AndClearWhenFilled()
         {
             PixelGrid grid = MakeFloorGrid(10, 10);
             for (int x = 0; x < grid.Width; x++)
@@ -378,7 +381,8 @@ namespace Fabula.Incrementant.Tests
             grid.Set(3, 2, CellMaterial.Dirt);
 
             Assert.IsFalse(grid.SetBuildMarked(3, 2, true), "Célula sólida não recebe marca de construção.");
-            Assert.IsFalse(grid.SetBuildMarked(4, 7, true), "O céu acima do solo original não se constrói.");
+            Assert.IsTrue(grid.SetBuildMarked(4, 7, true), "O céu acima do solo original também se constrói (obra de fora).");
+            Assert.IsTrue(grid.SetBuildMarked(4, 7, false));
             Assert.IsTrue(grid.SetBuildMarked(4, 2, true));
             Assert.AreEqual(1, grid.BuildMarkedCount);
             Assert.IsTrue(grid.IsBuildMarked(4, 2));
@@ -456,6 +460,62 @@ namespace Fabula.Incrementant.Tests
             Assert.GreaterOrEqual(peakBuilders, 3, "Várias formigas devem construir ao mesmo tempo, sem voltar ociosas.");
             Assert.AreEqual(CellMaterial.PackedSpoil, grid.Get(65, 5), "A terra posta fica encaixada, sem escorrer.");
             Assert.AreEqual(0, colony.TotalDelivered, "Construir não conta como entrega de terra.");
+        }
+
+        [Test]
+        public void Colony_BuildsOutsideTheAnthillFromTheGroundUp_WithLooseDirtOnly()
+        {
+            // Mesmo solo e entrada do teste anterior. Duas colunas marcadas no céu (x 62..63, y 21..24) crescem a partir
+            // do chão. Há terra solta e um bloco compactado (x 70) que as formigas não podem desmontar.
+            const int surface = 20;
+            PixelGrid grid = MakeFloorGrid(80, 40);
+            for (int x = 0; x < grid.Width; x++)
+            {
+                grid.SetSurfaceY(x, surface);
+                for (int y = 1; y <= surface; y++)
+                    grid.Set(x, y, CellMaterial.Dirt);
+            }
+            for (int y = 5; y <= surface; y++)
+            for (int x = 39; x <= 41; x++)
+                grid.Set(x, y, CellMaterial.Empty);
+            for (int x = 39; x <= 50; x++)
+            for (int y = 5; y <= 7; y++)
+                grid.Set(x, y, CellMaterial.Empty);
+            for (int x = 48; x <= 57; x++)
+            for (int y = surface + 1; y <= surface + 2; y++)
+                grid.Set(x, y, CellMaterial.Spoil);
+            grid.Set(70, surface + 1, CellMaterial.PackedSpoil);
+
+            for (int x = 62; x <= 63; x++)
+            for (int y = surface + 1; y <= surface + 4; y++)
+                Assert.IsTrue(grid.SetBuildMarked(x, y, true));
+            int toFill = grid.BuildMarkedCount;
+
+            var colony = new AntColony(grid, new ColonySettings(), new TerrainLayout(40, new Vector2Int(40, 6), 60, 70), seed: 5);
+            foreach (Ant ant in colony.Ants)
+                ant.Role = AntRole.Worker;
+            var sim = new GranularSimulation();
+            for (int tick = 0; tick < 60 * 240 && grid.BuildMarkedCount > 0; tick++)
+            {
+                sim.Step(grid);
+                colony.Tick(1f / 60f);
+                // Nunca sobra uma célula construída sem apoio embaixo: a obra cresce do chão para cima.
+                for (int x = 62; x <= 63; x++)
+                for (int y = surface + 2; y <= surface + 4; y++)
+                {
+                    if (grid.IsSolid(x, y))
+                        Assert.IsTrue(grid.IsSolid(x, y - 1), $"({x},{y}) foi posta antes da célula de baixo.");
+                }
+            }
+
+            Assert.AreEqual(0, grid.BuildMarkedCount, "A obra de fora deveria ter sido toda construída.");
+            int built = 0;
+            for (int x = 62; x <= 63; x++)
+            for (int y = surface + 1; y <= surface + 4; y++)
+                built += grid.Get(x, y) == CellMaterial.PackedSpoil ? 1 : 0;
+            Assert.AreEqual(toFill, built);
+            Assert.AreEqual(CellMaterial.PackedSpoil, grid.Get(62, surface + 4));
+            Assert.AreEqual(CellMaterial.PackedSpoil, grid.Get(70, surface + 1), "A terra compactada não é fonte de material.");
         }
 
         [Test]

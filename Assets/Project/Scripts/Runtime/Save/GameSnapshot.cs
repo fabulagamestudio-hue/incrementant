@@ -38,8 +38,9 @@ namespace Fabula.Incrementant.Save
         /// 6: plantas cobertas por terra (<c>PixelGrid.GetBehind</c>).
         /// 7: papel de cada formiga.
         /// 8: berçário pintado, ovos/larvas/pupas, relógio da postura e política da rainha.
+        /// 9: nós comprados da árvore da rainha (saves anteriores já tinham as classes: voltam com elas liberadas).
         /// </summary>
-        public const int CurrentVersion = 8;
+        public const int CurrentVersion = 9;
         /// <summary>
         /// Versão mais antiga que ainda carrega (a 2 volta sem sala pintada e com a rainha no ninho; a 2 e a 3 voltam sem
         /// sala de nutrientes e com 0 nutrientes).
@@ -92,6 +93,8 @@ namespace Fabula.Incrementant.Save
         public byte QueenMode, QueenTarget;
         /// <summary>Segundos até a próxima postura (versão 8).</summary>
         public float LayTimer;
+        /// <summary>Bit por nó comprado da árvore da rainha (<see cref="QueenTree.Mask"/>, versão 9).</summary>
+        public ulong TreeMask = QueenTree.LegacyMask;
         /// <summary>Crias reservadas (versão 8).</summary>
         public BroodRecord[] Brood = Array.Empty<BroodRecord>();
         /// <summary>
@@ -144,6 +147,7 @@ namespace Fabula.Incrementant.Save
                 QueenMode = (byte)colony.QueenMode,
                 QueenTarget = (byte)colony.QueenTarget,
                 LayTimer = colony.Brood.SecondsToNextLay,
+                TreeMask = colony.Tree.Mask,
                 Brood = new List<BroodRecord>(colony.Brood.Brood).ToArray(),
                 Behind = new byte[count],
                 BehindShades = new byte[count],
@@ -250,6 +254,7 @@ namespace Fabula.Incrementant.Save
                 colony.RestoreQueen(QueenX, QueenY, QueenFacingX);
             colony.SetQueenPolicy((QueenMode)QueenMode, (AntRole)QueenTarget);
             colony.RestoreBrood(Brood, LayTimer);
+            colony.Tree.Restore(TreeMask);
         }
 
         /// <summary>Linhas enterradas das plantas (chame depois de <c>MarkPopulated</c>; as células já vêm da grade).</summary>
@@ -324,6 +329,7 @@ namespace Fabula.Incrementant.Save
                 {
                     w.Write((byte)b.Role); w.Write((byte)b.Stage); w.Write(b.Remaining);
                 }
+                w.Write(TreeMask);
             }
         }
 
@@ -423,6 +429,8 @@ namespace Fabula.Incrementant.Save
                         for (int i = 0; i < broodCount; i++)
                             s.Brood[i] = new BroodRecord { Role = (AntRole)r.ReadByte(), Stage = (BroodStage)r.ReadByte(), Remaining = r.ReadSingle() };
                     }
+                    if (version >= 9)
+                        s.TreeMask = r.ReadUInt64();
                     return s;
                 }
             }

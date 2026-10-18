@@ -30,6 +30,7 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField] AntFarmView _view;
         [Tooltip("Formigas em sprite (arte em resolução maior que o terreno). Vazio = formigas de 3 pixels na textura.")]
         [SerializeField] AntSwarmView _antsView;
+        [SerializeField] BroodView _broodView;
         [Tooltip("Cenário da superfície na escala das formigas. Vazio = só o céu em gradiente da textura do terreno.")]
         [SerializeField] SurfaceSceneryView _scenery;
         [Tooltip("Procedural: mapa novo gerado no Play. Image: usa a imagem e os marcadores abaixo.")]
@@ -94,7 +95,7 @@ namespace Fabula.Incrementant.AntFarm
         BrushMode _brushMode;
         bool _pointerOverWorld;
         bool _paused;
-        /// <summary>HUD de depuração (IMGUI, com contadores de simulação); o HUD de jogo é o <c>AntFarmHud</c> (uGUI). F1 alterna.</summary>
+        /// <summary>HUD de depuração (IMGUI, com contadores de simulação); o HUD de jogo é o <c>AntFarmHud</c> (uGUI). F2 alterna (F1 é o cheat de formigas).</summary>
         [SerializeField] bool _showDebugHud;
         Rect _hudRect = new Rect(10, 10, 340, 640);
         readonly MatchTimer _matchTimer = new MatchTimer();
@@ -397,6 +398,8 @@ namespace Fabula.Incrementant.AntFarm
             if (spriteAnts)
                 _antsView.Render(_grid, _colony.Ants, _view.transform.position, _colony.SimulationTime + _accumulator, Time.deltaTime,
                                  _colony.Queen);
+            if (_broodView != null && _broodView.HasFrames)
+                _broodView.Render(_colony.Brood.Brood, _colony.NurserySpots, _view.transform.position);
             if (_scenery != null)
             {
                 _scenery.UpdateParallax(_camera);
@@ -475,6 +478,25 @@ namespace Fabula.Incrementant.AntFarm
         static void DrawDumpLine(float x, float bottom, int height) =>
             Gizmos.DrawLine(new Vector3(x, bottom, 0f), new Vector3(x, bottom + height, 0f));
 
+        const int CheatWorkers = 50;
+        const int CheatCutters = 50;
+
+        /// <summary>
+        /// Cheat de teste (F1): +50 operárias e +50 cortadeiras, nascidas onde a rainha está. Não cobra nutrientes e ignora
+        /// a capacidade adulta e a vaga de berçário (a rainha só volta a pôr ovos quando a população cair abaixo do limite).
+        /// Só em Editor e builds de desenvolvimento.
+        /// </summary>
+        void SpawnCheatAnts()
+        {
+            if (_colony == null || !Debug.isDebugBuild)
+                return;
+            for (int i = 0; i < CheatWorkers; i++)
+                _colony.Spawn(AntRole.Worker);
+            for (int i = 0; i < CheatCutters; i++)
+                _colony.Spawn(AntRole.Cutter);
+            Debug.Log($"[AntFarmGame] Cheat F1: +{CheatWorkers} operárias e +{CheatCutters} cortadeiras (total {_colony.Ants.Count}).");
+        }
+
         void HandleInput()
         {
             Keyboard keyboard = Keyboard.current;
@@ -484,7 +506,8 @@ namespace Fabula.Incrementant.AntFarm
                 if (keyboard.digit2Key.wasPressedThisFrame) SetSpeed(1);
                 if (keyboard.digit3Key.wasPressedThisFrame) SetSpeed(2);
                 if (keyboard.pKey.wasPressedThisFrame) SetPaused(!_paused);
-                if (keyboard.f1Key.wasPressedThisFrame) _showDebugHud = !_showDebugHud;
+                if (keyboard.f1Key.wasPressedThisFrame) SpawnCheatAnts();
+                if (keyboard.f2Key.wasPressedThisFrame) _showDebugHud = !_showDebugHud;
                 if (keyboard.bKey.wasPressedThisFrame)
                     _brushMode = (BrushMode)(((int)_brushMode + 1) % BrushLabels.Length);
                 if (keyboard.cKey.wasPressedThisFrame)

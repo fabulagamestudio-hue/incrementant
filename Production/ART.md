@@ -16,6 +16,7 @@ Só há arte provisória gerada por código para o protótipo: as formigas (pixe
 | ART-002 | Sprites provisórios da formiga vista de cima (4 quadros) | IMPLEMENTED | UNDEFINED | [Ant_Top_0.png](../Assets/Project/Art/Ants/Ant_Top_0.png) | PRG-008 | 2026-10-17 |
 | ART-003 | Cenário provisório da superfície na escala das formigas | IMPLEMENTED | UNDEFINED | [Art/Scenery/](../Assets/Project/Art/Scenery/) (67 PNGs isolados), [SurfaceSceneryPainter.cs](../Assets/Project/Scripts/Runtime/AntFarm/SurfaceSceneryPainter.cs) | REQ-002, PRG-009 | 2026-10-17 |
 | ART-004 | Sprites de UI 9-slice (painéis, botões, controles, ícones) | IMPLEMENTED | UNDEFINED | [Art/UI/Sprites/](../Assets/Project/Art/UI/Sprites/), [UiSpriteImporter.cs](../Assets/Project/Scripts/Editor/UI/UiSpriteImporter.cs) | REQ-010 | 2026-10-17 |
+| ART-005 | Sprites provisórios da cria: ovo, larva e pupa (2 quadros de idle cada) | IMPLEMENTED | UNDEFINED | [Larva_Idle_0.png](../Assets/Project/Art/Ants/Larva_Idle_0.png), [Pupa_Idle_0.png](../Assets/Project/Art/Ants/Pupa_Idle_0.png), [Egg_Idle_0.png](../Assets/Project/Art/Ants/Egg_Idle_0.png) | REQ-014, PRG-021 | 2026-10-17 |
 
 ## Detalhes
 
@@ -35,11 +36,15 @@ Pedido em REQ-002. Pixel art gerada por código na densidade das formigas (6 px 
 
 58 sprites de UI (painéis, botões, abas, controles, barras, ícones) importados como sprite Point, com bordas 9-slice definidas pelo agente em [UiSpriteImporter.cs](../Assets/Project/Scripts/Editor/UI/UiSpriteImporter.cs); as bordas são estimadas a olho e podem precisar de ajuste. Usados no HUD da partida (PRG-017); os demais ainda sem tela. O conjunto `FormigueiroSkillTree` não foi tocado. Funcionamento em [HudGuide.md](../Assets/Project/Scripts/Runtime/UI/HudGuide.md).
 
+### ART-005 — Sprites provisórios da cria (ovo, larva, pupa)
+
+Pedido em REQ-014. Pixel art 18x12 em vista lateral, mesmo importador e densidade das formigas (6 px por célula, pivô a meia célula do chão), cores claras (creme para ovo e larva, bege para a pupa) com o marrom escuro das formigas nos detalhes. Dois quadros de idle por etapa: ovo balança, larva respira (1 px), pupa sobe 1 px. Desenhados por script pontual do agente (não há gerador no repositório); os PNGs são a fonte e podem ser repintados à mão mantendo o tamanho. Só vista lateral: a vista de cima dos túneis de fundo não tem versão. Aprovação visual cabe ao desenvolvedor.
+
 ## Riscos e bloqueios
 
 - Nenhum.
 
 ## Não verificado
 
-- Aprovação visual da arte provisória pelo desenvolvedor.
+- Aprovação visual da arte provisória pelo desenvolvedor, inclusive os sprites da cria (ART-005).
 - Aprovação visual das bordas 9-slice e da fonte do HUD (fonte padrão do Unity, sem fonte pixel) pelo desenvolvedor (ART-004).

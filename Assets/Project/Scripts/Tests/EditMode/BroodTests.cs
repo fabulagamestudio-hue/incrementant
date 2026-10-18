@@ -40,6 +40,7 @@ namespace Fabula.Incrementant.Tests
         static AntColony MakeColony(int nurseryWidth, int nutrients, int corridorHeight = 8)
         {
             var colony = new AntColony(MakeWorld(nurseryWidth, corridorHeight), new ColonySettings(), Layout, seed: 1);
+            colony.Tree.Restore(QueenTree.LegacyMask | 1UL << (int)QueenNode.N0); // só as classes liberadas; estes testes são do ciclo, não da árvore (ver QueenTreeTests)
             colony.RestoreNutrients(nutrients, 0, 0);
             Tick(colony, 1f); // monta os campos e conta o espaço
             return colony;
@@ -49,6 +50,28 @@ namespace Fabula.Incrementant.Tests
         {
             for (float t = 0f; t < seconds; t += Dt)
                 colony.Tick(Dt);
+        }
+
+        /// <summary>Avança até a condição valer (no máximo <paramref name="maxSeconds"/>); devolve se valeu.</summary>
+        static bool TickUntil(AntColony colony, System.Func<bool> condition, float maxSeconds)
+        {
+            for (float t = 0f; t < maxSeconds; t += Dt)
+            {
+                if (condition())
+                    return true;
+                colony.Tick(Dt);
+            }
+            return condition();
+        }
+
+        static bool AllPlaced(AntColony colony)
+        {
+            foreach (BroodRecord b in colony.Brood.Brood)
+            {
+                if (b.Phase != EggPhase.Placed)
+                    return false;
+            }
+            return colony.Brood.Count > 0;
         }
 
         [Test]
@@ -89,14 +112,91 @@ namespace Fabula.Incrementant.Tests
             colony.SetQueenPolicy(QueenMode.Specific, AntRole.Carrier);
             int adults = colony.Ants.Count;
             int carriers = colony.CountOf(AntRole.Carrier);
-            Tick(colony, 18f + 8f + 14f + 12f - 2f);
+            // A postura sai aos 18 s; o ovo só se desenvolve depois de levado ao berçário, então a pupa vem uns segundos depois.
+            Assert.IsTrue(TickUntil(colony, () => colony.Brood.Pupae == 1, 60f), "Ovo → larva → pupa.");
             Assert.AreEqual(adults, colony.Ants.Count, "Ainda é pupa.");
-            Assert.AreEqual(1, colony.Brood.Pupae);
 
-            Tick(colony, 2f);
-            Assert.AreEqual(adults + 1, colony.Ants.Count);
+            Assert.IsTrue(TickUntil(colony, () => colony.Ants.Count == adults + 1, 30f), "Pupa → adulta.");
             Assert.AreEqual(carriers + 1, colony.CountOf(AntRole.Carrier));
-            Assert.AreEqual(1000 - 24 * 2, colony.Nutrients, "Dois ovos postos até agora (a segunda postura vem 18 s depois da primeira).");
+            // Um ovo por postura (24 N cada): o que nasceu mais os que ainda estão na lista.
+            Assert.AreEqual(1000 - 24 * (colony.Brood.Count + 1), colony.Nutrients);
+        }
+
+        [Test]
+        public void TheEgg_IsLaidWhereTheQueenIs_AndOnlyDevelopsAfterBeingCarriedToTheNursery()
+        {
+            AntColony colony = MakeColony(21, 1000);
+            Assert.IsTrue(TickUntil(colony, () => colony.Brood.Count == 1, 25f));
+            BroodRecord laid = colony.Brood.Brood[0];
+            // Uma formiga ociosa o reivindica já no passo da postura (as formigas andam depois da rainha).
+            Assert.IsTrue(laid.Phase == EggPhase.Laid || laid.Phase == EggPhase.Claimed, $"Fase {laid.Phase}.");
+            Assert.AreEqual(colony.Queen.X, laid.LaidX);
+            Assert.AreEqual(colony.Queen.Y, laid.LaidY);
+            Assert.AreEqual(-1, laid.Slot, "Ainda não está em nenhum ponto do berçário.");
+
+            bool wasCarried = false;
+            float eggSeconds = new ColonySettings().EggSeconds;
+            while (!AllPlaced(colony))
+            {
+                BroodRecord b = colony.Brood.Brood[0];
+                wasCarried |= b.Phase == EggPhase.Carried;
+                Assert.AreEqual(eggSeconds, b.Remaining, "Ovo fora do berçário não se desenvolve.");
+                Assert.Less(colony.SimulationTime, 60f, "Nenhuma formiga levou o ovo.");
+                colony.Tick(Dt);
+            }
+            Assert.IsTrue(wasCarried, "O ovo passou pela boca de uma formiga.");
+            BroodRecord placed = colony.Brood.Brood[0];
+            Vector2Int spot = colony.NurserySpots[placed.Slot];
+            Assert.IsTrue(colony.Brood.TryGet(placed.Id, out _));
+            Assert.AreEqual(BroodStage.Egg, placed.Stage);
+            Assert.AreEqual(1, colony.Brood.PlacedAt(placed.Slot));
+            Assert.IsTrue(MakeWorld(21).IsNurseryRoom(spot.x, spot.y), "O ponto fica no berçário.");
+        }
+
+        [Test]
+        public void OnlyCommonAntsAndCarriersCarryTheEgg()
+        {
+            AntColony colony = MakeColony(21, 1000);
+            foreach (Ant ant in colony.Ants)
+                ant.Role = AntRole.Cutter;
+            Assert.IsTrue(TickUntil(colony, () => colony.Brood.Count == 1, 25f));
+            Tick(colony, 30f);
+            Assert.AreEqual(EggPhase.Laid, colony.Brood.Brood[0].Phase, "Cortadeiras não carregam ovo.");
+
+            colony.Ants[0].Role = AntRole.Worker;
+            Assert.IsTrue(TickUntil(colony, () => AllPlaced(colony), 40f), "Uma operária comum leva o ovo.");
+        }
+
+        [Test]
+        public void TwoEggs_GoToDifferentSpotsOfTheNursery()
+        {
+            AntColony colony = MakeColony(21, 1000);
+            Assert.IsTrue(TickUntil(colony, () => colony.Brood.Count == 2 && AllPlaced(colony), 60f));
+            Assert.AreNotEqual(colony.Brood.Brood[0].Slot, colony.Brood.Brood[1].Slot);
+        }
+
+        [Test]
+        public void ABroodCycle_ReleasesTheEgg_WhenTheCarrierIsLost()
+        {
+            var cycle = new BroodCycle(new ColonySettings());
+            var context = new BroodContext
+            {
+                Mode = QueenMode.Specific, Role = AntRole.Worker, Cost = 18, Nutrients = 1000, Adults = 0, AdultCapacity = 100,
+                NurserySlots = 5, QueenX = 7, QueenY = 3,
+            };
+            var born = new System.Collections.Generic.List<AntRole>();
+            for (float t = 0f; t < 19f && cycle.Count == 0; t += Dt)
+                cycle.Tick(Dt, context, born);
+            Assert.AreEqual(1, cycle.Count);
+            Assert.IsTrue(cycle.TryClaimEgg(out int id));
+            Assert.IsFalse(cycle.TryClaimEgg(out _), "Um ovo, uma formiga.");
+            cycle.PickUpEgg(id);
+            cycle.ReleaseEgg(id, 12, 5);
+            cycle.TryGet(id, out BroodRecord egg);
+            Assert.AreEqual(EggPhase.Laid, egg.Phase);
+            Assert.AreEqual(12, egg.LaidX, "Volta ao chão onde a formiga estava.");
+            Assert.AreEqual(5, egg.LaidY);
+            Assert.IsTrue(cycle.TryClaimEgg(out _), "Outra formiga pode pegar.");
         }
 
         [Test]
@@ -154,10 +254,76 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
+        public void AdultsPlusBrood_NeverExceedTheCapacity_EvenOnTheTickWhenAnAntIsBorn()
+        {
+            // Regressão: no passo do nascimento a vaga era liberada duas vezes (a cria saía da lista antes de a adulta existir)
+            // e a rainha punha um ovo a mais, deixando adultas + crias em capacidade + 1.
+            AntColony colony = MakeColony(21, 100000, corridorHeight: 3); // 7 vagas
+            Assert.AreEqual(7, colony.AdultCapacity);
+            int births = 0;
+            for (float t = 0f; t < 200f; t += Dt)
+            {
+                int before = colony.Ants.Count;
+                colony.Tick(Dt);
+                births += colony.Ants.Count - before;
+                Assert.LessOrEqual(colony.Ants.Count + colony.Brood.Count, colony.AdultCapacity, $"Estourou em t = {t:F1} s.");
+            }
+            Assert.GreaterOrEqual(births, 1, "O teste precisa cobrir ao menos um nascimento.");
+        }
+
+        [Test]
+        public void EachBrood_KeepsItsSlot_WhileAnotherIsBorn()
+        {
+            AntColony colony = MakeColony(21, 100000);
+            colony.SetQueenPolicy(QueenMode.Specific, AntRole.Worker);
+            int adults = colony.Ants.Count;
+            Assert.IsTrue(TickUntil(colony, () => colony.Brood.Count == 2 && AllPlaced(colony), 60f));
+            BroodRecord second = colony.Brood.Brood[1];
+
+            Assert.IsTrue(TickUntil(colony, () => colony.Ants.Count == adults + 1, 60f), "A primeira nasce.");
+            Assert.IsTrue(colony.Brood.TryGet(second.Id, out BroodRecord after), "A segunda segue na lista.");
+            // Quem cuida do berçário muda as crias de ponto; o que não pode acontecer é a cria sair da sala quando outra nasce.
+            Assert.IsTrue(after.Phase == EggPhase.Placed || after.Phase == EggPhase.Moving, "A segunda segue no berçário.");
+            Assert.Less(after.Slot, colony.NurserySpots.Count);
+        }
+
+        [Test]
+        public void Restore_AssignsDistinctSlots()
+        {
+            AntColony colony = MakeColony(21, 0);
+            colony.RestoreBrood(new[]
+            {
+                new BroodRecord { Role = AntRole.Worker, Stage = BroodStage.Egg, Remaining = 3f },
+                new BroodRecord { Role = AntRole.Digger, Stage = BroodStage.Larva, Remaining = 5f },
+                new BroodRecord { Role = AntRole.Cutter, Stage = BroodStage.Pupa, Remaining = 7f },
+            }, 4f);
+            for (int i = 0; i < 3; i++)
+            {
+                Assert.AreEqual(i, colony.Brood.Brood[i].Slot);
+                Assert.AreEqual(EggPhase.Placed, colony.Brood.Brood[i].Phase, "O save não guarda o transporte: volta no berçário.");
+            }
+        }
+
+        [Test]
+        public void NurserySpots_SitOnTheFloorOfTheNursery_AWholeSpriteApart()
+        {
+            AntColony colony = MakeColony(21, 0);
+            // Berçário x 10..30, y 1..3: o chão é a linha y = 1 (rocha embaixo), um ponto a cada 3 células.
+            Assert.AreEqual(7, colony.NurserySpots.Count);
+            for (int i = 0; i < colony.NurserySpots.Count; i++)
+            {
+                Assert.AreEqual(1, colony.NurserySpots[i].y);
+                if (i > 0)
+                    Assert.GreaterOrEqual(colony.NurserySpots[i].x - colony.NurserySpots[i - 1].x, AntColony.NurserySpotSpacing);
+            }
+            Assert.AreEqual(0, MakeColony(0, 0).NurserySpots.Count, "Sem berçário não há onde desenhar.");
+        }
+
+        [Test]
         public void Automatic_SpreadsTheBroodAcrossTheRoles()
         {
             AntColony colony = MakeColony(21, 100000);
-            for (int i = 0; i < 12; i++)
+            for (int i = 0; i < 30; i++)
             {
                 colony.Brood.Restore(new BroodRecord[0], 0f);
                 var role = colony.NextAntRole;

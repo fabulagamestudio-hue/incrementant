@@ -24,6 +24,7 @@ namespace Fabula.Incrementant.EditorTools.Setup
         const string DumpStartName = "DumpStart";
         const string DumpEndName = "DumpEnd";
         const string AntsName = "Ants";
+        const string BroodName = "Brood";
         const string SceneryName = "Scenery";
         const int DefaultSeed = 1234;
 
@@ -61,6 +62,10 @@ namespace Fabula.Incrementant.EditorTools.Setup
             AntSwarmView antsView = GetOrAdd<AntSwarmView>(FindOrCreateChild(root.transform, AntsName, ref antsCreated).gameObject);
             AssignAntFrames(antsView);
 
+            bool broodCreated = false;
+            BroodView broodView = GetOrAdd<BroodView>(FindOrCreateChild(root.transform, BroodName, ref broodCreated).gameObject);
+            AssignBroodFrames(broodView);
+
             bool sceneryCreated = false;
             SurfaceSceneryView scenery = GetOrAdd<SurfaceSceneryView>(FindOrCreateChild(root.transform, SceneryName, ref sceneryCreated).gameObject);
             AssignSceneryArt(scenery);
@@ -74,6 +79,7 @@ namespace Fabula.Incrementant.EditorTools.Setup
             serialized.FindProperty("_camera").objectReferenceValue = camera;
             serialized.FindProperty("_view").objectReferenceValue = view;
             serialized.FindProperty("_antsView").objectReferenceValue = antsView;
+            serialized.FindProperty("_broodView").objectReferenceValue = broodView;
             serialized.FindProperty("_scenery").objectReferenceValue = scenery;
             serialized.FindProperty("_nestMarker").objectReferenceValue = nest;
             serialized.FindProperty("_dumpStartMarker").objectReferenceValue = dumpStart;
@@ -133,6 +139,21 @@ namespace Fabula.Incrementant.EditorTools.Setup
             SetSprites(serialized.FindProperty("_topFrames"), AntSpriteGenerator.GenerateTop(overwrite: false));
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
+
+        /// <summary>Liga os quadros de ovo, larva e pupa (PNGs em Art/Ants, desenhados à mão: nunca são gerados nem sobrescritos).</summary>
+        static void AssignBroodFrames(BroodView broodView)
+        {
+            var serialized = new SerializedObject(broodView);
+            SetSprites(serialized.FindProperty("_eggFrames"), LoadIdleFrames("Egg"));
+            SetSprites(serialized.FindProperty("_larvaFrames"), LoadIdleFrames("Larva"));
+            SetSprites(serialized.FindProperty("_pupaFrames"), LoadIdleFrames("Pupa"));
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        static Sprite[] LoadIdleFrames(string prefix) => Enumerable.Range(0, 2)
+            .Select(i => AssetDatabase.LoadAssetAtPath<Sprite>($"{AntSpriteImporter.AntsFolder}{prefix}_Idle_{i}.png"))
+            .Where(sprite => sprite != null)
+            .ToArray();
 
         /// <summary>Exporta só os elementos do cenário que ainda não têm PNG (não sobrescreve retoques) e liga o catálogo.</summary>
         static void AssignSceneryArt(SurfaceSceneryView scenery)
