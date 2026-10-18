@@ -131,6 +131,9 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Segundos até a próxima postura (0 = pronta, esperando condições).</summary>
         public float SecondsToNextLay => _layTimer;
 
+        /// <summary>Quanto do intervalo até o próximo ovo já passou (0 a 1); 1 = pronto, esperando condições.</summary>
+        public float LayProgress => Mathf.Clamp01(1f - _layTimer / Mathf.Max(0.01f, LayInterval));
+
         public int Count => _brood.Count;
         public int Eggs => CountOf(BroodStage.Egg);
         public int Larvae => CountOf(BroodStage.Larva);

@@ -83,6 +83,8 @@ namespace Fabula.Incrementant.AntFarm
         // Névoa: célula aberta (sem material, ou acima do solo original) e a distância horizontal até uma, por linha.
         bool[] _open;
         byte[] _fogRows;
+        // Tabela de área somada de _open (uma linha e uma coluna a mais, de zeros): ver FogDistance.
+        int[] _openSum;
 
         /// <param name="transparentSky">Deixa o céu transparente, para um cenário desenhado atrás (SurfaceSceneryView) aparecer.</param>
         /// <param name="skyBaseY">Linha onde o gradiente do céu começa (cor de baixo); o topo da grade tem a cor de cima.</param>
@@ -278,16 +280,23 @@ namespace Fabula.Incrementant.AntFarm
             {
                 _open = new bool[stride * rows];
                 _fogRows = new byte[stride * rows];
+                _openSum = new int[(stride + 1) * (rows + 1)];
             }
 
+            int sumStride = stride + 1;
             for (int r = 0; r < rows; r++)
             {
                 int y = _originY - radius + r;
+                int rowSum = 0;
                 for (int c = 0; c < stride; c++)
                 {
                     int x = _originX - radius + c;
-                    _open[r * stride + c] = grid.InBounds(x, y) &&
-                                            (grid.Get(x, y) == CellMaterial.Empty || y > grid.GetSurfaceY(x));
+                    bool open = grid.InBounds(x, y) &&
+                                (grid.Get(x, y) == CellMaterial.Empty || y > grid.GetSurfaceY(x));
+                    _open[r * stride + c] = open;
+                    // Soma acumulada 2D (tabela de área somada): conta as abertas de qualquer quadrado em O(1).
+                    rowSum += open ? 1 : 0;
+                    _openSum[(r + 1) * sumStride + c + 1] = _openSum[r * sumStride + c + 1] + rowSum;
                 }
             }
 
@@ -309,10 +318,26 @@ namespace Fabula.Incrementant.AntFarm
         /// <summary>Distância de xadrez (0 = aberta) até a célula aberta mais próxima; radius + 1 = fora do alcance.</summary>
         int FogDistance(int wx, int wy, int radius, int stride)
         {
+            // Nenhuma aberta no quadrado (2r+1)²: longe, sem varrer as linhas (o caso comum, no fundo da terra).
+            // As coordenadas do quadrado, no espaço com folga, vão de (wx, wy) a (wx + 2r, wy + 2r).
+            int side = 2 * radius + 1;
+            int sumStride = stride + 1;
+            int open = _openSum[(wy + side) * sumStride + wx + side] - _openSum[wy * sumStride + wx + side]
+                       - _openSum[(wy + side) * sumStride + wx] + _openSum[wy * sumStride + wx];
+            if (open == 0)
+                return radius + 1;
+
+            // Do centro para fora: sai assim que o próximo dy já não melhora o melhor achado.
             int best = radius + 1;
-            for (int dy = -radius; dy <= radius; dy++)
+            int center = wy + radius;
+            for (int a = 0; a <= radius && a < best; a++)
             {
-                int d = Mathf.Max(Mathf.Abs(dy), _fogRows[(wy + radius + dy) * stride + wx]);
+                int d = Mathf.Max(a, _fogRows[(center + a) * stride + wx]);
+                if (d < best)
+                    best = d;
+                if (a == 0)
+                    continue;
+                d = Mathf.Max(a, _fogRows[(center - a) * stride + wx]);
                 if (d < best)
                     best = d;
             }

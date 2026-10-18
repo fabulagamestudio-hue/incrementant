@@ -34,7 +34,6 @@ namespace Fabula.Incrementant.AntFarm
             while (_renderers.Count < brood.Count)
                 _renderers.Add(CreateRenderer(_renderers.Count));
 
-            float time = Time.time / _frameSeconds;
             for (int i = 0; i < _renderers.Count; i++)
             {
                 SpriteRenderer r = _renderers[i];
@@ -49,11 +48,17 @@ namespace Fabula.Incrementant.AntFarm
                     r.gameObject.SetActive(true);
 
                 // Defasa cada cria para não piscarem juntas; as de id ímpar ficam viradas para o outro lado.
-                Sprite[] frames = FramesOf(b.Stage);
-                r.sprite = frames[(int)(time + b.Id * 0.37f) % frames.Length];
+                r.sprite = FrameOf(b);
                 r.flipX = (b.Id & 1) == 1;
                 r.transform.position = origin + new Vector3(cell.x + 0.5f, cell.y + 0.5f, 0f);
             }
+        }
+
+        /// <summary>Quadro atual da cria (etapa e defasagem dela), o mesmo no berçário e na boca da formiga que a carrega.</summary>
+        public Sprite FrameOf(in BroodRecord b)
+        {
+            Sprite[] frames = FramesOf(b.Stage);
+            return frames[(int)(Time.time / _frameSeconds + b.Id * 0.37f) % frames.Length];
         }
 
         /// <summary>Onde desenhar a cria; falso se não há o que mostrar (ovo na boca de uma formiga, ou berçário sem pontos).</summary>

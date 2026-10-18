@@ -29,12 +29,24 @@ namespace Fabula.Incrementant.AntFarm
         [Tooltip("Posição do pixel carregado na vista de cima (pivô no centro do sprite).")]
         [SerializeField] Vector2 _carriedOffsetTop = new Vector2(1.35f, 0f);
         [SerializeField, Range(0.2f, 1.5f)] float _carriedSize = 0.8f;
+        [Tooltip("Posição da cria carregada (arte do BroodView, 3x2 células) em relação ao pivô, formiga virada para a direita.")]
+        [SerializeField] Vector2 _carriedBroodOffset = new Vector2(2.4f, 0.5f);
         [Tooltip("Cor do nutriente que a formiga leva à rainha (a mesma do nutriente guardado no AntFarmView).")]
         [SerializeField] Color32 _nutrientColor = new Color32(232, 214, 92, 255);
         [Tooltip("Cor do ovo que a formiga leva ao berçário (a do ovo desenhado no BroodView).")]
         [SerializeField] Color32 _eggColor = new Color32(240, 222, 190, 255);
         [Tooltip("Tamanho da rainha em relação às formigas (mesmos quadros, escalados).")]
         [SerializeField, Min(1f)] float _queenScale = 2f;
+
+        [Header("Barra do próximo ovo")]
+        [Tooltip("Altura da barra sobre o centro da rainha (células).")]
+        [SerializeField, Min(0f)] float _layBarHeight = 3f;
+        [SerializeField, Min(1f)] float _layBarWidth = 8f;
+        [SerializeField, Min(0f)] float _layBarBorder = 0.25f;
+        [SerializeField] Color _layBarBackColor = new Color(0.1f, 0.07f, 0.05f, 0.85f);
+        [SerializeField] Color _layBarFillColor = new Color(0.94f, 0.87f, 0.75f, 1f);
+        [Tooltip("Cor do preenchimento quando a rainha não pode pôr (sem recursos, vaga ou pausada).")]
+        [SerializeField] Color _layBarBlockedColor = new Color(0.55f, 0.52f, 0.5f, 1f);
 
         sealed class AntVisual
         {
@@ -53,8 +65,20 @@ namespace Fabula.Incrementant.AntFarm
 
         readonly List<AntVisual> _visuals = new List<AntVisual>();
         AntVisual _queenVisual;
+        SpriteRenderer _layBarBack;
+        SpriteRenderer _layBarFill;
         Texture2D _pixelTexture;
         Sprite _pixelSprite;
+
+        BroodCycle _brood;
+        BroodView _broodView;
+
+        /// <summary>Liga o ciclo de criação e a arte das crias: a formiga que carrega uma cria a mostra na boca com essa arte.</summary>
+        public void SetBrood(BroodCycle brood, BroodView broodView)
+        {
+            _brood = brood;
+            _broodView = broodView;
+        }
 
         public bool HasFrames => _walkFrames != null && _walkFrames.Length > 0 && _walkFrames[0] != null;
         bool HasTopFrames => _topFrames != null && _topFrames.Length > 0 && _topFrames[0] != null;
@@ -62,7 +86,7 @@ namespace Fabula.Incrementant.AntFarm
         /// <param name="simulationTime">Tempo simulado atual, incluindo a fração ainda não processada do passo.</param>
         /// <param name="queen">Rainha, desenhada maior (<c>_queenScale</c>) e atrás das operárias. Null = sem rainha.</param>
         public void Render(PixelGrid grid, IReadOnlyList<Ant> ants, Vector3 origin, float simulationTime, float deltaTime,
-                           Ant queen = null)
+                           Ant queen = null, float layProgress = -1f, bool laying = true)
         {
             EnsurePixelSprite();
             if (queen != null)
@@ -70,11 +94,13 @@ namespace Fabula.Incrementant.AntFarm
                 if (_queenVisual == null)
                     _queenVisual = CreateVisual("Queen", _queenScale, _sortingOrder - 2);
                 UpdateVisual(_queenVisual, queen, grid, origin, simulationTime, deltaTime);
+                UpdateLayBar(layProgress, laying);
             }
             else if (_queenVisual != null && _queenVisual.GameObject.activeSelf)
             {
                 _queenVisual.GameObject.SetActive(false);
                 _queenVisual.Initialized = false;
+                UpdateLayBar(-1f, false);
             }
             while (_visuals.Count < ants.Count)
                 _visuals.Add(CreateVisual($"Ant_{_visuals.Count:000}", 1f, _sortingOrder));
@@ -87,6 +113,49 @@ namespace Fabula.Incrementant.AntFarm
                     _visuals[i].GameObject.SetActive(false);
                 _visuals[i].Initialized = false;
             }
+        }
+
+        /// <summary>
+        /// Barra de progresso do próximo ovo, nivelada (não gira com a rainha) logo acima dela. Cheia e cinza = o ciclo
+        /// está pronto mas as condições (alimento, vaga, modo) ainda não deixam pôr. Progresso negativo esconde a barra.
+        /// </summary>
+        void UpdateLayBar(float progress, bool laying)
+        {
+            bool show = progress >= 0f;
+            if (show && _layBarBack == null)
+            {
+                _layBarBack = CreateBarPart("LayBarBack", _sortingOrder + 2, _layBarBackColor);
+                _layBarFill = CreateBarPart("LayBarFill", _sortingOrder + 3, _layBarFillColor);
+            }
+            if (_layBarBack == null)
+                return;
+            if (_layBarBack.gameObject.activeSelf != show)
+            {
+                _layBarBack.gameObject.SetActive(show);
+                _layBarFill.gameObject.SetActive(show);
+            }
+            if (!show)
+                return;
+
+            Vector3 center = _queenVisual.Transform.position + new Vector3(0f, _layBarHeight, 0f);
+            float width = _layBarWidth;
+            _layBarBack.transform.position = center;
+            _layBarBack.transform.localScale = new Vector3(width + 2f * _layBarBorder, 1f + 2f * _layBarBorder, 1f);
+            float filled = Mathf.Max(0.001f, width * Mathf.Clamp01(progress));
+            _layBarFill.transform.position = center + new Vector3((filled - width) * 0.5f, 0f, 0f);
+            _layBarFill.transform.localScale = new Vector3(filled, 1f, 1f);
+            _layBarFill.color = laying ? _layBarFillColor : _layBarBlockedColor;
+        }
+
+        SpriteRenderer CreateBarPart(string objectName, int sortingOrder, Color color)
+        {
+            var go = new GameObject(objectName);
+            go.transform.SetParent(transform, false);
+            var renderer = go.AddComponent<SpriteRenderer>();
+            renderer.sprite = _pixelSprite;
+            renderer.sortingOrder = sortingOrder;
+            renderer.color = color;
+            return renderer;
         }
 
         void UpdateVisual(AntVisual visual, Ant ant, PixelGrid grid, Vector3 origin, float time, float deltaTime)
@@ -142,11 +211,23 @@ namespace Fabula.Incrementant.AntFarm
                 visual.Carried.gameObject.SetActive(carrying);
             if (carrying)
             {
-                if (carryingEgg)
+                // A cria vai na boca com a própria arte (ovo, larva ou pupa); sem arte, cai no pixel colorido.
+                Sprite broodArt = null;
+                if (carryingEgg && _broodView != null && _broodView.HasFrames && _brood != null
+                    && _brood.TryGet(ant.EggId, out BroodRecord carriedBrood))
+                    broodArt = _broodView.FrameOf(carriedBrood);
+                visual.Carried.sprite = broodArt != null ? broodArt : _pixelSprite;
+                visual.Carried.flipX = broodArt != null && visual.FlipX;
+                visual.Carried.transform.localScale = broodArt != null
+                    ? Vector3.one
+                    : new Vector3(_carriedSize, _carriedSize, 1f);
+                if (broodArt != null)
+                    visual.Carried.color = Color.white;
+                else if (carryingEgg)
                     visual.Carried.color = _eggColor;
                 else
                     visual.Carried.color = delivering ? (Color)_nutrientColor : CellMaterials.ShadedColor(ant.Carried, ant.CarriedShade);
-                Vector2 offset = topView ? _carriedOffsetTop : _carriedOffset;
+                Vector2 offset = broodArt != null ? _carriedBroodOffset : topView ? _carriedOffsetTop : _carriedOffset;
                 visual.Carried.transform.localPosition = new Vector3(visual.FlipX ? -offset.x : offset.x, offset.y, 0f);
             }
         }

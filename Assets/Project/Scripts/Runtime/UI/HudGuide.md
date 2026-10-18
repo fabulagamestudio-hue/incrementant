@@ -20,6 +20,7 @@ Como o HUD (uGUI) funciona e como mexer nele. Onde estão os arquivos: [Runtime/
 | Menu Colônia → Evolução | Real: tela cheia `TelaEvolucao` com duas abas (ver "Tela Evolução"): Rainha e classes (compra de verdade) e Formigueiro (só exibição) |
 | Ambientes, Avisos | Desativados (sem sistema por trás) |
 | Pausa e 1x/3x/8x | Reais (P também pausa; 1/2/3 trocam a velocidade) |
+| FPS e tempo jogado (canto superior direito, abaixo do cartão Rainha) | Real: FPS médio a cada 0,25 s e relógio da sessão em HH:MM:SS (tempo real, ignora pausa e velocidade; não vai no save) |
 | Dica do rodapé | Mostra o aviso de salvar/carregar por 5 s |
 | "Próxima" postura e reservadas do cartão, taxa de nutrientes, [ESC] MENU | Só o painel Rainha mostra a próxima postura; o resto não existe |
 

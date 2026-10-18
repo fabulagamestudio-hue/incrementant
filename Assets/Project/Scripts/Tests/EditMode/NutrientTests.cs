@@ -279,18 +279,19 @@ namespace Fabula.Incrementant.Tests
                     grid.Set(plantX + dx, y, CellMaterial.Empty);
             }
 
-            // Sem nada para colher, reinicia: volta inteira para debaixo da terra com só a ponta para fora.
+            // Sem nada para colher, reinicia: volta inteira para debaixo da terra, sem nada para fora.
             RunGrowStep(vegetation, grid, settings);
-            Assert.AreEqual(shape.Height - 1, vegetation.GetSunkRows(plantX), "Reinicia com só a ponta para fora.");
-            Assert.AreEqual(Surface + 1, TopOfPlant(grid, plantX));
+            Assert.AreEqual(shape.Height, vegetation.GetSunkRows(plantX), "Reinicia toda enterrada.");
+            Assert.AreEqual(0, CountPlant(grid, plantX), "Nada da planta aparece acima do chão ao reiniciar.");
             Assert.AreEqual(0, grid.MarkedCount, "Planta não tem marca de colheita.");
 
-            // Cresce pela base: a planta inteira sobe 1 linha por passo e o que nasce embaixo é a linha seguinte da forma.
-            for (int i = 1; i < shape.Height; i++)
+            // Cresce pela base: a ponta sai primeiro; depois a planta inteira sobe 1 linha por passo e o que nasce embaixo
+            // é a linha seguinte da forma.
+            for (int i = 1; i <= shape.Height; i++)
             {
                 RunGrowStep(vegetation, grid, settings);
-                Assert.AreEqual(shape.Height - 1 - i, vegetation.GetSunkRows(plantX));
-                Assert.AreEqual(Surface + 1 + i, TopOfPlant(grid, plantX), "A planta inteira sobe 1 linha por passo.");
+                Assert.AreEqual(shape.Height - i, vegetation.GetSunkRows(plantX));
+                Assert.AreEqual(Surface + i, TopOfPlant(grid, plantX), "A planta inteira sobe 1 linha por passo.");
                 Assert.AreEqual(0, grid.MarkedCount);
             }
             Assert.AreEqual(shape.Cells.Length, CountPlant(grid, plantX), "Termina com a forma completa.");

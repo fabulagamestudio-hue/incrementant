@@ -305,15 +305,16 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
-        public void NurserySpots_SitOnTheFloorOfTheNursery_AWholeSpriteApart()
+        public void NurserySpots_CoverTheWholeNursery_AWholeSpriteApart()
         {
             AntColony colony = MakeColony(21, 0);
-            // Berçário x 10..30, y 1..3: o chão é a linha y = 1 (rocha embaixo), um ponto a cada 3 células.
-            Assert.AreEqual(7, colony.NurserySpots.Count);
+            // Berçário x 10..30, y 1..3: o chão (y = 1) e o alto (y = 3) recebem pontos, um a cada 3 células por linha e
+            // 2 de altura; a linha y = 2 fica coberta pelos sprites de baixo.
+            Assert.AreEqual(14, colony.NurserySpots.Count);
             for (int i = 0; i < colony.NurserySpots.Count; i++)
             {
-                Assert.AreEqual(1, colony.NurserySpots[i].y);
-                if (i > 0)
+                Assert.AreEqual(i < 7 ? 1 : 3, colony.NurserySpots[i].y, "Chão primeiro, depois acima.");
+                if (i > 0 && colony.NurserySpots[i].y == colony.NurserySpots[i - 1].y)
                     Assert.GreaterOrEqual(colony.NurserySpots[i].x - colony.NurserySpots[i - 1].x, AntColony.NurserySpotSpacing);
             }
             Assert.AreEqual(0, MakeColony(0, 0).NurserySpots.Count, "Sem berçário não há onde desenhar.");

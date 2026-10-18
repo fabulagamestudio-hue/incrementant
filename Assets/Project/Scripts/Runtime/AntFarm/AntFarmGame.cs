@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System;
 using Fabula.Incrementant.Colony;
+using Fabula.Incrementant.Diagnostics;
 using Fabula.Incrementant.Save;
 using Fabula.Incrementant.World;
 using UnityEngine;
@@ -98,6 +99,17 @@ namespace Fabula.Incrementant.AntFarm
         /// <summary>HUD de depuração (IMGUI, com contadores de simulação); o HUD de jogo é o <c>AntFarmHud</c> (uGUI). F2 alterna (F1 é o cheat de formigas).</summary>
         [SerializeField] bool _showDebugHud;
         Rect _hudRect = new Rect(10, 10, 340, 640);
+        /// <summary>Painel de estatísticas de desempenho e simulação (F11); desligado por padrão.</summary>
+        bool _showStats;
+        /// <summary>Linhas dos blocos (<see cref="PixelGrid.ChunkSize"/> células) por cima do mapa (Ctrl+F11), para depuração.</summary>
+        bool _showChunkLines;
+        static readonly Color ChunkLineColor = new Color(0.2f, 0.9f, 1f, 0.35f);
+        static readonly Color ChunkLineMajorColor = new Color(1f, 0.85f, 0.2f, 0.6f);
+        /// <summary>De quantos em quantos blocos a linha é destacada (ajuda a contar).</summary>
+        const int ChunkMajorEvery = 4;
+        readonly SimStatsOverlay _statsOverlay = new SimStatsOverlay();
+        const float StatsPanelWidth = 430f;
+        const float StatsPanelHeight = 650f;
         readonly MatchTimer _matchTimer = new MatchTimer();
         string _saveStatus;
         float _saveStatusUntil;
@@ -375,37 +387,66 @@ namespace Fabula.Incrementant.AntFarm
             int maxTicks = _maxTicksPerFrame * SpeedSteps[_speedIndex];
             int ticks = 0;
 
+            SimProfiler profiler = _colony.Profiler;
             _stopwatch.Restart();
             while (_accumulator >= tickDuration && ticks < maxTicks)
             {
+                // Só o último passo do frame refaz os campos de navegação (ver AntColony.DeferFieldRefresh).
+                _colony.DeferFieldRefresh = ticks + 1 < maxTicks && _accumulator - tickDuration >= tickDuration;
+                long stageStart = SimProfiler.Now();
                 _rain.Step(_grid, tickDuration);
+                profiler.Add(ProfileStage.Rain, stageStart);
+                stageStart = SimProfiler.Now();
                 _water.Step(_grid, tickDuration);
+                profiler.Add(ProfileStage.Water, stageStart);
+                stageStart = SimProfiler.Now();
                 _vegetation.Step(_grid, tickDuration);
+                profiler.Add(ProfileStage.Vegetation, stageStart);
+                stageStart = SimProfiler.Now();
                 _simulation.Step(_grid);
+                profiler.Add(ProfileStage.Granular, stageStart);
+                stageStart = SimProfiler.Now();
                 _colony.Tick(tickDuration);
+                profiler.Add(ProfileStage.ColonyTick, stageStart);
+                profiler.Count(ProfileCounter.Ticks);
                 _accumulator -= tickDuration;
                 ticks++;
             }
-            if (ticks == maxTicks)
+            _colony.DeferFieldRefresh = false;
+            bool tickLimitHit = ticks == maxTicks;
+            if (tickLimitHit)
                 _accumulator = 0f;
+            _statsOverlay.NoteFrame(Time.unscaledDeltaTime, tickLimitHit && !_paused);
             _simMsSmoothed = Mathf.Lerp(_simMsSmoothed, (float)_stopwatch.Elapsed.TotalMilliseconds, 0.1f);
 
             _stopwatch.Restart();
             bool spriteAnts = _antsView != null && _antsView.HasFrames;
             RectInt window = AntFarmView.WindowFor(LocalViewRect(), _grid);
+            long renderStart = SimProfiler.Now();
             _view.Render(_grid, _colony.Ants, _colony.DumpStrips,_brushCell, _brushRadius, _pointerOverWorld, !spriteAnts, window, _rain.Drops,
                          (BrushTint)(int)_brushMode, _colony);
+            profiler.Add(ProfileStage.RenderTerrain, renderStart);
+            renderStart = SimProfiler.Now();
             if (spriteAnts)
+            {
+                _antsView.SetBrood(_colony.Brood, _broodView);
                 _antsView.Render(_grid, _colony.Ants, _view.transform.position, _colony.SimulationTime + _accumulator, Time.deltaTime,
-                                 _colony.Queen);
+                                 _colony.Queen, _colony.Brood.LayProgress, _colony.Breeding == BreedingState.Available);
+            }
+            profiler.Add(ProfileStage.RenderAnts, renderStart);
+            renderStart = SimProfiler.Now();
             if (_broodView != null && _broodView.HasFrames)
                 _broodView.Render(_colony.Brood.Brood, _colony.NurserySpots, _view.transform.position);
+            profiler.Add(ProfileStage.RenderBrood, renderStart);
+            renderStart = SimProfiler.Now();
             if (_scenery != null)
             {
                 _scenery.UpdateParallax(_camera);
                 _scenery.UpdatePlants(_grid, _vegetation);
             }
+            profiler.Add(ProfileStage.RenderScenery, renderStart);
             _renderMsSmoothed = Mathf.Lerp(_renderMsSmoothed, (float)_stopwatch.Elapsed.TotalMilliseconds, 0.1f);
+            profiler.EndFrame(Time.unscaledDeltaTime);
         }
 
         TerrainLayout LayoutFromMarkers()
@@ -508,6 +549,14 @@ namespace Fabula.Incrementant.AntFarm
                 if (keyboard.pKey.wasPressedThisFrame) SetPaused(!_paused);
                 if (keyboard.f1Key.wasPressedThisFrame) SpawnCheatAnts();
                 if (keyboard.f2Key.wasPressedThisFrame) _showDebugHud = !_showDebugHud;
+                if (keyboard.f11Key.wasPressedThisFrame)
+                {
+                    // F11: estatísticas; Ctrl+F11: linhas dos blocos 16x16 do mapa.
+                    if (keyboard.ctrlKey.isPressed)
+                        _showChunkLines = !_showChunkLines;
+                    else
+                        _showStats = !_showStats;
+                }
                 if (keyboard.bKey.wasPressedThisFrame)
                     _brushMode = (BrushMode)(((int)_brushMode + 1) % BrushLabels.Length);
                 if (keyboard.cKey.wasPressedThisFrame)
@@ -599,6 +648,14 @@ namespace Fabula.Incrementant.AntFarm
 
         void OnGUI()
         {
+            if (_grid != null && _showChunkLines && Event.current.type == EventType.Repaint)
+                DrawChunkLines();
+            if (_colony != null && _showStats)
+            {
+                // Canto inferior direito: o HUD de jogo ocupa o topo e a esquerda.
+                var statsRect = new Rect(Screen.width - StatsPanelWidth - 10f, Screen.height - StatsPanelHeight - 10f, StatsPanelWidth, StatsPanelHeight);
+                _statsOverlay.Draw(statsRect, _colony, _grid, _vegetation, SpeedSteps[_speedIndex], _paused, _ticksPerSecond, _maxTicksPerFrame);
+            }
             if (_colony == null || !_showDebugHud)
                 return;
 
@@ -635,6 +692,41 @@ namespace Fabula.Incrementant.AntFarm
             GUILayout.Label($"Mapa gerado: {active.width}x{active.height} de {_grid.Width}x{_grid.Height}");
             GUILayout.Label($"Sim: {_simMsSmoothed:0.00} ms · Render: {_renderMsSmoothed:0.00} ms · {1f / Mathf.Max(Time.smoothDeltaTime, 0.0001f):0} fps");
             GUILayout.EndArea();
+        }
+
+        /// <summary>
+        /// Linhas verticais e horizontais nas fronteiras dos blocos da grade, só na parte visível (câmera ortográfica: são
+        /// retângulos de 1 px na tela). Destaca a cada <see cref="ChunkMajorEvery"/> blocos.
+        /// </summary>
+        void DrawChunkLines()
+        {
+            Vector3 origin = _view.transform.position;
+            Vector3 bottomLeft = _camera.ScreenToWorldPoint(new Vector3(0f, 0f, -_camera.transform.position.z)) - origin;
+            Vector3 topRight = _camera.ScreenToWorldPoint(new Vector3(Screen.width, Screen.height, -_camera.transform.position.z)) - origin;
+            int size = PixelGrid.ChunkSize;
+            int cx0 = Mathf.Clamp(Mathf.FloorToInt(bottomLeft.x / size), 0, _grid.ChunkColumns);
+            int cx1 = Mathf.Clamp(Mathf.CeilToInt(topRight.x / size), 0, _grid.ChunkColumns);
+            int cy0 = Mathf.Clamp(Mathf.FloorToInt(bottomLeft.y / size), 0, _grid.ChunkRows);
+            int cy1 = Mathf.Clamp(Mathf.CeilToInt(topRight.y / size), 0, _grid.ChunkRows);
+            float gridBottom = _camera.WorldToScreenPoint(origin).y;
+            float gridTop = _camera.WorldToScreenPoint(origin + new Vector3(0f, _grid.Height, 0f)).y;
+            float gridLeft = _camera.WorldToScreenPoint(origin).x;
+            float gridRight = _camera.WorldToScreenPoint(origin + new Vector3(_grid.Width, 0f, 0f)).x;
+            Color previous = GUI.color;
+            Texture2D white = Texture2D.whiteTexture;
+            for (int cx = cx0; cx <= cx1; cx++)
+            {
+                float x = _camera.WorldToScreenPoint(origin + new Vector3(cx * size, 0f, 0f)).x;
+                GUI.color = cx % ChunkMajorEvery == 0 ? ChunkLineMajorColor : ChunkLineColor;
+                GUI.DrawTexture(new Rect(x, Screen.height - gridTop, 1f, gridTop - gridBottom), white);
+            }
+            for (int cy = cy0; cy <= cy1; cy++)
+            {
+                float y = Screen.height - _camera.WorldToScreenPoint(origin + new Vector3(0f, cy * size, 0f)).y;
+                GUI.color = cy % ChunkMajorEvery == 0 ? ChunkLineMajorColor : ChunkLineColor;
+                GUI.DrawTexture(new Rect(gridLeft, y, gridRight - gridLeft, 1f), white);
+            }
+            GUI.color = previous;
         }
 
         string NutrientRoomStatus()

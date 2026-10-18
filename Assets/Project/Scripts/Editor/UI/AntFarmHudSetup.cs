@@ -105,6 +105,16 @@ namespace Fabula.Incrementant.EditorTools.UI
             SetText(refs, "_antsValue", av); SetText(refs, "_antsDetail", ad);
             SetText(refs, "_queenValue", qv); SetText(refs, "_queenDetail", qd);
 
+            // --- FPS e tempo jogado (canto superior direito, abaixo do cartão da rainha)
+            Text stats = BuildText(root, "FpsTempo", "", TextSmall, Cream, TextAnchor.UpperRight);
+            stats.lineSpacing = 1.5f;
+            var statsRect = stats.rectTransform;
+            statsRect.anchorMin = statsRect.anchorMax = statsRect.pivot = new Vector2(1, 1);
+            statsRect.anchoredPosition = new Vector2(-20, -124);
+            statsRect.sizeDelta = new Vector2(360, 56);
+            stats.gameObject.AddComponent<Shadow>().effectDistance = new Vector2(1, -1);
+            SetText(refs, "_stats", stats);
+
             // --- menu Colônia (esquerda)
             Image menu = BuildPanelWithHeader(root, "MenuColonia", new Vector2(0, 1), new Vector2(16, -214), new Vector2(260, 316), "COLÔNIA");
             string[] entries = { "PINTAR", "EVOLUÇÃO", "RAINHA", "AMBIENTES", "AVISOS" };

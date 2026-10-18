@@ -2,7 +2,7 @@
 
 **Projeto:** Incrementant
 **Setor:** ART
-**Última avaliação:** 2026-10-17
+**Última avaliação:** 2026-10-18
 
 ## Resumo
 
@@ -17,6 +17,7 @@ Só há arte provisória gerada por código para o protótipo: as formigas (pixe
 | ART-003 | Cenário provisório da superfície na escala das formigas | IMPLEMENTED | UNDEFINED | [Art/Scenery/](../Assets/Project/Art/Scenery/) (67 PNGs isolados), [SurfaceSceneryPainter.cs](../Assets/Project/Scripts/Runtime/AntFarm/SurfaceSceneryPainter.cs) | REQ-002, PRG-009 | 2026-10-17 |
 | ART-004 | Sprites de UI 9-slice (painéis, botões, controles, ícones) | IMPLEMENTED | UNDEFINED | [Art/UI/Sprites/](../Assets/Project/Art/UI/Sprites/), [UiSpriteImporter.cs](../Assets/Project/Scripts/Editor/UI/UiSpriteImporter.cs) | REQ-010 | 2026-10-17 |
 | ART-005 | Sprites provisórios da cria: ovo, larva e pupa (2 quadros de idle cada) | IMPLEMENTED | UNDEFINED | [Larva_Idle_0.png](../Assets/Project/Art/Ants/Larva_Idle_0.png), [Pupa_Idle_0.png](../Assets/Project/Art/Ants/Pupa_Idle_0.png), [Egg_Idle_0.png](../Assets/Project/Art/Ants/Egg_Idle_0.png) | REQ-014, PRG-021 | 2026-10-17 |
+| ART-006 | Variantes de cor por função (Top e Walk) | IMPLEMENTED | UNDEFINED | [Paleta e validação dos 48 PNGs](../Assets/Project/Art/Ants/README.md) | REQ-019 | — |
 
 ## Detalhes
 
@@ -40,11 +41,17 @@ Pedido em REQ-002. Pixel art gerada por código na densidade das formigas (6 px 
 
 Pedido em REQ-014. Pixel art 18x12 em vista lateral, mesmo importador e densidade das formigas (6 px por célula, pivô a meia célula do chão), cores claras (creme para ovo e larva, bege para a pupa) com o marrom escuro das formigas nos detalhes. Dois quadros de idle por etapa: ovo balança, larva respira (1 px), pupa sobe 1 px. Desenhados por script pontual do agente (não há gerador no repositório); os PNGs são a fonte e podem ser repintados à mão mantendo o tamanho. Só vista lateral: a vista de cima dos túneis de fundo não tem versão. Aprovação visual cabe ao desenvolvedor.
 
+### ART-006 — Variantes de cor por função
+
+Pedido em REQ-019: seis pastas com 8 quadros cada (4 Top e 4 Walk): operária vermelha, soldado roxo escuro, coletora verde, escavadora laranja, cuidadora azul-claro e rainha dourada. Recoloração por script autorizada pelo desenvolvedor em 2026-10-18. Originais da raiz e seus GUIDs preservados; as cópias da operária são idênticas. Comparação de 10.368 pixels confirmou dimensões, alpha e paleta; prévia ampliada inspecionada pelo agente. Aguardam aprovação visual e futura integração/importação no jogo; não foram adicionadas classes ou alteradas cenas. [Organização e paleta](../Assets/Project/Art/Ants/README.md).
+
 ## Riscos e bloqueios
 
 - Nenhum.
 
 ## Não verificado
+
+- Aprovação visual e importação/reprodução na Unity das variantes por função (ART-006); integração no jogo adiada a pedido do desenvolvedor.
 
 - Aprovação visual da arte provisória pelo desenvolvedor, inclusive os sprites da cria (ART-005).
 - Aprovação visual das bordas 9-slice e da fonte do HUD (fonte padrão do Unity, sem fonte pixel) pelo desenvolvedor (ART-004).

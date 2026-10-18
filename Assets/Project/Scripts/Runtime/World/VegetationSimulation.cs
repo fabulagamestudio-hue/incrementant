@@ -214,7 +214,7 @@ namespace Fabula.Incrementant.World
             rows = 0;
             if (!TryGetPlant(rootX, out _, out PlantShape shape, out _))
                 return false;
-            rows = shape.Height - Mathf.Min(GetSunkRows(rootX), shape.Height - 1);
+            rows = shape.Height - Mathf.Min(GetSunkRows(rootX), shape.Height);
             int needed = Mathf.Max(1, Mathf.CeilToInt(_settings.MinHarvestGrowth * shape.Height - 0.0001f));
             return rows >= needed && TryGetHarvestRow(grid, rootX, out _, out _, out _);
         }
@@ -252,37 +252,53 @@ namespace Fabula.Incrementant.World
         }
 
         static readonly List<int> ComponentCells = new List<int>();
+        // Visitados da busca em curso; e os que alguma busca anterior desta chamada já provou ligados à raiz.
         static readonly HashSet<int> Visited = new HashSet<int>();
+        static readonly HashSet<int> KnownRooted = new HashSet<int>();
         static readonly Stack<int> Pending = new Stack<int>();
+        // Ordem de visita dos vizinhos (índices de AntNavigation.Dx/Dy): o último a entrar na pilha sai primeiro, então
+        // entram primeiro os de cima e por último os de baixo. A busca desce rumo à raiz.
+        static readonly int[] DownwardLast = { 2, 4, 6, 0, 1, 3, 5, 7 };
+        /// <summary>Acima disto de pixels visitados o conjunto de busca é recriado, para não carregar a capacidade de uma planta enorme.</summary>
+        const int VisitedTrimThreshold = 2048;
 
         /// <summary>
         /// Depois que um pixel saiu de (<paramref name="x"/>, <paramref name="y"/>): todo pedaço de planta ao redor que
         /// perdeu a ligação (8 vizinhos) com a raiz vira pixel solto marcado e cai com a física granular, em vez de
         /// ficar flutuando no ar. Devolve quantos pixels soltou.
+        /// A busca de cada vizinho desce rumo à raiz e para ao achá-la (o caso comum: a planta continua presa), então custa
+        /// o caminho até o chão, não a planta inteira; só um pedaço solto é varrido por completo, para listar o que cai.
         /// </summary>
         public static int DropDisconnected(PixelGrid grid, int x, int y)
         {
-            Visited.Clear();
+            KnownRooted.Clear();
             int dropped = 0;
             for (int k = 0; k < 8; k++)
             {
                 int nx = x + Colony.AntNavigation.Dx[k], ny = y + Colony.AntNavigation.Dy[k];
-                if (!CellMaterials.IsPlant(grid.Get(nx, ny)) || Visited.Contains(ny * grid.Width + nx))
+                if (!CellMaterials.IsPlant(grid.Get(nx, ny)) || KnownRooted.Contains(ny * grid.Width + nx))
                     continue;
 
-                // Busca o pedaço inteiro; se tocar uma raiz, está preso à planta.
+                // Busca o pedaço; se tocar uma raiz (ou um pixel que já se sabe ligado a ela), está preso e a busca para ali.
+                Visited.Clear();
                 ComponentCells.Clear();
                 bool rooted = false;
+                Pending.Clear();
                 Pending.Push(ny * grid.Width + nx);
                 Visited.Add(ny * grid.Width + nx);
-                while (Pending.Count > 0)
+                while (Pending.Count > 0 && !rooted)
                 {
                     int i = Pending.Pop();
                     int cx = i % grid.Width, cy = i / grid.Width;
                     ComponentCells.Add(i);
-                    rooted |= cy <= grid.GetSurfaceY(cx) + 1;
-                    for (int d = 0; d < 8; d++)
+                    if (cy <= grid.GetSurfaceY(cx) + 1 || KnownRooted.Contains(i))
                     {
+                        rooted = true;
+                        break;
+                    }
+                    for (int n = 0; n < 8; n++)
+                    {
+                        int d = DownwardLast[n];
                         int mx = cx + Colony.AntNavigation.Dx[d], my = cy + Colony.AntNavigation.Dy[d];
                         int j = my * grid.Width + mx;
                         if (CellMaterials.IsPlant(grid.Get(mx, my)) && Visited.Add(j))
@@ -290,7 +306,11 @@ namespace Fabula.Incrementant.World
                     }
                 }
                 if (rooted)
+                {
+                    // Tudo que esta busca alcançou é do mesmo pedaço: as próximas partem sabendo disso.
+                    KnownRooted.UnionWith(Visited);
                     continue;
+                }
 
                 foreach (int i in ComponentCells)
                 {
@@ -303,6 +323,13 @@ namespace Fabula.Incrementant.World
                     grid.SetMarked(cx, cy, true);
                     dropped++;
                 }
+            }
+            if (Visited.Count > VisitedTrimThreshold || KnownRooted.Count > VisitedTrimThreshold)
+            {
+                Visited.Clear();
+                Visited.TrimExcess();
+                KnownRooted.Clear();
+                KnownRooted.TrimExcess();
             }
             return dropped;
         }
@@ -469,7 +496,7 @@ namespace Fabula.Incrementant.World
         /// Um passo de crescimento. Com linhas ainda enterradas, empurra a planta inteira 1 linha para cima (células,
         /// buracos colhidos e marcas de colheita vão junto) e põe a linha seguinte da forma na linha da raiz, sem marca.
         /// Toda para fora, para de crescer enquanto ainda tiver algum pixel que dê para colher; quando só sobra a linha do
-        /// chão (que nunca é colhida), reinicia: volta inteira para debaixo da terra, com só a ponta para fora, e sobe de
+        /// chão (que nunca é colhida), reinicia: volta inteira para debaixo da terra, sem nada para fora, e sobe de
         /// novo nos passos seguintes (pedido do desenvolvedor em 2026-10-17). Precisa de chão firme sob a raiz; se algo que
         /// não é planta tapa a subida, espera. Devolve quantos pixels a planta ganhou.
         /// </summary>
@@ -479,7 +506,7 @@ namespace Fabula.Incrementant.World
             if (!grid.IsSolid(x, rootY - 1))
                 return 0;
 
-            int sunk = Mathf.Min(_sunk[x], shape.Height - 1);
+            int sunk = Mathf.Min(_sunk[x], shape.Height);
             Vector2Int[] cells = shape.Cells;
             if (sunk == 0)
             {
@@ -490,7 +517,7 @@ namespace Fabula.Incrementant.World
                     if (cy > grid.GetSurfaceY(cx) + 1 && CellMaterials.IsPlant(grid.Get(cx, cy)))
                         return 0;
                 }
-                return Sprout(grid, x, shape, material, shape.Height - 1);
+                return Sprout(grid, x, shape, material, shape.Height);
             }
 
             // Sobe: de cima para baixo (Cells está em ordem de crescimento), cada célula presente vai 1 linha para cima.
@@ -548,7 +575,7 @@ namespace Fabula.Incrementant.World
         int Sprout(PixelGrid grid, int x, PlantShape shape, CellMaterial material, int sunk)
         {
             int rootY = grid.GetSurfaceY(x) + 1;
-            int oldSunk = Mathf.Min(_sunk[x], shape.Height - 1);
+            int oldSunk = Mathf.Min(_sunk[x], shape.Height);
             int removed = 0;
             foreach (Vector2Int c in shape.Cells)
             {

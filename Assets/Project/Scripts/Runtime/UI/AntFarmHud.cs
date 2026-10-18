@@ -24,6 +24,9 @@ namespace Fabula.Incrementant.UI
         [SerializeField] Text _queenDetail;
         [SerializeField] Text _hint;
 
+        [Header("Canto: FPS e tempo jogado")]
+        [SerializeField] Text _stats;
+
         [Header("Menu Colônia")]
         [SerializeField] Button _paintButton;
         [SerializeField] Image _paintButtonImage;
@@ -80,6 +83,9 @@ namespace Fabula.Incrementant.UI
         UnityAction[] _modeHandlers;
         UnityAction[] _typeHandlers;
         float _nextTextRefresh;
+        float _playedSeconds;
+        float _statsElapsed;
+        int _statsFrames;
         Menu _menu;
 
         void Awake()
@@ -193,6 +199,17 @@ namespace Fabula.Incrementant.UI
 
         void Update()
         {
+            // Tempo de relógio real desta sessão (ignora pausa e velocidade); FPS médio entre duas atualizações do texto.
+            _playedSeconds += Time.unscaledDeltaTime;
+            _statsFrames++;
+            _statsElapsed += Time.unscaledDeltaTime;
+            if (_stats != null && _statsElapsed >= TextRefreshSeconds)
+            {
+                _stats.text = $"FPS {Mathf.RoundToInt(_statsFrames / _statsElapsed)}\nTEMPO {FormatPlayTime(_playedSeconds)}";
+                _statsFrames = 0;
+                _statsElapsed = 0f;
+            }
+
             AntColony colony = _game.Colony;
             if (colony == null)
                 return;
@@ -205,6 +222,12 @@ namespace Fabula.Incrementant.UI
                 return;
             _nextTextRefresh = Time.unscaledTime + TextRefreshSeconds;
             RefreshTexts(colony);
+        }
+
+        static string FormatPlayTime(float seconds)
+        {
+            int total = (int)seconds;
+            return $"{total / 3600:00}:{total / 60 % 60:00}:{total % 60:00}";
         }
 
         void RefreshStates()

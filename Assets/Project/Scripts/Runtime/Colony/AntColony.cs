@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Fabula.Incrementant.Diagnostics;
 using Fabula.Incrementant.World;
 using UnityEngine;
 
@@ -30,6 +31,8 @@ namespace Fabula.Incrementant.Colony
         readonly System.Random _rng;
         readonly List<Ant> _ants = new List<Ant>();
         readonly List<int> _sources = new List<int>();
+        // Memória de trabalho que os campos dividem na correção incremental (um por campo custaria dezenas de MB).
+        readonly FlowField.Scratch _fieldScratch;
         readonly FlowField _digField;
         readonly List<DumpSide> _dumpSides = new List<DumpSide>();
         readonly List<FlowField> _fieldPool = new List<FlowField>();
@@ -76,8 +79,7 @@ namespace Fabula.Incrementant.Colony
         int _nurseryCells;
         readonly List<Vector2Int> _nurseryFloor = new List<Vector2Int>();
         readonly List<Vector2Int> _nurserySpots = new List<Vector2Int>();
-        /// <summary>Uma célula alcançável do berçário sem chão embaixo: único ponto de desenho se ele não tiver chão nenhum.</summary>
-        Vector2Int? _nurseryAny;
+        readonly HashSet<Vector2Int> _nurseryTaken = new HashSet<Vector2Int>();
         // Transporte do ovo: campo até os pontos do berçário menos ocupados (refeito quando a cria muda de lugar ou nasce).
         readonly FlowField _nurseryField;
         bool _nurseryDirty = true;
@@ -124,6 +126,19 @@ namespace Fabula.Incrementant.Colony
         float _fieldTimer;
 
         public IReadOnlyList<Ant> Ants => _ants;
+
+        /// <summary>
+        /// Quem roda vários passos num mesmo frame liga isto em todos menos no último: a rodada de campos de navegação (cara, e
+        /// em tempo simulado) acontece no máximo uma vez por frame em vez de uma a cada 0,1 s simulado. Em x8, ou com o frame
+        /// lento, isso evita que o custo dos campos cresça com o número de passos. A primeira rodada nunca é adiada.
+        /// </summary>
+        public bool DeferFieldRefresh { get; set; }
+
+        /// <summary>Rodadas de campos já feitas (para testes e diagnóstico).</summary>
+        public int FieldRounds { get; private set; }
+
+        /// <summary>Tempo por etapa da simulação e da renderização, mostrado no painel de estatísticas (F11).</summary>
+        public SimProfiler Profiler { get; } = new SimProfiler();
 
         /// <summary>A rainha. Não entra em <see cref="Ants"/>: não cava, não carrega e não se afoga.</summary>
         public Ant Queen { get; }
@@ -201,6 +216,9 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Largura (células) que cada cria ocupa no chão do berçário: a do sprite (18 px a 6 px por célula).</summary>
         public const int NurserySpotSpacing = 3;
 
+        /// <summary>Altura (células) que cada cria ocupa no berçário: a do sprite (12 px a 6 px por célula).</summary>
+        public const int NurserySpotHeight = 2;
+
         /// <summary>
         /// Células (chão do berçário alcançável) onde a cria é desenhada; <see cref="BroodRecord.Slot"/> indexa esta lista.
         /// Vazia sem berçário. Refeita quando o formigueiro muda.
@@ -222,27 +240,30 @@ namespace Fabula.Incrementant.Colony
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _layout = layout;
             _rng = new System.Random(seed);
-            _digField = new FlowField(grid.Width, grid.Height);
-            _homeField = new FlowField(grid.Width, grid.Height);
-            _exitField = new FlowField(grid.Width, grid.Height);
-            _pileField = new FlowField(grid.Width, grid.Height);
-            _buildField = new FlowField(grid.Width, grid.Height);
-            _siteField = new FlowField(grid.Width, grid.Height);
+            _fieldScratch = new FlowField.Scratch(grid.Width, grid.Height);
+            _digField = new FlowField(grid.Width, grid.Height, _fieldScratch);
+            _homeField = new FlowField(grid.Width, grid.Height, _fieldScratch);
+            _exitField = new FlowField(grid.Width, grid.Height, _fieldScratch);
+            _pileField = new FlowField(grid.Width, grid.Height, _fieldScratch);
+            _buildField = new FlowField(grid.Width, grid.Height, _fieldScratch);
+            _siteField = new FlowField(grid.Width, grid.Height, _fieldScratch);
             _floodStamp = new int[grid.Width * grid.Height];
             _floodQueue = new int[grid.Width * grid.Height];
             _walkability = new WalkabilityMap(grid);
+            _chunkSeen = new int[grid.ChunkColumns * grid.ChunkRows];
+            Array.Fill(_chunkSeen, -1);
             _roomLabel = new int[grid.Width * grid.Height];
-            _queenRoomField = new FlowField(grid.Width, grid.Height);
-            _colonyField = new FlowField(grid.Width, grid.Height);
+            _queenRoomField = new FlowField(grid.Width, grid.Height, _fieldScratch);
+            _colonyField = new FlowField(grid.Width, grid.Height, _fieldScratch);
             _brood = new BroodCycle(settings);
             _nextRoleProvider = NextRole;
             _costProvider = CostOf;
-            _nurseryField = new FlowField(grid.Width, grid.Height);
-            _storeField = new FlowField(grid.Width, grid.Height);
-            _nutrientField = new FlowField(grid.Width, grid.Height);
-            _gardenField = new FlowField(grid.Width, grid.Height);
-            _rockField = new FlowField(grid.Width, grid.Height);
-            _curingField = new FlowField(grid.Width, grid.Height);
+            _nurseryField = new FlowField(grid.Width, grid.Height, _fieldScratch);
+            _storeField = new FlowField(grid.Width, grid.Height, _fieldScratch);
+            _nutrientField = new FlowField(grid.Width, grid.Height, _fieldScratch);
+            _gardenField = new FlowField(grid.Width, grid.Height, _fieldScratch);
+            _rockField = new FlowField(grid.Width, grid.Height, _fieldScratch);
+            _curingField = new FlowField(grid.Width, grid.Height, _fieldScratch);
             // Sem sorteio aqui: a rainha não muda a sequência aleatória das formigas.
             Queen = new Ant { X = layout.Nest.x, Y = layout.Nest.y, FacingX = 1 };
             PushOutOfSolid(Queen);
@@ -395,7 +416,6 @@ namespace Fabula.Incrementant.Colony
             _nurseryCells = 0;
             _nurseryFloor.Clear();
             _nurserySpots.Clear();
-            _nurseryAny = null;
             if (_grid.NurseryRoomCount == 0)
                 return;
             RectInt area = _grid.Active;
@@ -416,36 +436,29 @@ namespace Fabula.Incrementant.Colony
                     if (!_grid.IsNurseryRoom(x, y) || _colonyField.Get(x, y) == FlowField.Unreachable)
                         continue;
                     _nurseryCells++;
-                    if (_grid.IsSolid(x, y - 1))
-                        _nurseryFloor.Add(new Vector2Int(x, y));
-                    else if (_nurseryAny == null)
-                        _nurseryAny = new Vector2Int(x, y);
+                    _nurseryFloor.Add(new Vector2Int(x, y));
                 }
             }
             PickNurserySpots();
         }
 
         /// <summary>
-        /// Espalha os pontos onde a cria é desenhada pelo chão do berçário, linha a linha, um a cada
-        /// <see cref="NurserySpotSpacing"/> células (a largura do sprite). Sem chão nenhum (berçário no ar), um ponto só.
+        /// Espalha os pontos onde a cria é desenhada por todo o berçário alcançável (chão, paredes e fundo, como as
+        /// formigas andam), do mais baixo para o mais alto: cada ponto reserva a largura (<see cref="NurserySpotSpacing"/>)
+        /// e a altura (<see cref="NurserySpotHeight"/>) do sprite, então as crias não se sobrepõem.
         /// </summary>
         void PickNurserySpots()
         {
-            if (_nurseryFloor.Count == 0)
-            {
-                if (_nurseryAny.HasValue)
-                    _nurserySpots.Add(_nurseryAny.Value);
-                return;
-            }
             _nurseryFloor.Sort((a, b) => a.y != b.y ? a.y.CompareTo(b.y) : a.x.CompareTo(b.x));
-            int lastY = int.MinValue, lastX = int.MinValue;
+            _nurseryTaken.Clear();
             foreach (Vector2Int cell in _nurseryFloor)
             {
-                if (cell.y == lastY && cell.x - lastX < NurserySpotSpacing)
+                if (_nurseryTaken.Contains(cell))
                     continue;
                 _nurserySpots.Add(cell);
-                lastY = cell.y;
-                lastX = cell.x;
+                for (int dy = -(NurserySpotHeight - 1); dy < NurserySpotHeight; dy++)
+                for (int dx = -(NurserySpotSpacing - 1); dx < NurserySpotSpacing; dx++)
+                    _nurseryTaken.Add(new Vector2Int(cell.x + dx, cell.y + dy));
             }
         }
 
@@ -458,6 +471,9 @@ namespace Fabula.Incrementant.Colony
         {
             DrownedAnts = drownedAnts;
             _builtNutrientVersion = -1;
+            // A grade foi trocada de uma vez: nenhum campo vale mais.
+            _builtMarkVersion = -1;
+            _dirtyUnderground = _dirtySurface = _dirtyStructure = _dirtyNearMarks = true;
             foreach (DumpSide side in _dumpSides)
                 side.InFlight = 0;
             _ants.Clear();
@@ -504,6 +520,7 @@ namespace Fabula.Incrementant.Colony
 
         public void Tick(float deltaTime)
         {
+            long stageStart = SimProfiler.Now();
             SimulationTime += deltaTime;
             _activeBuilders = 0;
             _plantsInFlight = 0;
@@ -536,12 +553,21 @@ namespace Fabula.Incrementant.Colony
             ApplyGardenBoosts(deltaTime);
             _grid.AdvanceNutrientCure(deltaTime, GardenCureRate());
             UpdateHarvestPause();
+            Profiler.Add(ProfileStage.TickPrep, stageStart);
             RefreshFields(deltaTime);
+            stageStart = SimProfiler.Now();
             UpdateQueen(deltaTime);
+            Profiler.Add(ProfileStage.Queen, stageStart);
+            stageStart = SimProfiler.Now();
             TickBrood(deltaTime);
+            Profiler.Add(ProfileStage.Brood, stageStart);
+            stageStart = SimProfiler.Now();
             for (int i = 0; i < _ants.Count; i++)
                 UpdateAnt(_ants[i], deltaTime);
+            Profiler.Add(ProfileStage.Ants, stageStart);
+            stageStart = SimProfiler.Now();
             Drown(deltaTime);
+            Profiler.Add(ProfileStage.Drown, stageStart);
         }
 
         /// <summary>
@@ -586,7 +612,7 @@ namespace Fabula.Incrementant.Colony
         void RefreshFields(float deltaTime)
         {
             _fieldTimer -= deltaTime;
-            bool structureChanged = _grid.StructureVersion != _builtStructureVersion;
+            ScanStructure();
             bool marksChanged = _grid.MarkVersion != _builtMarkVersion;
             // A rainha a caminho da sala muda a origem dos campos de casa (dentro da sala, a origem é a sala toda).
             bool queenMoved = HomeAnchor() != _homeAnchor;
@@ -596,51 +622,165 @@ namespace Fabula.Incrementant.Colony
             // Alguém travou ou largou um pixel de planta: os campos precisam deixar de apontar para o travado.
             bool claimsChanged = _claimHash != _builtClaimHash;
             _gardenDirty |= GardenNeedsRefresh(deltaTime) || claimsChanged;
-            if (!structureChanged && !marksChanged && !queenMoved && !nutrientsChanged && !harvestChanged && !_gardenDirty
-                && !_nurseryDirty)
+
+            bool firstBuild = _builtStructureVersion < 0;
+            // Só a obra olha qualquer mudança de estrutura (a terra solta de fora é a origem do campo da pilha).
+            bool buildStructure = _dirtyStructure && _grid.BuildMarkedCount > 0;
+            if (!_dirtyUnderground && !_dirtySurface && !_dirtyNearMarks && !buildStructure && !marksChanged && !queenMoved
+                && !nutrientsChanged && !harvestChanged && !_gardenDirty && !_nurseryDirty)
                 return;
-            // Areia escorrendo muda a estrutura quase todo passo; o intervalo limita o custo dos BFS.
-            if (_fieldTimer > 0f && _builtStructureVersion >= 0)
+            // O intervalo limita o custo dos BFS.
+            if (_fieldTimer > 0f && !firstBuild)
+                return;
+            // Vários passos no mesmo frame (velocidade alta ou frame lento): a rodada espera o último, para custar uma por frame.
+            if (DeferFieldRefresh && !firstBuild)
                 return;
 
             _fieldTimer = _settings.FieldRebuildInterval;
-            _walkability.Refresh();
-            if (structureChanged || marksChanged)
-                UpdateQueenRoom();
-            if (structureChanged)
-                BuildDumpField();
-            bool homeChanged = structureChanged || marksChanged || HomeAnchor() != _homeAnchor;
-            if (homeChanged)
-                BuildHomeField();
-            // Depois do campo de casa: ele refaz os pontos do berçário (RecountUsableSpace).
-            if (homeChanged || _nurseryDirty)
-                BuildNurseryField();
-            if (homeChanged || nutrientsChanged)
-                BuildNutrientFields();
-            if (structureChanged || marksChanged || nutrientsChanged || harvestChanged || claimsChanged)
-                BuildDigField();
-            // Depois dos campos dos slots: o alvo só vale se a sala de nutrientes for alcançável de onde se corta.
-            BuildGardenField();
-            if (structureChanged || marksChanged)
-                BuildConstructionFields();
+            Profiler.Count(ProfileCounter.FieldRebuilds);
+            FieldRounds++;
+            _pendingUnderground = _dirtyUnderground;
+            _pendingMarks = marksChanged;
+            _pendingQueenMoved = queenMoved;
+            CountCauses(_dirtySurface, buildStructure, marksChanged, queenMoved, nutrientsChanged, harvestChanged, claimsChanged);
+            // O que foi tratado nesta rodada sai da fila; o que mudar durante as etapas (ou pedir novo cálculo, como
+            // TryStartPlace) dispara outra rodada.
+            _dirtyUnderground = false;
+            _dirtyNearMarks = false;
+            _dirtyStructure = false;
+            _dirtySurface = false;
             _builtStructureVersion = _grid.StructureVersion;
             _builtMarkVersion = _grid.MarkVersion;
             _builtNutrientVersion = _grid.NutrientVersion;
             _builtClaimHash = _claimHash;
+            RunFieldStages();
+        }
+
+        void CountCauses(bool surface, bool build, bool marks, bool queen, bool nutrients, bool harvest, bool claims)
+        {
+            if (_dirtyUnderground) Profiler.Count(ProfileCounter.CauseUnderground);
+            if (surface) Profiler.Count(ProfileCounter.CauseSurface);
+            if (_dirtyNearMarks) Profiler.Count(ProfileCounter.CauseNearMarks);
+            if (build) Profiler.Count(ProfileCounter.CauseBuild);
+            if (marks) Profiler.Count(ProfileCounter.CauseMarks);
+            if (queen) Profiler.Count(ProfileCounter.CauseQueen);
+            if (nutrients) Profiler.Count(ProfileCounter.CauseNutrients);
+            if (harvest) Profiler.Count(ProfileCounter.CauseHarvest);
+            if (claims) Profiler.Count(ProfileCounter.CauseClaims);
+            if (_gardenDirty) Profiler.Count(ProfileCounter.CauseGarden);
+            if (_nurseryDirty) Profiler.Count(ProfileCounter.CauseNursery);
+        }
+
+        /// <summary>
+        /// Quando a estrutura da grade muda, atualiza a caminhabilidade (só os blocos tocados) e anota o que mudou de fato:
+        /// túnel, céu e blocos com marca de escavação por perto. As rodadas de campos usam essas anotações em vez de
+        /// refazer tudo a cada grão que cai.
+        /// </summary>
+        void ScanStructure()
+        {
+            if (_grid.StructureVersion == _scannedStructureVersion)
+                return;
+            _scannedStructureVersion = _grid.StructureVersion;
+            _dirtyStructure = true;
+            _walkability.Refresh();
+            _walkability.TakeChanges(out bool underground, out bool surface);
+            _dirtyUnderground |= underground;
+            _dirtySurface |= surface;
+            for (int cy = 0; cy < _grid.ChunkRows; cy++)
+            for (int cx = 0; cx < _grid.ChunkColumns; cx++)
+            {
+                int c = cy * _grid.ChunkColumns + cx;
+                int version = _grid.GetChunkVersion(cx, cy);
+                if (_chunkSeen[c] == version)
+                    continue;
+                _chunkSeen[c] = version;
+                _dirtyNearMarks |= _grid.MarkedCount > 0 && HasMarksAround(cx, cy);
+            }
+        }
+
+        // Etapas de uma rodada de campos, medidas à parte (painel F11). Rodam todas no mesmo passo: espalhá-las por vários
+        // passos deixa campos velhos em uso e quebra testes de ordem de obra e de equilíbrio do despejo.
+        const int FieldStageCount = 9;
+        // O que mudou desde a última rodada (acumulado entre elas) e o que a rodada em curso trata.
+        bool _dirtyUnderground = true, _dirtySurface = true, _dirtyStructure = true, _dirtyNearMarks = true;
+        int _scannedStructureVersion = -1;
+        readonly int[] _chunkSeen;
+        bool _pendingUnderground, _pendingMarks, _pendingQueenMoved;
+
+        void RunFieldStages()
+        {
+            long fieldsStart = SimProfiler.Now();
+            for (int stage = 0; stage < FieldStageCount; stage++)
+            {
+                long stageStart = SimProfiler.Now();
+                Profiler.Add(RunFieldStage(stage), stageStart);
+            }
+            // Todos os campos já refletem o estado atual: a lista de mudanças recomeça.
+            _walkability.ClearChangedCells();
+            Profiler.Add(ProfileStage.Fields, fieldsStart);
+        }
+
+        // Todas as etapas rodam em toda rodada: cada campo corrige só o que mudou desde a anterior (FlowField.Update), e para isso
+        // precisa ver todas as mudanças de caminhabilidade registradas. Só o que não é campo (inundação da sala da rainha, região
+        // do formigueiro) espera o túnel, as marcas ou a rainha mudarem.
+        ProfileStage RunFieldStage(int stage)
+        {
+            switch (stage)
+            {
+                case 0:
+                    _walkability.Refresh();
+                    return ProfileStage.FieldWalkability;
+                case 1:
+                    if (_pendingUnderground || _pendingMarks)
+                        UpdateQueenRoom();
+                    UpdateField(_queenRoomField, _roomCells);
+                    return ProfileStage.FieldQueenRoom;
+                case 2:
+                    BuildDumpField();
+                    return ProfileStage.FieldDump;
+                case 3:
+                    BuildHomeField();
+                    return ProfileStage.FieldHome;
+                case 4:
+                    // Depois do campo de casa: ele refaz os pontos do berçário (RecountUsableSpace).
+                    BuildNurseryField();
+                    return ProfileStage.FieldNursery;
+                case 5:
+                    BuildNutrientFields();
+                    return ProfileStage.FieldNutrients;
+                case 6:
+                    BuildDigField();
+                    return ProfileStage.FieldDig;
+                case 7:
+                    // Depois dos campos dos slots: o alvo só vale se a sala de nutrientes for alcançável de onde se corta.
+                    BuildGardenField();
+                    return ProfileStage.FieldGarden;
+                default:
+                    BuildConstructionFields();
+                    return ProfileStage.FieldConstruction;
+            }
+        }
+
+        /// <summary>Corrige o campo no que mudou; conta as vezes em que teve de refazer do zero (painel F11).</summary>
+        void UpdateField(FlowField field, List<int> sources)
+        {
+            field.Update(_walkability, sources);
+            if (!field.LastUpdateWasIncremental)
+                Profiler.Count(ProfileCounter.FieldFullBuilds);
         }
 
         void BuildDigField()
         {
             CollectMarkedSources();
             _builtHarvestOpen = (CanHarvest, CanStoreDebris, _harvestPaused);
-            _digField.Build(_walkability, _sources);
+            UpdateField(_digField, _sources);
 
             _builtRockOpen = RockOpen;
             if (_builtRockOpen)
                 CollectMarkedSources(rock: true);
             else
                 _sources.Clear();
-            _rockField.Build(_walkability, _sources);
+            UpdateField(_rockField, _sources);
         }
 
         /// <summary>Há escavadora viva e E2 comprada: a rocha marcada entra no trabalho.</summary>
@@ -669,7 +809,7 @@ namespace Fabula.Incrementant.Colony
                     }
                 }
             }
-            _gardenField.Build(_walkability, _sources);
+            UpdateField(_gardenField, _sources);
         }
 
         /// <summary>
@@ -886,9 +1026,9 @@ namespace Fabula.Incrementant.Colony
             }
             _freeSlotCells.Clear();
             _freeSlotCells.AddRange(_sources);
-            _storeField.Build(_walkability, _sources);
-            _nutrientField.Build(_walkability, _buildSources);
-            _curingField.Build(_walkability, _curingSources);
+            UpdateField(_storeField, _sources);
+            UpdateField(_nutrientField, _buildSources);
+            UpdateField(_curingField, _curingSources);
 
             // Se o slot é alcançável de onde a planta é colhida, IsWorkTarget confere pelo campo dos slots.
             int width = _grid.Width;
@@ -1130,7 +1270,7 @@ namespace Fabula.Incrementant.Colony
                 if (_walkability.IsWalkableAt(index))
                     _sources.Add(index);
             }
-            _nurseryField.Build(_walkability, _sources);
+            UpdateField(_nurseryField, _sources);
             _sources.Clear();
         }
 
@@ -1167,7 +1307,15 @@ namespace Fabula.Incrementant.Colony
             _hasBuildWork = false;
             _hasSite = false;
             if (_grid.BuildMarkedCount == 0)
+            {
+                // Parados, os campos deixam de acompanhar as mudanças de caminhabilidade: refazem do zero quando voltar a obra.
+                _exitField.Invalidate();
+                _pileField.Invalidate();
+                _buildField.Invalidate();
+                _siteField.Invalidate();
+                _buildFieldsVersion = -1;
                 return;
+            }
 
             // Saída e terra solta só mudam com a estrutura; as marcas e as reservas mudam o resto.
             if (_buildFieldsVersion != _grid.StructureVersion)
@@ -1218,8 +1366,8 @@ namespace Fabula.Incrementant.Colony
                     }
                 }
             }
-            _buildField.Build(_walkability, _buildSources);
-            _siteField.Build(_walkability, _siteSources);
+            UpdateField(_buildField, _buildSources);
+            UpdateField(_siteField, _siteSources);
             _hasBuildWork = _buildSources.Count > 0;
             _hasSite = _hasBuildWork || _siteSources.Count > 0;
         }
@@ -1391,7 +1539,7 @@ namespace Fabula.Incrementant.Colony
                 else if (_walkability.IsWalkable(x, surface))
                     _sources.Add(_grid.ToIndex(x, surface));
             }
-            _exitField.Build(_walkability, _sources);
+            UpdateField(_exitField, _sources);
         }
 
         /// <summary>Origens = células caminháveis encostadas em terra solta acima do solo original (a pilha de fora).</summary>
@@ -1413,7 +1561,7 @@ namespace Fabula.Incrementant.Colony
                     }
                 }
             }
-            _pileField.Build(_walkability, _sources);
+            UpdateField(_pileField, _sources);
         }
 
         /// <summary>Acima do solo original da coluna: o céu, onde também se constrói.</summary>
@@ -1467,7 +1615,7 @@ namespace Fabula.Incrementant.Colony
                     if (_walkability.IsWalkable(x, y))
                         _sources.Add(_grid.ToIndex(x, y));
                 }
-                side.Field.Build(_walkability, _sources);
+                UpdateField(side.Field, _sources);
             }
 
             // Faixas novas: quem já carregava escolhe de novo, agora com os campos prontos.
@@ -1625,10 +1773,11 @@ namespace Fabula.Incrementant.Colony
             {
                 field = _fieldPool[_fieldPool.Count - 1];
                 _fieldPool.RemoveAt(_fieldPool.Count - 1);
+                field.Invalidate();
             }
             else
             {
-                field = new FlowField(_grid.Width, _grid.Height);
+                field = new FlowField(_grid.Width, _grid.Height, _fieldScratch);
             }
             _dumpSides.Add(new DumpSide(group, minX, maxX, field));
             _dumpStrips.Add(new Vector2Int(minX, maxX));
@@ -1753,7 +1902,6 @@ namespace Fabula.Incrementant.Colony
                     }
                 }
             }
-            _queenRoomField.Build(_walkability, _roomCells);
         }
 
         bool IsRoomCell(int x, int y, int index) => _grid.IsQueenRoom(x, y) && _walkability.IsWalkableAt(index);
@@ -1816,8 +1964,15 @@ namespace Fabula.Incrementant.Colony
                         _sources.Add(_grid.ToIndex(x, y));
                 }
             }
-            _homeField.Build(_walkability, _sources);
+            UpdateField(_homeField, _sources);
+            // O céu não entra na região do formigueiro: ela só muda com o túnel, as marcas ou a rainha.
+            if (_pendingUnderground || _pendingMarks || _pendingQueenMoved)
+                BuildColonyRegion();
+            _homeAnchor = HomeAnchor();
+        }
 
+        void BuildColonyRegion()
+        {
             int w = _grid.Width;
             for (int n = _sources.Count - 1; n >= 0; n--)
             {
@@ -1827,7 +1982,6 @@ namespace Fabula.Incrementant.Colony
             }
             _colonyField.Build(_walkability, _sources, anthillOnly: true);
             RecountUsableSpace();
-            _homeAnchor = HomeAnchor();
         }
 
         /// <summary>

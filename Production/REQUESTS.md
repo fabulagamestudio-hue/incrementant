@@ -1,7 +1,7 @@
 # Solicitações do desenvolvedor
 
 **Projeto:** Incrementant
-**Última atualização:** 2026-10-17
+**Última atualização:** 2026-10-18
 
 ## Índice
 
@@ -25,6 +25,7 @@
 | REQ-016 | 2026-10-17 | Construir do lado de fora do formigueiro | PROGRAMMING | UNDEFINED | IMPLEMENTED |
 | REQ-017 | 2026-10-17 | Árvore da rainha (classes e melhorias) | PROGRAMMING | UNDEFINED | IMPLEMENTED |
 | REQ-018 | 2026-10-17 | Revisar as funções de cada formiga por papel contra o design | PROGRAMMING, GAME_DESIGN | UNDEFINED | IN_PROGRESS |
+| REQ-019 | 2026-10-18 | Variantes de cor das formigas em pastas por função | ART | UNDEFINED | IMPLEMENTED |
 
 ## Registros
 
@@ -339,3 +340,19 @@
   - 2026-10-17 — cuidado do berçário e cuidadora (PRG-027, suíte 138/138); a região do cultivo de fungo (jardineira) reaproveita o modelo.
   - 2026-10-17 — cuidado da sala de nutrientes pela jardineira e comuns (PRG-028, suíte 143/143, sem Play Mode).
   - 2026-10-17 — cuidado reformulado: bloco em interação recebe o ritmo da especialista, blocos variados e prioridade pelo número de blocos da região (PRG-027/028, suíte 147/147, sem Play Mode).
+
+### REQ-019 — Variantes de cor das formigas em pastas por função
+
+- **Data de registro:** 2026-10-18
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** ART
+- **Descrição:** Separar as artes de Ants por função, duplicar os quadros Top e Walk e aplicar as cores sugeridas na conversa; integrar as artes no jogo posteriormente. Recoloração por script autorizada pelo desenvolvedor.
+- **Critérios de aceitação:** Pastas por função, cópias de Top e Walk com a paleta sugerida e operária mantendo o vermelho.
+- **Dependências:** —
+- **Itens relacionados:** ART-006
+- **Referências:** [Paleta e organização](../Assets/Project/Art/Ants/README.md)
+- **Decisões pendentes:** Aprovação visual das cores; integração no jogo em tarefa futura.
+- **Histórico:**
+  - 2026-10-18 — PLANNED: pedido registrado.
+  - 2026-10-18 — IMPLEMENTED: 48 PNGs em seis pastas; comparação de 10.368 pixels e hashes confirmou dimensões, transparência, paleta e preservação dos originais; prévia inspecionada pelo agente. Importação/reprodução na Unity não verificadas.

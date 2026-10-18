@@ -7,9 +7,11 @@
 - **Engine:** Unity 6000.3.11f1, URP 17.3.0
 - **Plataformas-alvo:** Pendente de definição
 - **Marco atual:** Pendente de definição
-- **Última avaliação:** 2026-10-17
+- **Última avaliação:** 2026-10-18
 
 ## Resumo executivo
+
+Variantes de cor das formigas preparadas em seis pastas (48 PNGs Top/Walk, ART-006, REQ-019), com dimensões, transparência e troca de paleta conferidas por comparação de pixels. A integração no jogo fica para depois, conforme pedido do desenvolvedor; importação na Unity e aprovação visual pendentes.
 
 A referência de design revisada de 2026-10-17 foi organizada em 38 Markdown em [Docs/](../Docs/README.md), preservando 28 tabelas e as propostas e decisões em aberto (GD-006, REQ-009). A transcrição foi conferida automaticamente; a implementação dos sistemas não foi reavaliada nessa entrega.
 
@@ -28,6 +30,7 @@ Protótipo de viabilidade do formigário (REQ-001) implementado na cena `AntFarm
 ### Arte
 
 - **Entregas verificadas:** Nenhuma
+- **Variantes por função:** ART-006 implementado; 48 PNGs conferidos, aguardando aprovação visual e futura integração na Unity (REQ-019).
 - **Pendências:** ART-001 e ART-002 Sprites provisórios das formigas; ART-005 Sprites da cria (ovo, larva, pupa; aprovação visual); ART-003 Cenário da superfície (aprovação visual); ART-004 Sprites de UI 9-slice (bordas e fonte a aprovar)
 - **Bloqueios:** Nenhum
 - **Riscos:** Nenhum
