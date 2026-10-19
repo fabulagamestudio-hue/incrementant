@@ -25,6 +25,8 @@ namespace Fabula.Incrementant.Colony
         WaitingExpansion = 3,
         /// <summary>Escolha explícita do jogador: sem novas posturas.</summary>
         Paused = 4,
+        /// <summary>A rainha só põe ovos na sala dela e ainda não está lá (sem sala ou a caminho).</summary>
+        WaitingQueenRoom = 5,
     }
 
     /// <summary>
@@ -84,6 +86,8 @@ namespace Fabula.Incrementant.Colony
         public int NurserySlots;
         /// <summary>Célula da rainha: onde o ovo novo é posto.</summary>
         public int QueenX, QueenY;
+        /// <summary>A rainha está fora da sala dela: não pode pôr ovos (o padrão, false, não impede).</summary>
+        public bool QueenOutsideRoom;
         /// <summary>
         /// Resolvem o papel e o custo dos ovos seguintes de um lote (a partir do segundo): a colônia recalcula depois de cada
         /// ovo posto. Nulos, só o primeiro ovo (<see cref="Role"/> e <see cref="Cost"/>) é posto.
@@ -161,11 +165,17 @@ namespace Fabula.Incrementant.Colony
         {
             if (c.Mode == QueenMode.Paused)
                 return BreedingState.Paused;
+            if (c.QueenOutsideRoom)
+                return BreedingState.WaitingQueenRoom;
             if (c.NurserySlots <= 0 || _brood.Count >= c.NurserySlots)
                 return BreedingState.WaitingNursery;
             if (c.Adults + _brood.Count >= c.AdultCapacity)
                 return BreedingState.WaitingExpansion;
-            if (c.Nutrients - c.Cost < _settings.MinNutrientReserve)
+            // Rainha sozinha (sem adultas nem crias): bota o ovo que recomeça a colônia sem respeitar a reserva mínima,
+            // só precisa pagar o custo (pedido do desenvolvedor em 2026-10-18).
+            bool loneQueen = c.Adults == 0 && _brood.Count == 0;
+            int reserve = loneQueen ? 0 : _settings.MinNutrientReserve;
+            if (c.Nutrients - c.Cost < reserve)
                 return BreedingState.WaitingResources;
             return BreedingState.Available;
         }
@@ -218,6 +228,24 @@ namespace Fabula.Incrementant.Colony
             }
             _layTimer = LayInterval;
             return spent;
+        }
+
+        /// <summary>
+        /// Põe um ovo agora (clique na rainha): ignora o relógio de postura e a reserva mínima de nutrientes, mas respeita
+        /// pausa, vaga no berçário, capacidade adulta e o custo da cria. Não mexe no relógio. Devolve o custo gasto (0 = não pôs).
+        /// </summary>
+        public int ForceLay(in BroodContext c)
+        {
+            if (c.Mode == QueenMode.Paused || c.QueenOutsideRoom || c.NurserySlots <= 0 || _brood.Count >= c.NurserySlots)
+                return 0;
+            if (c.Adults + _brood.Count >= c.AdultCapacity || c.Nutrients < c.Cost)
+                return 0;
+            _brood.Add(new BroodRecord
+            {
+                Role = c.Role, Stage = BroodStage.Egg, Remaining = _settings.EggSeconds,
+                Id = ++_lastId, Phase = EggPhase.Laid, LaidX = c.QueenX, LaidY = c.QueenY, Slot = -1,
+            });
+            return c.Cost;
         }
 
         // ---------------------------------------------------------------- transporte do ovo

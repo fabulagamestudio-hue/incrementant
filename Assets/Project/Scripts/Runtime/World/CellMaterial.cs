@@ -27,7 +27,7 @@ namespace Fabula.Incrementant.World
         /// <summary>Pixel de muda folhosa solto da planta (ver <see cref="FallenGrass"/>).</summary>
         FallenLeaf = 13,
         /// <summary>
-        /// Entulho: parede que os cupins arrancaram (ou canteiro que destruíram). Granular e já nasce marcado para as formigas
+        /// Entulho: parede que os cupins arrancaram (ou canteiro que destruíram). Granular, sem marca: o jogador a marca para as formigas
         /// levarem embora, de preferência para a área de resíduos.
         /// </summary>
         Rubble = 14,

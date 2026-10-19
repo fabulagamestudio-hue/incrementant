@@ -56,6 +56,22 @@ namespace Fabula.Incrementant.Colony
                  "mesma escala do protótipo de Cells Per Adult Slot.")]
         [SerializeField, Min(1)] int _cellsPerNurserySlot = 16;
 
+        [Header("Sala Gotas de Orvalho")]
+        [Tooltip("Segundos (de jogo) entre uma gota e a seguinte, com a sala pronta (terra fofa e folhas postas).")]
+        [SerializeField, Min(0.1f)] float _dewDropSeconds = 8f;
+        [Tooltip("Parte de cima da sala (por coluna) que as formigas cobrem de terra fofa.")]
+        [SerializeField, Range(0.05f, 0.9f)] float _dewSoilShare = 0.3f;
+        [Tooltip("Altura mínima (células pintadas na coluna) para a coluna receber terra fofa e folha: abaixo disso a coluna fecharia a passagem.")]
+        [SerializeField, Min(2)] int _dewMinColumnHeight = 4;
+        [Tooltip("Pontos de terra fofa por formiga trabalhando na sala ao mesmo tempo (pelo menos uma).")]
+        [SerializeField, Min(1)] int _dewSpotsPerWorker = 8;
+        [Tooltip("Água máxima (células) acumulada dentro da sala: cheia, as gotas esperam as formigas levarem a água.")]
+        [SerializeField, Min(1)] int _dewMaxRoomWater = 24;
+        [Tooltip("Quanto cada jardineira cuidando da sala acelera a queda das gotas (1 = cada uma soma +100% ao ritmo).")]
+        [SerializeField, Min(0f)] float _dewTendBoost = 1f;
+        [Tooltip("Jardineiras que cuidam da sala de orvalho ao mesmo tempo.")]
+        [SerializeField, Min(1)] int _dewMaxTenders = 3;
+
         public int InitialAnts => _initialAnts;
         public int MaxAnts => _maxAnts;
         public float AntSpeed => _antSpeed;
@@ -81,5 +97,12 @@ namespace Fabula.Incrementant.Colony
         public int MinNutrientReserve => _minNutrientReserve;
         public int CellsPerAdultSlot => _cellsPerAdultSlot;
         public int CellsPerNurserySlot => _cellsPerNurserySlot;
+        public float DewDropSeconds => _dewDropSeconds;
+        public float DewSoilShare => _dewSoilShare;
+        public int DewMinColumnHeight => _dewMinColumnHeight;
+        public int DewSpotsPerWorker => _dewSpotsPerWorker;
+        public int DewMaxRoomWater => _dewMaxRoomWater;
+        public float DewTendBoost => _dewTendBoost;
+        public int DewMaxTenders => _dewMaxTenders;
     }
 }

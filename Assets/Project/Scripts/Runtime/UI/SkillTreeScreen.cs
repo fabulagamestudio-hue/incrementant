@@ -1,3 +1,5 @@
+using Fabula.Incrementant.Texts;
+using Fabula.Incrementant.Audio;
 using System;
 using Fabula.Incrementant.AntFarm;
 using Fabula.Incrementant.Colony;
@@ -70,9 +72,18 @@ namespace Fabula.Incrementant.UI
         bool _queenTabOpen = true;
         QueenNode _selectedQueen = QueenNode.Q1;
         int _selectedHive;
+        // Chave do aviso da última compra recusada (traduzida a cada quadro); vazio = sem aviso.
         string _message = "";
         UnityAction[] _queenHandlers;
         UnityAction[] _hiveHandlers;
+
+        /// <summary>Quantas vezes o jogador clicou num nó (o tutorial espera a primeira consulta).</summary>
+        public int NodeSelections { get; private set; }
+
+        public RectTransform HiveTabRect => (RectTransform)_hiveTab.transform;
+        public RectTransform QueenTabRect => (RectTransform)_queenTab.transform;
+        /// <summary>Painel com nome, efeito, requisito e botão de compra do nó escolhido.</summary>
+        public RectTransform DetailRect => (RectTransform)_title.transform.parent;
 
         void Awake()
         {
@@ -88,13 +99,13 @@ namespace Fabula.Incrementant.UI
             for (int i = 0; i < _queenNodes.Length; i++)
             {
                 var node = (QueenNode)i;
-                _queenHandlers[i] = () => { _selectedQueen = node; _message = ""; };
+                _queenHandlers[i] = () => { _selectedQueen = node; _message = ""; NodeSelections++; };
             }
             _hiveHandlers = new UnityAction[_hiveNodes.Length];
             for (int i = 0; i < _hiveNodes.Length; i++)
             {
                 int index = i;
-                _hiveHandlers[i] = () => { _selectedHive = index; _message = ""; };
+                _hiveHandlers[i] = () => { _selectedHive = index; _message = ""; NodeSelections++; };
             }
         }
 
@@ -137,19 +148,22 @@ namespace Fabula.Incrementant.UI
             AntColony colony = _game.Colony;
             if (!_queenTabOpen || colony == null)
                 return;
-            _message = BlockText(colony.TryBuy(_selectedQueen));
+            BuyBlock block = colony.TryBuy(_selectedQueen);
+            _message = BlockKey(block);
+            if (block != BuyBlock.None)
+                GameAudio.Play(SfxId.UiDeny);
         }
 
-        static string BlockText(BuyBlock block)
+        static string BlockKey(BuyBlock block)
         {
             switch (block)
             {
-                case BuyBlock.Owned: return "JÁ COMPRADO";
-                case BuyBlock.MissingRequirement: return "FALTA UM PRÉ-REQUISITO";
-                case BuyBlock.NotAvailableYet: return "EM BREVE: O JOGO AINDA NÃO TEM ESSE SISTEMA";
-                case BuyBlock.InsufficientNutrients: return "NUTRIENTES INSUFICIENTES";
-                case BuyBlock.NeedsFirstRaid: return "LIBERA DEPOIS DO PRIMEIRO ATAQUE DE CUPINS";
-                default: return "COMPRADO";
+                case BuyBlock.Owned: return "buy.owned";
+                case BuyBlock.MissingRequirement: return "buy.missing";
+                case BuyBlock.NotAvailableYet: return "buy.soon";
+                case BuyBlock.InsufficientNutrients: return "buy.insufficient";
+                case BuyBlock.NeedsFirstRaid: return "buy.raid";
+                default: return "buy.done";
             }
         }
 
@@ -163,7 +177,7 @@ namespace Fabula.Incrementant.UI
             _queenPage.SetActive(_queenTabOpen);
             _hiveTabImage.sprite = _queenTabOpen ? _tabInactive : _tabActive;
             _queenTabImage.sprite = _queenTabOpen ? _tabActive : _tabInactive;
-            _nutrients.text = $"{colony.Nutrients} N";
+            _nutrients.text = Loc.T("hud.nutrients.value", colony.Nutrients);
             if (_queenTabOpen)
                 RefreshQueen(colony);
             else
@@ -195,14 +209,14 @@ namespace Fabula.Incrementant.UI
             }
 
             QueenNodeDef def = QueenTree.Def(_selectedQueen);
-            _title.text = $"{def.Id} · {def.Name.ToUpperInvariant()}";
-            _effect.text = def.Effect.ToUpperInvariant();
-            string requires = def.Requires.Count == 0 ? "NENHUM" : string.Join(" E ", def.Requires);
+            _title.text = $"{def.Id} · {Loc.QueenName(def.Node).ToUpperInvariant()}";
+            _effect.text = Loc.QueenEffect(def.Node).ToUpperInvariant();
+            string requires = def.Requires.Count == 0 ? Loc.T("tree.none") : string.Join(" " + Loc.T("tree.and") + " ", def.Requires);
             if (colony.Tree.Check(_selectedQueen) == BuyBlock.NeedsFirstRaid)
-                requires = "PRIMEIRO ATAQUE DE CUPINS";
-            _info.text = _message.Length > 0 ? _message : $"REQUISITO: {requires}";
+                requires = Loc.T("tree.firstraid");
+            _info.text = _message.Length > 0 ? Loc.T(_message) : Loc.T("tree.requires", requires);
             bool owned = colony.Tree.Owns(_selectedQueen);
-            _buyLabel.text = owned ? "ADQUIRIDO" : !def.Implemented ? "EM BREVE" : $"DESBLOQUEAR · {def.Cost} N";
+            _buyLabel.text = owned ? Loc.T("tree.acquired") : !def.Implemented ? Loc.T("tree.soon") : Loc.T("tree.unlock.cost", def.Cost);
             _buyImage.color = !owned && colony.Tree.Check(_selectedQueen) == BuyBlock.None && colony.Nutrients >= def.Cost
                 ? BuyEnabled : BuyDisabled;
         }
@@ -218,10 +232,12 @@ namespace Fabula.Incrementant.UI
                 link.Image.sprite = _linkLocked;
 
             HiveTreeInfo.Node node = HiveTreeInfo.All[_selectedHive];
-            _title.text = $"{node.Id} · {node.Name.ToUpperInvariant()}";
-            _effect.text = node.Effect.ToUpperInvariant();
-            _info.text = $"REQUISITO: {node.Requires}  ·  CUSTO: {node.Cost} N";
-            _buyLabel.text = "EM BREVE";
+            _title.text = $"{node.Id} · {Loc.HiveName(node.Id).ToUpperInvariant()}";
+            _effect.text = Loc.HiveEffect(node.Id).ToUpperInvariant();
+            // "Nenhum" e o " e " entre nós vêm do texto-fonte em português.
+            string requires = node.Requires == "Nenhum" ? Loc.T("tree.none") : node.Requires.Replace(" e ", " " + Loc.T("tree.and") + " ");
+            _info.text = Loc.T("tree.requires.cost", requires, node.Cost);
+            _buyLabel.text = Loc.T("tree.soon");
             _buyImage.color = BuyDisabled;
         }
 

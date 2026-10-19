@@ -1,6 +1,8 @@
+using Fabula.Incrementant.Texts;
 using Fabula.Incrementant.AntFarm;
 using Fabula.Incrementant.Settings;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace Fabula.Incrementant.UI
@@ -19,6 +21,7 @@ namespace Fabula.Incrementant.UI
         [SerializeField] Button _settingsButton;
         [SerializeField] Button _save;
         [SerializeField] Button _load;
+        [SerializeField] Button _mainMenu;
         [SerializeField] Button _quit;
         [SerializeField] Text _status;
 
@@ -32,7 +35,7 @@ namespace Fabula.Incrementant.UI
         void Awake()
         {
             _valid = _game != null && _mainPanel != null && _settings != null && _resume != null && _settingsButton != null &&
-                     _save != null && _load != null && _quit != null && _status != null;
+                     _save != null && _load != null && _mainMenu != null && _quit != null && _status != null;
             if (!_valid)
             {
                 Debug.LogError($"{name}: PauseMenu com referências faltando (rode Incrementant/Setup/Montar HUD da partida).", this);
@@ -48,6 +51,7 @@ namespace Fabula.Incrementant.UI
             _settingsButton.onClick.AddListener(OpenSettings);
             _save.onClick.AddListener(Save);
             _load.onClick.AddListener(Load);
+            _mainMenu.onClick.AddListener(GoToMainMenu);
             _quit.onClick.AddListener(Quit);
         }
 
@@ -59,6 +63,7 @@ namespace Fabula.Incrementant.UI
             _settingsButton.onClick.RemoveListener(OpenSettings);
             _save.onClick.RemoveListener(Save);
             _load.onClick.RemoveListener(Load);
+            _mainMenu.onClick.RemoveListener(GoToMainMenu);
             _quit.onClick.RemoveListener(Quit);
         }
 
@@ -105,11 +110,18 @@ namespace Fabula.Incrementant.UI
 
         void Load() => _game.LoadGame();
 
+        /// <summary>Volta ao menu principal sem salvar: a partida não gravada se perde (o aviso fica a cargo de quem salva antes).</summary>
+        void GoToMainMenu()
+        {
+            GameSettings.Save();
+            SceneManager.LoadScene(Menu.GameLaunch.MenuSceneName);
+        }
+
         void Quit()
         {
             if (Application.isEditor)
             {
-                ShowStatus("SAIR SÓ FECHA O JOGO COMPILADO");
+                ShowStatus(Loc.T("pause.quitnote"));
                 return;
             }
             GameSettings.Save();

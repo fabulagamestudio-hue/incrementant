@@ -1,0 +1,1360 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: Game_en
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.StringTable
+  m_LocaleId:
+    m_Code: en
+  m_SharedData: {fileID: 11400000, guid: 9cda6bc6736b2524d9fe09c437b60576, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 896802816
+    m_Localized: IncrementAnt
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1345593344
+    m_Localized: A colony in constant transformation
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787648
+    m_Localized: A colony in constant transformation.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787649
+    m_Localized: START NEW COLONY
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787650
+    m_Localized: CONTINUE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787651
+    m_Localized: SETTINGS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787652
+    m_Localized: ABOUT THE GAME
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787653
+    m_Localized: QUIT
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787654
+    m_Localized: INCREMENTANT
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787655
+    m_Localized: "Dig, cultivate and look after the colony.\nEvery ant has its role.\n\nA
+      GAME BY F\xC1BULA GAME STUDIO\n\nThe team's names and the asset\ncredits will
+      be added here."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787656
+    m_Localized: No saved colony to continue.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787657
+    m_Localized: '[ESC] BACK'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787658
+    m_Localized: NUTRIENTS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787659
+    m_Localized: ANTS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787660
+    m_Localized: QUEEN
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787661
+    m_Localized: COLONY
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787662
+    m_Localized: TOOL
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787663
+    m_Localized: EVOLUTION
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787664
+    m_Localized: ENVIRONMENTS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787665
+    m_Localized: ALERTS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787666
+    m_Localized: Dig
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787667
+    m_Localized: Build
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787668
+    m_Localized: Queen room
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787669
+    m_Localized: Nutrient room
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787670
+    m_Localized: Nursery
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787671
+    m_Localized: Waste
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787672
+    m_Localized: Finger
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787673
+    m_Localized: Dew drops
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787674
+    m_Localized: AUTOMATIC
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787675
+    m_Localized: SPECIFIC TYPE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787676
+    m_Localized: PAUSED
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787677
+    m_Localized: 'OFFENSIVE: ATTACKS THE TERMITES'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787678
+    m_Localized: 'DEFENSIVE: ONLY DEFENDS'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787679
+    m_Localized: Common
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787680
+    m_Localized: Carrier
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787681
+    m_Localized: Cutter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787682
+    m_Localized: Digger
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787683
+    m_Localized: Gardener
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787684
+    m_Localized: Nurse
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787685
+    m_Localized: Soldier
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787686
+    m_Localized: '{0} N'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787687
+    m_Localized: 'CONSUMED: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787688
+    m_Localized: ADULTS {0} / {1}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787689
+    m_Localized: "EGGS {0} \xB7 LARVAE {1} \xB7 PUPAE {2}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787690
+    m_Localized: 'ROOM: {0} PX'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787691
+    m_Localized: "ROOM: \u2014"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787692
+    m_Localized: "NEXT EGG: {0} \xB7 {1} N"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787693
+    m_Localized: "NEXT EGG: \u2014"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787694
+    m_Localized: "ADULTS {0} / {1} \xB7 NURSERY {2} / {3}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787695
+    m_Localized: "{0} \xB7 LOCKED ({1})"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787696
+    m_Localized: "{0} {1} \xB7 {2} N"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787697
+    m_Localized: "WASD / MIDDLE BUTTON: MOVE CAMERA \xB7 ESC: MENU"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787698
+    m_Localized: 'FPS {0}
+
+      TIME {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787699
+    m_Localized: NO ROOM
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787700
+    m_Localized: IN ROOM
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787701
+    m_Localized: GOING TO ROOM
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787702
+    m_Localized: NO PATH
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787703
+    m_Localized: 'PAUSED: NO NEW EGGS'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787704
+    m_Localized: 'NO QUEEN ROOM: PAINT AND DIG'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787705
+    m_Localized: QUEEN OUTSIDE HER ROOM
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787706
+    m_Localized: 'NO NURSERY: PAINT AND DIG'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787707
+    m_Localized: NURSERY FULL
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787708
+    m_Localized: 'NO ADULT SLOT: EXPAND'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787709
+    m_Localized: WAITING FOR RESOURCES (RES. {0} N)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787710
+    m_Localized: NEXT EGG IN {0} S
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787711
+    m_Localized: TERMITE ATTACK INCOMING! ARRIVING IN {0} S
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787712
+    m_Localized: "TERMITES ATTACKING: {0} \xB7 {1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787713
+    m_Localized: ATTACK REPELLED! SOLDIER AND WASTE AREA UNLOCKED
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787714
+    m_Localized: TERMITE ATTACK OVER
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787715
+    m_Localized: AFTER THE BROOD
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787716
+    m_Localized: DESTROYING BEDS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787717
+    m_Localized: DESTROYING THE SECTORS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787718
+    m_Localized: BREAKING WALLS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787719
+    m_Localized: AFTER THE QUEEN
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787720
+    m_Localized: LEAVING
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787721
+    m_Localized: MENU
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787722
+    m_Localized: CONTINUE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787723
+    m_Localized: SETTINGS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787724
+    m_Localized: SAVE GAME
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787725
+    m_Localized: LOAD GAME
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787726
+    m_Localized: MAIN MENU
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787727
+    m_Localized: QUIT GAME
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787728
+    m_Localized: QUIT ONLY CLOSES THE BUILT GAME
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787729
+    m_Localized: MASTER VOLUME
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787730
+    m_Localized: MUSIC
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787731
+    m_Localized: SOUND EFFECTS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787732
+    m_Localized: VISUAL EFFECTS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787733
+    m_Localized: FULLSCREEN
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787734
+    m_Localized: RESOLUTION
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787735
+    m_Localized: VSYNC
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787736
+    m_Localized: FPS LIMIT
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787737
+    m_Localized: SHOW FPS AND TIME
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787738
+    m_Localized: LANGUAGE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787739
+    m_Localized: SETTINGS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787740
+    m_Localized: DEFAULT
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787741
+    m_Localized: NATIVE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787742
+    m_Localized: NO LIMIT
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787743
+    m_Localized: FULL
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787744
+    m_Localized: REDUCED
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787745
+    m_Localized: OFF
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787746
+    m_Localized: COLONY EVOLUTION
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787747
+    m_Localized: ANTHILL
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787748
+    m_Localized: QUEEN AND CLASSES
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787749
+    m_Localized: UNLOCK
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787750
+    m_Localized: "UNLOCK \xB7 {0} N"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787751
+    m_Localized: ACQUIRED
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787752
+    m_Localized: AVAILABLE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787753
+    m_Localized: SELECTED
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787754
+    m_Localized: LOCKED
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787755
+    m_Localized: COMING SOON
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787756
+    m_Localized: 'REQUIREMENT: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787757
+    m_Localized: "REQUIREMENT: {0}  \xB7  COST: {1} N"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787758
+    m_Localized: NONE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787759
+    m_Localized: AND
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981952
+    m_Localized: FIRST TERMITE ATTACK
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981953
+    m_Localized: CULTIVATION
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981954
+    m_Localized: NURSERY
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981955
+    m_Localized: STORAGE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981956
+    m_Localized: WASTE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981957
+    m_Localized: ALREADY BOUGHT
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981958
+    m_Localized: A PREREQUISITE IS MISSING
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981959
+    m_Localized: 'COMING SOON: THE GAME DOESN''T HAVE THIS SYSTEM YET'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981960
+    m_Localized: NOT ENOUGH NUTRIENTS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981961
+    m_Localized: UNLOCKS AFTER THE FIRST TERMITE ATTACK
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981962
+    m_Localized: BOUGHT
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981963
+    m_Localized: QUEEN
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981964
+    m_Localized: COMMON
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981965
+    m_Localized: CARRIER
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981966
+    m_Localized: CUTTER
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981967
+    m_Localized: DIGGER
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981968
+    m_Localized: GARDENER
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981969
+    m_Localized: NURSE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981970
+    m_Localized: SOLDIER
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981971
+    m_Localized: Game loaded ({0}).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981972
+    m_Localized: Game saved ({0}).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981973
+    m_Localized: 'Failed to save: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981974
+    m_Localized: 'Failed to load: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981975
+    m_Localized: No save found.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981976
+    m_Localized: The save is from another map mode (Procedural/Image).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981977
+    m_Localized: The save is from a {0}x{1} world; the current one is {2}x{3}.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981978
+    m_Localized: GAME OVER
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981979
+    m_Localized: 'The termites killed the queen.
+
+      Match time: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981980
+    m_Localized: 'Load the last save  [F9]'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981981
+    m_Localized: 'New map  [R]'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981982
+    m_Localized: A new colony
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981983
+    m_Localized: Now it's up to you!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981984
+    m_Localized: Start
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981985
+    m_Localized: Got it
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981986
+    m_Localized: Continue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981987
+    m_Localized: Let's grow!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981988
+    m_Localized: Show objective
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981989
+    m_Localized: Skip tutorial
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981990
+    m_Localized: A new colony begins here. Your queen has five workers to turn this
+      small shelter into an anthill. Let's make room and get your colony ready to
+      grow!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981991
+    m_Localized: Select the digging brush to open new spaces in the anthill.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981992
+    m_Localized: Click and drag over the indicated soil to mark where your workers
+      should dig.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981993
+    m_Localized: You mark the path; your workers do the work. Wait until they finish
+      digging.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981994
+    m_Localized: Now let's give this space a purpose. Select the nutrient brush and
+      paint the inside of the area you just dug.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981995
+    m_Localized: Here, your workers will cultivate fungi to produce nutrients. They
+      sustain the colony's growth and let you invest in new areas and upgrades.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981996
+    m_Localized: The colony needs new generations to grow. Use the digging brush
+      to open one more chamber connected to the anthill.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981997
+    m_Localized: Select the nursery brush and paint the new space. There, your workers
+      will tend to the brood.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981998
+    m_Localized: With a working nursery and available nutrients, your queen reproduces
+      automatically.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981999
+    m_Localized: Eggs go through the larva and pupa stages until they become new
+      ants. Your workers look after this development.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982000
+    m_Localized: Your colony can go further! Open the evolution tree to see your
+      possibilities.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982001
+    m_Localized: Use nutrients to unlock skills and upgrades. The anthill tree develops
+      the colony; the queen tree improves her abilities.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982002
+    m_Localized: Check each skill's effect, cost and requirements before choosing
+      where to invest.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982003
+    m_Localized: 'But be careful: enemies may arrive and threaten your anthill. Your
+      ants will have to fight to defend the colony.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982004
+    m_Localized: 'Strengthen your colony and prepare your defenses. Protect the queen:
+      the anthill''s survival depends on her!'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982005
+    m_Localized: Your small anthill has a great future ahead. Expand the tunnels,
+      care for the new generations and strengthen your colony. Now it's up to you!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982006
+    m_Localized: Initial laying
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982007
+    m_Localized: "No cycles before the nursery \u2192 1 egg every 18 s"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982008
+    m_Localized: Faster laying
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982009
+    m_Localized: "18 s per cycle \u2192 12 s per cycle (\u221233%)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982010
+    m_Localized: Batch laying
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982011
+    m_Localized: "1 egg per cycle \u2192 up to 3 eggs per cycle; each pays its own
+      cost, partial batch if food or space runs out"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982012
+    m_Localized: Common worker
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982013
+    m_Localized: 'Generalist: keeps up all basic tasks'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982014
+    m_Localized: Larger load
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982015
+    m_Localized: "Load of 2 UM or 32 cells \u2192 3 UM or 48 (+50%) for common workers"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982016
+    m_Localized: Fast movement
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982017
+    m_Localized: "24 cells/s \u2192 30 cells/s (+25%) for common workers"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982018
+    m_Localized: Rescuing nestmates
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982019
+    m_Localized: "No pulling of adults \u2192 rescues an adult up to 8 cells from
+      the edge"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982020
+    m_Localized: Carrier
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982021
+    m_Localized: 'Unlocks the class: 28 cells/s, load 4 UM'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982022
+    m_Localized: Bigger loads
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982023
+    m_Localized: "4 UM \u2192 6 UM (+50%)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982024
+    m_Localized: Cooperative transport
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982025
+    m_Localized: "Solo \u2192 2 carriers carry a piece of up to 8 UM"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982026
+    m_Localized: Carrier speed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982027
+    m_Localized: "28 cells/s \u2192 35 cells/s (+25%)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982028
+    m_Localized: Cutter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982029
+    m_Localized: 'Unlocks the class: cuts 2 UM in 1 s (common takes 2 s)'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982030
+    m_Localized: Bigger cuts
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982031
+    m_Localized: "2 UM in 1 s \u2192 4 UM in 1.5 s"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982032
+    m_Localized: Digger
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982033
+    m_Localized: 'Unlocks the class: digs 32 cells/s (common does 16)'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982034
+    m_Localized: Wider removal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982035
+    m_Localized: "32 cells/s \u2192 48 cells/s (+50%) when digging"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982036
+    m_Localized: Rock breaking
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982037
+    m_Localized: "Stone blocks \u2192 breaks 4 rock cells/s"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982038
+    m_Localized: Gardener
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982039
+    m_Localized: 'Unlocks the class: tends the crops (serves 6 B, common 4 B)'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982040
+    m_Localized: Optimized fungus production
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982041
+    m_Localized: "Growth (nutrient curing) \xD71 \u2192 \xD71.3 in the served area"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982042
+    m_Localized: Fungus transplant
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982043
+    m_Localized: "Setup of 8 s per B \u2192 4 s per B"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982044
+    m_Localized: Nurse
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982045
+    m_Localized: 'Unlocks the class: tends 4 brood in 3 s'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982046
+    m_Localized: Batch feeding
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982047
+    m_Localized: "4 brood per trip \u2192 8 brood per trip"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982048
+    m_Localized: Brood rescue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982049
+    m_Localized: "No evacuation \u2192 carries 2 brood per trip, with emergency priority"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982050
+    m_Localized: Soldier
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982051
+    m_Localized: 'Unlocks the class: damage 3/s, health 18 (after the first termite
+      attack)'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982052
+    m_Localized: Strong mandibles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982053
+    m_Localized: "Damage 3/s \u2192 4.5/s (+50%)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982054
+    m_Localized: Tough carapace
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982055
+    m_Localized: "Health 18 \u2192 27 (+50%)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982056
+    m_Localized: Containment
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982057
+    m_Localized: "Combat without knockback \u2192 pushes the invader 4 cells every
+      3 s"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982058
+    m_Localized: Initial cultivation
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982059
+    m_Localized: "No production \u2192 0.25 UM/s per B; 3 N per UM of leaf"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982060
+    m_Localized: Organized beds
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982061
+    m_Localized: "0.25 UM/s per B \u2192 0.325 UM/s per B (+30%)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982062
+    m_Localized: Preparation area
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982063
+    m_Localized: "Direct leaves \u2192 prepares 2 UM in 2 s; reserve of 12 UM per
+      B"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982064
+    m_Localized: Productive cultivation
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982065
+    m_Localized: "3 N per UM of leaf \u2192 3.6 N (+20%); fruit 6 \u2192 7.2 N"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982066
+    m_Localized: Integrated cultivation
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982067
+    m_Localized: Redistributes the prepared reserve among crops; target of 6 UM per
+      B
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982068
+    m_Localized: Initial nursery
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982069
+    m_Localized: "No new brood \u2192 2 brood slots per B"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982070
+    m_Localized: Rearing beds
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982071
+    m_Localized: "Larva 14 s \u2192 10.5 s (\u221225%)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982072
+    m_Localized: Maturation area
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982073
+    m_Localized: "Pupa 12 s \u2192 9 s (\u221225%)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982074
+    m_Localized: Organized nursery
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982075
+    m_Localized: "2 slots per B \u2192 3 slots per B (+50%)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982076
+    m_Localized: Initial storage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982077
+    m_Localized: "6 UM per B in cultivation \u2192 20 UM per B in storage"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982078
+    m_Localized: Organized piles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982079
+    m_Localized: "20 UM per B \u2192 30 UM per B (+50%)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982080
+    m_Localized: Room for big loads
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982081
+    m_Localized: "Loose loads of up to 4 UM \u2192 stores whole pieces of up to 8
+      UM"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982082
+    m_Localized: Waste area
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982083
+    m_Localized: "Waste takes up its source \u2192 12 UR per B; decomposition of
+      120 s per UR"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982084
+    m_Localized: Accelerated decomposition
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982085
+    m_Localized: "120 s per UR \u2192 60 s per UR (\u221250%)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23881588736
+    m_Localized: DIG
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23898365952
+    m_Localized: BUILD
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23902560256
+    m_Localized: FINGER
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23906754560
+    m_Localized: QUEEN ROOM
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23910948864
+    m_Localized: NUTRIENT ROOM
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23919337472
+    m_Localized: DEW DROPS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553224814592
+    m_Localized: 'Map tools: dig soil, mark building work, and the finger, which
+      hurts termites.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786112
+    m_Localized: Anthill rooms. Paint where the queen, the farm, the brood, the waste
+      and the dew go.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786113
+    m_Localized: 'Queen: choose the type of ant she lays, how she reacts to termites,
+      and follow the breeding.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786114
+    m_Localized: 'Evolution: spend nutrients on new ant classes and upgrades.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786115
+    m_Localized: Pauses or resumes the simulation (P key).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786116
+    m_Localized: Speed {0}x (key {1}).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786117
+    m_Localized: 'Dig: mark the soil the diggers must remove. Left button marks,
+      right button unmarks.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786118
+    m_Localized: 'Build: mark empty cells for the ants to fill with soil, even above
+      the ground. Right button unmarks.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786119
+    m_Localized: 'Finger: click a termite to hurt it. Clicking the queen forces an
+      egg.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786120
+    m_Localized: Left paints, right erases.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786121
+    m_Localized: 'Queen room: where she stays and lays eggs.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786122
+    m_Localized: 'Nutrient room: the farm. Ants build beds (loose soil, plant and
+      water) and nutrients sprout from them.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786123
+    m_Localized: 'Nursery: where eggs, larvae and pupae develop. Brood slots come
+      from its free cells.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786124
+    m_Localized: 'Waste: where ants leave rubble and scraps to decompose.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786125
+    m_Localized: 'Waste: locked until you repel the first termite attack.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786126
+    m_Localized: 'Dew drops: ants place loose soil and leaves on the room''s ceiling,
+      and water drops fall from it to water the beds.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786127
+    m_Localized: 'Nutrients: the currency for new ants. The queen eats what the ants
+      store in the nutrient room.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786128
+    m_Localized: Balance {0} N; the queen keeps {1} N in reserve before laying an
+      egg.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786129
+    m_Localized: 'Ants: adults / adult slots (from the dug area of the anthill) and
+      brood.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786130
+    m_Localized: 'Now: {0} of {1} slots; {2} brood in {3} nursery slots.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786131
+    m_Localized: 'Queen: needs her own room, a nursery, a free slot and nutrients
+      to lay eggs.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786132
+    m_Localized: 'Common: does a bit of everything and cuts plants when it has no
+      other task.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786133
+    m_Localized: 'Carrier: the fastest; carries eggs and hauls more material per
+      trip.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786134
+    m_Localized: 'Cutter: cuts surface plants in half the time and takes them to
+      the nutrient room.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786135
+    m_Localized: 'Digger: specialist in digging the marked soil and dumping it outside.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786136
+    m_Localized: 'Gardener: brings soil and water to the beds and tends the farm.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786137
+    m_Localized: 'Nurse: looks after the brood in the nursery and carries eggs there.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786138
+    m_Localized: 'Soldier: fights the termites and clears the bodies.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786139
+    m_Localized: 'Locked: unlock node {0} in Evolution.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786140
+    m_Localized: Click to make the queen lay only this type.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786141
+    m_Localized: 'Automatic: the queen picks the next egg''s type to balance the
+      colony.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786142
+    m_Localized: 'Specific type: the queen lays only the type chosen below.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786143
+    m_Localized: 'Paused: the queen lays no new eggs (existing brood keeps growing).'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786144
+    m_Localized: 'Defensive: the queen only defends herself from termites that come
+      close.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786145
+    m_Localized: 'Offensive: the queen goes after the termites to attack them.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786146
+    m_Localized: 'Missing: paint the queen room (Environments menu).'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786147
+    m_Localized: 'Missing: dig out the painted room, which is still solid soil.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786148
+    m_Localized: 'Missing: connect the queen room to the rest of the anthill with
+      a tunnel.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786149
+    m_Localized: 'Room ready: the queen is in it ({0} cells).'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786150
+    m_Localized: 'Room ready ({0} cells): the queen is heading there.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786151
+    m_Localized: 'Missing: paint the nutrient room (Environments menu).'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786152
+    m_Localized: 'No beds yet: ants build one when they bring loose soil while digging.
+      Nutrients ready: {0}.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786153
+    m_Localized: 'Missing: room for a bed. Dig the room with solid floor and 2 cells
+      of height. Nutrients ready: {0}.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786154
+    m_Localized: 'Producing: {0} beds ({1} awaiting a plant, {2} awaiting water,
+      {3} sprouting). Nutrients ready: {4}.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786155
+    m_Localized: 'Harvest paused: no bed needs a plant.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786156
+    m_Localized: 'Missing: paint the nursery (Environments menu).'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786157
+    m_Localized: 'Missing: dig the nursery; there is no brood slot yet.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786158
+    m_Localized: 'Working: {0} brood in {1} slots.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786159
+    m_Localized: 'Missing: paint the waste area (Environments menu).'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786160
+    m_Localized: 'Missing: free space. Dig the area, with free floor to leave waste
+      on.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786161
+    m_Localized: 'Working: {0} free spots, {1} waste pieces decomposing, {2} already
+      deposited.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786162
+    m_Localized: 'Missing: paint the room (Environments menu).'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786163
+    m_Localized: 'Step 1 of 3: bringing loose soil ({0} spots). Ants take it from
+      the pile outside or from what they dig.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786164
+    m_Localized: 'Step 2 of 3: bringing leaves ({0} spots). Cutters and gardeners
+      cut them; there must be plants on the surface.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786165
+    m_Localized: 'Producing: step 3 of 3, the room drips water. Drops so far: {0}.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786166
+    m_Localized: 'Missing: room for the loose soil. Dig the room at least 4 cells
+      high.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786167
+    m_Localized: 'Queen paused: no new eggs.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786168
+    m_Localized: 'Missing: paint and dig the queen room.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786169
+    m_Localized: The queen is outside her room.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786170
+    m_Localized: 'Missing: paint and dig a nursery.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786171
+    m_Localized: 'Nursery full: expand it.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786172
+    m_Localized: 'No adult slot: dig more anthill.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786173
+    m_Localized: Waiting for nutrients (minimum reserve of {0} N).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786174
+    m_Localized: 'Producing: next egg in {0} s.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37542195109888
+    m_Localized: 'Back to the nest: ants finish what they carry and stop working.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37542220275712
+    m_Localized: 'Back to work: ants resume their tasks.'
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

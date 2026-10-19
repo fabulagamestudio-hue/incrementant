@@ -30,6 +30,10 @@ namespace Fabula.Incrementant.Tests
             for (int x = 10; x < 10 + nurseryWidth; x++)
             for (int y = 1; y <= 3; y++)
                 Assert.IsTrue(grid.SetNurseryRoom(x, y, true));
+            // A rainha só põe ovos na sala dela.
+            for (int x = 40; x < 44; x++)
+            for (int y = 1; y <= 3; y++)
+                Assert.IsTrue(grid.SetQueenRoom(x, y, true));
             return grid;
         }
 

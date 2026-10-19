@@ -130,5 +130,75 @@ namespace Fabula.Incrementant.Tests
             foreach (RainDrop drop in rain.Drops)
                 Assert.Greater(drop.Y, 10);
         }
+
+        static RainSettings StormSettings(float chance) => new RainSettings
+        {
+            StormChance = chance, StormMinIntervalMinutes = 1f, StormMaxIntervalMinutes = 10f, StormDurationMinutes = 1f,
+            HeavyDropsPer100Columns = 0f,
+        };
+
+        [Test]
+        public void Storm_StartsAfterOneToTenMinutes_LastsOneMinute_ThenClears()
+        {
+            var grid = new PixelGrid(5, 30);
+            RainSimulation rain = Rain(Weather.Clear, StormSettings(1f));
+            rain.Step(grid, Tick);
+            Assert.That(rain.SecondsToStormRoll, Is.InRange(59f, 600f), "O primeiro período sorteado fica entre 1 e 10 minutos.");
+
+            float elapsed = 0f;
+            while (rain.Weather == Weather.Clear && elapsed < 601f)
+            {
+                rain.Step(grid, 1f);
+                elapsed += 1f;
+            }
+            Assert.AreEqual(Weather.HeavyRain, rain.Weather);
+            Assert.That(elapsed, Is.InRange(59f, 601f));
+            Assert.IsTrue(rain.StormActive);
+
+            float duration = 0f;
+            while (rain.Weather == Weather.HeavyRain && duration < 120f)
+            {
+                rain.Step(grid, 1f);
+                duration += 1f;
+            }
+            Assert.AreEqual(Weather.Clear, rain.Weather);
+            Assert.That(duration, Is.InRange(59f, 62f), "A tempestade dura 1 minuto de jogo.");
+            Assert.IsFalse(rain.StormActive);
+        }
+
+        [Test]
+        public void Storm_ChanceZeroNeverRains_AndSpeedDoesNotShortenIt()
+        {
+            var grid = new PixelGrid(5, 30);
+            RainSimulation never = Rain(Weather.Clear, StormSettings(0f));
+            for (int i = 0; i < 3000; i++)
+                never.Step(grid, 1f);
+            Assert.AreEqual(Weather.Clear, never.Weather);
+
+            // A 8x cada passo vale 8 segundos simulados, mas só 1 de jogo: o período não encurta.
+            RainSimulation fast = Rain(Weather.Clear, StormSettings(1f));
+            fast.StartStorm();
+            for (int i = 0; i < 30; i++)
+                fast.Step(grid, 1f, 8f);
+            Assert.AreEqual(Weather.HeavyRain, fast.Weather, "30 s simulados a 8x são menos de 4 s de jogo.");
+        }
+
+        [Test]
+        public void Storm_ManualWeatherCancelsIt_AndRestoreKeepsIt()
+        {
+            var grid = new PixelGrid(5, 30);
+            RainSimulation rain = Rain(Weather.Clear, StormSettings(1f));
+            rain.StartStorm();
+            rain.Weather = Weather.Clear;
+            Assert.IsFalse(rain.StormActive);
+
+            var restored = Rain(Weather.Clear, StormSettings(1f));
+            restored.Weather = Weather.HeavyRain;
+            restored.RestoreStorm(300f, 20f);
+            Assert.IsTrue(restored.StormActive);
+            for (int i = 0; i < 21; i++)
+                restored.Step(grid, 1f);
+            Assert.AreEqual(Weather.Clear, restored.Weather);
+        }
     }
 }

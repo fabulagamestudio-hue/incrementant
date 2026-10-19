@@ -1,0 +1,1370 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: Game_pt-BR
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.StringTable
+  m_LocaleId:
+    m_Code: pt-BR
+  m_SharedData: {fileID: 11400000, guid: 9cda6bc6736b2524d9fe09c437b60576, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 896802816
+    m_Localized: IncrementAnt
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1345593344
+    m_Localized: "Uma col\xF4nia em constante transforma\xE7\xE3o"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787648
+    m_Localized: "Uma col\xF4nia em constante transforma\xE7\xE3o."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787649
+    m_Localized: "INICIAR NOVA COL\xD4NIA"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787650
+    m_Localized: CONTINUAR
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787651
+    m_Localized: "CONFIGURA\xC7\xD5ES"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787652
+    m_Localized: SOBRE O JOGO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787653
+    m_Localized: SAIR
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787654
+    m_Localized: INCREMENTANT
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787655
+    m_Localized: "Cave, cultive e cuide da col\xF4nia.\nCada formiga tem o seu papel.\n\nUM
+      JOGO DA F\xC1BULA GAME STUDIO\n\nOs nomes da equipe e os cr\xE9ditos\ndos assets
+      ser\xE3o inclu\xEDdos aqui."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787656
+    m_Localized: "Nenhuma col\xF4nia salva para continuar."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787657
+    m_Localized: '[ESC] VOLTAR'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787658
+    m_Localized: NUTRIENTES
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787659
+    m_Localized: FORMIGAS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787660
+    m_Localized: RAINHA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787661
+    m_Localized: "COL\xD4NIA"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787662
+    m_Localized: FERRAMENTA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787663
+    m_Localized: "EVOLU\xC7\xC3O"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787664
+    m_Localized: AMBIENTES
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787665
+    m_Localized: AVISOS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787666
+    m_Localized: Cavar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787667
+    m_Localized: Construir
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787668
+    m_Localized: Sala da rainha
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787669
+    m_Localized: Sala de nutrientes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787670
+    m_Localized: "Ber\xE7\xE1rio"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787671
+    m_Localized: "Res\xEDduos"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787672
+    m_Localized: Dedo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787673
+    m_Localized: Gotas de orvalho
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787674
+    m_Localized: "AUTOM\xC1TICO"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787675
+    m_Localized: "TIPO ESPEC\xCDFICO"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787676
+    m_Localized: PAUSADO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787677
+    m_Localized: 'OFENSIVA: ATACA OS CUPINS'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787678
+    m_Localized: "DEFENSIVA: S\xD3 SE DEFENDE"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787679
+    m_Localized: Comum
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787680
+    m_Localized: Carregadora
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787681
+    m_Localized: Cortadeira
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787682
+    m_Localized: Escavadora
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787683
+    m_Localized: Jardineira
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787684
+    m_Localized: Cuidadora
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787685
+    m_Localized: Soldado
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787686
+    m_Localized: '{0} N'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787687
+    m_Localized: 'CONSUMIDOS: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787688
+    m_Localized: ADULTAS {0} / {1}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787689
+    m_Localized: "OVOS {0} \xB7 LARVAS {1} \xB7 PUPAS {2}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787690
+    m_Localized: 'SALA: {0} PX'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787691
+    m_Localized: "SALA: \u2014"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787692
+    m_Localized: "PR\xD3XIMO OVO: {0} \xB7 {1} N"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787693
+    m_Localized: "PR\xD3XIMO OVO: \u2014"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787694
+    m_Localized: "ADULTAS {0} / {1} \xB7 BER\xC7\xC1RIO {2} / {3}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787695
+    m_Localized: "{0} \xB7 BLOQ. ({1})"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787696
+    m_Localized: "{0} {1} \xB7 {2} N"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787697
+    m_Localized: "WASD / BOT\xC3O DO MEIO: MOVER C\xC2MERA \xB7 ESC: MENU"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787698
+    m_Localized: 'FPS {0}
+
+      TEMPO {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787699
+    m_Localized: SEM SALA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787700
+    m_Localized: NA SALA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787701
+    m_Localized: "INDO \xC0 SALA"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787702
+    m_Localized: SEM CAMINHO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787703
+    m_Localized: 'PAUSADA: SEM OVOS NOVOS'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787704
+    m_Localized: 'SEM SALA DA RAINHA: PINTE E ESCAVE'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787705
+    m_Localized: RAINHA FORA DA SALA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787706
+    m_Localized: "SEM BER\xC7\xC1RIO: PINTE E ESCAVE"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787707
+    m_Localized: "BER\xC7\xC1RIO CHEIO"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787708
+    m_Localized: 'SEM VAGA ADULTA: AMPLIE'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787709
+    m_Localized: AGUARDANDO RECURSOS (RES. {0} N)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787710
+    m_Localized: "PR\xD3XIMO OVO EM {0} S"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787711
+    m_Localized: ATAQUE DE CUPINS IMINENTE! CHEGAM EM {0} S
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787712
+    m_Localized: "CUPINS ATACANDO: {0} \xB7 {1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787713
+    m_Localized: "ATAQUE REPELIDO! SOLDADO E \xC1REA DE RES\xCDDUOS LIBERADOS"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787714
+    m_Localized: ATAQUE DE CUPINS TERMINOU
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787715
+    m_Localized: "ATR\xC1S DAS CRIAS"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787716
+    m_Localized: DESTRUINDO CANTEIROS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787717
+    m_Localized: DESTRUINDO OS SETORES
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787718
+    m_Localized: DERRUBANDO PAREDES
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787719
+    m_Localized: "ATR\xC1S DA RAINHA"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787720
+    m_Localized: INDO EMBORA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787721
+    m_Localized: MENU
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787722
+    m_Localized: CONTINUAR
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787723
+    m_Localized: "CONFIGURA\xC7\xD5ES"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787724
+    m_Localized: SALVAR PARTIDA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787725
+    m_Localized: CARREGAR PARTIDA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787726
+    m_Localized: MENU PRINCIPAL
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787727
+    m_Localized: SAIR DO JOGO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787728
+    m_Localized: "SAIR S\xD3 FECHA O JOGO COMPILADO"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787729
+    m_Localized: VOLUME GERAL
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787730
+    m_Localized: "M\xDASICA"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787731
+    m_Localized: EFEITOS SONOROS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787732
+    m_Localized: EFEITOS VISUAIS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787733
+    m_Localized: TELA CHEIA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787734
+    m_Localized: "RESOLU\xC7\xC3O"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787735
+    m_Localized: VSYNC
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787736
+    m_Localized: LIMITE DE FPS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787737
+    m_Localized: MOSTRAR FPS E TEMPO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787738
+    m_Localized: IDIOMA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787739
+    m_Localized: "CONFIGURA\xC7\xD5ES"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787740
+    m_Localized: "PADR\xC3O"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787741
+    m_Localized: NATIVA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787742
+    m_Localized: SEM LIMITE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787743
+    m_Localized: COMPLETO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787744
+    m_Localized: REDUZIDO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787745
+    m_Localized: DESLIGADO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787746
+    m_Localized: "EVOLU\xC7\xC3O DA COL\xD4NIA"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787747
+    m_Localized: FORMIGUEIRO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787748
+    m_Localized: RAINHA E CLASSES
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787749
+    m_Localized: DESBLOQUEAR
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787750
+    m_Localized: "DESBLOQUEAR \xB7 {0} N"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787751
+    m_Localized: ADQUIRIDO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787752
+    m_Localized: "DISPON\xCDVEL"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787753
+    m_Localized: SELECIONADO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787754
+    m_Localized: BLOQUEADO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787755
+    m_Localized: EM BREVE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787756
+    m_Localized: 'REQUISITO: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787757
+    m_Localized: "REQUISITO: {0}  \xB7  CUSTO: {1} N"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787758
+    m_Localized: NENHUM
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1349787759
+    m_Localized: E
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981952
+    m_Localized: PRIMEIRO ATAQUE DE CUPINS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981953
+    m_Localized: CULTIVO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981954
+    m_Localized: "BER\xC7\xC1RIO"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981955
+    m_Localized: "DEP\xD3SITO"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981956
+    m_Localized: "RES\xCDDUOS"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981957
+    m_Localized: "J\xC1 COMPRADO"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981958
+    m_Localized: "FALTA UM PR\xC9-REQUISITO"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981959
+    m_Localized: "EM BREVE: O JOGO AINDA N\xC3O TEM ESSE SISTEMA"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981960
+    m_Localized: NUTRIENTES INSUFICIENTES
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981961
+    m_Localized: LIBERA DEPOIS DO PRIMEIRO ATAQUE DE CUPINS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981962
+    m_Localized: COMPRADO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981963
+    m_Localized: RAINHA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981964
+    m_Localized: COMUM
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981965
+    m_Localized: CARREGADORA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981966
+    m_Localized: CORTADEIRA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981967
+    m_Localized: ESCAVADORA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981968
+    m_Localized: JARDINEIRA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981969
+    m_Localized: CUIDADORA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981970
+    m_Localized: SOLDADO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981971
+    m_Localized: Partida carregada ({0}).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981972
+    m_Localized: Partida salva ({0}).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981973
+    m_Localized: 'Falha ao salvar: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981974
+    m_Localized: 'Falha ao carregar: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981975
+    m_Localized: Nenhum save encontrado.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981976
+    m_Localized: "O save \xE9 de outro modo de mapa (Procedural/Image)."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981977
+    m_Localized: "O save \xE9 de um mundo {0}x{1}; o atual \xE9 {2}x{3}."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981978
+    m_Localized: GAME OVER
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981979
+    m_Localized: 'Os cupins mataram a rainha.
+
+      Tempo de partida: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981980
+    m_Localized: "Carregar o \xFAltimo save  [F9]"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981981
+    m_Localized: 'Novo mapa  [R]'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981982
+    m_Localized: "Uma nova col\xF4nia"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981983
+    m_Localized: "Agora \xE9 com voc\xEA!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981984
+    m_Localized: "Come\xE7ar"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981985
+    m_Localized: Entendi
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981986
+    m_Localized: Continuar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981987
+    m_Localized: Vamos crescer!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981988
+    m_Localized: Ver objetivo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981989
+    m_Localized: Pular tutorial
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981990
+    m_Localized: "Uma nova col\xF4nia come\xE7a aqui. Sua rainha conta com cinco
+      oper\xE1rias para transformar este pequeno abrigo em um formigueiro. Vamos
+      abrir espa\xE7o e preparar sua col\xF4nia para crescer!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981991
+    m_Localized: "Selecione o pincel de escava\xE7\xE3o para abrir novos espa\xE7os
+      no formigueiro."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981992
+    m_Localized: "Clique e arraste sobre a terra indicada para marcar onde suas oper\xE1rias
+      devem cavar."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981993
+    m_Localized: "Voc\xEA marca o caminho; suas oper\xE1rias fazem o trabalho. Aguarde
+      at\xE9 terminarem de cavar."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981994
+    m_Localized: "Agora vamos dar uma fun\xE7\xE3o a esse espa\xE7o. Selecione o
+      pincel de nutrientes e pinte o interior da \xE1rea que voc\xEA acabou de escavar."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981995
+    m_Localized: "Aqui, suas oper\xE1rias cultivar\xE3o fungos para produzir nutrientes.
+      Eles sustentam o crescimento da col\xF4nia e permitem investir em novas \xE1reas
+      e melhorias."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981996
+    m_Localized: "A col\xF4nia precisa de novas gera\xE7\xF5es para crescer. Use
+      o pincel de escava\xE7\xE3o para abrir mais uma c\xE2mara conectada ao formigueiro."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981997
+    m_Localized: "Selecione o pincel de ber\xE7\xE1rio e pinte o novo espa\xE7o.
+      Ali, suas oper\xE1rias cuidar\xE3o das crias."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981998
+    m_Localized: "Com um ber\xE7\xE1rio funcionando e nutrientes dispon\xEDveis,
+      sua rainha se reproduz automaticamente."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353981999
+    m_Localized: "Os ovos passam pelas fases de larva e pupa at\xE9 se tornarem novas
+      formigas. Suas oper\xE1rias cuidam desse desenvolvimento."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982000
+    m_Localized: "Sua col\xF4nia pode ir al\xE9m! Abra a \xE1rvore de evolu\xE7\xE3o
+      para conhecer suas possibilidades."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982001
+    m_Localized: "Use nutrientes para desbloquear habilidades e melhorias. A \xE1rvore
+      do formigueiro desenvolve a col\xF4nia; a \xE1rvore da rainha aprimora suas
+      capacidades."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982002
+    m_Localized: Confira o efeito, o custo e os requisitos de cada habilidade antes
+      de escolher onde investir.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982003
+    m_Localized: "Mas cuidado: inimigos podem chegar e amea\xE7ar seu formigueiro.
+      Suas formigas precisar\xE3o batalhar para defender a col\xF4nia."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982004
+    m_Localized: "Fortale\xE7a sua col\xF4nia e prepare suas defesas. Proteja a rainha:
+      a sobreviv\xEAncia do formigueiro depende dela!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982005
+    m_Localized: "Seu pequeno formigueiro tem um grande futuro pela frente. Expanda
+      os t\xFAneis, cuide das novas gera\xE7\xF5es e fortale\xE7a sua col\xF4nia.
+      Agora \xE9 com voc\xEA!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982006
+    m_Localized: Postura inicial
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982007
+    m_Localized: "Sem ciclos antes do ber\xE7\xE1rio \u2192 1 ovo a cada 18 s"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982008
+    m_Localized: Postura acelerada
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982009
+    m_Localized: "18 s por ciclo \u2192 12 s por ciclo (\u221233%)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982010
+    m_Localized: Postura em lotes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982011
+    m_Localized: "1 ovo por ciclo \u2192 at\xE9 3 ovos por ciclo; cada um paga seu
+      custo, lote parcial se faltar alimento ou vaga"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982012
+    m_Localized: "Oper\xE1ria comum"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982013
+    m_Localized: "Generalista: mant\xE9m todas as tarefas b\xE1sicas"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982014
+    m_Localized: Carga ampliada
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982015
+    m_Localized: "Carga de 2 UM ou 32 c\xE9lulas \u2192 3 UM ou 48 (+50%) nas comuns"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982016
+    m_Localized: "Deslocamento r\xE1pido"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982017
+    m_Localized: "24 c\xE9lulas/s \u2192 30 c\xE9lulas/s (+25%) nas comuns"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982018
+    m_Localized: Retirada de companheiras
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982019
+    m_Localized: "Sem puxar adultas \u2192 resgata adulta a at\xE9 8 c\xE9lulas da
+      borda"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982020
+    m_Localized: Carregadora
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982021
+    m_Localized: "Libera a classe: 28 c\xE9lulas/s, carga 4 UM"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982022
+    m_Localized: Cargas maiores
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982023
+    m_Localized: "4 UM \u2192 6 UM (+50%)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982024
+    m_Localized: Transporte cooperativo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982025
+    m_Localized: "Individual \u2192 2 carregadoras levam pe\xE7a de at\xE9 8 UM"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982026
+    m_Localized: Velocidade das carregadoras
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982027
+    m_Localized: "28 c\xE9lulas/s \u2192 35 c\xE9lulas/s (+25%)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982028
+    m_Localized: Cortadeira
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982029
+    m_Localized: 'Libera a classe: corta 2 UM em 1 s (a comum leva 2 s)'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982030
+    m_Localized: Cortes maiores
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982031
+    m_Localized: "2 UM em 1 s \u2192 4 UM em 1,5 s"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982032
+    m_Localized: Escavadora
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982033
+    m_Localized: "Libera a classe: escava 32 c\xE9lulas/s (a comum faz 16)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982034
+    m_Localized: "Remo\xE7\xE3o ampliada"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982035
+    m_Localized: "32 c\xE9lulas/s \u2192 48 c\xE9lulas/s (+50%) ao escavar"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982036
+    m_Localized: Quebra de rocha
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982037
+    m_Localized: "Pedra bloqueia \u2192 quebra 4 c\xE9lulas de rocha/s"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982038
+    m_Localized: Jardineira
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982039
+    m_Localized: 'Libera a classe: cuida do cultivo (atende 6 B, a comum 4 B)'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982040
+    m_Localized: "Produ\xE7\xE3o otimizada de fungo"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982041
+    m_Localized: "Crescimento (cura dos nutrientes) \xD71 \u2192 \xD71,3 na \xE1rea
+      atendida"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982042
+    m_Localized: Transplante de fungo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982043
+    m_Localized: "Instala\xE7\xE3o de 8 s por B \u2192 4 s por B"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982044
+    m_Localized: Cuidadora
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982045
+    m_Localized: 'Libera a classe: atende 4 crias em 3 s'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982046
+    m_Localized: "Alimenta\xE7\xE3o em lote"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982047
+    m_Localized: "4 crias por viagem \u2192 8 crias por viagem"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982048
+    m_Localized: Resgate de crias
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982049
+    m_Localized: "Sem evacua\xE7\xE3o \u2192 transporta 2 crias por viagem, com prioridade
+      de emerg\xEAncia"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982050
+    m_Localized: Soldado
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982051
+    m_Localized: 'Libera a classe: dano 3/s, vida 18 (depois do primeiro ataque de
+      cupins)'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982052
+    m_Localized: "Mand\xEDbulas fortes"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982053
+    m_Localized: "Dano 3/s \u2192 4,5/s (+50%)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982054
+    m_Localized: "Carapa\xE7a resistente"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982055
+    m_Localized: "Vida 18 \u2192 27 (+50%)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982056
+    m_Localized: "Conten\xE7\xE3o"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982057
+    m_Localized: "Combate sem empurr\xE3o \u2192 empurra a invasora 4 c\xE9lulas
+      a cada 3 s"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982058
+    m_Localized: Cultivo inicial
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982059
+    m_Localized: "Sem produ\xE7\xE3o \u2192 0,25 UM/s por B; 3 N por UM de folha"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982060
+    m_Localized: Canteiros organizados
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982061
+    m_Localized: "0,25 UM/s por B \u2192 0,325 UM/s por B (+30%)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982062
+    m_Localized: "\xC1rea de preparo"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982063
+    m_Localized: "Folhas diretas \u2192 prepara 2 UM em 2 s; reserva de 12 UM por
+      B"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982064
+    m_Localized: Cultivo produtivo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982065
+    m_Localized: "3 N por UM de folha \u2192 3,6 N (+20%); fruto 6 \u2192 7,2 N"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982066
+    m_Localized: Cultivo integrado
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982067
+    m_Localized: Redistribui a reserva preparada entre cultivos; alvo de 6 UM por
+      B
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982068
+    m_Localized: "Ber\xE7\xE1rio inicial"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982069
+    m_Localized: "Sem novas crias \u2192 2 vagas de cria por B"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982070
+    m_Localized: "Leitos de cria\xE7\xE3o"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982071
+    m_Localized: "Larva de 14 s \u2192 10,5 s (\u221225%)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982072
+    m_Localized: "\xC1rea de matura\xE7\xE3o"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982073
+    m_Localized: "Pupa de 12 s \u2192 9 s (\u221225%)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982074
+    m_Localized: "Ber\xE7\xE1rio organizado"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982075
+    m_Localized: "2 vagas por B \u2192 3 vagas por B (+50%)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982076
+    m_Localized: "Dep\xF3sito inicial"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982077
+    m_Localized: "6 UM por B no cultivo \u2192 20 UM por B no dep\xF3sito"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982078
+    m_Localized: Pilhas organizadas
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982079
+    m_Localized: "20 UM por B \u2192 30 UM por B (+50%)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982080
+    m_Localized: "Espa\xE7o para cargas grandes"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982081
+    m_Localized: "Cargas soltas de at\xE9 4 UM \u2192 guarda pe\xE7as inteiras de
+      at\xE9 8 UM"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982082
+    m_Localized: "\xC1rea de res\xEDduos"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982083
+    m_Localized: "Res\xEDduos ocupam a origem \u2192 12 UR por B; decomposi\xE7\xE3o
+      de 120 s por UR"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982084
+    m_Localized: "Decomposi\xE7\xE3o acelerada"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1353982085
+    m_Localized: "120 s por UR \u2192 60 s por UR (\u221250%)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23881588736
+    m_Localized: CAVAR
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23898365952
+    m_Localized: CONSTRUIR
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23902560256
+    m_Localized: DEDO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23906754560
+    m_Localized: SALA DA RAINHA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23910948864
+    m_Localized: SALA DE NUTRIENTES
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23919337472
+    m_Localized: GOTAS DE ORVALHO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553224814592
+    m_Localized: 'Ferramentas do mapa: cavar terra, marcar obras e o dedo, que fere
+      cupins.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786112
+    m_Localized: Salas do formigueiro. Pinte onde ficam a rainha, o cultivo, as crias,
+      o lixo e o orvalho.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786113
+    m_Localized: "Rainha: escolha o tipo de formiga que ela p\xF5e, como reage aos
+      cupins e acompanhe a cria\xE7\xE3o."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786114
+    m_Localized: "Evolu\xE7\xE3o: gaste nutrientes em novas classes de formiga e
+      melhorias."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786115
+    m_Localized: "Pausa ou retoma a simula\xE7\xE3o (tecla P)."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786116
+    m_Localized: Velocidade {0}x (tecla {1}).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786117
+    m_Localized: "Cavar: marque a terra que as escavadoras devem tirar. Bot\xE3o
+      esquerdo marca, direito desmarca."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786118
+    m_Localized: "Construir: marque c\xE9lulas vazias para as formigas levantarem
+      terra, at\xE9 acima do solo. Bot\xE3o direito desmarca."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786119
+    m_Localized: "Dedo: clique num cupim para feri-lo. Clicar na rainha for\xE7a
+      um ovo."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786120
+    m_Localized: Esquerdo pinta, direito apaga.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786121
+    m_Localized: "Sala da rainha: onde ela fica e p\xF5e os ovos."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786122
+    m_Localized: "Sala de nutrientes: o cultivo. As formigas montam canteiros (terra
+      fofa, planta e \xE1gua) e deles brotam os nutrientes."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786123
+    m_Localized: "Ber\xE7\xE1rio: onde ovos, larvas e pupas se desenvolvem. As vagas
+      de cria v\xEAm das c\xE9lulas livres dele."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786124
+    m_Localized: "Res\xEDduos: onde as formigas deixam entulho e restos para se decomporem."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786125
+    m_Localized: "Res\xEDduos: bloqueado at\xE9 voc\xEA repelir o primeiro ataque
+      de cupins."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786126
+    m_Localized: "Gotas de orvalho: as formigas p\xF5em terra fofa e folhas no teto
+      da sala, e dela pingam gotas de \xE1gua para regar os canteiros."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786127
+    m_Localized: 'Nutrientes: a moeda das formigas novas. A rainha consome o que
+      as formigas guardam na sala de nutrientes.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786128
+    m_Localized: "Saldo {0} N; a rainha preserva {1} N antes de p\xF4r um ovo."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786129
+    m_Localized: "Formigas: adultas / vagas de adulta (v\xEAm da \xE1rea escavada
+      do formigueiro) e crias."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786130
+    m_Localized: "Agora: {0} de {1} vagas; {2} crias em {3} vagas de ber\xE7\xE1rio."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786131
+    m_Localized: "Rainha: precisa da pr\xF3pria sala, de ber\xE7\xE1rio, de vaga
+      e de nutrientes para p\xF4r ovos."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786132
+    m_Localized: "Comum: faz de tudo um pouco e corta plantas quando est\xE1 sem
+      outra tarefa."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786133
+    m_Localized: "Carregadora: a mais r\xE1pida; leva ovos e carrega mais material
+      por viagem."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786134
+    m_Localized: "Cortadeira: corta as plantas da superf\xEDcie na metade do tempo
+      e as leva \xE0 sala de nutrientes."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786135
+    m_Localized: "Escavadora: especialista em cavar a terra marcada e despej\xE1-la
+      fora."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786136
+    m_Localized: "Jardineira: leva terra e \xE1gua aos canteiros e cuida do cultivo."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786137
+    m_Localized: "Cuidadora: cuida das crias no ber\xE7\xE1rio e leva os ovos para
+      l\xE1."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786138
+    m_Localized: 'Soldado: combate os cupins e recolhe os corpos.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786139
+    m_Localized: "Bloqueada: libere o n\xF3 {0} em Evolu\xE7\xE3o."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786140
+    m_Localized: "Clique para a rainha p\xF4r s\xF3 este tipo."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786141
+    m_Localized: "Autom\xE1tico: a rainha escolhe o tipo do pr\xF3ximo ovo para equilibrar
+      a col\xF4nia."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786142
+    m_Localized: "Tipo espec\xEDfico: a rainha s\xF3 p\xF5e o tipo escolhido abaixo."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786143
+    m_Localized: "Pausado: a rainha n\xE3o p\xF5e ovos novos (as crias existentes
+      seguem crescendo)."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786144
+    m_Localized: "Defensiva: a rainha s\xF3 se defende dos cupins que chegam perto."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786145
+    m_Localized: "Ofensiva: a rainha vai atr\xE1s dos cupins para atac\xE1-los."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786146
+    m_Localized: 'Falta: pintar a sala da rainha (menu Ambientes).'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786147
+    m_Localized: "Falta: cavar a sala pintada, que ainda \xE9 terra maci\xE7a."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786148
+    m_Localized: "Falta: ligar a sala da rainha ao resto do formigueiro por um t\xFAnel."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786149
+    m_Localized: "Sala pronta: a rainha est\xE1 nela ({0} c\xE9lulas)."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786150
+    m_Localized: "Sala pronta ({0} c\xE9lulas): a rainha est\xE1 indo para l\xE1."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786151
+    m_Localized: 'Falta: pintar a sala de nutrientes (menu Ambientes).'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786152
+    m_Localized: 'Sem canteiros ainda: as formigas montam um quando trazem terra
+      fofa ao cavar. Nutrientes prontos: {0}.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786153
+    m_Localized: "Falta: espa\xE7o para canteiro. Cave a sala com ch\xE3o firme e
+      2 c\xE9lulas de altura. Nutrientes prontos: {0}."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786154
+    m_Localized: "Produzindo: {0} canteiros ({1} esperam planta, {2} esperam \xE1gua,
+      {3} brotando). Nutrientes prontos: {4}."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786155
+    m_Localized: 'Colheita pausada: nenhum canteiro pede planta.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786156
+    m_Localized: "Falta: pintar o ber\xE7\xE1rio (menu Ambientes)."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786157
+    m_Localized: "Falta: cavar o ber\xE7\xE1rio; ainda n\xE3o h\xE1 vaga de cria."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786158
+    m_Localized: 'Funcionando: {0} crias em {1} vagas.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786159
+    m_Localized: "Falta: pintar a \xE1rea de res\xEDduos (menu Ambientes)."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786160
+    m_Localized: "Falta: espa\xE7o livre. Cave a \xE1rea, com ch\xE3o livre para
+      deixar res\xEDduos."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786161
+    m_Localized: "Funcionando: {0} lugares livres, {1} res\xEDduos se decompondo,
+      {2} j\xE1 depositados."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786162
+    m_Localized: 'Falta: pintar a sala (menu Ambientes).'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786163
+    m_Localized: 'Etapa 1 de 3: levar terra fofa ({0} pontos). As formigas a tiram
+      da pilha de fora ou do que cavam.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786164
+    m_Localized: "Etapa 2 de 3: levar folhas ({0} pontos). Cortadeiras e jardineiras
+      as cortam; \xE9 preciso haver plantas na superf\xEDcie."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786165
+    m_Localized: "Produzindo: etapa 3 de 3, a sala pinga \xE1gua. Gotas at\xE9 agora:
+      {0}."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786166
+    m_Localized: "Falta: espa\xE7o para a terra fofa. Cave a sala com pelo menos
+      4 c\xE9lulas de altura."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786167
+    m_Localized: 'Rainha pausada: nenhum ovo novo.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786168
+    m_Localized: 'Falta: pintar e cavar a sala da rainha.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786169
+    m_Localized: "A rainha est\xE1 fora da sala dela."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786170
+    m_Localized: "Falta: pintar e cavar um ber\xE7\xE1rio."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786171
+    m_Localized: "Ber\xE7\xE1rio cheio: amplie-o."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786172
+    m_Localized: 'Sem vaga de adulta: cave mais formigueiro.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786173
+    m_Localized: "Aguardando nutrientes (reserva m\xEDnima de {0} N)."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22553245786174
+    m_Localized: "Produzindo: pr\xF3ximo ovo em {0} s."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37542195109888
+    m_Localized: 'Volte para o formigueiro: as formigas terminam o que carregam e
+      param de trabalhar.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37542220275712
+    m_Localized: 'Volte ao trabalho: as formigas retomam as tarefas.'
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

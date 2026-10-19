@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 namespace Fabula.Incrementant.AntFarm
 {
     /// <summary>
-    /// Câmera ortográfica do formigário: arrastar com o botão do meio ou WASD/setas move, Ctrl+scroll ou Q/E dá zoom.
+    /// Câmera ortográfica do formigário: arrastar com o botão do meio ou WASD/setas move, scroll ou Q/E dá zoom.
     /// A vista nunca sai dos limites do mundo (mais uma folga) e o zoom não abre mais que o enquadramento inicial,
     /// o que segura o custo de render e o tamanho do que precisa estar gerado.
     /// </summary>
@@ -16,7 +16,7 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField, Min(0.1f)] float _panSpeed = 0.9f;
         [Tooltip("Meia altura mínima da vista, em células (zoom máximo).")]
         [SerializeField, Min(4f)] float _minHalfHeight = 24f;
-        [Tooltip("Fator por passo de zoom (Ctrl+scroll).")]
+        [Tooltip("Fator por passo de zoom (scroll).")]
         [SerializeField, Range(1.02f, 2f)] float _zoomStep = 1.15f;
         [Tooltip("Velocidade do zoom por teclado (Q/E), em fator por segundo.")]
         [SerializeField, Min(1.1f)] float _keyZoomSpeed = 2.5f;
@@ -28,6 +28,62 @@ namespace Fabula.Incrementant.AntFarm
         [NonSerialized] float _margin;
         [NonSerialized] bool _dragging;
         [NonSerialized] Vector3 _dragAnchor;
+        [NonSerialized] bool _moving;
+        [NonSerialized] Vector3 _fromPosition;
+        [NonSerialized] Vector3 _toPosition;
+        [NonSerialized] float _fromSize;
+        [NonSerialized] float _toSize;
+        [NonSerialized] float _moveElapsed;
+        [NonSerialized] float _moveDuration;
+
+        /// <summary>Há um deslocamento automático em andamento (tutorial): o input do jogador não move a câmera.</summary>
+        public bool IsMoving => _moving;
+
+        /// <summary>Pula direto para o enquadramento mais aberto (área inicial inteira), sem transição.</summary>
+        public void SnapToOverview(Camera camera)
+        {
+            _moving = false;
+            camera.orthographicSize = MaxHalfHeight(camera.aspect);
+            camera.transform.position = new Vector3(_startView.center.x, _startView.center.y, camera.transform.position.z);
+            Clamp(camera);
+        }
+
+        /// <summary>Menor e maior meia altura de vista permitidas, em células.</summary>
+        public void HalfHeightRange(float aspect, out float min, out float max)
+        {
+            min = MinHalfHeight(aspect);
+            max = MaxHalfHeight(aspect);
+        }
+
+        /// <summary>Desloca suavemente a câmera até <paramref name="center"/> com a meia altura dada (limitada ao zoom e ao mundo).</summary>
+        public void MoveTo(Camera camera, Vector2 center, float halfHeight, float seconds)
+        {
+            HalfHeightRange(Mathf.Max(0.01f, camera.aspect), out float min, out float max);
+            _fromPosition = camera.transform.position;
+            _fromSize = camera.orthographicSize;
+            _toSize = Mathf.Clamp(halfHeight, min, max);
+            _toPosition = new Vector3(center.x, center.y, _fromPosition.z);
+            _moveElapsed = 0f;
+            _moveDuration = Mathf.Max(0.01f, seconds);
+            _dragging = false;
+            _moving = true;
+        }
+
+        /// <summary>Avança o deslocamento automático, se houver. Devolve true enquanto ele ainda dura (neste quadro).</summary>
+        public bool StepTransition(Camera camera, float deltaTime)
+        {
+            if (!_moving)
+                return false;
+            _moveElapsed += deltaTime;
+            float t = Mathf.Clamp01(_moveElapsed / _moveDuration);
+            float eased = t * t * (3f - 2f * t);
+            camera.orthographicSize = Mathf.Exp(Mathf.Lerp(Mathf.Log(_fromSize), Mathf.Log(_toSize), eased));
+            camera.transform.position = Vector3.Lerp(_fromPosition, _toPosition, eased);
+            Clamp(camera);
+            if (t >= 1f)
+                _moving = false;
+            return true;
+        }
 
         /// <summary>
         /// Enquadra <paramref name="startView"/> (com <paramref name="margin"/>) e passa a limitar a câmera a
@@ -40,6 +96,7 @@ namespace Fabula.Incrementant.AntFarm
             _startView = startView;
             _margin = margin;
             _dragging = false;
+            _moving = false;
             camera.orthographic = true;
             camera.orthographicSize = MaxHalfHeight(camera.aspect);
             Vector2 center = startView.center;
@@ -80,7 +137,7 @@ namespace Fabula.Incrementant.AntFarm
                 Vector2 screen = mouse.position.ReadValue();
                 bool ctrl = keyboard != null && keyboard.ctrlKey.isPressed;
                 float scroll = mouse.scroll.ReadValue().y;
-                if (ctrl && scroll != 0f && !pointerBlocked)
+                if (!ctrl && scroll != 0f && !pointerBlocked)
                     ZoomAt(camera, screen, scroll > 0f ? 1f / _zoomStep : _zoomStep);
 
                 if (mouse.middleButton.wasPressedThisFrame && !pointerBlocked)

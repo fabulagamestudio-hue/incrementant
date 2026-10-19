@@ -1,3 +1,5 @@
+using Fabula.Incrementant.Texts;
+using Fabula.Incrementant.Audio;
 using System.Collections.Generic;
 using Fabula.Incrementant.Settings;
 using UnityEngine;
@@ -36,6 +38,9 @@ namespace Fabula.Incrementant.UI
         [SerializeField] Text _fpsValue;
 
         [Header("Interface")]
+        [SerializeField] Button _languagePrevious;
+        [SerializeField] Button _languageNext;
+        [SerializeField] Text _languageValue;
         [SerializeField] Button _showStats;
         [SerializeField] Image _showStatsImage;
 
@@ -61,7 +66,8 @@ namespace Fabula.Incrementant.UI
                      _fullscreen != null && _fullscreenImage != null && _resolutionPrevious != null &&
                      _resolutionNext != null && _resolutionValue != null && _vsync != null && _vsyncImage != null &&
                      _fpsPrevious != null && _fpsNext != null && _fpsValue != null && _showStats != null &&
-                     _showStatsImage != null && _defaults != null && _back != null;
+                     _showStatsImage != null && _defaults != null && _back != null && _languagePrevious != null &&
+                     _languageNext != null && _languageValue != null;
             if (!_valid)
             {
                 Debug.LogError($"{name}: SettingsScreen com referências faltando (rode Incrementant/Setup/Montar HUD da partida).", this);
@@ -86,6 +92,9 @@ namespace Fabula.Incrementant.UI
             _fpsPrevious.onClick.AddListener(PreviousFps);
             _fpsNext.onClick.AddListener(NextFps);
             _showStats.onClick.AddListener(ToggleShowStats);
+            _languagePrevious.onClick.AddListener(PreviousLanguage);
+            _languageNext.onClick.AddListener(NextLanguage);
+            Loc.LanguageChanged += Refresh;
             _defaults.onClick.AddListener(RestoreDefaults);
             _back.onClick.AddListener(Close);
             Refresh();
@@ -107,6 +116,9 @@ namespace Fabula.Incrementant.UI
             _fpsPrevious.onClick.RemoveListener(PreviousFps);
             _fpsNext.onClick.RemoveListener(NextFps);
             _showStats.onClick.RemoveListener(ToggleShowStats);
+            _languagePrevious.onClick.RemoveListener(PreviousLanguage);
+            _languageNext.onClick.RemoveListener(NextLanguage);
+            Loc.LanguageChanged -= Refresh;
             _defaults.onClick.RemoveListener(RestoreDefaults);
             _back.onClick.RemoveListener(Close);
         }
@@ -122,11 +134,11 @@ namespace Fabula.Incrementant.UI
 
         static GameSettingsData S => GameSettings.Current;
 
-        void SetMaster(float value) { S.MasterVolume = value; Changed(); }
+        void SetMaster(float value) { S.MasterVolume = value; Changed(); GameAudio.Play(SfxId.UiTick); }
 
         void SetMusic(float value) { S.MusicVolume = value; Changed(); }
 
-        void SetSfx(float value) { S.SfxVolume = value; Changed(); }
+        void SetSfx(float value) { S.SfxVolume = value; Changed(); GameAudio.Play(SfxId.UiTick); }
 
         void PreviousVfx() { S.Vfx = (VfxLevel)Wrap((int)S.Vfx - 1, 3); Changed(); }
 
@@ -161,6 +173,10 @@ namespace Fabula.Incrementant.UI
             Changed();
         }
 
+        void PreviousLanguage() { S.Language = Loc.Step(S.Language, -1); Changed(); }
+
+        void NextLanguage() { S.Language = Loc.Step(S.Language, 1); Changed(); }
+
         void ToggleShowStats() { S.ShowStats = !S.ShowStats; Changed(); }
 
         void RestoreDefaults()
@@ -188,13 +204,14 @@ namespace Fabula.Incrementant.UI
             _masterValue.text = Percent(s.MasterVolume);
             _musicValue.text = Percent(s.MusicVolume);
             _sfxValue.text = Percent(s.SfxVolume);
-            _vfxValue.text = GameSettingsData.VfxLabel(s.Vfx);
+            _vfxValue.text = Loc.T(s.Vfx == VfxLevel.Full ? "settings.vfx.full" : s.Vfx == VfxLevel.Reduced ? "settings.vfx.reduced" : "settings.vfx.off");
+            _languageValue.text = Loc.NativeName(s.Language);
             _fullscreenImage.sprite = s.Fullscreen ? _toggleOn : _toggleOff;
             _vsyncImage.sprite = s.VSync ? _toggleOn : _toggleOff;
             _showStatsImage.sprite = s.ShowStats ? _toggleOn : _toggleOff;
             Vector2Int resolution = _resolutions[ResolutionIndex()];
-            _resolutionValue.text = resolution.x <= 0 ? "NATIVA" : $"{resolution.x}X{resolution.y}";
-            _fpsValue.text = s.VSync ? "VSYNC" : GameSettingsData.FpsLabel(s.FpsLimit);
+            _resolutionValue.text = resolution.x <= 0 ? Loc.T("settings.native") : $"{resolution.x}X{resolution.y}";
+            _fpsValue.text = s.VSync ? "VSYNC" : s.FpsLimit <= 0 ? Loc.T("settings.nolimit") : s.FpsLimit.ToString();
             _fpsValue.color = s.VSync ? ValueDisabled : ValueEnabled;
             _fpsPrevious.interactable = _fpsNext.interactable = !s.VSync;
         }

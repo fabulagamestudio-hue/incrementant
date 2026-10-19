@@ -185,6 +185,7 @@ namespace Fabula.Incrementant.World
             _sunk = new int[worldWidth];
             _grassShapes = grassShapes ?? Array.Empty<PlantShape>();
             _leafyShapes = leafyShapes ?? Array.Empty<PlantShape>();
+            AnchorX = FindAnchor();
         }
 
         // ---------------------------------------------------------------- regras da colheita
@@ -349,29 +350,21 @@ namespace Fabula.Incrementant.World
             variant = 0;
             if (x < 0)
                 return false;
+            if (x == AnchorX)
+            {
+                PickShape(AnchorKey, out kind, out shape, out variant);
+                return true;
+            }
             int width = _settings.SlotWidth;
             int slot = x / width;
             int plantX = slot * width + (int)(Hash(slot, 1) % (uint)(width - 3));
             if (x != plantX || Hash01(slot, 2) >= _settings.Density)
                 return false;
 
-            kind = Hash01(slot, 3) < _settings.GrassShare ? PlantKind.Grass : PlantKind.Leafy;
-            PlantShape[] shapes = kind == PlantKind.Grass ? _grassShapes : _leafyShapes;
-            if (shapes.Length > 0)
-            {
-                variant = (int)(Hash(slot, 8) % (uint)shapes.Length);
-                shape = shapes[variant];
-            }
-            else
-            {
-                Vector2Int range = kind == PlantKind.Grass ? _settings.GrassHeight : _settings.LeafyHeight;
-                int min = Mathf.Max(2, Mathf.Min(range.x, range.y));
-                int max = Mathf.Max(min, range.y);
-                int height = min + (int)(Hash(slot, 4) % (uint)(max - min + 1));
-                int key = height * 2 + (int)kind;
-                if (!_proceduralShapes.TryGetValue(key, out shape))
-                    _proceduralShapes[key] = shape = PlantShape.Procedural(kind, height);
-            }
+            PickShape(slot, out kind, out shape, out variant);
+            // A planta da entrada (AnchorX) toma o lugar da sorteada na mesma faixa.
+            if (AnchorX >= 0 && slot == AnchorX / width)
+                return false;
 
             for (int cx = x + shape.MinDx; cx <= x + shape.MaxDx; cx++)
             {
@@ -380,6 +373,57 @@ namespace Fabula.Incrementant.World
                     return false;
             }
             return true;
+        }
+
+        // Chave de sorteio da planta da entrada: as faixas começam em 0, então -1 nunca colide com uma.
+        const int AnchorKey = -1;
+
+        /// <summary>
+        /// Coluna da raiz da planta garantida ao lado da entrada (-1 se o mapa não tem espaço). A área em volta da entrada e
+        /// do despejo é livre de plantas (<see cref="VegetationSettings.Clearance"/>), então ela fica na borda dessa zona,
+        /// do lado sorteado pela seed (ou do outro, se o sorteado não couber no mundo). Tem forma e tipo sorteados como
+        /// qualquer planta, ignorando a densidade.
+        /// </summary>
+        public int AnchorX { get; }
+
+        int FindAnchor()
+        {
+            PickShape(AnchorKey, out _, out PlantShape shape, out _);
+            int first = Hash(AnchorKey, 9) % 2 == 0 ? 1 : -1;
+            for (int side = 0; side < 2; side++)
+            {
+                int dir = side == 0 ? first : -first;
+                for (int x = _layout.EntranceX; x >= 0 && x < _populated.Length; x += dir)
+                {
+                    bool free = true;
+                    for (int cx = x + shape.MinDx; cx <= x + shape.MaxDx && free; cx++)
+                        free = cx >= 1 && cx < _populated.Length - 1 && !NearLayout(cx);
+                    if (free)
+                        return x;
+                }
+            }
+            return -1;
+        }
+
+        /// <summary>Tipo, variante e forma da planta sorteados para a chave (faixa ou <see cref="AnchorKey"/>).</summary>
+        void PickShape(int key, out PlantKind kind, out PlantShape shape, out int variant)
+        {
+            variant = 0;
+            kind = Hash01(key, 3) < _settings.GrassShare ? PlantKind.Grass : PlantKind.Leafy;
+            PlantShape[] shapes = kind == PlantKind.Grass ? _grassShapes : _leafyShapes;
+            if (shapes.Length > 0)
+            {
+                variant = (int)(Hash(key, 8) % (uint)shapes.Length);
+                shape = shapes[variant];
+                return;
+            }
+            Vector2Int range = kind == PlantKind.Grass ? _settings.GrassHeight : _settings.LeafyHeight;
+            int min = Mathf.Max(2, Mathf.Min(range.x, range.y));
+            int max = Mathf.Max(min, range.y);
+            int height = min + (int)(Hash(key, 4) % (uint)(max - min + 1));
+            int shapeKey = height * 2 + (int)kind;
+            if (!_proceduralShapes.TryGetValue(shapeKey, out shape))
+                _proceduralShapes[shapeKey] = shape = PlantShape.Procedural(kind, height);
         }
 
         bool NearLayout(int x)

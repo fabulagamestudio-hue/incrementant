@@ -46,6 +46,8 @@ namespace Fabula.Incrementant.Colony
         Dismembering,
         /// <summary>Levando entulho ou restos de cupim até a área de resíduos.</summary>
         CarryingWaste,
+        /// <summary>Jardineira cuidando da sala Gotas de Orvalho: vai até a queda das gotas e fica ao lado, acelerando-as. Valor novo: não renumerar.</summary>
+        TendingDew,
     }
 
     /// <summary>
@@ -103,6 +105,9 @@ namespace Fabula.Incrementant.Colony
 
         /// <summary>Cuida da sala de nutrientes (design 14/26): a comum quando falta cuidado e a jardineira, que o faz antes de tudo.</summary>
         public static bool Gardens(AntRole role) => role == AntRole.Worker || role == AntRole.Gardener;
+
+        /// <summary>Trabalha na sala Gotas de Orvalho (terra fofa, folha): a comum e a jardineira.</summary>
+        public static bool WorksDew(AntRole role) => role == AntRole.Worker || role == AntRole.Gardener;
 
         /// <summary>A jardineira vive na sala de nutrientes e só cuida dela (ou leva nutriente à rainha).</summary>
         public static bool GardensFirst(AntRole role) => role == AntRole.Gardener;
@@ -194,6 +199,16 @@ namespace Fabula.Incrementant.Colony
         Automatic = 0,
         Specific = 1,
         Paused = 2,
+    }
+
+    /// <summary>
+    /// Como a rainha trata os cupins no formigueiro (pedido do desenvolvedor em 2026-10-18): <see cref="Defensive"/> só morde
+    /// de volta quem acabou de mordê-la; <see cref="Offensive"/> morde qualquer cupim ao alcance.
+    /// </summary>
+    public enum QueenStance : byte
+    {
+        Defensive = 0,
+        Offensive = 1,
     }
 
     /// <summary>Estado de execução de uma formiga. Ocupa uma célula; o desenho pode ser maior.</summary>
@@ -338,6 +353,9 @@ namespace Fabula.Incrementant.Colony
         public bool Biting;
         /// <summary>Velocidade fixa em células/s que substitui a do papel (corpo dos cupins); 0 = a do papel.</summary>
         public float SpeedOverride;
+
+        /// <summary>A terra fofa que a formiga leva (<see cref="AntState.BringingSoil"/>) é para a sala Gotas de Orvalho, não para um canteiro. Não vai para o save.</summary>
+        public bool DewJob;
 
         /// <summary>Segundos seguidos com a célula da formiga debaixo d'água (zera ao sair). No limite, ela se afoga.</summary>
         public float UnderwaterSeconds;

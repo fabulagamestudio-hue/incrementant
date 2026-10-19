@@ -62,8 +62,9 @@ namespace Fabula.Incrementant.World
             int w = grid.Width;
             int i = y * w + x;
             CellMaterial material = grid.GetAt(i);
-            // A terra fofa de um canteiro fica presa onde a formiga a pôs (chão ou parede).
-            if (!CellMaterials.IsGranular(material) || grid.IsBedAt(i))
+            // A terra fofa de um canteiro fica presa onde a formiga a pôs (chão ou parede); a da sala Gotas de Orvalho também.
+            if (!CellMaterials.IsGranular(material) || grid.IsBedAt(i) ||
+                material == CellMaterial.Spoil && grid.IsDewRoom(x, y))
                 return;
 
             // Pixel solto de planta não atravessa planta em pé: senão apagaria a marca de colheita das células por onde passa.

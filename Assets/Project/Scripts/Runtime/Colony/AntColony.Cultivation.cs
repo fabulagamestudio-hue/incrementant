@@ -1,3 +1,4 @@
+using Fabula.Incrementant.Audio;
 using System.Collections.Generic;
 using Fabula.Incrementant.World;
 using UnityEngine;
@@ -26,6 +27,14 @@ namespace Fabula.Incrementant.Colony
         readonly HashSet<int> _waterSeen = new HashSet<int>();
         int _bedsAwaitingPlant;
         int _bedsAwaitingWater;
+        // Canteiros dentro da sala de nutrientes (os de fora, depois de apagada a pintura, não produzem).
+        int _activeBeds;
+        // Terra fofa que a sala já não quer (canteiro fora da sala, terra do teto que sobrou ao mudar a sala): as formigas a
+        // cavam como qualquer marca e a terra segue para um canteiro, para o teto da sala Gotas de Orvalho ou para o despejo.
+        readonly HashSet<int> _reclaimSoil = new HashSet<int>();
+        // Marcas de escavação postas pela colônia em _reclaimSoil, para tirar as que deixarem de valer.
+        readonly HashSet<int> _reclaimMarked = new HashSet<int>();
+        readonly List<int> _reclaimDrop = new List<int>();
         int _soilCarriers;
         int _waterCarriers;
         int _builtWaterVersion = -1;
@@ -55,7 +64,12 @@ namespace Fabula.Incrementant.Colony
         void CountCultivation(Ant ant)
         {
             if (ant.State == AntState.BringingSoil || ant.State == AntState.FetchingSoil || ant.State == AntState.GatheringSoil)
-                _soilCarriers++;
+            {
+                if (ant.DewJob)
+                    _dewCarriers++;
+                else
+                    _soilCarriers++;
+            }
             else if (ant.State == AntState.FetchingWater || ant.State == AntState.CarryingWater)
                 _waterCarriers++;
         }
@@ -75,8 +89,12 @@ namespace Fabula.Incrementant.Colony
             _curingSources.Clear();
             _waterBedSources.Clear();
             _bedSpotCells.Clear();
+            _dewStoreSources.Clear();
             _bedsAwaitingPlant = 0;
             _bedsAwaitingWater = 0;
+            _activeBeds = 0;
+            _reclaimSoil.Clear();
+            int bedPlants = 0;
             int w = _grid.Width;
             if (_grid.NutrientRoomCount > 0 || _grid.NutrientCount > 0)
             {
@@ -115,6 +133,13 @@ namespace Fabula.Incrementant.Colony
             {
                 if (!_grid.TryGetBed(k, out int bx, out int by))
                     break;
+                // Apagaram a sala por baixo do canteiro: ele não planta, não rega nem brota; só a terra sobra para reaproveitar.
+                if (!_grid.IsNutrientRoom(bx, by))
+                {
+                    _reclaimSoil.Add(_grid.ToIndex(bx, by));
+                    continue;
+                }
+                _activeBeds++;
                 switch (_grid.GetBedStage(bx, by))
                 {
                     case BedStage.Soil:
@@ -123,20 +148,31 @@ namespace Fabula.Incrementant.Colony
                             _bedsAwaitingPlant++;
                         break;
                     case BedStage.Planted:
+                        bedPlants++;
                         if (AddStandCells(bx, by, _waterBedSources))
                             _bedsAwaitingWater++;
                         break;
                     case BedStage.Growing:
+                        bedPlants++;
                         AddStandCells(bx, by, _curingSources);
                         break;
                 }
             }
 
+            // Os pontos de folha da sala Gotas de Orvalho disputam a planta com os canteiros (mesmo campo): a sala com
+            // menos plantas postas leva a próxima (empate: os canteiros).
+            BuildDewSpots(_dewStoreSources);
+            if (_dewStoreSources.Count > 0 && (_sources.Count == 0 || _dewLeavesPlaced < bedPlants))
+            {
+                _sources.Clear();
+                _sources.AddRange(_dewStoreSources);
+            }
             UpdateField(_storeField, _sources);
             UpdateField(_nutrientField, _buildSources);
             UpdateField(_curingField, _curingSources);
             UpdateField(_waterBedField, _waterBedSources);
             UpdateField(_bedSpotField, _bedSpotCells);
+            SyncReclaimMarks();
             BuildSoilPileField();
             BuildWaterField();
 
@@ -145,6 +181,65 @@ namespace Fabula.Incrementant.Colony
                 _nutrientsReachQueen |= _homeField.Get(i % w, i / w) != FlowField.Unreachable;
             // _buildSources é da construção: devolve vazio (BuildConstructionFields o refaz quando precisa).
             _buildSources.Clear();
+        }
+
+        /// <summary>
+        /// Marca para escavar a terra que sobrou (<see cref="_reclaimSoil"/>) e tira as marcas que a colônia pôs e já não valem
+        /// (a sala voltou a querer a terra, ou ela foi levada). A terra cavada segue o caminho normal de entrega
+        /// (<see cref="StartDelivery"/>): canteiro novo ou teto da sala Gotas de Orvalho, se pedirem, senão o despejo.
+        /// </summary>
+        void SyncReclaimMarks()
+        {
+            foreach (int i in _reclaimSoil)
+            {
+                if (_reclaimMarked.Contains(i))
+                    continue;
+                int x = i % _grid.Width, y = i / _grid.Width;
+                if (_grid.IsMarked(x, y))
+                    continue; // já era uma marca do jogador: não é nossa para tirar depois
+                if (_grid.SetMarked(x, y, true))
+                    _reclaimMarked.Add(i);
+            }
+            if (_reclaimMarked.Count == 0)
+                return;
+            _reclaimDrop.Clear();
+            foreach (int i in _reclaimMarked)
+            {
+                if (!_reclaimSoil.Contains(i))
+                    _reclaimDrop.Add(i);
+            }
+            foreach (int i in _reclaimDrop)
+            {
+                _reclaimMarked.Remove(i);
+                _grid.SetMarked(i % _grid.Width, i / _grid.Width, false);
+            }
+        }
+
+        /// <summary>Algo ainda quer planta: canteiro esperando, folha da sala Gotas de Orvalho, sala em obra ou canteiro na sala (voltará a pedir).</summary>
+        bool PlantStillWanted => PlantDemand > 0 || _dewSoilSpots > 0 || _activeBeds > 0;
+
+        /// <summary>
+        /// Sem destino para o que leva (a sala foi apagada, mudou de forma): solta o pixel de planta numa célula livre vizinha,
+        /// como pixel solto marcado. Ele fica no chão até alguma sala pedir planta de novo (<see cref="IsWorkTarget"/>).
+        /// </summary>
+        void DropCarriedPlant(Ant ant)
+        {
+            for (int k = 0; k < 8; k++)
+            {
+                int x = ant.X + AntNavigation.Dx[k], y = ant.Y + AntNavigation.Dy[k];
+                if (!_grid.InBounds(x, y) || _grid.Get(x, y) != CellMaterial.Empty || _grid.HasWater(x, y) || AntAt(x, y))
+                    continue;
+                _grid.Set(x, y, CellMaterials.ToDebris(ant.Carried), ant.CarriedShade);
+                _grid.SetMarked(x, y, true);
+                ant.DropTop();
+                if (x != ant.X)
+                    ant.FacingX = x > ant.X ? 1 : -1;
+                if (ant.CarriedCount == 0)
+                    ant.State = AntState.Idle;
+                ant.Cooldown = _settings.DropSeconds;
+                return;
+            }
+            Hold(ant); // sem célula livre ao lado: tenta de novo no próximo passo
         }
 
         /// <summary>Células caminháveis encostadas no canteiro (de onde a formiga o alcança); falso se não há nenhuma.</summary>
@@ -214,7 +309,7 @@ namespace Fabula.Incrementant.Colony
         /// </summary>
         void BuildSoilPileField()
         {
-            if (_bedSpotCells.Count == 0)
+            if (_bedSpotCells.Count == 0 && _dewSoilSpots == 0)
             {
                 // Parado, o campo deixa de acompanhar as mudanças de caminhabilidade: refaz do zero quando voltar.
                 _soilPileField.Invalidate();
@@ -319,15 +414,41 @@ namespace Fabula.Incrementant.Colony
         bool TryStartBedSoil(Ant ant)
         {
             // Restos de cupim não viram canteiro (sem área de resíduos, vão ao despejo).
-            if (ant.Carried == CellMaterial.Refuse || CellMaterials.ToDumped(ant.Carried) != CellMaterial.Spoil || _bedSpotCells.Count == 0)
+            if (ant.Carried == CellMaterial.Refuse || CellMaterials.ToDumped(ant.Carried) != CellMaterial.Spoil)
                 return false;
-            if (_soilCarriers >= WantedSoilCarriers || _bedSpotField.Get(ant.X, ant.Y) == FlowField.Unreachable)
+            ChooseSoilRoom(ant, false, out bool toBed, out bool toDew);
+            if (!toBed && !toDew)
                 return false;
             ReleaseDumpSide(ant);
+            ant.DewJob = toDew;
             ant.State = AntState.BringingSoil;
-            _soilCarriers++;
+            if (toDew)
+                _dewCarriers++;
+            else
+                _soilCarriers++;
             return true;
         }
+
+        /// <summary>
+        /// Terra fofa tem dois destinos: o canteiro novo e o teto da sala Gotas de Orvalho. Quando os dois pedem, vai para o que
+        /// tem menos terra posta ou a caminho (empate: o canteiro), para as duas salas andarem juntas.
+        /// </summary>
+        void ChooseSoilRoom(Ant ant, bool dewOnly, out bool toBed, out bool toDew)
+        {
+            bool bedWants = !dewOnly && WantsBedSoil(ant);
+            bool dewWants = WantsDewSoil(ant);
+            toDew = dewWants && (!bedWants || _dewSoilPlaced + _dewCarriers < _activeBeds + _soilCarriers);
+            toBed = bedWants && !toDew;
+        }
+
+        /// <summary>Ainda falta quem leve terra a um canteiro novo, e o ponto é alcançável de onde a formiga está.</summary>
+        bool WantsBedSoil(Ant ant) =>
+            _bedSpotCells.Count > 0 && _soilCarriers < WantedSoilCarriers &&
+            _bedSpotField.Get(ant.X, ant.Y) != FlowField.Unreachable;
+
+        /// <summary>Ainda falta quem leve terra fofa ao teto da sala Gotas de Orvalho, e o ponto é alcançável de onde a formiga está.</summary>
+        bool WantsDewSoil(Ant ant) =>
+            _dewSoilSpots > 0 && _dewCarriers < WantedDewCarriers && _dewSoilField.Get(ant.X, ant.Y) != FlowField.Unreachable;
 
         /// <summary>
         /// Levando terra para a sala de nutrientes: desce o campo dos pontos livres e, ao lado de um que ainda vale (e sem
@@ -335,15 +456,17 @@ namespace Fabula.Incrementant.Colony
         /// </summary>
         void UpdateBringingSoil(Ant ant)
         {
-            int d = _bedSpotField.Get(ant.X, ant.Y);
+            // A terra vai ao canteiro novo ou ao teto da sala Gotas de Orvalho, conforme o destino escolhido ao pegá-la.
+            FlowField field = ant.DewJob ? _dewSoilField : _bedSpotField;
+            int d = field == null || ant.DewJob && _dewSoilSpots == 0 ? FlowField.Unreachable : field.Get(ant.X, ant.Y);
             if (d == FlowField.Unreachable)
             {
                 SendSoilToDump(ant);
                 return;
             }
-            if (d <= 1 && TryPlaceBed(ant))
+            if (d <= 1 && (ant.DewJob ? TryPlaceDewSoil(ant) : TryPlaceBed(ant)))
                 return;
-            if (d > 0 && StepDownhill(ant, _bedSpotField))
+            if (d > 0 && StepDownhill(ant, field))
                 return;
             if (d == 0)
             {
@@ -363,6 +486,7 @@ namespace Fabula.Incrementant.Colony
                     continue;
                 _grid.Set(x, y, CellMaterial.Spoil, ant.CarriedShade);
                 _grid.SetBed(x, y, BedStage.Soil);
+                Emit(SfxId.Drop);
                 ant.DropTop();
                 ant.Cooldown = _settings.DropSeconds;
                 if (x != ant.X)
@@ -381,15 +505,19 @@ namespace Fabula.Incrementant.Colony
         /// Ociosa e de mão vazia (comum, carregadora, escavadora): se a sala tem ponto para canteiro e ainda falta quem leve
         /// terra, vai buscar terra fofa na pilha de fora, que já existe desde o primeiro despejo.
         /// </summary>
-        bool TryStartSoilFetch(Ant ant)
+        bool TryStartSoilFetch(Ant ant, bool dewOnly = false)
         {
-            if (_bedSpotCells.Count == 0 || _builtSoilPileVersion < 0)
+            if (_builtSoilPileVersion < 0 || _soilPileField.Get(ant.X, ant.Y) == FlowField.Unreachable)
                 return false;
-            if (_soilCarriers >= WantedSoilCarriers || _soilPileField.Get(ant.X, ant.Y) == FlowField.Unreachable ||
-                _bedSpotField.Get(ant.X, ant.Y) == FlowField.Unreachable)
+            ChooseSoilRoom(ant, dewOnly, out bool toBed, out bool toDew);
+            if (!toBed && !toDew)
                 return false;
+            ant.DewJob = toDew;
             ant.State = AntState.FetchingSoil;
-            _soilCarriers++;
+            if (toDew)
+                _dewCarriers++;
+            else
+                _soilCarriers++;
             UpdateFetchingSoil(ant);
             return true;
         }
@@ -397,7 +525,8 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Desce o campo da pilha de fora e, encostada nela, começa a pegar um pixel de terra fofa.</summary>
         void UpdateFetchingSoil(Ant ant)
         {
-            int d = _bedSpotCells.Count > 0 && _builtSoilPileVersion >= 0 ? _soilPileField.Get(ant.X, ant.Y) : FlowField.Unreachable;
+            bool wanted = ant.DewJob ? _dewSoilSpots > 0 : _bedSpotCells.Count > 0;
+            int d = wanted && _builtSoilPileVersion >= 0 ? _soilPileField.Get(ant.X, ant.Y) : FlowField.Unreachable;
             if (d == 0)
             {
                 int count = 0;
@@ -448,6 +577,7 @@ namespace Fabula.Incrementant.Colony
 
         void SendSoilToDump(Ant ant)
         {
+            ant.DewJob = false;
             ant.State = AntState.Carrying;
             AssignDumpSide(ant);
         }
@@ -460,10 +590,15 @@ namespace Fabula.Incrementant.Colony
         /// </summary>
         void UpdateStoring(Ant ant)
         {
+            if (!PlantStillWanted)
+            {
+                DropCarriedPlant(ant);
+                return;
+            }
             int d = _storeField.Get(ant.X, ant.Y);
             if (d == 0)
             {
-                if (!TryStore(ant))
+                if (!TryStore(ant) && !TryStoreDewLeaf(ant))
                     Hold(ant); // o canteiro foi plantado por outra formiga: o próximo recálculo manda esta para outro
                 return;
             }
@@ -483,6 +618,7 @@ namespace Fabula.Incrementant.Colony
                 _bedsAwaitingPlant = Mathf.Max(0, _bedsAwaitingPlant - 1);
                 _plantsInFlight = Mathf.Max(0, _plantsInFlight - 1);
                 HarvestedPixels++;
+                Emit(SfxId.Plant);
                 ant.DropTop();
                 if (x != ant.X)
                     ant.FacingX = x > ant.X ? 1 : -1;
@@ -550,6 +686,12 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Leva o bloco de água ao canteiro com planta e o rega: ele começa a brotar.</summary>
         void UpdateCarryingWater(Ant ant)
         {
+            // Nenhum canteiro na sala para regar (a sala foi apagada): a água volta ao mapa em vez de esperar para sempre.
+            if (_activeBeds == 0)
+            {
+                PourOutWater(ant);
+                return;
+            }
             int d = _waterBedField.Get(ant.X, ant.Y);
             if (d == 0)
             {
@@ -561,6 +703,21 @@ namespace Fabula.Incrementant.Colony
                 return;
             // Nenhum canteiro esperando água agora: espera com a água perto de casa.
             WanderHome(ant);
+        }
+
+        /// <summary>Despeja o bloco de água numa célula livre vizinha; sem nenhuma, a água se perde.</summary>
+        void PourOutWater(Ant ant)
+        {
+            for (int k = 0; k < 8; k++)
+            {
+                int x = ant.X + AntNavigation.Dx[k], y = ant.Y + AntNavigation.Dy[k];
+                if (!_grid.IsOpen(x, y))
+                    continue;
+                _grid.SetWater(x, y, true);
+                break;
+            }
+            ant.State = AntState.Idle;
+            ant.Cooldown = _settings.DropSeconds;
         }
 
         bool TryWater(Ant ant)

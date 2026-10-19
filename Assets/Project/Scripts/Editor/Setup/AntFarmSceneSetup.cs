@@ -40,8 +40,24 @@ namespace Fabula.Incrementant.EditorTools.Setup
                 ? EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single)
                 : EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
+            BuildWorld(scene);
+            AntFarmHudSetup.Build(scene);
+
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene, ScenePath);
+            EnsureInBuildSettings();
+            Debug.Log($"[AntFarmSceneSetup] Cena pronta em {ScenePath}.");
+        }
+
+        /// <summary>
+        /// Câmera, o formigário (<see cref="AntFarmGame"/> e suas views), o cenário e o mapa na cena dada, sem HUD e sem
+        /// salvar. Compartilhado com a cena do menu principal (<c>MainMenuSetup</c>). Idempotente.
+        /// </summary>
+        public static AntFarmGame BuildWorld(Scene scene)
+        {
             Camera camera = GetOrAdd<Camera>(FindOrCreate(scene, CameraName));
             camera.gameObject.tag = "MainCamera";
+            GetOrAdd<AudioListener>(camera.gameObject); // sem ele nada toca (SFX, chuva, música)
             camera.orthographic = true;
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = new Color(0.08f, 0.06f, 0.05f);
@@ -116,13 +132,7 @@ namespace Fabula.Incrementant.EditorTools.Setup
             // O modo do mapa (Procedural por padrão) é escolha do usuário e não é alterado aqui; o PNG fica
             // atribuído para o modo Image. O preview segue o modo: PNG na cena (Image) ou nenhum (Procedural).
             AntFarmGameEditor.SyncPreview(game);
-
-            AntFarmHudSetup.Build(scene);
-
-            EditorSceneManager.MarkSceneDirty(scene);
-            EditorSceneManager.SaveScene(scene, ScenePath);
-            EnsureInBuildSettings();
-            Debug.Log($"[AntFarmSceneSetup] Cena pronta em {ScenePath}.");
+            return game;
         }
 
         const string TileMaterialPath = "Assets/Project/Materials/TerrainTiles.mat";

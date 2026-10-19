@@ -3,6 +3,8 @@
     "rootNamespace": "Fabula.Incrementant",
     "references": [
         "Unity.InputSystem",
+        "Unity.Localization",
+        "Unity.ResourceManager",
         "UnityEngine.UI"
     ],
     "includePlatforms": [],

@@ -1,6 +1,10 @@
+using Fabula.Incrementant.Texts;
+using Fabula.Incrementant.Audio;
 using Fabula.Incrementant.AntFarm;
 using Fabula.Incrementant.Colony;
+using System;
 using Fabula.Incrementant.Settings;
+using Fabula.Incrementant.Tutorial;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
@@ -36,8 +40,14 @@ namespace Fabula.Incrementant.UI
         [SerializeField] Button _paintButton;
         [SerializeField] Image _paintButtonImage;
         [SerializeField] GameObject _paintPanel;
+        [Tooltip("Todos os pincéis, na ordem de AntFarmGame; cada botão mora no painel Pintar ou no Ambientes.")]
         [SerializeField] Button[] _brushButtons;
         [SerializeField] Image[] _brushImages;
+
+        [Header("Menu Ambientes (salas: rainha, nutrientes, berçário e resíduos)")]
+        [SerializeField] Button _environmentButton;
+        [SerializeField] Image _environmentButtonImage;
+        [SerializeField] GameObject _environmentPanel;
 
         [Header("Menu Rainha (política: modo e tipo da próxima formiga)")]
         [SerializeField] Button _queenButton;
@@ -48,6 +58,9 @@ namespace Fabula.Incrementant.UI
         [SerializeField] Button[] _typeButtons;
         [SerializeField] Image[] _typeImages;
         [SerializeField] Text[] _typeLabels;
+        [Tooltip("Postura diante dos cupins: defensiva, ofensiva (ordem de QueenStance).")]
+        [SerializeField] Button[] _stanceButtons;
+        [SerializeField] Image[] _stanceImages;
         [SerializeField] Text _queenState;
         [SerializeField] Text _queenNext;
         [SerializeField] Text _queenBrood;
@@ -61,11 +74,17 @@ namespace Fabula.Incrementant.UI
         [Header("Menu do ESC (pausa e configurações)")]
         [SerializeField] PauseMenu _pauseMenu;
 
+        [Header("Tutorial (opcional: cenas antigas não têm)")]
+        [SerializeField] TutorialDirector _tutorial;
+
         [Header("Velocidade")]
         [SerializeField] Button _pauseButton;
         [SerializeField] Image _pauseImage;
         [SerializeField] Button[] _speedButtons;
         [SerializeField] Image[] _speedImages;
+        [Tooltip("Sino acima da velocidade: recolhe as formigas ao formigueiro e as manda de volta ao trabalho (opcional: cenas antigas não têm).")]
+        [SerializeField] Button _recallButton;
+        [SerializeField] Image _recallImage;
 
         [Header("Sprites de estado")]
         [SerializeField] Sprite _buttonIdle;
@@ -73,22 +92,69 @@ namespace Fabula.Incrementant.UI
         [SerializeField] Sprite _iconButtonIdle;
         [SerializeField] Sprite _iconButtonActive;
 
-        const string DefaultHint = "WASD / BOTÃO DO MEIO: MOVER CÂMERA · ESC: MENU";
+        [Header("Cursor do dedo")]
+        [Tooltip("Cursor do sistema enquanto o pincel Dedo está ativo e o mouse está sobre o mapa (textura do tipo Cursor).")]
+        [SerializeField] Texture2D _fingerCursor;
+        [Tooltip("Ponta do dedo na textura, em pixels a partir do canto superior esquerdo.")]
+        [SerializeField] Vector2 _fingerCursorHotspot = new Vector2(11, 1);
+
+        bool _fingerCursorShown;
+        HudTooltips _tooltips;
+
+        const string DefaultHintKey = "hud.hint";
         const float TextRefreshSeconds = 0.25f;
 
         /// <summary>Papéis que a rainha pode criar, na ordem dos botões de tipo.</summary>
         public static AntRole[] CreatableRoles => AntRoles.All;
 
-        public static string RoleLabel(AntRole role) => AntRoles.Label(role).ToUpperInvariant();
+        /// <summary>Nome do papel em maiúsculas, no idioma atual (o setup do HUD também chama isto, no Editor, para o rótulo estático).</summary>
+        public static string RoleLabel(AntRole role) => Loc.T(RoleKey(role)).ToUpperInvariant();
 
-        public static string ModeLabel(QueenMode mode) =>
-            mode == QueenMode.Automatic ? "AUTOMÁTICO" : mode == QueenMode.Specific ? "TIPO ESPECÍFICO" : "PAUSADO";
+        public static string StanceLabel(QueenStance stance) => Loc.T(StanceKey(stance));
 
-        enum Menu { None, Paint, Queen, Tree }
+        public static string ModeLabel(QueenMode mode) => Loc.T(ModeKey(mode));
+
+        // Chaves da tabela de textos; o setup do HUD usa as mesmas para montar os rótulos estáticos.
+        public static string RoleKey(AntRole role) => "role." + role.ToString().ToLowerInvariant();
+
+        public static string StanceKey(QueenStance stance) =>
+            stance == QueenStance.Offensive ? "queen.stance.offensive" : "queen.stance.defensive";
+
+        public static string ModeKey(QueenMode mode) =>
+            mode == QueenMode.Automatic ? "queen.mode.auto" : mode == QueenMode.Specific ? "queen.mode.specific" : "queen.mode.paused";
+
+        enum Menu { None, Paint, Environment, Queen, Tree }
+
+        /// <summary>Peças do HUD que o tutorial destaca.</summary>
+        public enum Spot { PaintMenu, EnvironmentMenu, EvolutionMenu, NutrientsCard, AntsCard }
+
+        /// <summary>Disparado quando o jogador clica num botão de pincel (índice de <see cref="AntFarmGame"/>), mesmo que já seja o atual.</summary>
+        public event Action<int> BrushChosen;
+
+        public bool PaintMenuOpen => _menu == Menu.Paint;
+        public bool EnvironmentMenuOpen => _menu == Menu.Environment;
+        public bool TreeOpen => _treePanel != null && _treePanel.activeSelf;
+        public SkillTreeScreen Tree => _treePanel != null ? _treePanel.GetComponent<SkillTreeScreen>() : null;
+
+        public RectTransform SpotRect(Spot spot)
+        {
+            switch (spot)
+            {
+                case Spot.PaintMenu: return (RectTransform)_paintButton.transform;
+                case Spot.EnvironmentMenu: return (RectTransform)_environmentButton.transform;
+                case Spot.EvolutionMenu: return (RectTransform)_treeButton.transform;
+                case Spot.NutrientsCard: return (RectTransform)_nutrientsValue.transform.parent;
+                default: return (RectTransform)_antsValue.transform.parent;
+            }
+        }
+
+        /// <summary>Botão de um pincel (índice de <see cref="AntFarmGame"/>); só tem tamanho enquanto o submenu dele está aberto.</summary>
+        public RectTransform BrushRect(int index) => (RectTransform)_brushButtons[index].transform;
 
         UnityAction[] _brushHandlers;
         UnityAction[] _speedHandlers;
         UnityAction[] _modeHandlers;
+        UnityAction[] _stanceHandlers;
         UnityAction[] _typeHandlers;
         float _nextTextRefresh;
         float _playedSeconds;
@@ -101,8 +167,9 @@ namespace Fabula.Incrementant.UI
             if (_game == null || _paintButton == null || _paintPanel == null || _pauseButton == null ||
                 _brushButtons == null || _brushButtons.Length != AntFarmGame.BrushCount ||
                 _speedButtons == null || _speedButtons.Length != AntFarmGame.SpeedCount ||
-                _queenButton == null || _queenPanel == null ||
+                _queenButton == null || _queenPanel == null || _environmentButton == null || _environmentPanel == null ||
                 _modeButtons == null || _modeButtons.Length != 3 ||
+                _stanceButtons == null || _stanceButtons.Length != 2 || _stanceImages == null || _stanceImages.Length != 2 ||
                 _typeButtons == null || _typeButtons.Length != CreatableRoles.Length || _typeLabels == null ||
                 _typeLabels.Length != CreatableRoles.Length ||
                 _treeButton == null || _treePanel == null || _pauseMenu == null || _raidAlert == null || _raidAlertText == null)
@@ -115,7 +182,11 @@ namespace Fabula.Incrementant.UI
             for (int i = 0; i < _brushHandlers.Length; i++)
             {
                 int index = i;
-                _brushHandlers[i] = () => _game.SetBrush(index);
+                _brushHandlers[i] = () =>
+                {
+                    _game.SetBrush(index);
+                    BrushChosen?.Invoke(index);
+                };
             }
             _speedHandlers = new UnityAction[_speedButtons.Length];
             for (int i = 0; i < _speedHandlers.Length; i++)
@@ -129,6 +200,12 @@ namespace Fabula.Incrementant.UI
                 int index = i;
                 _modeHandlers[i] = () => SetMode((QueenMode)index);
             }
+            _stanceHandlers = new UnityAction[_stanceButtons.Length];
+            for (int i = 0; i < _stanceHandlers.Length; i++)
+            {
+                int index = i;
+                _stanceHandlers[i] = () => SetStance((QueenStance)index);
+            }
             _typeHandlers = new UnityAction[_typeButtons.Length];
             for (int i = 0; i < _typeHandlers.Length; i++)
             {
@@ -136,20 +213,82 @@ namespace Fabula.Incrementant.UI
                 _typeHandlers[i] = () => ChooseType(CreatableRoles[index]);
             }
             _paintPanel.SetActive(false);
+            _environmentPanel.SetActive(false);
             _queenPanel.SetActive(false);
             _treePanel.SetActive(false);
             _pauseMenu.gameObject.SetActive(false);
             _raidAlert.SetActive(false);
+            // Cliques de todos os botões da tela (painéis, menu do ESC, árvore, configurações).
+            ButtonSfx.AttachAll(transform.root);
+            _tooltips = new HudTooltips(_raidAlertText.font);
+            AttachTooltips();
+        }
+
+        void OnDestroy() => _tooltips?.Dispose();
+
+        /// <summary>Dicas dos botões do menu Colônia, da velocidade e dos cartões; as das salas e dos cartões incluem o estado da produção.</summary>
+        void AttachTooltips()
+        {
+            _tooltips.Attach(_paintButton, () => Loc.T("tip.menu.paint"));
+            _tooltips.Attach(_environmentButton, () => Loc.T("tip.menu.environments"));
+            _tooltips.Attach(_queenButton, () => Loc.T("tip.menu.queen"));
+            _tooltips.Attach(_treeButton, () => Loc.T("tip.menu.evolution"));
+            _tooltips.Attach(_pauseButton, () => Loc.T("tip.pause"));
+            if (_recallButton != null)
+                _tooltips.Attach(_recallButton, () => Loc.T(_game.Colony != null && _game.Colony.Recalled ? "tip.recall.off" : "tip.recall.on"));
+            for (int i = 0; i < _speedButtons.Length; i++)
+            {
+                int index = i;
+                _tooltips.Attach(_speedButtons[i], () => Loc.T("tip.speed", AntFarmGame.SpeedMultiplier(index), index + 1));
+            }
+            for (int i = 0; i < _brushButtons.Length; i++)
+            {
+                int index = i;
+                _tooltips.Attach(_brushButtons[i], () => HudTooltipTexts.Brush(_game, index));
+            }
+            for (int i = 0; i < _modeButtons.Length; i++)
+            {
+                var mode = (QueenMode)i;
+                _tooltips.Attach(_modeButtons[i], () => HudTooltipTexts.Mode(mode));
+            }
+            for (int i = 0; i < _stanceButtons.Length; i++)
+            {
+                var stance = (QueenStance)i;
+                _tooltips.Attach(_stanceButtons[i], () => HudTooltipTexts.Stance(stance));
+            }
+            for (int i = 0; i < _typeButtons.Length; i++)
+            {
+                AntRole role = CreatableRoles[i];
+                _tooltips.Attach(_typeButtons[i], () => HudTooltipTexts.Role(_game.Colony, role));
+            }
+            AttachCardTooltip(_nutrientsValue, () => HudTooltipTexts.NutrientsCard(_game.Colony, _game.Grid));
+            AttachCardTooltip(_antsValue, () => HudTooltipTexts.AntsCard(_game.Colony));
+            AttachCardTooltip(_queenValue, () => HudTooltipTexts.QueenCard(_game.Colony, _game.Grid));
+        }
+
+        /// <summary>O cartão é o pai do texto do valor; ele precisa receber o raio do mouse para a dica aparecer.</summary>
+        void AttachCardTooltip(Text value, Func<string> text)
+        {
+            Transform card = value.transform.parent;
+            Graphic graphic = card.GetComponent<Graphic>();
+            if (graphic != null)
+                graphic.raycastTarget = true;
+            _tooltips.Attach(card, text);
         }
 
         void OnEnable()
         {
             _paintButton.onClick.AddListener(TogglePaint);
             _pauseButton.onClick.AddListener(TogglePause);
+            if (_recallButton != null)
+                _recallButton.onClick.AddListener(ToggleRecall);
+            _environmentButton.onClick.AddListener(ToggleEnvironment);
             _queenButton.onClick.AddListener(ToggleQueen);
             _treeButton.onClick.AddListener(ToggleTree);
             for (int i = 0; i < _modeButtons.Length; i++)
                 _modeButtons[i].onClick.AddListener(_modeHandlers[i]);
+            for (int i = 0; i < _stanceButtons.Length; i++)
+                _stanceButtons[i].onClick.AddListener(_stanceHandlers[i]);
             for (int i = 0; i < _typeButtons.Length; i++)
                 _typeButtons[i].onClick.AddListener(_typeHandlers[i]);
             for (int i = 0; i < _brushButtons.Length; i++)
@@ -160,12 +299,18 @@ namespace Fabula.Incrementant.UI
 
         void OnDisable()
         {
+            SetFingerCursor(false);
             _paintButton.onClick.RemoveListener(TogglePaint);
             _pauseButton.onClick.RemoveListener(TogglePause);
+            if (_recallButton != null)
+                _recallButton.onClick.RemoveListener(ToggleRecall);
+            _environmentButton.onClick.RemoveListener(ToggleEnvironment);
             _queenButton.onClick.RemoveListener(ToggleQueen);
             _treeButton.onClick.RemoveListener(ToggleTree);
             for (int i = 0; i < _modeButtons.Length; i++)
                 _modeButtons[i].onClick.RemoveListener(_modeHandlers[i]);
+            for (int i = 0; i < _stanceButtons.Length; i++)
+                _stanceButtons[i].onClick.RemoveListener(_stanceHandlers[i]);
             for (int i = 0; i < _typeButtons.Length; i++)
                 _typeButtons[i].onClick.RemoveListener(_typeHandlers[i]);
             for (int i = 0; i < _brushButtons.Length; i++)
@@ -176,6 +321,8 @@ namespace Fabula.Incrementant.UI
 
         void TogglePaint() => OpenMenu(_menu == Menu.Paint ? Menu.None : Menu.Paint);
 
+        void ToggleEnvironment() => OpenMenu(_menu == Menu.Environment ? Menu.None : Menu.Environment);
+
         void ToggleQueen() => OpenMenu(_menu == Menu.Queen ? Menu.None : Menu.Queen);
 
         void ToggleTree() => OpenMenu(_menu == Menu.Tree ? Menu.None : Menu.Tree);
@@ -185,6 +332,7 @@ namespace Fabula.Incrementant.UI
         {
             _menu = menu;
             _paintPanel.SetActive(menu == Menu.Paint);
+            _environmentPanel.SetActive(menu == Menu.Environment);
             _queenPanel.SetActive(menu == Menu.Queen);
             _treePanel.SetActive(menu == Menu.Tree);
             _nextTextRefresh = 0f;
@@ -197,6 +345,13 @@ namespace Fabula.Incrementant.UI
                 colony.SetQueenPolicy(mode, colony.QueenTarget);
         }
 
+        void SetStance(QueenStance stance)
+        {
+            AntColony colony = _game.Colony;
+            if (colony != null)
+                colony.QueenStance = stance;
+        }
+
         /// <summary>Escolher um tipo já põe a rainha no modo específico.</summary>
         void ChooseType(AntRole role)
         {
@@ -207,12 +362,21 @@ namespace Fabula.Incrementant.UI
 
         void TogglePause() => _game.SetPaused(!_game.Paused);
 
+        void ToggleRecall()
+        {
+            AntColony colony = _game.Colony;
+            if (colony != null)
+                colony.Recalled = !colony.Recalled;
+        }
+
         /// <summary>
         /// Um ESC fecha a camada de cima: configurações → menu → jogo; sem menu aberto, fecha a tela de evolução ou o
         /// submenu da colônia; sem nada aberto, abre o menu. Fica tudo aqui para duas telas não reagirem ao mesmo ESC.
         /// </summary>
         void HandleEscape()
         {
+            if (_tutorial != null && _tutorial.ModalOpen)
+                return; // o pop-up central do tutorial é modal
             if (_pauseMenu.IsOpen)
                 _pauseMenu.Back();
             else if (_menu != Menu.None || _treePanel.activeSelf)
@@ -221,11 +385,22 @@ namespace Fabula.Incrementant.UI
                 _pauseMenu.Open();
         }
 
+        void SetFingerCursor(bool shown)
+        {
+            if (_fingerCursor == null || shown == _fingerCursorShown)
+                return;
+            _fingerCursorShown = shown;
+            Cursor.SetCursor(shown ? _fingerCursor : null, shown ? _fingerCursorHotspot : Vector2.zero, CursorMode.Auto);
+        }
+
         void Update()
         {
             Keyboard keyboard = Keyboard.current;
             if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
                 HandleEscape();
+
+            SetFingerCursor(_game.FingerSelected && _game.PointerOverWorld);
+            _tooltips.Tick();
 
             // Tempo de relógio real desta sessão (ignora pausa e velocidade); FPS médio entre duas atualizações do texto.
             _playedSeconds += Time.unscaledDeltaTime;
@@ -236,7 +411,7 @@ namespace Fabula.Incrementant.UI
                 _stats.enabled = showStats;
             if (_stats != null && _statsElapsed >= TextRefreshSeconds)
             {
-                _stats.text = $"FPS {Mathf.RoundToInt(_statsFrames / _statsElapsed)}\nTEMPO {FormatPlayTime(_playedSeconds)}";
+                _stats.text = Loc.T("hud.stats", Mathf.RoundToInt(_statsFrames / _statsElapsed), FormatPlayTime(_playedSeconds));
                 _statsFrames = 0;
                 _statsElapsed = 0f;
             }
@@ -264,12 +439,15 @@ namespace Fabula.Incrementant.UI
         void RefreshStates()
         {
             _paintButtonImage.sprite = _menu == Menu.Paint ? _buttonActive : _buttonIdle;
+            _environmentButtonImage.sprite = _menu == Menu.Environment ? _buttonActive : _buttonIdle;
             _queenButtonImage.sprite = _menu == Menu.Queen ? _buttonActive : _buttonIdle;
             _treeButtonImage.sprite = _menu == Menu.Tree ? _buttonActive : _buttonIdle;
             AntColony colony = _game.Colony;
 
             for (int i = 0; i < _modeImages.Length; i++)
                 _modeImages[i].sprite = i == (int)colony.QueenMode ? _buttonActive : _buttonIdle;
+            for (int i = 0; i < _stanceImages.Length; i++)
+                _stanceImages[i].sprite = i == (int)colony.QueenStance ? _buttonActive : _buttonIdle;
             for (int i = 0; i < _typeImages.Length; i++)
             {
                 AntRole role = CreatableRoles[i];
@@ -287,6 +465,8 @@ namespace Fabula.Incrementant.UI
                     _brushButtons[i].interactable = unlocked;
             }
             _pauseImage.sprite = _game.Paused ? _iconButtonActive : _iconButtonIdle;
+            if (_recallImage != null)
+                _recallImage.sprite = colony.Recalled ? _iconButtonActive : _iconButtonIdle;
             for (int i = 0; i < _speedImages.Length; i++)
                 _speedImages[i].sprite = !_game.Paused && i == _game.SpeedIndex ? _iconButtonActive : _iconButtonIdle;
         }
@@ -295,36 +475,36 @@ namespace Fabula.Incrementant.UI
 
         void RefreshTexts(AntColony colony)
         {
-            _nutrientsValue.text = $"{colony.Nutrients} N";
-            _nutrientsDetail.text = $"CONSUMIDOS: {colony.TotalNutrients}";
+            _nutrientsValue.text = Loc.T("hud.nutrients.value", colony.Nutrients);
+            _nutrientsDetail.text = Loc.T("hud.nutrients.consumed", colony.TotalNutrients);
 
-            _antsValue.text = $"ADULTAS {colony.Ants.Count} / {colony.AdultCapacity}";
-            _antsDetail.text = $"OVOS {colony.Brood.Eggs} · LARVAS {colony.Brood.Larvae} · PUPAS {colony.Brood.Pupae}";
+            _antsValue.text = Loc.T("hud.ants.adults", colony.Ants.Count, colony.AdultCapacity);
+            _antsDetail.text = Loc.T("hud.brood", colony.Brood.Eggs, colony.Brood.Larvae, colony.Brood.Pupae);
 
             _queenValue.text = QueenStatus(colony);
-            _queenDetail.text = colony.QueenRoomSize > 0 ? $"SALA: {colony.QueenRoomSize} PX" : "SALA: —";
+            _queenDetail.text = colony.QueenRoomSize > 0 ? Loc.T("hud.queen.room", colony.QueenRoomSize) : Loc.T("hud.queen.room.none");
 
             AntRole? next = colony.NextAntRole;
             _queenState.text = BreedingText(colony);
-            _queenNext.text = next.HasValue ? $"PRÓXIMO OVO: {RoleLabel(next.Value)} · {colony.CostOf(next.Value)} N" : "PRÓXIMO OVO: —";
-            _queenBrood.text = $"OVOS {colony.Brood.Eggs} · LARVAS {colony.Brood.Larvae} · PUPAS {colony.Brood.Pupae}";
-            _queenSpace.text = $"ADULTAS {colony.Ants.Count + colony.Brood.Count} / {colony.AdultCapacity} · BERÇÁRIO {colony.Brood.Count} / {colony.NurserySlots}";
+            _queenNext.text = next.HasValue ? Loc.T("hud.queen.next", RoleLabel(next.Value), colony.CostOf(next.Value)) : Loc.T("hud.queen.next.none");
+            _queenBrood.text = Loc.T("hud.brood", colony.Brood.Eggs, colony.Brood.Larvae, colony.Brood.Pupae);
+            _queenSpace.text = Loc.T("hud.queen.space", colony.Ants.Count + colony.Brood.Count, colony.AdultCapacity, colony.Brood.Count, colony.NurserySlots);
             for (int i = 0; i < _typeLabels.Length; i++)
             {
                 AntRole role = CreatableRoles[i];
                 if (!colony.Tree.IsRoleUnlocked(role))
                 {
                     QueenNode unlock = QueenTree.UnlockNodeOf(role).Value;
-                    _typeLabels[i].text = $"{RoleLabel(role)} · BLOQ. ({unlock})";
+                    _typeLabels[i].text = Loc.T("hud.type.locked", RoleLabel(role), unlock);
                     continue;
                 }
                 int reserved = colony.Brood.CountOf(role);
                 string count = reserved > 0 ? $"×{colony.CountOf(role)}+{reserved}" : $"×{colony.CountOf(role)}";
-                _typeLabels[i].text = $"{RoleLabel(role)} {count} · {colony.CostOf(role)} N";
+                _typeLabels[i].text = Loc.T("hud.type.count", RoleLabel(role), count, colony.CostOf(role));
             }
 
             string status = _game.SaveStatus;
-            _hint.text = status.Length > 0 ? status.ToUpperInvariant() : DefaultHint;
+            _hint.text = status.Length > 0 ? status.ToUpperInvariant() : Loc.T(DefaultHintKey);
             RefreshRaidAlert(colony);
         }
 
@@ -348,14 +528,14 @@ namespace Fabula.Incrementant.UI
             switch (colony.RaidState)
             {
                 case RaidState.Warning:
-                    text = $"ATAQUE DE CUPINS IMINENTE! CHEGAM EM {Mathf.CeilToInt(colony.SecondsToNextRaid)} S";
+                    text = Loc.T("raid.warning", Mathf.CeilToInt(colony.SecondsToNextRaid));
                     break;
                 case RaidState.Active:
-                    text = $"CUPINS ATACANDO: {colony.LiveTermites} · {ObjectiveText(colony.RaidObjective)}";
+                    text = Loc.T("raid.active", colony.LiveTermites, ObjectiveText(colony.RaidObjective));
                     break;
                 default:
                     if (Time.unscaledTime < _raidOverUntil)
-                        text = _raidOverFirst ? "ATAQUE REPELIDO! SOLDADO E ÁREA DE RESÍDUOS LIBERADOS" : "ATAQUE DE CUPINS TERMINOU";
+                        text = Loc.T(_raidOverFirst ? "raid.over.first" : "raid.over");
                     break;
             }
             bool show = text != null;
@@ -369,10 +549,12 @@ namespace Fabula.Incrementant.UI
         {
             switch (objective)
             {
-                case RaidObjective.Brood: return "ATRÁS DAS CRIAS";
-                case RaidObjective.Farms: return "DESTRUINDO CANTEIROS";
-                case RaidObjective.Walls: return "DERRUBANDO PAREDES";
-                default: return "INDO EMBORA";
+                case RaidObjective.Brood: return Loc.T("raid.obj.brood");
+                case RaidObjective.Farms: return Loc.T("raid.obj.farms");
+                case RaidObjective.Sectors: return Loc.T("raid.obj.sectors");
+                case RaidObjective.Walls: return Loc.T("raid.obj.walls");
+                case RaidObjective.Queen: return Loc.T("raid.obj.queen");
+                default: return Loc.T("raid.obj.leave");
             }
         }
 
@@ -382,25 +564,27 @@ namespace Fabula.Incrementant.UI
             switch (colony.Breeding)
             {
                 case BreedingState.Paused:
-                    return "PAUSADA: SEM OVOS NOVOS";
+                    return Loc.T("breed.paused");
+                case BreedingState.WaitingQueenRoom:
+                    return Loc.T(colony.QueenRoomSize == 0 ? "breed.noqueenroom" : "breed.queenout");
                 case BreedingState.WaitingNursery:
-                    return colony.NurserySlots == 0 ? "SEM BERÇÁRIO: PINTE E ESCAVE" : "BERÇÁRIO CHEIO";
+                    return Loc.T(colony.NurserySlots == 0 ? "breed.nonursery" : "breed.nurseryfull");
                 case BreedingState.WaitingExpansion:
-                    return "SEM VAGA ADULTA: AMPLIE";
+                    return Loc.T("breed.expand");
                 case BreedingState.WaitingResources:
-                    return $"AGUARDANDO RECURSOS (RES. {colony.MinNutrientReserve} N)";
+                    return Loc.T("breed.resources", colony.MinNutrientReserve);
                 default:
-                    return $"PRÓXIMO OVO EM {Mathf.CeilToInt(colony.Brood.SecondsToNextLay)} S";
+                    return Loc.T("breed.next", Mathf.CeilToInt(colony.Brood.SecondsToNextLay));
             }
         }
 
         static string QueenStatus(AntColony colony)
         {
             if (colony.QueenRoomSize == 0)
-                return "SEM SALA";
+                return Loc.T("queen.status.noroom");
             if (colony.QueenInRoom)
-                return "NA SALA";
-            return colony.QueenCanReachRoom ? "INDO À SALA" : "SEM CAMINHO";
+                return Loc.T("queen.status.inroom");
+            return Loc.T(colony.QueenCanReachRoom ? "queen.status.going" : "queen.status.nopath");
         }
     }
 }

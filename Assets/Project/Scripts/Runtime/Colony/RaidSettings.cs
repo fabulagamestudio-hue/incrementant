@@ -14,18 +14,18 @@ namespace Fabula.Incrementant.Colony
         [Header("Quando")]
         [Tooltip("Formigas adultas que a colônia precisa ter alcançado uma vez para os ataques começarem.")]
         [SerializeField, Min(1)] int _minAnts = 15;
-        [Tooltip("Intervalo mínimo (s de jogo) entre um ataque e o próximo, contado do fim do anterior.")]
-        [SerializeField, Min(1f)] float _minIntervalSeconds = 60f;
-        [Tooltip("Intervalo máximo (s de jogo) entre um ataque e o próximo.")]
-        [SerializeField, Min(1f)] float _maxIntervalSeconds = 300f;
+        [Tooltip("Intervalo mínimo (minutos de jogo) entre um ataque e o próximo, contado do fim do anterior. Minutos de jogo correm em tempo real a 1x: não aceleram com 3x/8x e não correm na pausa.")]
+        [SerializeField, Min(0.05f)] float _minIntervalMinutes = 1f;
+        [Tooltip("Intervalo máximo (minutos de jogo) entre um ataque e o próximo.")]
+        [SerializeField, Min(0.05f)] float _maxIntervalMinutes = 5f;
         [Tooltip("Segundos de aviso (alerta no topo da tela) antes de os cupins aparecerem no céu.")]
         [SerializeField, Min(0f)] float _warningSeconds = 8f;
         [Tooltip("Mínimo de cupins por formiga adulta (0,4 = 40%). Cada ataque sorteia entre este mínimo e o teto do momento; arredonda para cima, pelo menos 1.")]
         [SerializeField, Range(0.05f, 2f)] float _termitesPerAnt = 0.4f;
-        [Tooltip("Teto final de cupins por formiga adulta (2 = 200%).")]
-        [SerializeField, Range(0.05f, 5f)] float _maxTermitesPerAnt = 2f;
-        [Tooltip("Quanto o teto sobe a cada ataque que termina (0,2 = +20 pontos percentuais): o primeiro ataque vem com o mínimo e o teto chega ao máximo depois de (máximo − mínimo) / este valor ataques.")]
-        [SerializeField, Min(0f)] float _termitesPerAntGrowth = 0.2f;
+        [Tooltip("Teto final de cupins por formiga adulta (1 = 100%).")]
+        [SerializeField, Range(0.05f, 5f)] float _maxTermitesPerAnt = 1f;
+        [Tooltip("Quanto o teto sobe a cada ataque que termina (0,05 = +5 pontos percentuais): o primeiro ataque vem com o mínimo e o teto chega ao máximo depois de (máximo − mínimo) / este valor ataques.")]
+        [SerializeField, Min(0f)] float _termitesPerAntGrowth = 0.05f;
 
         [Header("Chegada")]
         [Tooltip("Altura (células) acima do chão de onde cada cupim começa a descer voando.")]
@@ -58,6 +58,18 @@ namespace Fabula.Incrementant.Colony
         [Tooltip("Segundos sem levar mordida até a formiga começar a recuperar a vida (1 ponto/s).")]
         [SerializeField, Min(0f)] float _healDelaySeconds = 10f;
 
+        [Header("Rainha e dedo")]
+        [Tooltip("Vida da rainha: se os cupins a levarem a zero, é game over.")]
+        [SerializeField, Min(1f)] float _queenHealth = 60f;
+        [Tooltip("Dano da rainha em múltiplos do dano do soldado.")]
+        [SerializeField, Min(0f)] float _queenDamageFactor = 3f;
+        [Tooltip("Depois das paredes, os cupins vão atrás da rainha (ela só morre se algum chegar até ela).")]
+        [SerializeField] bool _huntQueen = true;
+        [Tooltip("Dano de cada clique do dedo num cupim.")]
+        [SerializeField, Min(0f)] float _fingerDamage = 2f;
+        [Tooltip("Distância (células, em xadrez) do clique até o cupim para acertá-lo.")]
+        [SerializeField, Range(1, 5)] int _fingerReach = 2;
+
         [Header("Corpos e resíduos")]
         [Tooltip("Folhas (pedaços de planta para os canteiros) que um cupim morto rende.")]
         [SerializeField, Min(0)] int _corpseLeaves = 2;
@@ -69,8 +81,11 @@ namespace Fabula.Incrementant.Colony
         [SerializeField, Min(1f)] float _wasteDecaySeconds = 120f;
 
         public int MinAnts => _minAnts;
-        public float MinIntervalSeconds => _minIntervalSeconds;
-        public float MaxIntervalSeconds => Mathf.Max(_minIntervalSeconds, _maxIntervalSeconds);
+        public float MinIntervalMinutes => _minIntervalMinutes;
+        public float MaxIntervalMinutes => Mathf.Max(_minIntervalMinutes, _maxIntervalMinutes);
+        /// <summary>Os intervalos em segundos de jogo (minutos × 60), a unidade do relógio dos ataques.</summary>
+        public float MinIntervalSeconds => _minIntervalMinutes * 60f;
+        public float MaxIntervalSeconds => MaxIntervalMinutes * 60f;
         public float WarningSeconds => _warningSeconds;
         public float TermitesPerAnt => _termitesPerAnt;
         public float MaxTermitesPerAnt => Mathf.Max(_termitesPerAnt, _maxTermitesPerAnt);
@@ -92,6 +107,11 @@ namespace Fabula.Incrementant.Colony
         public float AttackSeconds => _attackSeconds;
         public int AttackReach => _attackReach;
         public float HealDelaySeconds => _healDelaySeconds;
+        public float QueenHealth => _queenHealth;
+        public float QueenDamageFactor => _queenDamageFactor;
+        public bool HuntQueen { get => _huntQueen; set => _huntQueen = value; }
+        public float FingerDamage => _fingerDamage;
+        public int FingerReach => _fingerReach;
         public int CorpseLeaves => _corpseLeaves;
         public int CorpseRemains => _corpseRemains;
         public float DismemberSeconds => _dismemberSeconds;

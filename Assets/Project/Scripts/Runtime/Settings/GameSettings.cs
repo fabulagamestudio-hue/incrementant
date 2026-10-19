@@ -99,6 +99,7 @@ namespace Fabula.Incrementant.Settings
         {
             GameSettingsData s = Current;
             AudioListener.volume = s.MasterVolume;
+            Texts.Loc.SetLanguage(s.Language);
             QualitySettings.vSyncCount = s.VSync ? 1 : 0;
             Application.targetFrameRate = s.VSync || s.FpsLimit <= 0 ? -1 : s.FpsLimit;
             ApplyDisplay(s);

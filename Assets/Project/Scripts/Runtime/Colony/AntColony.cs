@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Fabula.Incrementant.Audio;
 using Fabula.Incrementant.Diagnostics;
 using Fabula.Incrementant.World;
 using UnityEngine;
@@ -175,7 +176,7 @@ namespace Fabula.Incrementant.Colony
         public float NutrientCureSeconds => _settings.NutrientCureSeconds;
 
         /// <summary>Há canteiro esperando mais um pixel de planta (contando os que já estão sendo colhidos ou levados).</summary>
-        public bool CanHarvest => _bedsAwaitingPlant - _plantsInFlight - _grid.PlantDebrisCount > 0;
+        public bool CanHarvest => PlantDemand - _plantsInFlight - _grid.PlantDebrisCount > 0;
 
         /// <summary>
         /// Os cortadores pararam porque nenhum canteiro espera planta e voltaram ao formigueiro. Só voltam a cortar quando
@@ -185,7 +186,7 @@ namespace Fabula.Incrementant.Colony
         bool _harvestPaused;
 
         /// <summary>Há canteiro para um pixel que já está solto no chão (ele mesmo já está contado em <c>PlantDebrisCount</c>).</summary>
-        bool CanStoreDebris => _bedsAwaitingPlant - _plantsInFlight > 0;
+        bool CanStoreDebris => PlantDemand - _plantsInFlight > 0;
 
         /// <summary>
         /// Formigas morrem (velhice e afogamento). Desligado, a idade e o tempo debaixo d'água ficam parados, então religar
@@ -311,6 +312,17 @@ namespace Fabula.Incrementant.Colony
             return ant;
         }
 
+        /// <summary>Nova formiga do papel dado, nascida na célula (<paramref name="x"/>, <paramref name="y"/>) em vez de junto da rainha. Usada pela vitrine do menu principal.</summary>
+        public Ant SpawnAt(AntRole role, int x, int y)
+        {
+            Ant ant = Spawn(role);
+            ant.X = x;
+            ant.Y = y;
+            PushOutOfSolid(ant);
+            SnapVisual(ant);
+            return ant;
+        }
+
         /// <summary>
         /// Papel da próxima formiga: o escolhido no modo específico; no automático, o que está mais abaixo da parte
         /// desejada (<see cref="AntRoles.TargetWeight"/>, entre os papéis que existem), com empate pela ordem de <see cref="AntRoles.All"/>.
@@ -358,6 +370,7 @@ namespace Fabula.Incrementant.Colony
                 return BuyBlock.InsufficientNutrients;
             Tree.Grant(node);
             Nutrients -= cost;
+            Emit(SfxId.Buy);
             return BuyBlock.None;
         }
 
@@ -407,22 +420,53 @@ namespace Fabula.Incrementant.Colony
         Func<AntRole> _nextRoleProvider;
         Func<AntRole, int> _costProvider;
 
-        void TickBrood(float deltaTime)
+        BroodContext BuildBroodContext()
         {
             AntRole role = NextAntRole ?? AntRole.Worker;
             _brood.LayIntervalFactor = Tree.LayIntervalFactor;
             _brood.EggsPerLay = Tree.EggsPerLay;
-            var context = new BroodContext
+            return new BroodContext
             {
                 Mode = QueenMode, Role = role, Cost = CostOf(role), Nutrients = Nutrients, Adults = _ants.Count,
                 AdultCapacity = AdultCapacity, NurserySlots = NurserySlots, QueenX = Queen.X, QueenY = Queen.Y,
+                QueenOutsideRoom = !QueenInRoom,
                 RoleProvider = _nextRoleProvider, CostProvider = _costProvider,
                 CareCapacity = _nursery.CapacityInside, Boosts = _boosts,
             };
+        }
+
+        /// <summary>A célula está sobre a rainha (que ocupa o dobro do tamanho de uma formiga).</summary>
+        public bool IsQueenAt(int x, int y) => Mathf.Abs(x - Queen.X) <= 1 && Mathf.Abs(y - Queen.Y) <= 1;
+
+        /// <summary>
+        /// Clique na rainha: põe um ovo já, sem esperar o intervalo e ignorando a reserva mínima de nutrientes. Ainda exige
+        /// berçário com vaga, capacidade adulta e nutrientes para o custo da cria.
+        /// </summary>
+        public bool ForceLay()
+        {
+            if (GameOver)
+                return false;
+            BroodContext context = BuildBroodContext();
+            int spent = _brood.ForceLay(context);
+            Nutrients -= spent;
+            if (spent > 0)
+                Emit(SfxId.EggLaid);
+            return spent > 0;
+        }
+
+        void TickBrood(float deltaTime)
+        {
+            BroodContext context = BuildBroodContext();
             _born.Clear();
-            Nutrients -= _brood.Tick(deltaTime, context, _born);
+            int spent = _brood.Tick(deltaTime, context, _born);
+            Nutrients -= spent;
+            if (spent > 0)
+                Emit(SfxId.EggLaid);
             foreach (AntRole born in _born)
+            {
                 Spawn(born);
+                Emit(SfxId.AntBorn);
+            }
             // Quem nasce libera o ponto do berçário que ocupava.
             _nurseryDirty |= _born.Count > 0;
         }
@@ -511,7 +555,8 @@ namespace Fabula.Incrementant.Colony
                 if (ant.State == AntState.FetchingEgg || ant.State == AntState.CarryingEgg ||
                     ant.State == AntState.Tending || ant.State == AntState.MovingBrood ||
                     ant.State == AntState.Gardening || ant.State == AntState.MovingNutrient ||
-                    ant.State == AntState.Fighting || ant.State == AntState.Dismembering || ant.State == AntState.CarryingWaste)
+                    ant.State == AntState.Fighting || ant.State == AntState.Dismembering || ant.State == AntState.CarryingWaste ||
+                    ant.State == AntState.TendingDew)
                     ant.State = AntState.Idle;
                 ant.DumpSide = -1;
                 // Save anterior à versão 10 não guarda a vida: a formiga ganha um tempo novo, contado de agora.
@@ -554,11 +599,14 @@ namespace Fabula.Incrementant.Colony
 
         public void Tick(float deltaTime)
         {
+            if (GameOver)
+                return;
             long stageStart = SimProfiler.Now();
             SimulationTime += deltaTime;
             _activeBuilders = 0;
             _plantsInFlight = 0;
             _soilCarriers = 0;
+            _dewCarriers = 0;
             _waterCarriers = 0;
             _fetchers = 0;
             _harvesters = 0;
@@ -600,6 +648,9 @@ namespace Fabula.Incrementant.Colony
                 else if (ant.State == AntState.CarryingWaste)
                     _wasteCarriers++;
             }
+            // A rainha sozinha cuida do berçário: conta como cuidadora enquanto estiver nisso (e não como operária).
+            if (Queen.State == AntState.Tending || Queen.State == AntState.MovingBrood)
+                CountCare(Queen);
             // Os canteiros só brotam com formiga trabalhando na sala; o ritmo da especialista vale só para o que ela toca.
             ApplyGardenBoosts(deltaTime);
             AdvanceBeds(deltaTime);
@@ -624,6 +675,7 @@ namespace Fabula.Incrementant.Colony
             UpdateTermites(deltaTime);
             HealAnts(deltaTime);
             TickWaste(deltaTime);
+            TickDew(deltaTime);
             Profiler.Add(ProfileStage.Termites, stageStart);
             stageStart = SimProfiler.Now();
             if (DeathEnabled)
@@ -650,6 +702,7 @@ namespace Fabula.Incrementant.Colony
                     continue;
                 RemoveAnt(i);
                 AgedAnts++;
+                Emit(SfxId.AntDie);
             }
         }
 
@@ -671,7 +724,7 @@ namespace Fabula.Incrementant.Colony
         {
             if (!_harvestPaused)
                 _harvestPaused = !CanHarvest;
-            else if ((_bedsAwaitingPlant - _plantsInFlight - _grid.PlantDebrisCount) * 2 > _grid.BedCount)
+            else if ((PlantDemand - _plantsInFlight - _grid.PlantDebrisCount) * 2 > _activeBeds)
                 _harvestPaused = false;
         }
 
@@ -694,6 +747,7 @@ namespace Fabula.Incrementant.Colony
                     continue;
                 RemoveAnt(i);
                 DrownedAnts++;
+                Emit(SfxId.Drowned);
             }
         }
 
@@ -718,7 +772,7 @@ namespace Fabula.Incrementant.Colony
             // Só a obra olha qualquer mudança de estrutura (a terra solta de fora é a origem do campo da pilha).
             bool buildStructure = _dirtyStructure && _grid.BuildMarkedCount > 0;
             if (!_dirtyUnderground && !_dirtySurface && !_dirtyNearMarks && !buildStructure && !marksChanged && !queenMoved
-                && !nutrientsChanged && !harvestChanged && !_gardenDirty && !_nurseryDirty && !_raidDirty)
+                && !nutrientsChanged && !harvestChanged && !_gardenDirty && !_nurseryDirty && !_raidDirty && !_dewDirty)
                 return;
             // O intervalo limita o custo dos BFS.
             if (_fieldTimer > 0f && !firstBuild)
@@ -1030,7 +1084,7 @@ namespace Fabula.Incrementant.Colony
 
         /// <summary>
         /// Escolhe a planta-alvo: entre as que cresceram o mínimo (<see cref="VegetationSettings.MinHarvestGrowth"/>) e
-        /// têm caminho até a sala de nutrientes, a maior; no empate, a mais perto da entrada do formigueiro. Ela fica
+        /// têm caminho até a sala de nutrientes, a mais perto da entrada do formigueiro; no empate, a maior. Ela fica
         /// como alvo até não restar o que cortar.
         /// </summary>
         void PickGardenTarget()
@@ -1041,7 +1095,7 @@ namespace Fabula.Incrementant.Colony
                 if (_vegetation.IsHarvestable(_grid, rootX, out int rows))
                     _gardenCandidates.Add(new Vector3Int(rootX, rows, Mathf.Abs(rootX - _layout.EntranceX)));
             }
-            _gardenCandidates.Sort((a, b) => a.y != b.y ? b.y.CompareTo(a.y) : a.z != b.z ? a.z.CompareTo(b.z) : a.x.CompareTo(b.x));
+            _gardenCandidates.Sort((a, b) => a.z != b.z ? a.z.CompareTo(b.z) : a.y != b.y ? b.y.CompareTo(a.y) : a.x.CompareTo(b.x));
             foreach (Vector3Int c in _gardenCandidates)
             {
                 if (!_vegetation.TryGetHarvestRow(_grid, c.x, out int row, out int minX, out int maxX) ||
@@ -1122,6 +1176,16 @@ namespace Fabula.Incrementant.Colony
 
         bool TryPickNutrient(Ant ant)
         {
+            if (!TakeNutrientNear(ant))
+                return false;
+            ant.State = AntState.Delivering;
+            ant.Cooldown = _settings.DropSeconds;
+            return true;
+        }
+
+        /// <summary>Tira da sala o nutriente na célula da formiga ou numa das 8 vizinhas.</summary>
+        bool TakeNutrientNear(Ant ant)
+        {
             for (int k = -1; k < 8; k++)
             {
                 int x = k < 0 ? ant.X : ant.X + AntNavigation.Dx[k];
@@ -1129,11 +1193,32 @@ namespace Fabula.Incrementant.Colony
                 if (!_grid.HasNutrient(x, y))
                     continue;
                 _grid.SetNutrient(x, y, false);
-                ant.State = AntState.Delivering;
-                ant.Cooldown = _settings.DropSeconds;
                 return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Sem nenhuma jardineira, a própria rainha vai à sala de nutrientes e come o que está guardado (pedido do
+        /// desenvolvedor em 2026-10-18). Com jardineira, a entrega fica com as formigas. Devolve true se o passo foi gasto nisso.
+        /// </summary>
+        bool TryQueenEatNutrient(Ant queen)
+        {
+            if (queen.State != AntState.Idle || _grid.NutrientCount <= 0 || CountOf(AntRole.Gardener) > 0)
+                return false;
+            int d = _nutrientField.Get(queen.X, queen.Y);
+            if (d == FlowField.Unreachable)
+                return false;
+            if (d == 0)
+            {
+                if (!TakeNutrientNear(queen))
+                    return false;
+                Nutrients++;
+                TotalNutrients++;
+                queen.Cooldown = _settings.DropSeconds;
+                return true;
+            }
+            return StepDownhill(queen, _nutrientField);
         }
 
         /// <summary>
@@ -2048,6 +2133,16 @@ namespace Fabula.Incrementant.Colony
             if (queen.Cooldown > 0f)
                 return;
 
+            // Ofensiva, com invasor no formigueiro, sai da sala atrás dele (volta à sala depois, pelo caminho de sempre).
+            if (QueenStance == QueenStance.Offensive && _nestIntruders > 0 && HuntIntruder(queen))
+                return;
+
+            if (TickLoneQueenBrood(queen))
+                return;
+
+            if (TryQueenEatNutrient(queen))
+                return;
+
             if (QueenInRoom)
             {
                 if (_rng.NextDouble() < _settings.QueenRestChance)
@@ -2060,6 +2155,35 @@ namespace Fabula.Incrementant.Colony
             if (d != FlowField.Unreachable && d > 0 && StepDownhill(queen, _queenRoomField))
                 return;
             queen.Cooldown = QueenWaitSeconds;
+        }
+
+        /// <summary>
+        /// Rainha sozinha no formigueiro: leva o ovo que pôs ao berçário e cuida dele (pedido do desenvolvedor em 2026-10-18).
+        /// Com formigas de volta, termina o que já carrega e deixa o cuidado para elas. Devolve true se o passo foi gasto nisso.
+        /// </summary>
+        bool TickLoneQueenBrood(Ant queen)
+        {
+            switch (queen.State)
+            {
+                case AntState.FetchingEgg:
+                    UpdateFetchingEgg(queen);
+                    return true;
+                case AntState.CarryingEgg:
+                    UpdateCarryingEgg(queen);
+                    return true;
+                case AntState.MovingBrood:
+                    UpdateMovingBrood(queen);
+                    return true;
+                case AntState.Tending:
+                    if (_ants.Count > 0)
+                        Leave(queen, ref _nursery);
+                    else
+                        UpdateTending(queen);
+                    return true;
+            }
+            if (_ants.Count > 0)
+                return false;
+            return TryStartEggFetch(queen) || TryStartCare(queen);
         }
 
         // ---------------------------------------------------------------- comportamento
@@ -2094,8 +2218,10 @@ namespace Fabula.Incrementant.Colony
                 return;
 
             // Cupim no chão: o soldado larga o trabalho na hora e vai caçá-lo; as demais seguem trabalhando e só lutam quando um
-            // cupim as morde (pedido do desenvolvedor em 2026-10-18).
-            if (_groundTermites > 0 && ant.State != AntState.Fighting && (ant.Role == AntRole.Soldier || IsUnderAttack(ant)))
+            // cupim as morde. Com cupim dentro do formigueiro, todas largam o trabalho e vão atrás dele (pedido do desenvolvedor
+            // em 2026-10-18).
+            if (_groundTermites > 0 && ant.State != AntState.Fighting &&
+                (ant.Role == AntRole.Soldier || _nestIntruders > 0 || IsUnderAttack(ant)))
                 InterruptForCombat(ant);
 
             ant.Cooldown -= deltaTime;
@@ -2140,6 +2266,9 @@ namespace Fabula.Incrementant.Colony
                 case AntState.Gardening:
                     UpdateGardening(ant);
                     break;
+                case AntState.TendingDew:
+                    UpdateTendingDew(ant);
+                    break;
                 case AntState.BringingSoil:
                     UpdateBringingSoil(ant);
                     break;
@@ -2180,8 +2309,20 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Até onde (em passos do campo de escavação) uma formiga com a mão não cheia vai buscar mais um pixel antes de entregar.</summary>
         const int LoadedSeekRange = 4;
 
+        /// <summary>
+        /// Sino do HUD: "volte para o formigueiro". As formigas terminam o que têm nas mãos e depois só vagam pelo formigueiro,
+        /// sem começar trabalho novo; a cuidadora segue no berçário e os soldados seguem lutando. Não vai para o save.
+        /// </summary>
+        public bool Recalled { get; set; }
+
         void UpdateIdle(Ant ant)
         {
+            if (Recalled && ant.CarriedCount == 0 && ant.Role != AntRole.Nurse)
+            {
+                WanderHome(ant);
+                return;
+            }
+
             // Mão com pixels e sem alvo ao alcance: procura mais um perto; senão entrega o que tem.
             if (ant.CarriedCount > 0)
             {
@@ -2230,6 +2371,14 @@ namespace Fabula.Incrementant.Colony
             if (ant.Role == AntRole.Gardener)
             {
                 if (_grid.NutrientCount > 0 && TryStartFetch(ant))
+                    return;
+                // Sala Gotas de Orvalho: terra fofa da pilha de fora e, depois dela, a folha cortada da planta.
+                if (TryStartSoilFetch(ant, dewOnly: true))
+                    return;
+                if (_dewLeafSpots > 0 && !_harvestPaused && TryCutWork(ant))
+                    return;
+                // Sala pronta e sem mais o que fazer: fica ao lado da queda das gotas, acelerando-as.
+                if (TryStartDewCare(ant))
                     return;
                 WanderHome(ant);
                 return;
@@ -2575,12 +2724,14 @@ namespace Fabula.Incrementant.Colony
                 _grid.Set(ant.DigX, ant.DigY, CellMaterials.ToDebris(material), shade);
                 _grid.SetMarked(ant.DigX, ant.DigY, true);
                 VegetationSimulation.DropDisconnected(_grid, ant.DigX, ant.DigY);
+                Emit(SfxId.Dig);
                 return;
             }
 
             // Pixel solto de planta volta a ser planta na mão e vai para a sala de nutrientes (UpdateStoring).
             ant.PickUp(debris ? CellMaterials.FromDebris(material) : material, _grid.GetShade(ant.DigX, ant.DigY), _grid.ToIndex(ant.DigX, ant.DigY));
             _grid.Set(ant.DigX, ant.DigY, CellMaterial.Empty, 0);
+            Emit(SfxId.Dig);
             // Mão não cheia e mais um pixel do mesmo tipo ao alcance: continua antes de entregar.
             if (ant.CarriedCount >= LoadCapacity(ant))
             {
@@ -2645,6 +2796,7 @@ namespace Fabula.Incrementant.Colony
             ant.PickUp(_grid.Get(ant.DigX, ant.DigY), _grid.GetShade(ant.DigX, ant.DigY), _grid.ToIndex(ant.DigX, ant.DigY));
             ant.ReturningSoil = false;
             _grid.Set(ant.DigX, ant.DigY, CellMaterial.Empty, 0);
+            Emit(SfxId.Dig);
             // Mão não cheia e mais terra solta ao alcance: pega mais antes de ir à obra.
             if (ant.CarriedCount < Tree.SoilCapacity(ant.Role) && TryStartGather(ant, continuing: true))
                 return;
@@ -2723,6 +2875,7 @@ namespace Fabula.Incrementant.Colony
             _grid.Set(ant.DigX, ant.DigY, CellMaterials.ToPacked(ant.Carried), ant.CarriedShade);
             // Marca como obra: do lado de fora a formiga anda por dentro dela (AntNavigation.IsOutdoorBuilt).
             _grid.SetBuilt(ant.DigX, ant.DigY, true);
+            Emit(SfxId.Build);
             ant.DropTop();
             // Sobrou terra na mão: segue para o próximo ponto da obra.
             ant.State = ant.CarriedCount > 0 ? AntState.Hauling : AntState.Idle;
@@ -2809,6 +2962,7 @@ namespace Fabula.Incrementant.Colony
                     continue;
 
                 _grid.Set(x, y, CellMaterials.ToDumped(ant.Carried), ant.CarriedShade);
+                Emit(SfxId.Drop);
                 ant.DropTop();
                 // O pixel solto já conta no monte (DumpLoad): sai dos que estão a caminho.
                 if (ant.DumpSide >= 0 && ant.DumpPixels > 0)

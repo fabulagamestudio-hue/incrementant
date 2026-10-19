@@ -40,6 +40,7 @@ namespace Fabula.Incrementant.World
         readonly bool[] _nurseryRoom;
         // Área de resíduos: lugar pintado (como as outras salas). As formigas empilham ali entulho e restos, que se decompõem.
         readonly bool[] _wasteRoom;
+        readonly bool[] _dewRoom;
         // Nutriente pronto: camada à parte, só em célula sem material. Não bloqueia a passagem (a célula continua vazia).
         readonly bool[] _nutrient;
         // Canteiro: etapa do cultivo de uma célula de terra fofa (Spoil) e segundos que faltam para ele brotar.
@@ -73,6 +74,7 @@ namespace Fabula.Incrementant.World
         readonly int[] _chunkNutrientRoom;
         readonly int[] _chunkNurseryRoom;
         readonly int[] _chunkWasteRoom;
+        readonly int[] _chunkDewRoom;
         readonly int[] _chunkNutrient;
         readonly int[] _chunkWater;
         readonly int[] _rowWater;
@@ -115,6 +117,7 @@ namespace Fabula.Incrementant.World
 
         /// <summary>Células pintadas como área de resíduos.</summary>
         public int WasteRoomCount { get; private set; }
+        public int DewRoomCount { get; private set; }
 
         /// <summary>Nutrientes prontos no chão (células com a camada de nutriente), à espera de serem levados à rainha.</summary>
         public int NutrientCount { get; private set; }
@@ -155,6 +158,7 @@ namespace Fabula.Incrementant.World
             _nutrientRoom = new bool[width * height];
             _nurseryRoom = new bool[width * height];
             _wasteRoom = new bool[width * height];
+            _dewRoom = new bool[width * height];
             _nutrient = new bool[width * height];
             _bedStage = new BedStage[width * height];
             _bedGrow = new float[width * height];
@@ -184,6 +188,7 @@ namespace Fabula.Incrementant.World
             _chunkNutrientRoom = new int[chunks];
             _chunkNurseryRoom = new int[chunks];
             _chunkWasteRoom = new int[chunks];
+            _chunkDewRoom = new int[chunks];
             _chunkNutrient = new int[chunks];
             _chunkWater = new int[chunks];
             _rowWater = new int[ChunkRows];
@@ -263,6 +268,9 @@ namespace Fabula.Incrementant.World
 
         /// <summary>A célula está pintada como área de resíduos.</summary>
         public bool IsWasteRoom(int x, int y) => InBounds(x, y) && _wasteRoom[y * Width + x];
+
+        /// <summary>A célula está pintada como sala Gotas de Orvalho.</summary>
+        public bool IsDewRoom(int x, int y) => InBounds(x, y) && _dewRoom[y * Width + x];
 
         /// <summary>A célula guarda um nutriente (só células sem material guardam).</summary>
         public bool HasNutrient(int x, int y) => InBounds(x, y) && _nutrient[y * Width + x];
@@ -524,7 +532,7 @@ namespace Fabula.Incrementant.World
             int i = y * Width + x;
             if (_queenRoom[i] == room)
                 return false;
-            if (room && (y > GetSurfaceY(x) || _nutrientRoom[i] || _nurseryRoom[i] || _wasteRoom[i]))
+            if (room && (y > GetSurfaceY(x) || _nutrientRoom[i] || _nurseryRoom[i] || _wasteRoom[i] || _dewRoom[i]))
                 return false;
 
             _queenRoom[i] = room;
@@ -546,7 +554,7 @@ namespace Fabula.Incrementant.World
             int i = y * Width + x;
             if (_nurseryRoom[i] == room)
                 return false;
-            if (room && (y > GetSurfaceY(x) || _queenRoom[i] || _nutrientRoom[i] || _wasteRoom[i]))
+            if (room && (y > GetSurfaceY(x) || _queenRoom[i] || _nutrientRoom[i] || _wasteRoom[i] || _dewRoom[i]))
                 return false;
 
             _nurseryRoom[i] = room;
@@ -568,13 +576,38 @@ namespace Fabula.Incrementant.World
             int i = y * Width + x;
             if (_wasteRoom[i] == room)
                 return false;
-            if (room && (y > GetSurfaceY(x) || _queenRoom[i] || _nutrientRoom[i] || _nurseryRoom[i]))
+            if (room && (y > GetSurfaceY(x) || _queenRoom[i] || _nutrientRoom[i] || _nurseryRoom[i] || _dewRoom[i]))
                 return false;
 
             _wasteRoom[i] = room;
             WasteRoomCount += room ? 1 : -1;
             _chunkWasteRoom[ChunkOf(i)] += room ? 1 : -1;
             MarkVersion++;
+            return true;
+        }
+
+        /// <summary>
+        /// Pinta/apaga a sala Gotas de Orvalho. Como o berçário: só células do formigueiro (no solo original ou abaixo), sólidas
+        /// ou não, e nunca por cima de outra sala. A terra fofa (<see cref="CellMaterial.Spoil"/>) dentro dela fica presa onde a
+        /// formiga a pôs (<see cref="GranularSimulation"/>) e a água dela não é absorvida (<see cref="WaterSimulation"/>).
+        /// </summary>
+        public bool SetDewRoom(int x, int y, bool room)
+        {
+            if (!InBounds(x, y))
+                return false;
+
+            int i = y * Width + x;
+            if (_dewRoom[i] == room)
+                return false;
+            if (room && (y > GetSurfaceY(x) || _queenRoom[i] || _nutrientRoom[i] || _nurseryRoom[i] || _wasteRoom[i]))
+                return false;
+
+            _dewRoom[i] = room;
+            DewRoomCount += room ? 1 : -1;
+            _chunkDewRoom[ChunkOf(i)] += room ? 1 : -1;
+            MarkVersion++;
+            // A terra da célula passa a ter (ou deixa de ter) a física presa: acorda o bloco para a granular rever.
+            Touch(x, y);
             return true;
         }
 
@@ -591,13 +624,21 @@ namespace Fabula.Incrementant.World
             int i = y * Width + x;
             if (_nutrientRoom[i] == room)
                 return false;
-            if (room && (y > GetSurfaceY(x) || _queenRoom[i] || _nurseryRoom[i] || _wasteRoom[i]))
+            if (room && (y > GetSurfaceY(x) || _queenRoom[i] || _nurseryRoom[i] || _wasteRoom[i] || _dewRoom[i]))
                 return false;
 
             _nutrientRoom[i] = room;
             NutrientRoomCount += room ? 1 : -1;
             _chunkNutrientRoom[ChunkOf(i)] += room ? 1 : -1;
             NutrientVersion++;
+            // Canteiro fora da sala não produz: perde a planta e a água e fica só a terra (a colônia a recolhe e reaproveita).
+            if (!room && _bedStage[i] != BedStage.None)
+            {
+                if (_bedStage[i] == BedStage.Growing)
+                    GrowingBedCount--;
+                _bedStage[i] = BedStage.Soil;
+                _bedGrow[i] = 0f;
+            }
             return true;
         }
 
@@ -904,6 +945,8 @@ namespace Fabula.Incrementant.World
         public int GetChunkNurseryRoomCount(int cx, int cy) => _chunkNurseryRoom[cy * ChunkColumns + cx];
 
         public int GetChunkWasteRoomCount(int cx, int cy) => _chunkWasteRoom[cy * ChunkColumns + cx];
+
+        public int GetChunkDewRoomCount(int cx, int cy) => _chunkDewRoom[cy * ChunkColumns + cx];
 
         /// <summary>Quantos nutrientes guardados há no bloco.</summary>
         public int GetChunkNutrientCount(int cx, int cy) => _chunkNutrient[cy * ChunkColumns + cx];

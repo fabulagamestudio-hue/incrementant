@@ -57,6 +57,10 @@ namespace Fabula.Incrementant.Tests
         static AntColony MakeColony(PixelGrid grid, bool raids = true)
         {
             var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 3) { DeathEnabled = false, RaidsEnabled = raids };
+            // Os testes antigos não tratam da caça à rainha (ela mora longe e morreria no meio da ordem dos objetivos).
+            colony.RaidSettings.HuntQueen = false;
+            // A rainha mora na sala dela, longe do caminho dos cupins (no corredor eles a morderiam e ela morreria no meio).
+            colony.RestoreQueen(95, 2, 1);
             Tick(colony, 1f);
             return colony;
         }
@@ -119,9 +123,24 @@ namespace Fabula.Incrementant.Tests
                 Assert.AreEqual(TermitePhase.Flying, t.Phase, "Chegam voando.");
 
             Assert.IsTrue(TickUntil(colony, () => colony.Termites.Count == 0 || colony.Termites[0].Phase != TermitePhase.Flying, 5f));
-            Tick(colony, 3f);
-            foreach (Ant ant in colony.Ants)
-                Assert.IsFalse(ant.State == AntState.Fighting && ant.Wounds == 0f, "Sem soldado, ninguém sai caçando cupim.");
+        }
+
+        [Test]
+        public void RaidInterval_IsInGameMinutes_SoFasterSpeedsDoNotShortenIt()
+        {
+            AntColony colony = MakeColony(MakeWorld());
+            colony.RestoreRaids(raidsUnlocked: true, raidsSurvived: 1, secondsToNextRaid: 60f);
+            for (int i = 0; i < 9; i++)
+                colony.Spawn(AntRole.Worker);
+
+            colony.GameSpeed = 8f;
+            Tick(colony, 40f); // 40 s de simulação a 8x = 5 s de jogo
+            Assert.AreEqual(RaidState.Calm, colony.RaidState);
+            Assert.AreEqual(55f, colony.SecondsToNextRaid, 0.5f, "A 8x o relógio anda 1/8 da simulação.");
+
+            colony.GameSpeed = 1f;
+            Tick(colony, 56f);
+            Assert.AreEqual(RaidState.Warning, colony.RaidState, "A 1x o minuto de jogo é o tempo da simulação.");
         }
 
         /// <summary>Colônia com o soldado liberado (o primeiro ataque já passou), sem ataque marcado para os próximos minutos.</summary>
@@ -139,7 +158,7 @@ namespace Fabula.Incrementant.Tests
         {
             AntColony colony = MakeSoldierColony(MakeWorld());
             Ant soldier = colony.Spawn(AntRole.Soldier);
-            colony.SpawnTermite(98, 1); // na outra ponta do corredor, longe de todas
+            colony.SpawnTermite(98, 21); // na superfície, fora do formigueiro e longe de todas
             bool soldierFought = false, workerChased = false;
             for (float t = 0f; t < 4f; t += Dt)
             {
@@ -150,6 +169,117 @@ namespace Fabula.Incrementant.Tests
             }
             Assert.IsTrue(soldierFought, "O soldado larga o que fazia e vai atrás do cupim.");
             Assert.IsFalse(workerChased, "As outras só lutam quando são mordidas.");
+        }
+
+        [Test]
+        public void HeavyRain_KillsEveryLiveTermite_AndEndsTheRaid()
+        {
+            AntColony colony = MakeColony(MakeWorld());
+            Termite outside = colony.SpawnTermite(98, 21);
+            Termite inside = colony.SpawnTermite(98, 1);
+            colony.Tick(Dt);
+            Assert.AreEqual(2, colony.LiveTermites, "Sem chuva eles continuam vivos.");
+
+            colony.Raining = true;
+            colony.Tick(Dt);
+            Assert.IsFalse(outside.Alive);
+            Assert.IsFalse(inside.Alive);
+            Assert.AreEqual(0, colony.LiveTermites);
+            Assert.AreEqual(2, colony.TermitesKilled);
+            Assert.AreEqual(RaidState.Calm, colony.RaidState, "Sem cupins vivos o ataque acaba.");
+        }
+
+        [Test]
+        public void NoRaidStartsWhileItRainsHeavily_ItComesWhenTheSkyClears()
+        {
+            AntColony colony = MakeColony(MakeWorld());
+            for (int i = 0; i < 9; i++)
+                colony.Spawn(AntRole.Worker);
+            colony.RestoreRaids(true, 0, 0.5f);
+            colony.Raining = true;
+            Tick(colony, 10f);
+            Assert.AreEqual(RaidState.Calm, colony.RaidState, "O alerta espera a chuva passar.");
+
+            colony.Raining = false;
+            Tick(colony, 1f);
+            Assert.AreEqual(RaidState.Warning, colony.RaidState);
+        }
+
+        [Test]
+        public void ATermiteInsideTheNest_MakesEveryAntHuntIt_AndTheyGoBackToWorkAfterwards()
+        {
+            AntColony colony = MakeSoldierColony(MakeWorld());
+            Termite intruder = colony.SpawnTermite(98, 1); // dentro do formigueiro, longe das formigas
+            bool workerChased = false;
+            for (float t = 0f; t < 4f; t += Dt)
+            {
+                colony.Tick(Dt);
+                foreach (Ant ant in colony.Ants)
+                    workerChased |= ant.Role != AntRole.Soldier && ant.State == AntState.Fighting && ant.Wounds == 0f;
+            }
+            Assert.IsTrue(workerChased, "Com invasor dentro do formigueiro, todas largam o trabalho e vão atrás dele.");
+            Assert.IsTrue(TickUntil(colony, () => !intruder.Alive, 120f), "As formigas matam o invasor.");
+            Tick(colony, colony.RaidSettings.AttackSeconds + 0.2f);
+            foreach (Ant ant in colony.Ants)
+                Assert.AreNotEqual(AntState.Fighting, ant.State, "Sem invasor, voltam ao trabalho.");
+        }
+
+        [Test]
+        public void TheQueen_BitesBackWithThreeTimesTheSoldiersDamage()
+        {
+            AntColony colony = MakeSoldierColony(MakeWorld());
+            colony.RestoreState(0, 0, colony.SimulationTime, new Ant[0]); // sem formigas para morder no lugar dela
+            Termite termite = colony.SpawnTermite(colony.Queen.X, colony.Queen.Y);
+            termite.Health = 1000f;
+            float soldier = colony.Tree.Damage(AntRole.Soldier) * colony.RaidSettings.AttackSeconds;
+            Assert.AreEqual(9f, soldier * 3f, 1e-3f, "Soldado 3/s: a rainha dá 9 por mordida.");
+            colony.Tick(Dt);
+            Assert.LessOrEqual(termite.Health, 1000f - soldier * 3f, "Mordida de volta na hora em que é mordida.");
+            Assert.Greater(colony.Queen.Wounds, 0f);
+        }
+
+        [Test]
+        public void AnOffensiveQueen_LeavesToHuntAnIntruder_ADefensiveOneStays()
+        {
+            AntColony offensive = MakeColony(MakeWorld());
+            offensive.QueenStance = QueenStance.Offensive;
+            Termite far = offensive.SpawnTermite(offensive.Queen.X - 25, 1);
+            far.Health = 1000f;
+            Assert.IsTrue(TickUntil(offensive, () => Mathf.Abs(offensive.Queen.X - far.X) <= offensive.RaidSettings.AttackReach, 40f),
+                          "A rainha ofensiva vai até o invasor.");
+
+            AntColony defensive = MakeColony(MakeWorld());
+            Termite other = defensive.SpawnTermite(defensive.Queen.X - 25, 1);
+            other.Health = 1000f;
+            Tick(defensive, 3f);
+            Assert.GreaterOrEqual(defensive.Queen.X, 88, "A defensiva fica na sala dela, sem sair atrás do cupim.");
+        }
+
+        [Test]
+        public void TheQueenDying_IsGameOver_AndTheSimulationStops()
+        {
+            AntColony colony = MakeColony(MakeWorld());
+            colony.RestoreState(0, 0, colony.SimulationTime, new Ant[0]);
+            Termite killer = colony.SpawnTermite(colony.Queen.X, colony.Queen.Y);
+            killer.Health = 100000f;
+            Assert.IsFalse(colony.GameOver);
+            Assert.IsTrue(TickUntil(colony, () => colony.GameOver, 200f), "Mordida atrás de mordida, a rainha morre.");
+            float time = colony.SimulationTime;
+            Tick(colony, 1f);
+            Assert.AreEqual(time, colony.SimulationTime, "Em game over a simulação para.");
+        }
+
+        [Test]
+        public void TheFinger_HurtsTheTermiteNearTheClick()
+        {
+            AntColony colony = MakeColony(MakeWorld());
+            Termite termite = colony.SpawnTermite(30, 2);
+            Assert.IsFalse(colony.HitTermiteAt(60, 2), "Longe do cupim, o dedo erra.");
+            Assert.IsTrue(colony.HitTermiteAt(31, 2));
+            Assert.AreEqual(colony.RaidSettings.TermiteHealth - colony.RaidSettings.FingerDamage, termite.Health, 1e-3f);
+            for (int i = 0; i < 6; i++)
+                colony.HitTermiteAt(30, 2);
+            Assert.IsFalse(termite.Alive, "Cliques sucessivos matam o cupim.");
         }
 
         [Test]
@@ -168,24 +298,24 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
-        public void TheTermiteShare_StartsAt40Percent_AndItsCeilingGrowsTo200Percent()
+        public void TheTermiteShare_StartsAt40Percent_AndItsCeilingGrowsSlowlyTo100Percent()
         {
             AntColony colony = MakeColony(MakeWorld());
             Assert.AreEqual(0.4f, colony.TermiteCap, 1e-4f, "O primeiro ataque vem com 40%.");
             colony.RestoreRaids(true, 3, 10000f);
-            Assert.AreEqual(1.0f, colony.TermiteCap, 1e-4f, "+20 pontos por ataque.");
-            colony.RestoreRaids(true, 8, 10000f);
-            Assert.AreEqual(2.0f, colony.TermiteCap, 1e-4f);
+            Assert.AreEqual(0.55f, colony.TermiteCap, 1e-4f, "+5 pontos por ataque.");
+            colony.RestoreRaids(true, 12, 10000f);
+            Assert.AreEqual(1.0f, colony.TermiteCap, 1e-4f);
             colony.RestoreRaids(true, 30, 10000f);
-            Assert.AreEqual(2.0f, colony.TermiteCap, 1e-4f, "Nunca passa de 200%.");
+            Assert.AreEqual(1.0f, colony.TermiteCap, 1e-4f, "Nunca passa de 100%.");
 
             colony.RestoreRaids(true, 5, 10000f);
             for (int i = 0; i < 14; i++)
                 colony.Spawn(AntRole.Worker);
             int ants = colony.Ants.Count;
             colony.ForceRaid(skipWarning: true);
-            Assert.That(colony.LastRaidShare, Is.InRange(0.4f, 1.4f), "Sorteado entre o mínimo e o teto do momento.");
-            Assert.That(colony.Termites.Count, Is.InRange(Mathf.CeilToInt(ants * 0.4f), Mathf.CeilToInt(ants * 1.4f)));
+            Assert.That(colony.LastRaidShare, Is.InRange(0.4f, 0.65f), "Sorteado entre o mínimo e o teto do momento.");
+            Assert.That(colony.Termites.Count, Is.InRange(Mathf.CeilToInt(ants * 0.4f), Mathf.CeilToInt(ants * 0.65f)));
         }
 
         [Test]
@@ -200,6 +330,20 @@ namespace Fabula.Incrementant.Tests
             Assert.AreEqual(RaidState.Warning, colony.RaidState);
             Assert.LessOrEqual(colony.SecondsToNextRaid, 8f, "O alerta do F4 não vira o intervalo do próximo ataque.");
             Assert.IsTrue(TickUntil(colony, () => colony.RaidState == RaidState.Active, 9f));
+        }
+
+        [Test]
+        public void Raids_WaitWhileTheColonyIsBelowTheMinimumOfAnts()
+        {
+            AntColony colony = MakeColony(MakeWorld());
+            colony.RestoreRaids(true, 3, 1f); // desbloqueado, já com ataques passados e com o relógio quase no fim, mas com 6 formigas
+            Tick(colony, 400f);
+            Assert.AreEqual(RaidState.Calm, colony.RaidState, "Abaixo do mínimo, nenhum ataque vem.");
+            Assert.AreEqual(0, colony.Termites.Count);
+
+            for (int i = 0; i < 9; i++)
+                colony.Spawn(AntRole.Worker);
+            Assert.IsTrue(TickUntil(colony, () => colony.RaidState == RaidState.Warning, 5f), "Com o mínimo, o relógio vence.");
         }
 
         [Test]
@@ -267,6 +411,148 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
+        public void TermitesThatLandFarAway_StillDestroyTheBedsAndWalls_BeforeLeaving()
+        {
+            // Mapa largo: o cupim pousa a ~900 colunas da entrada e leva mais que Stall Seconds (30 s) só para chegar.
+            var grid = new PixelGrid(1100, 40);
+            for (int x = 0; x < grid.Width; x++)
+            {
+                grid.Set(x, 0, CellMaterial.Rock);
+                grid.SetSurfaceY(x, 20);
+                for (int y = 1; y <= 20; y++)
+                    grid.Set(x, y, CellMaterial.Dirt);
+            }
+            for (int x = 10; x <= 100; x++)
+            for (int y = 1; y <= 3; y++)
+                grid.Set(x, y, CellMaterial.Empty);
+            for (int x = 50; x <= 51; x++)
+            for (int y = 4; y <= 20; y++)
+                grid.Set(x, y, CellMaterial.Empty);
+            for (int x = 60; x <= 80; x++)
+            for (int y = 1; y <= 3; y++)
+                grid.SetNutrientRoom(x, y, true);
+            grid.Set(62, 1, CellMaterial.Spoil);
+            grid.SetBed(62, 1, BedStage.Soil);
+
+            AntColony colony = MakeColony(grid);
+            RemoveAllAnts(colony);
+            colony.SpawnTermite(950, 21);
+            Assert.IsTrue(TickUntil(colony, () => colony.RaidState == RaidState.Calm, 600f));
+            Assert.AreEqual(1, colony.BedsDestroyed, "Caminhar até o formigueiro não é ficar parado: o canteiro é destruído.");
+            Assert.Greater(colony.WallsDestroyed, 0, "As paredes da sala também.");
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void Termites_TearDownBothWallLayersAroundAClosedRoom_FloorIncluded(bool granular)
+        {
+            // Sala fechada de terra (x 40..55, y 8..11) no meio do solo, ligada à superfície por um poço em x 47..48.
+            var grid = new PixelGrid(120, 40);
+            for (int x = 0; x < grid.Width; x++)
+            {
+                grid.Set(x, 0, CellMaterial.Rock);
+                grid.SetSurfaceY(x, 20);
+                for (int y = 1; y <= 20; y++)
+                    grid.Set(x, y, CellMaterial.Dirt);
+            }
+            for (int x = 40; x <= 55; x++)
+            for (int y = 8; y <= 11; y++)
+            {
+                grid.Set(x, y, CellMaterial.Empty);
+                grid.SetNutrientRoom(x, y, true);
+            }
+            for (int x = 47; x <= 48; x++)
+            for (int y = 12; y <= 20; y++)
+                grid.Set(x, y, CellMaterial.Empty);
+
+            AntColony colony = MakeColony(grid);
+            RemoveAllAnts(colony);
+            colony.SpawnTermite(42, 8);
+            colony.SpawnTermite(53, 8);
+            colony.SpawnTermite(47, 11);
+            Assert.IsTrue(TickUntil(colony, () => colony.RaidObjective == RaidObjective.Walls, 10f));
+            Assert.IsTrue(TickUntil(colony, () => colony.WallTargetsLeft > 0, 2f));
+            // Com a física granular (como no jogo) o entulho do teto cai na sala; sem ela, tudo fica onde foi derrubado.
+            var simulation = new GranularSimulation();
+            for (float t = 0f; t < 600f && colony.RaidObjective != RaidObjective.Leave; t += Dt)
+            {
+                if (granular)
+                    simulation.Step(grid);
+                colony.Tick(Dt);
+            }
+            Assert.AreEqual(RaidObjective.Leave, colony.RaidObjective);
+            Assert.AreEqual(0, colony.WallTargetsLeft,
+                            $"As duas camadas inteiras caem antes de irem embora (derrubadas {colony.WallsDestroyed})\n" + DumpRoom(grid));
+        }
+
+        [Test]
+        public void WhenTheSectorIsLargerThanTheDugPart_TermitesTearDownItsInsideThenItsOuterWalls()
+        {
+            // Berçário pintado em x 30..64, y 4..12, mas só x 42..52, y 7..9 escavado (e um poço até a superfície).
+            var grid = new PixelGrid(120, 40);
+            for (int x = 0; x < grid.Width; x++)
+            {
+                grid.Set(x, 0, CellMaterial.Rock);
+                grid.SetSurfaceY(x, 20);
+                for (int y = 1; y <= 20; y++)
+                    grid.Set(x, y, CellMaterial.Dirt);
+            }
+            for (int x = 30; x <= 64; x++)
+            for (int y = 4; y <= 12; y++)
+                grid.SetNurseryRoom(x, y, true);
+            for (int x = 42; x <= 52; x++)
+            for (int y = 7; y <= 9; y++)
+                grid.Set(x, y, CellMaterial.Empty);
+            for (int x = 47; x <= 48; x++)
+            for (int y = 10; y <= 20; y++)
+                grid.Set(x, y, CellMaterial.Empty);
+
+            AntColony colony = MakeColony(grid);
+            RemoveAllAnts(colony);
+            for (int i = 0; i < 6; i++)
+                colony.SpawnTermite(43 + 2 * i, 7);
+            var simulation = new GranularSimulation();
+            Assert.IsTrue(TickUntil(colony, () => colony.RaidObjective == RaidObjective.Sectors, 10f));
+            Assert.IsTrue(TickUntil(colony, () => colony.SectorTargetsLeft > 0, 2f));
+            int sectorTargets = colony.SectorTargetsLeft;
+            int wallTargets = -1;
+            bool wallsBeforeSectors = false;
+            for (float t = 0f; t < 300f && colony.RaidObjective != RaidObjective.Leave; t += Dt)
+            {
+                simulation.Step(grid);
+                colony.Tick(Dt);
+                wallsBeforeSectors |= colony.WallsDestroyed > 0 && colony.SectorTargetsLeft > 0;
+                if (wallTargets < 0 && colony.WallTargetsLeft > 0)
+                    wallTargets = colony.WallTargetsLeft;
+            }
+            Assert.AreEqual(RaidObjective.Leave, colony.RaidObjective, "Terminam antes do tempo máximo do ataque.");
+            Assert.AreEqual(0, colony.SectorTargetsLeft,
+                            $"Todo bloco dentro da área pintada cai ({colony.SectorCellsDestroyed} de {sectorTargets}).");
+            Assert.IsFalse(wallsBeforeSectors, "As paredes em volta só começam depois do interior inteiro.");
+            Assert.AreEqual(0, colony.WallTargetsLeft,
+                            $"As paredes em volta da área pintada inteira caem ({colony.WallsDestroyed} de {wallTargets}).");
+            for (int x = 30; x <= 64; x++)
+            for (int y = 4; y <= 12; y++)
+                Assert.AreNotEqual(CellMaterial.Dirt, grid.Get(x, y), $"Nada de terra firme dentro do setor ({x}, {y}).");
+            Assert.AreEqual(CellMaterial.Dirt, grid.Get(30, 15), "Fora das 2 camadas, nada é tocado.");
+        }
+
+        static string DumpRoom(PixelGrid grid)
+        {
+            var sb = new System.Text.StringBuilder();
+            for (int y = 15; y >= 4; y--)
+            {
+                for (int x = 35; x <= 60; x++)
+                {
+                    CellMaterial m = grid.Get(x, y);
+                    sb.Append(m == CellMaterial.Empty ? '.' : m == CellMaterial.Rubble ? 'r' : '#');
+                }
+                sb.Append(' ').Append(y).Append('\n');
+            }
+            return sb.ToString();
+        }
+
+        [Test]
         public void AnAntCanDieInCombat_EvenWithDeathDisabled()
         {
             AntColony colony = MakeColony(MakeWorld());
@@ -284,6 +570,7 @@ namespace Fabula.Incrementant.Tests
             PixelGrid grid = MakeWorld();
             AntColony colony = MakeColony(grid);
             colony.RestoreRaids(raidsUnlocked: true, raidsSurvived: 2, secondsToNextRaid: 77f);
+            colony.QueenStance = QueenStance.Offensive;
             var rain = new RainSimulation(new RainSettings(), 3);
             var water = new WaterSimulation(new WaterSettings(), grid, 3);
             GameSnapshot snapshot = GameSnapshot.Capture(grid, colony, rain, water, 0, 3, 10.0);
@@ -307,6 +594,7 @@ namespace Fabula.Incrementant.Tests
             Assert.AreEqual(2, loaded.RaidsSurvived);
             Assert.AreEqual(77f, loaded.SecondsToNextRaid, 1e-3f);
             Assert.IsTrue(loaded.Tree.SoldiersAvailable);
+            Assert.AreEqual(QueenStance.Offensive, loaded.QueenStance);
         }
     }
 }

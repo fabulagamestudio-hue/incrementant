@@ -52,8 +52,11 @@ namespace Fabula.Incrementant.Save
         /// 10: idade e tempo de vida de cada formiga.
         /// 11: obra (<c>PixelGrid.IsBuilt</c>) no bit 4 de <see cref="Marked"/>.
         /// 12: canteiros da sala de nutrientes (<see cref="Beds"/>); os nutrientes não curam mais (todo nutriente é pronto).
+        /// 13: ataques de cupins e área de resíduos.
+        /// 14: postura da rainha diante dos cupins (<see cref="QueenStance"/>).
+        /// 15: relógio das tempestades automáticas (<see cref="SecondsToStormRoll"/>, <see cref="StormRemaining"/>).
         /// </summary>
-        public const int CurrentVersion = 13;
+        public const int CurrentVersion = 15;
         /// <summary>
         /// Versão mais antiga que ainda carrega (a 2 volta sem sala pintada e com a rainha no ninho; a 2 e a 3 voltam sem
         /// sala de nutrientes e com 0 nutrientes).
@@ -103,7 +106,7 @@ namespace Fabula.Incrementant.Save
         public byte[] QueenRoom = Array.Empty<byte>();
         /// <summary>Por célula: bit 0 = sala de nutrientes pintada, bit 1 = nutriente guardado.</summary>
         public byte[] NutrientRoom = Array.Empty<byte>();
-        /// <summary>Berçário pintado (1) por célula. Vazio antes da versão 8.</summary>
+        /// <summary>Por célula: bit 0 berçário, bit 1 área de resíduos, bit 2 sala Gotas de Orvalho. Vazio antes da versão 8.</summary>
         public byte[] NurseryRoom = Array.Empty<byte>();
         /// <summary><see cref="QueenMode"/> e o papel do modo específico (versão 8).</summary>
         public byte QueenMode, QueenTarget;
@@ -127,6 +130,11 @@ namespace Fabula.Incrementant.Save
         public bool RaidsUnlocked;
         public int RaidsSurvived;
         public float SecondsToNextRaid;
+        // Versão 14: postura da rainha (<see cref="Colony.QueenStance"/>).
+        public byte QueenStance;
+        // Versão 15: tempestades. Antes dela, -1 (sorteia o primeiro período ao carregar) e sem tempestade em curso.
+        public float SecondsToStormRoll = -1f;
+        public float StormRemaining;
 
         public static GameSnapshot Capture(PixelGrid grid, AntColony colony, RainSimulation rain, WaterSimulation water,
                                            int mapSource, int seed, double matchSeconds, VegetationSimulation vegetation = null)
@@ -142,6 +150,8 @@ namespace Fabula.Incrementant.Save
                 Active = area,
                 MatchSeconds = matchSeconds,
                 Weather = (int)rain.Weather,
+                SecondsToStormRoll = rain.SecondsToStormRoll,
+                StormRemaining = rain.StormRemaining,
                 DissolvedCells = rain.DissolvedCells,
                 PackedCells = rain.PackedCells,
                 RainWaterCells = rain.WaterCells,
@@ -175,6 +185,7 @@ namespace Fabula.Incrementant.Save
                 BehindShades = new byte[count],
                 RaidsUnlocked = colony.RaidsUnlocked,
                 RaidsSurvived = colony.RaidsSurvived,
+                QueenStance = (byte)colony.QueenStance,
                 SecondsToNextRaid = colony.RaidState == RaidState.Calm ? colony.SecondsToNextRaid : 0f,
             };
 
@@ -189,8 +200,9 @@ namespace Fabula.Incrementant.Save
                 snapshot.Wetness[i] = grid.GetWetness(x, y);
                 snapshot.Water[i] = grid.HasWater(x, y) ? (byte)1 : (byte)0;
                 snapshot.QueenRoom[i] = grid.IsQueenRoom(x, y) ? (byte)1 : (byte)0;
-                // Bit 0 berçário, bit 1 área de resíduos (versão 13; antes só 0 ou 1).
-                snapshot.NurseryRoom[i] = (byte)((grid.IsNurseryRoom(x, y) ? 1 : 0) | (grid.IsWasteRoom(x, y) ? 2 : 0));
+                // Bit 0 berçário, bit 1 área de resíduos (versão 13), bit 2 sala Gotas de Orvalho (saves antigos têm 0: sem sala).
+                snapshot.NurseryRoom[i] = (byte)((grid.IsNurseryRoom(x, y) ? 1 : 0) | (grid.IsWasteRoom(x, y) ? 2 : 0) |
+                                                 (grid.IsDewRoom(x, y) ? 4 : 0));
                 snapshot.Behind[i] = (byte)grid.GetBehind(x, y);
                 snapshot.BehindShades[i] = grid.GetBehindShade(x, y);
                 // Bits 2-7 eram a cura que faltava (até a versão 11); hoje vão sempre 0 e são ignorados ao ler.
@@ -272,6 +284,7 @@ namespace Fabula.Incrementant.Save
                 {
                     grid.SetNurseryRoom(x, y, (NurseryRoom[i] & 1) != 0);
                     grid.SetWasteRoom(x, y, (NurseryRoom[i] & 2) != 0);
+                    grid.SetDewRoom(x, y, (NurseryRoom[i] & 4) != 0);
                 }
             }
             // Depois das células: só terra fofa vira canteiro.
@@ -300,6 +313,7 @@ namespace Fabula.Incrementant.Save
             colony.RestoreBrood(Brood, LayTimer);
             colony.Tree.Restore(TreeMask);
             colony.RestoreRaids(RaidsUnlocked, RaidsSurvived, SecondsToNextRaid);
+            colony.QueenStance = (QueenStance)QueenStance;
         }
 
         /// <summary>Linhas enterradas das plantas (chame depois de <c>MarkPopulated</c>; as células já vêm da grade).</summary>
@@ -312,6 +326,7 @@ namespace Fabula.Incrementant.Save
         public void ApplyTo(RainSimulation rain)
         {
             rain.Weather = (Weather)Weather;
+            rain.RestoreStorm(SecondsToStormRoll, StormRemaining);
             rain.RestoreCounters(DissolvedCells, PackedCells, RainWaterCells);
         }
 
@@ -382,6 +397,8 @@ namespace Fabula.Incrementant.Save
                     w.Write(b.X); w.Write(b.Y); w.Write((byte)b.Stage); w.Write(b.Grow);
                 }
                 w.Write(RaidsUnlocked); w.Write(RaidsSurvived); w.Write(SecondsToNextRaid);
+                w.Write(QueenStance);
+                w.Write(SecondsToStormRoll); w.Write(StormRemaining);
             }
         }
 
@@ -502,6 +519,13 @@ namespace Fabula.Incrementant.Save
                         s.RaidsUnlocked = r.ReadBoolean();
                         s.RaidsSurvived = r.ReadInt32();
                         s.SecondsToNextRaid = r.ReadSingle();
+                    }
+                    if (version >= 14)
+                        s.QueenStance = r.ReadByte();
+                    if (version >= 15)
+                    {
+                        s.SecondsToStormRoll = r.ReadSingle();
+                        s.StormRemaining = r.ReadSingle();
                     }
                     return s;
                 }

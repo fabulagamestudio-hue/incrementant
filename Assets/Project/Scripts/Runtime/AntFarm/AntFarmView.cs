@@ -14,6 +14,9 @@ namespace Fabula.Incrementant.AntFarm
         NutrientRoom,
         NurseryRoom,
         WasteRoom,
+        /// <summary>O dedo não pinta: o contorno é só a mira.</summary>
+        Finger,
+        DewRoom,
     }
 
     /// <summary>
@@ -43,6 +46,8 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField] Color32 _nurseryRoomColor = new Color32(240, 160, 190, 255);
         [Tooltip("Cor da área de resíduos pintada e do pincel no modo área de resíduos.")]
         [SerializeField] Color32 _wasteRoomColor = new Color32(170, 150, 90, 255);
+        [Tooltip("Cor da sala Gotas de Orvalho pintada e do pincel no modo sala Gotas de Orvalho.")]
+        [SerializeField] Color32 _dewRoomColor = new Color32(90, 190, 230, 255);
         [Tooltip("Força da tinta da sala de nutrientes; células ainda maciças ficam com metade.")]
         [SerializeField, Range(0f, 1f)] float _nutrientRoomStrength = 0.35f;
         [Tooltip("Cor do nutriente pronto que brotou de um canteiro (e carregado até a rainha, no fallback sem sprites).")]
@@ -211,6 +216,7 @@ namespace Fabula.Incrementant.AntFarm
                 case BrushTint.NutrientRoom: return _nutrientRoomColor;
                 case BrushTint.NurseryRoom: return _nurseryRoomColor;
                 case BrushTint.WasteRoom: return _wasteRoomColor;
+                case BrushTint.DewRoom: return _dewRoomColor;
                 default: return _brushColor;
             }
         }
@@ -292,6 +298,8 @@ namespace Fabula.Incrementant.AntFarm
                                 color = Color32.Lerp(color, _nurseryRoomColor, _nutrientRoomStrength);
                             if (grid.IsWasteRoom(x, y))
                                 color = Color32.Lerp(color, _wasteRoomColor, _nutrientRoomStrength);
+                            if (grid.IsDewRoom(x, y))
+                                color = Color32.Lerp(color, _dewRoomColor, _nutrientRoomStrength);
                         }
                         if (grid.HasNutrient(x, y))
                             color = NutrientAt(x, y);
@@ -325,6 +333,8 @@ namespace Fabula.Incrementant.AntFarm
                             color = Color32.Lerp(color, _nurseryRoomColor, _nutrientRoomStrength * 0.5f);
                         if (grid.IsWasteRoom(x, y))
                             color = Color32.Lerp(color, _wasteRoomColor, _nutrientRoomStrength * 0.5f);
+                        if (grid.IsDewRoom(x, y))
+                            color = Color32.Lerp(color, _dewRoomColor, _nutrientRoomStrength * 0.5f);
                     }
                     _pixels[row + wx] = color;
                     if (tiles)

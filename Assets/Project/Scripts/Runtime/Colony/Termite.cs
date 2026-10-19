@@ -20,7 +20,11 @@ namespace Fabula.Incrementant.Colony
     {
         Brood,
         Farms,
+        /// <summary>Todo bloco sólido dentro da área pintada dos setores (antes das paredes em volta).</summary>
+        Sectors,
         Walls,
+        /// <summary>Atrás da rainha (se ela morrer, é game over); depois das paredes, antes de ir embora.</summary>
+        Queen,
         Leave,
     }
 
@@ -59,6 +63,10 @@ namespace Fabula.Incrementant.Colony
         public float LastHitTime = float.NegativeInfinity;
         /// <summary>Partes do corpo que ainda dá para tirar (morto).</summary>
         public int LeavesLeft, RemainsLeft;
+        /// <summary>Segue um caminho cavado até o objetivo (guardado no corpo, como a reserva das formigas).</summary>
+        public bool Tunneling;
+        /// <summary>A célula em <see cref="WorkCell"/> é terra do caminho (vira túnel), não o alvo do objetivo.</summary>
+        public bool DiggingPath;
         /// <summary>Formigas desmembrando este corpo neste passo (recontado a cada Tick).</summary>
         public int Workers;
 

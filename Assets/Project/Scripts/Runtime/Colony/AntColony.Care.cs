@@ -46,10 +46,17 @@ namespace Fabula.Incrementant.Colony
             _boosts.Clear();
             _nurseryTargets.Clear();
             _gardenTargets.Clear();
+            _dewTenders = 0;
+            _dewTendCount = 0;
         }
 
         void CountCare(Ant ant)
         {
+            if (ant.State == AntState.TendingDew)
+            {
+                _dewTendCount++;
+                _dewTenders += ant.Interacting ? 1 : 0;
+            }
             if (ant.Role == AntRole.Worker)
                 _workerCount++;
             bool nursery = ant.State == AntState.Tending || ant.State == AntState.MovingBrood;

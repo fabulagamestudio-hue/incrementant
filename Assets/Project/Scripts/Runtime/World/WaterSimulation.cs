@@ -30,7 +30,7 @@ namespace Fabula.Incrementant.World
     /// A cada <see cref="WaterSettings.CheckInterval"/>: dentro do formigueiro (abaixo do solo original), a terra fixa
     /// encostada na água (4 vizinhos) há <see cref="WaterSettings.ErosionSeconds"/> seguidos vira
     /// <see cref="CellMaterial.Mud"/>, que cai pela física granular, e a água que a molhou é consumida (solo já solto
-    /// ou mole só absorve a água). Só ali a água é consumida: no céu (laguinhos, poças da chuva) ela não infiltra nem
+    /// ou mole só absorve a água; exceto a água dentro da sala Gotas de Orvalho, que nada absorve). Só ali a água é consumida: no céu (laguinhos, poças da chuva) ela não infiltra nem
     /// evapora, só escorre.
     /// </summary>
     public sealed class WaterSimulation
@@ -234,8 +234,9 @@ namespace Fabula.Incrementant.World
                     for (int y = y0; y < y1; y++)
                     for (int x = x0; x < x1; x++)
                     {
-                        // Só a água dentro do formigueiro (abaixo do solo original) molha e é consumida.
-                        if (y <= grid.GetSurfaceY(x) && grid.HasWaterAt(y * w + x))
+                        // Só a água dentro do formigueiro (abaixo do solo original) molha e é consumida; a da sala Gotas de
+                        // Orvalho não: as paredes dela não absorvem a gota.
+                        if (y <= grid.GetSurfaceY(x) && grid.HasWaterAt(y * w + x) && !grid.IsDewRoom(x, y))
                             Soak(grid, x, y, needed);
                     }
                 }

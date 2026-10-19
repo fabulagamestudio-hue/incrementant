@@ -3,6 +3,8 @@
     "rootNamespace": "Fabula.Incrementant.Tests",
     "references": [
         "Fabula.Incrementant",
+        "Unity.Localization",
+        "Unity.Localization.Editor",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

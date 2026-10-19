@@ -42,6 +42,8 @@ namespace Fabula.Incrementant.Settings
 
         [Header("Interface")]
         public bool ShowStats = true;
+        /// <summary>Código do idioma (um de <c>Loc.Codes</c>); o padrão é o português do Brasil.</summary>
+        public string Language = Texts.Loc.DefaultCode;
 
         /// <summary>Corrige valores fora da faixa (arquivo editado à mão ou de versão antiga).</summary>
         public void Clamp()
@@ -55,6 +57,8 @@ namespace Fabula.Incrementant.Settings
                 ResolutionWidth = ResolutionHeight = 0;
             if (Array.IndexOf(FpsOptions, FpsLimit) < 0)
                 FpsLimit = 60;
+            if (!Texts.Loc.IsSupported(Language))
+                Language = Texts.Loc.DefaultCode;
             Version = CurrentVersion;
         }
 

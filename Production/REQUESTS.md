@@ -35,6 +35,9 @@
 | REQ-026 | 2026-10-18 | Melhorar formigas adultas e cenário em pixel art sem blur nas bordas | ART | UNDEFINED | IMPLEMENTED |
 | REQ-027 | 2026-10-18 | Arte de formiga inimiga com asas na chegada e sem asas após pousar | ART | UNDEFINED | IMPLEMENTED |
 | REQ-029 | 2026-10-18 | Ataques de cupins, formigas de ataque (soldado) e área de resíduos | PROGRAMMING, GAME_DESIGN, ART | UNDEFINED | IMPLEMENTED |
+| REQ-030 | 2026-10-18 | Tutorial da primeira abertura do jogo | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
+| REQ-031 | 2026-10-18 | Menu principal com fundo de colônia trabalhando e sem splash da Unity | PROGRAMMING, ART | UNDEFINED | IMPLEMENTED |
+| REQ-032 | 2026-10-18 | Sala Gotas de Orvalho | PROGRAMMING | UNDEFINED | IMPLEMENTED |
 
 ## Registros
 
@@ -513,6 +516,12 @@
   - 2026-10-18 — PLANNED: pedido registrado. Decisões do desenvolvedor na mesma conversa: parede destruída vira terra fofa solta; a área de resíduos é uma sala pintada (pincel novo); formigas podem morrer em combate mesmo com a morte desligada.
   - 2026-10-18 — IMPLEMENTED: ataques, cupins (voo, pouso, objetivos, saída), combate, corpos em folhas e restos, área de resíduos com decomposição, soldado (S0 a S2) liberado após o primeiro ataque, alerta no HUD, cheat F4 e save versão 13. Testes novos 6/6 no harness .NET (suíte 152 de 186; as 34 restantes dependem de código nativo da Unity ou do módulo JSON e já não rodavam no harness); compilação da Unity sem erros. HUD remontado, arte dos cupins ligada na cena e Play Mode pendentes: a instância Incrementant não estava conectada ao MCP.
   - 2026-10-18 — Pedido complementar: "Apenas formigas guerreiras vão atrás dos cupins. Formigas que não são guerreiras apenas defendem quando o cupim começa a atacar." e "limite crescente até 200% [...] no padrão aleatório. No mínimo 40% do total de formigas e no máximo 200% (começando em 40% e crescendo em X a cada ataque)". Implementado: só o soldado caça; as demais mordem de volta só quando mordidas e voltam ao trabalho; fração sorteada entre 40% e um teto que sobe 20 pontos por ataque (valor de X escolhido pelo agente, ajustável em Raid Settings) até 200%. Suíte EditMode 190/190 na Unity; Play Mode pelo agente: com 4 soldados e 18 outras, nenhuma operária perseguiu cupim, os mordidos se defenderam e mataram os 5 cupins junto aos canteiros sem perder crias; 10 cupins para 22 formigas (41% sorteado com teto de 60%) e teto de 100% depois de 3 ataques.
+  - 2026-10-18 — Pedido: pincel "Dedo" no HUD (clique fere o cupim, sem pintar); a rainha ataca os cupins com 3x o dano do soldado; os cupins podem matar a rainha (game over); postura defensiva/ofensiva no menu da rainha. Implementado: 7º pincel Dedo (2 de dano por clique, raio 2); rainha com 60 de vida e 9 por mordida; depois das paredes os cupins vão atrás dela (Hunt Queen) e vida zero = tela GAME OVER (carregar save ou novo mapa); botões Defensiva (só revida) e Ofensiva (sai atrás do invasor), postura no save (versão 14). Vida da rainha (60), raio do dedo e caça à rainha escolhidos pelo agente, ajustáveis em Raid Settings. Suíte EditMode 199/199; Play Mode: HUD sobe e o dedo fere o cupim; tela de game over e botões não vistos por uma pessoa.
+  - 2026-10-18 — Novo ajuste: "Diminua a quantidade crescente de cupins" e "Se o cupim entrar no formigueiro, todas as formigas vão atrás dos que entraram." Implementado: teto sobe 5 pontos por ataque até 100% (antes 20 até 200%); cupim vivo abaixo da superfície faz todas as formigas largarem o trabalho e caçá-lo até não restar nenhum (na superfície segue só o soldado). Suíte EditMode 195/195 na Unity; não jogado por uma pessoa.
+  - 2026-10-18 — Pedido complementar (com captura): "Na etapa de destruição, vamos fazer destruído todos os blocos dentro da seção, antes de destruir as paredes ao redor." Também relatado: o jogador conseguia tirar a marca do entulho com o pincel. Implementado: etapa nova de setores (todo bloco sólido da área pintada vira entulho) antes das paredes, e o pincel não desmarca entulho. Teste do setor maior que a parte escavada confere a ordem (interior inteiro, depois paredes) e que não sobra terra firme na área pintada.
+  - 2026-10-18 — Pedido complementar (com captura): "Vamos fazer com que os cupins destruam o chão até chegarem em seu objetivo, seja onde for este percurso. Mantém a regra dos segundos sem alcançar o destino [...] se o setor for maior que as paredes do local, os cupins vão destruindo tudo até chegar na parede respectiva." Implementado: paredes contadas em volta de toda a área pintada do setor; sem caminho livre, o cupim planeja e cava um túnel até o objetivo (a terra do caminho some, o alvo vira entulho); andar e cavar contam como progresso para o tempo sem progresso. Teste novo com setor pintado maior que a parte escavada (cavam até as paredes de fora e derrubam todas).
+  - 2026-10-18 — Correção (segundo relato com capturas: na etapa das paredes derrubaram algumas e passaram a vagar): a parede derrubada vira entulho no lugar e, no chão e nas laterais, fica apoiada, então a segunda camada não encostava em célula livre e saía do campo dos cupins. Agora alcançam a parede através de até 8 células de entulho. Teste novo (sala fechada, com e sem física granular) reproduzia a falha (48 de 92 e depois 3 de 92 sem derrubar) e passa com a correção.
+  - 2026-10-18 — Correção (relato do desenvolvedor com captura: cupins foram embora sem derrubar as paredes do setor): o tempo sem progresso que faz o objetivo avançar corria desde o começo do ataque, inclusive no voo e na caminhada até o formigueiro, e só zerava ao destruir algo; cupins que pousavam longe viam os objetivos vencerem no caminho. Agora zera enquanto algum cupim chega, avança, destrói ou luta. Teste novo reproduzia a falha (cupim a ~900 colunas) e passa com a correção.
   - 2026-10-18 — IMPLEMENTED (validação): com o MCP conectado, HUD remontado (6 pincéis, 7 tipos, alerta) e arte dos cupins e do soldado ligada na cena. Suíte EditMode 186/186 na Unity. Play Mode pelo agente em 2026-10-18 (cena AntFarm, HUD remontado e arte ligada): F4 com 20 formigas trouxe 8 cupins voando, alerta com contagem e "CUPINS ATACANDO", pouso e caminhada com a arte nova, todas as formigas lutando; sem alvos, saíram pelas laterais e o fim liberou o pincel Resíduos e o soldado; num segundo ataque dentro do formigueiro, 5 cupins mortos sem baixa, 2 paredes viraram entulho, corpos desmembrados, folhas plantadas nos 3 canteiros e restos empilhados na área de resíduos. O Play Mode achou um bug (o alerta do F4 virava o intervalo do próximo ataque ao chegar a 15 formigas), corrigido com teste novo (RaidTests 7/7). Falta uma pessoa jogar.
 
 ### REQ-028 — Formigas não morrem por padrão
@@ -545,3 +554,52 @@
 - **Histórico:**
   - 2026-10-18 — PLANNED: pedido de arte registrado.
   - 2026-10-18 — IMPLEMENTED: 16 PNGs de 144x144 (4 voo, 4 pouso/perda de asas, 4 caminhada lateral e 4 superior), com alpha 0/255 e paleta comum de 24 cores. Validados 331.776 pixels e prévias. Importador estendido para Fly/Land a 36 PPU. Compilação/importação na Unity e Play Mode pendentes porque Incrementant não estava conectado. Mecânicas de inimigos não implementadas; nenhuma build gerada.
+
+### REQ-030 — Tutorial da primeira abertura do jogo
+
+- **Data de registro:** 2026-10-18
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, GAME_DESIGN
+- **Descrição:** Criar, com a UI que já existe, o tutorial da primeira vez que o jogador abre o jogo: abertura com a câmera enquadrando a rainha e as operárias; pincel de escavação e primeira câmara; área de nutrientes; berçário e reprodução da rainha; árvore de evolução; inimigos e defesa; despedida. Câmera automática só nas transições, botão "Ver objetivo" se o jogador se afastar.
+- **Critérios de aceitação:** Pendente de definição (o roteiro de etapas, textos e botões veio no pedido).
+- **Dependências:** REQ-022
+- **Itens relacionados:** PRG-035
+- **Referências:** [TutorialGuide.md](../Assets/Project/Scripts/Runtime/Tutorial/TutorialGuide.md); [Garantias do tutorial](../Docs/01_Design/07_Garantias_do_tutorial_e_primeiros_objetivos.md)
+- **Decisões pendentes:** não há cinematic no projeto, então a abertura desce da vista mais aberta até o abrigo; pop-ups de "Continuar" extras nas etapas da rainha e dos inimigos; progresso no meio do tutorial não é salvo (recomeça na próxima abertura).
+- **Histórico:**
+  - 2026-10-18 — PLANNED: pedido registrado.
+  - 2026-10-18 — IMPLEMENTED: etapas, câmera, destaques e pop-ups prontos; planejador coberto por 5 testes EditMode; Play Mode pelo agente até a árvore de evolução. Etapas de inimigos e despedida só revisadas no código.
+
+
+### REQ-031 — Menu principal com fundo de colônia trabalhando e sem splash da Unity
+
+- **Data de registro:** 2026-10-18
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, ART
+- **Descrição:** Tirar o splash da Unity e criar um menu principal seguindo a imagem de referência (Iniciar nova colônia, Continuar, Configurações, Sobre o jogo, Sair). O fundo simula um gameplay: um formigueiro já pré-produzido com as formigas se movendo e colhendo recursos, sem HUD de gameplay. Depois, pedido o botão Menu principal no menu de pausa.
+- **Critérios de aceitação:** Pendente de definição.
+- **Dependências:** REQ-022
+- **Itens relacionados:** PRG-036
+- **Referências:** [MenuGuide.md](../Assets/Project/Scripts/Runtime/Menu/MenuGuide.md); [Menus e fluxo de telas](../Docs/02_World_Art_UI/33_Menus_fluxo_de_telas_e_configuracoes.md)
+- **Decisões pendentes:** splash da Fábula; confirmação ao iniciar nova colônia havendo save; textos e créditos do Sobre o jogo.
+- **Histórico:**
+  - 2026-10-18 — PLANNED: pedido registrado.
+  - 2026-10-18 — IMPLEMENTED: cena MainMenu, vitrine, botões e menu de pausa com Menu principal; Play Mode pelo agente (fundo, Configurações, Continuar com save, Menu principal pela pausa).
+
+### REQ-032 — Sala Gotas de Orvalho
+
+- **Data de registro:** 2026-10-18
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING
+- **Descrição:** "Crie a sala Gotas de orvalhos, que as formigas operárias e jardineiras podem trabalhar. A lógica delas é as formigas colocarem terra fofa em 30% da parte de cima da sala, depois vão colocar folha. Após isso, a cada X segundos vai cair uma gota de água dela. Se a gota cair dentro da sala, ela não é absorvida pelas paredes."
+- **Critérios de aceitação:** Pendente de definição.
+- **Dependências:** —
+- **Itens relacionados:** PRG-037
+- **Referências:** [DewRoomGuide.md](../Assets/Project/Scripts/Runtime/Colony/DewRoomGuide.md)
+- **Decisões pendentes:** valores assumidos pelo agente (X = 8 s, gota de 1 célula, folha em colunas pares, altura mínima de coluna 4, teto de 24 células de água na sala); onde a gota nasce; se os cupins devem destruir a sala; ícone do botão.
+- **Histórico:**
+  - 2026-10-18 — PLANNED: pedido registrado.
+  - 2026-10-18 — IMPLEMENTED: sala, pincel, etapas, gota e água não absorvida; suíte EditMode 217/217 na Unity (8 testes novos).

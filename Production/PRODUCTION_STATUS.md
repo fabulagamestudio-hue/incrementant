@@ -11,7 +11,7 @@
 
 ## Resumo executivo
 
-Ataques de cupins implementados (PRG-034, REQ-029): a partir de 15 formigas, a cada 1 a 5 minutos um alerta no topo anuncia o ataque; cupins (sorteados entre 40% das formigas e um teto que sobe a cada ataque até 200%) pousam pelo mapa, destroem crias, canteiros e paredes dos setores (menos a sala da rainha) e saem pelas laterais; só os soldados vão caçá-los, as demais formigas se defendem quando mordidas. Corpos viram folhas para os canteiros e restos para a nova área de resíduos; o primeiro ataque libera esse pincel e o soldado. Suíte EditMode 190/190 na Unity e ataques exercitados em Play Mode pelo agente (HUD e arte já na cena); falta uma pessoa jogar e balancear.
+Ataques de cupins implementados (PRG-034, REQ-029): a partir de 15 formigas, a cada 1 a 5 minutos um alerta no topo anuncia o ataque; cupins (sorteados entre 40% das formigas e um teto que sobe a cada ataque até 100%) pousam pelo mapa, destroem crias, canteiros e paredes dos setores (menos a sala da rainha) e saem pelas laterais; na superfície só os soldados vão caçá-los (as demais se defendem quando mordidas), mas cupim dentro do formigueiro leva todas as formigas atrás dele. Corpos viram folhas para os canteiros e restos para a nova área de resíduos; o primeiro ataque libera esse pincel e o soldado. Suíte EditMode 190/190 na Unity e ataques exercitados em Play Mode pelo agente (HUD e arte já na cena); falta uma pessoa jogar e balancear.
 
 Apertar ESC abre o menu do jogo (continuar, configurações, salvar, carregar, sair), que pausa a simulação; a tela de configurações tem volumes, efeitos visuais, tela cheia, resolução, VSync, limite de FPS e o contador do canto, gravados num arquivo próprio (PRG-031, REQ-022). Testes novos e Play Mode pelo agente; falta uso por uma pessoa. Os volumes de música e efeitos e o nível de efeitos visuais esperam os sistemas de SFX e VFX, próxima tarefa anunciada (REQ-023).
 
@@ -24,6 +24,12 @@ Variantes de cor das formigas preparadas em seis pastas (48 PNGs Top/Walk, ART-0
 A referência de design revisada de 2026-10-17 foi organizada em 38 Markdown em [Docs/](../Docs/README.md), preservando 28 tabelas e as propostas e decisões em aberto (GD-006, REQ-009). A transcrição foi conferida automaticamente; a implementação dos sistemas não foi reavaliada nessa entrega.
 
 Protótipo de viabilidade do formigário (REQ-001) implementado na cena `AntFarm`: terreno em pixels com física granular, formigas que cavam pixels marcados pelo jogador e os despejam na superfície, e compra de formigas com a terra entregue. O mapa é procedural por padrão (novo a cada Play) e pode ser fixado na cena como PNG editável, com ninho e despejo posicionáveis. No modo procedural, o mapa cresce para os lados e para baixo conforme a câmera se move, até um limite de mundo (960x520), com paralaxe no céu e na grama distante (REQ-003). A velocidade 8x roda com FPS próximo do 1x graças à simulação por blocos (REQ-004). Há dois tipos de chuva, trocados no HUD ou com C: a leve dissolve a terra despejada aos poucos e a forte compacta areia e terra solta, que param de cair (REQ-005). A chuva também cria água, que escorre, forma poças e laguinhos na superfície, amolece a terra dentro do formigueiro e afoga formigas (REQ-006). Há uma formiga rainha (o dobro do tamanho) que só anda na sala pintada pelo jogador (a maior, se houver várias), e as formigas sem trabalho vagam por todo o formigueiro ligado a ela (REQ-007). Grama e mudas crescem na superfície; o jogador as marca com o pincel Colher, as formigas colhem da ponta para a base e guardam cada pixel na sala de nutrientes pintada, e outras levam os nutrientes à rainha, que os consome: nutrientes passaram a ser a moeda das formigas novas (REQ-008). As formigas são sprites animados com pixels menores que os do terreno, e a superfície tem um cenário (grama, flores, trevos, cogumelos, pedrinhas) na escala delas, montado a partir de PNGs isolados e editáveis de cada elemento (arte provisória, REQ-002). Núcleo testado e exercitado em Play Mode pelo agente; falta playtest do desenvolvedor para avaliar o loop.
+
+Tutorial da primeira abertura implementado (REQ-030, PRG-035): câmera guiada, destaques nos botões, contornos das câmaras e pop-ups do abrigo à despedida; roda uma vez, pode ser pulado e não roda ao continuar um save. Planejador testado (5 testes EditMode) e Play Mode pelo agente até a árvore de evolução; falta uma pessoa jogar o roteiro inteiro.
+
+Menu principal implementado (REQ-031, PRG-036): cena `MainMenu` com a colônia trabalhando ao fundo, Continuar/Iniciar/Configurações/Sobre/Sair, splash da Unity desligado e Menu principal no menu de pausa; verificado só em Play Mode pelo agente, falta uma pessoa usar. Logo da Fábula aplicado; splash da Fábula pendente.
+
+Sala Gotas de Orvalho implementada (PRG-037, REQ-032): pincel novo; operárias e jardineiras cobrem de terra fofa os 30% de cima da sala, depois penduram folhas, e a sala pronta solta uma gota a cada 8 s que as paredes não absorvem. Suíte EditMode 217/217 na Unity (8 testes novos); falta remontar o HUD para o botão aparecer e uma pessoa jogar.
 
 ## Estado por setor
 
@@ -105,6 +111,7 @@ Protótipo de viabilidade do formigário (REQ-001) implementado na cena `AntFarm
 | Formigas andam pelo meio da arte do cenário e das obras de fora | IMPLEMENTED | PRG-029 |
 | Menu do ESC e tela de configurações | IMPLEMENTED | PRG-031 |
 | Ataques de cupins, combate, área de resíduos e soldado | IMPLEMENTED | PRG-034 |
+| Sala Gotas de Orvalho (terra fofa, folha, gota que as paredes não absorvem) | IMPLEMENTED | PRG-037 |
 | Experimento: terreno em tiles 16x16 e mapa dobrado (branch `experimento/pixel-16x16`) | IMPLEMENTED | PRG-032, ART-008 |
 
 ## Problemas e riscos
@@ -140,6 +147,9 @@ Protótipo de viabilidade do formigário (REQ-001) implementado na cena `AntFarm
 | REQ-027 | Cultivo de nutrientes com terra fofa, planta e água | IMPLEMENTED | UNDEFINED |
 | REQ-028 | Formigas não morrem por padrão | IMPLEMENTED | UNDEFINED |
 | REQ-029 | Ataques de cupins, formigas de ataque (soldado) e área de resíduos | IMPLEMENTED | UNDEFINED |
+| REQ-030 | Tutorial da primeira abertura do jogo | IMPLEMENTED | UNDEFINED |
+| REQ-031 | Menu principal com fundo de colônia trabalhando e sem splash da Unity | IMPLEMENTED | UNDEFINED |
+| REQ-032 | Sala Gotas de Orvalho | IMPLEMENTED | UNDEFINED |
 
 Registro completo: [REQUESTS.md](REQUESTS.md)
 
@@ -175,7 +185,7 @@ Registro completo: [REQUESTS.md](REQUESTS.md)
 - O loop do protótipo (marcar pixels para cavar; jardineiras colhem plantas sozinhas; nutrientes compram formigas) é o desejado? (GD-001)
 - Se o experimento 16x16 e o mapa dobrado vão para a `main` e se formigas e cenário serão redesenhados a 16 px por célula (REQ-024). O mapa dobrado custa ~415 MB a mais e ~1,6x no tempo da colônia com 200 formigas cavando (KI-016); a arte 16x16 não pesa na simulação.
 - Opções da tela de configurações e pausa ao abrir o menu (REQ-022); eventos, origem dos arquivos e música para SFX e VFX (REQ-023).
-- Ataques de cupins: balanceamento, crescimento do teto de cupins por ataque (hoje +20 pontos), se a rainha pode ser atacada e se a área de resíduos vira compra (R0) (REQ-029, GD-007, KI-018).
+- Ataques de cupins: balanceamento, crescimento do teto de cupins por ataque (hoje +5 pontos, até 100%), se a rainha pode ser atacada e se a área de resíduos vira compra (R0) (REQ-029, GD-007, KI-018).
 - Descrição, plataformas-alvo e marco atual do jogo.
 - Substituir a cena de template `Assets/Scenes/SampleScene.unity` e mover `Assets/Settings` para `Assets/Project`? (não feito: quebraria referências; fica como tarefa separada).
 

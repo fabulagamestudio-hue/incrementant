@@ -6,11 +6,19 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Project/Scenes/Splash.unity
+    guid: 2af04a2980e8dfd4186bb36d608a21eb
+  - enabled: 1
+    path: Assets/Project/Scenes/MainMenu.unity
+    guid: f0e601bde73b42241b453a3798904bb5
+  - enabled: 1
     path: Assets/Project/Scenes/AntFarm.unity
     guid: 08a1e71554bec5c4084771660742f6fc
   - enabled: 1
     path: Assets/Scenes/SampleScene.unity
     guid: 99c9720ab356a0642a771bea13969a05
   m_configObjects:
+    com.unity.addressableassets: {fileID: 11400000, guid: 8f03e3902ecfb3440b987f21d39b37bc, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+    com.unity.localization.settings: {fileID: 11400000, guid: d6fe7db833bea8448bc853f535adb05d, type: 2}
   m_UseUCBPForAssetBundles: 0

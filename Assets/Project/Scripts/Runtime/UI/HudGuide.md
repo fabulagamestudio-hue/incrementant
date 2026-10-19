@@ -15,12 +15,14 @@ Como o HUD (uGUI) funciona e como mexer nele. Onde estão os arquivos: [Runtime/
 | Elemento | Estado |
 |---|---|
 | Cartões Nutrientes / Formigas / Rainha | Reais: nutrientes e consumidos; adultas / capacidade e ovos, larvas e pupas; estado da sala da rainha |
-| Menu Colônia → Pintar → 6 pincéis | Real (troca o pincel de `AntFarmGame`; o 5º é o Berçário e o 6º, Resíduos, fica apagado e sem clique até o primeiro ataque de cupins, `AntFarmGame.IsBrushUnlocked`) |
-| Alerta dos cupins (centro do topo, abaixo do cartão Formigas) | Real: `AntFarmHud._raidAlert` (sprite `panels/notification`, ícone de alerta, sem raycast). Mostra a contagem do ataque iminente, "CUPINS ATACANDO: N" com o objetivo e, por 6 s, o fim do ataque. Regras em [RaidGuide](../Colony/RaidGuide.md) |
-| Menu Colônia → Rainha | Real: modo (Automático, Tipo específico, Pausado), tipo (Comum, Carregadora, Cortadeira, Escavadora, Jardineira, Cuidadora, Soldado; a lista vem de `AntRoles.All`, então ao mudá-la rode **Incrementant/Setup/Montar HUD da partida**), próxima formiga com custo, contagem por tipo e botão Criar formiga (ver "Política da rainha") |
+| Menu Colônia → Ferramenta → Cavar, Construir e Dedo | Real (troca o pincel de `AntFarmGame`; o **Dedo** não pinta: cada clique esquerdo fere o cupim mais perto da mira, `AntColony.HitTermiteAt`; com o jogo pausado o clique só toca o som de negado). Com o Dedo ativo e o mouse sobre o mapa, `AntFarmHud` troca o cursor do sistema por `Art/UI/Cursors/cursor_finger.png` (cópia de `icons/hand_index_up`, tipo Cursor via `UiCursorImporter`; ponta em `_fingerCursorHotspot`) |
+| Menu Colônia → Ambientes → Sala da rainha, Sala de nutrientes, Berçário, Resíduos e Gotas de orvalho (índice 7, ícone de folha provisório; guia [DewRoomGuide](../Colony/DewRoomGuide.md)) | Real (painel `SubmenuAmbientes`; mesmos pincéis de antes, só mudaram de menu: o índice em `AntFarmGame.BrushLabels` e o save não mudam. Resíduos fica apagado e sem clique até o primeiro ataque de cupins, `AntFarmGame.IsBrushUnlocked`) |
+| Alerta dos cupins (centro do topo, abaixo do cartão Formigas) | Real: `AntFarmHud._raidAlert` (sprite `panels/notification`, ícone de alerta, sem raycast). Mostra a contagem do ataque iminente, "CUPINS ATACANDO: N" com o objetivo (crias, canteiros, setores, paredes ou indo embora) e, por 6 s, o fim do ataque. Regras em [RaidGuide](../Colony/RaidGuide.md) |
+| Menu Colônia → Rainha | Real: modo (Automático, Tipo específico, Pausado), postura diante dos cupins (Defensiva ou Ofensiva, `QueenStance`), tipo (Comum, Carregadora, Cortadeira, Escavadora, Jardineira, Cuidadora, Soldado; a lista vem de `AntRoles.All`, então ao mudá-la rode **Incrementant/Setup/Montar HUD da partida**), próxima formiga com custo, contagem por tipo e botão Criar formiga (ver "Política da rainha") |
 | Menu Colônia → Evolução | Real: tela cheia `TelaEvolucao` com duas abas (ver "Tela Evolução"): Rainha e classes (compra de verdade) e Formigueiro (só exibição) |
-| Ambientes, Avisos | Desativados (sem sistema por trás) |
+| Avisos | Desativado (sem sistema por trás) |
 | Pausa e 1x/3x/8x | Reais (P também pausa; 1/2/3 trocam a velocidade) |
+| Sino (acima da velocidade, ícone `icons/bell`) | Real: alterna `AntColony.Recalled`. Ligado ("volte para o formigueiro"), as formigas terminam o que carregam e só vagam pelo formigueiro; cuidadoras e soldados seguem normais. Desligado ("volte ao trabalho"), retomam as tarefas. Não vai para o save |
 | FPS e tempo jogado (canto superior direito, abaixo do cartão Rainha) | Real (some com "Mostrar FPS e tempo" desligado nas configurações): FPS médio a cada 0,25 s e relógio da sessão em HH:MM:SS (tempo real, ignora pausa e velocidade; não vai no save) |
 | Dica do rodapé | Mostra o aviso de salvar/carregar por 5 s |
 | Menu do ESC e Configurações | Reais (ver "Menu do ESC e configurações") |
@@ -47,12 +49,32 @@ O botão EVOLUÇÃO abre `TelaEvolucao` (`SkillTreeScreen`), em tela cheia sobre
 ## Menu do ESC e configurações
 
 - **ESC.** Só o `AntFarmHud` lê o ESC, e cada toque fecha uma camada: configurações → menu → jogo; sem menu aberto, fecha a tela Evolução ou o submenu da colônia (Pintar, Rainha); sem nada aberto, abre o menu. Tela nova que feche com ESC entra nessa ordem em `HandleEscape`, em vez de ler a tecla sozinha (duas telas reagiriam ao mesmo ESC).
-- **Menu (`PauseMenu`, objeto `MenuPausa`).** Fundo escurecido em tela cheia que bloqueia cliques no mundo e no HUD, e o painel MENU: Continuar, Configurações, Salvar partida (F5), Carregar partida (F9), Sair do jogo. Abrir pausa a simulação e liga `AntFarmGame.InputLocked` (sem atalhos, câmera nem pincel); fechar devolve a pausa como estava. O aviso de salvar/carregar aparece no próprio painel. Sair no Editor só mostra um aviso.
+- **Menu (`PauseMenu`, objeto `MenuPausa`).** Fundo escurecido em tela cheia que bloqueia cliques no mundo e no HUD, e o painel MENU: Continuar, Configurações, Salvar partida (F5), Carregar partida (F9), Menu principal (volta à cena `MainMenu` sem salvar), Sair do jogo. Abrir pausa a simulação e liga `AntFarmGame.InputLocked` (sem atalhos, câmera nem pincel); fechar devolve a pausa como estava. O aviso de salvar/carregar aparece no próprio painel. Sair no Editor só mostra um aviso.
 - **Configurações (`SettingsScreen`, objeto `TelaConfiguracoes`).** Troca de lugar com o painel do menu. Linhas: volume geral, música, efeitos sonoros (sliders com %), efeitos visuais (Completo/Reduzido/Desligado), tela cheia, resolução (nativa + as do monitor), VSync, limite de FPS (apagado com VSync ligado) e mostrar FPS e tempo; rodapé com PADRÃO e VOLTAR. Cada mudança é aplicada na hora; o arquivo é gravado ao sair da tela. Dados e aplicação: [SettingsGuide.md](../Settings/SettingsGuide.md).
 - **Montagem.** `BuildPauseMenu` e `BuildSettingsScreen` em `Editor/UI/AntFarmHudSetup.cs`, por último sob o canvas (cobrem até a tela Evolução). Sliders, interruptores (`controls/toggle_*`) e alças em escala 2 (`BuildScaledSprite`); o Slider estica a alça na altura da área, então só a largura vai no `sizeDelta`.
 
 ## Como estender
 
+- Novo pincel: entra em `AntFarmGame.BrushLabels` e, no setup, na lista `paintBrushes` ou `environmentBrushes` (decide em qual painel o botão mora); o `AntFarmHud` guarda todos num vetor único na ordem do jogo.
 - Novo botão do menu: adicione na lista do setup e ligue um campo `[SerializeField]` em `AntFarmHud`.
 - Nova tela (pausa, Evolução…): crie outro painel sob o mesmo Canvas pelo setup, com os sprites de `panels/`.
 - Custos e contadores da referência só entram quando o dado existir em `AntColony`.
+
+## Marcas dos cupins (2026-10-18)
+
+`TermiteMarkers` (chamado por `AntFarmGame` a cada quadro, depois de desenhar o enxame) cria em código um canvas Overlay próprio (ordem -1, abaixo do HUD, sem alvo de raio). Cada cupim vivo (`Termite.Alive`, voando ou no chão) ganha um círculo vermelho; fora da tela, o círculo dá lugar a uma seta vermelha presa à borda, na linha do centro da tela até ele. Ao morrer, a marca é devolvida ao pool e some. Sprites do círculo e da seta são gerados em código. O tamanho do círculo segue o zoom (6 células, mínimo 36 px).
+
+## Tutorial (2026-10-18)
+
+O objeto `Tutorial` do HUD (montado por `BuildTutorial`, entre a tela de evolução e o menu do ESC) guarda os pop-ups e botões do tutorial da primeira abertura; quem o conduz é o `TutorialDirector`, descrito em [TutorialGuide](../Tutorial/TutorialGuide.md). Para ele, o `AntFarmHud` expõe `SpotRect`, `BrushRect`, `PaintMenuOpen`, `EnvironmentMenuOpen`, `TreeOpen`, `Tree` e o evento `BrushChosen`, e ignora o ESC enquanto o pop-up central está aberto; o `SkillTreeScreen` expõe `NodeSelections` e os retângulos das abas e do painel de detalhe.
+
+## Dicas (tooltips) (2026-10-18)
+
+`HudTooltips` (criado pelo `AntFarmHud` em `Awake`) monta em código um canvas Overlay próprio (ordem 1000, sem alvo de raio) com um painel e um `Text` na Press Start 2P a 16 px, 35 letras por linha. `Attach(componente, Func<string>)` põe um `TooltipTarget` no objeto; a dica aparece 0,35 s depois de o mouse parar sobre ele (o evento sobe da hierarquia, então um cartão inteiro vale pelo pai), segue o mouse, vira de lado nas bordas da tela e some ao clicar ou sair. A função só roda enquanto a dica está aberta, então pode ler o estado da colônia.
+
+- **Botões:** Ferramenta, Ambientes, Rainha, Evolução, pausa, velocidades, pincéis, modos, posturas e tipos de formiga (descrição do papel e, se bloqueado, o nó de Evolução que o libera).
+- **Seções (produção):** os pincéis das salas (rainha, nutrientes, berçário, resíduos, gotas de orvalho) e os cartões Nutrientes, Formigas e Rainha somam à descrição o estado: "Falta: …" (o que impede começar) ou "Produzindo/Funcionando: …" com os números. A lógica fica em `HudTooltipTexts`, que espelha as regras de `AntFarmGame.NutrientRoomStatus`/`DewRoomStatus` (painel F2); regra de sala nova muda os dois.
+- **Textos:** chaves `tip.*` em `LocalizationCatalog`. Escreva-os em caixa mista (a fonte não acentua bem as maiúsculas). Para o teste de chaves, não monte chave por concatenação com prefixo literal (`"tip.x." + ...`): use um `switch`.
+- **Cartões e raio:** o `AntFarmHud` liga o raio do `Image` do cartão (`AttachCardTooltip`); o cartão passa a bloquear o clique do mundo debaixo dele.
+- **Fora de escopo:** botões do menu do ESC, configurações, árvore de evolução e nós não têm dica; a dica "4 células" da sala de orvalho está escrita no texto (`tip.st.dew.nospot`), não vem de `ColonySettings`.
+

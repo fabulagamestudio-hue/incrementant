@@ -1,3 +1,4 @@
+using Fabula.Incrementant.Audio;
 using System.Collections.Generic;
 using Fabula.Incrementant.World;
 using UnityEngine;
@@ -163,6 +164,7 @@ namespace Fabula.Incrementant.Colony
                 if (!IsWasteSpot(x, y) || AntAt(x, y))
                     continue;
                 _grid.Set(x, y, CellMaterial.Refuse, ant.CarriedShade);
+                Emit(SfxId.Drop);
                 _wasteCells.Add(_grid.ToIndex(x, y));
                 _wasteTimes.Add(RaidSettings.WasteDecaySeconds);
                 WasteDeposited++;

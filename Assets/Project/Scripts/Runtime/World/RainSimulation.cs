@@ -36,6 +36,18 @@ namespace Fabula.Incrementant.World
         [Header("Secagem")]
         [Tooltip("Fora da chuva leve, a cada quantos segundos simulados toda célula molhada perde 1 de umidade.")]
         [Min(0.1f)] public float DrySeconds = 1.5f;
+
+        [Header("Tempestades automáticas (chuva forte)")]
+        [Tooltip("Liga o sorteio de tempestades. Desligado, o tempo só muda pela tecla C.")]
+        public bool AutomaticStorms = true;
+        [Tooltip("Menor período, em minutos de jogo, entre dois sorteios de tempestade.")]
+        [Min(0.1f)] public float StormMinIntervalMinutes = 1f;
+        [Tooltip("Maior período, em minutos de jogo, entre dois sorteios de tempestade.")]
+        [Min(0.1f)] public float StormMaxIntervalMinutes = 10f;
+        [Tooltip("Chance de a tempestade acontecer quando o período termina.")]
+        [Range(0f, 1f)] public float StormChance = 0.5f;
+        [Tooltip("Duração da tempestade, em minutos de jogo.")]
+        [Min(0.1f)] public float StormDurationMinutes = 1f;
     }
 
     /// <summary>Gota de chuva em queda, em células da grade.</summary>
@@ -66,17 +78,59 @@ namespace Fabula.Incrementant.World
     {
         readonly RainSettings _settings;
         readonly System.Random _rng;
+        // Sorteio das tempestades à parte, para não mudar onde caem as gotas.
+        readonly System.Random _stormRng;
         readonly List<RainDrop> _drops = new List<RainDrop>();
         float _spawnAccumulator;
         float _dryTimer;
+        Weather _weather;
+        float _stormRemaining;
+        float _secondsToStormRoll = -1f;
 
         public RainSimulation(RainSettings settings, int seed)
         {
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _rng = new System.Random(seed ^ 0x5A17);
+            _stormRng = new System.Random(seed ^ 0x57024);
+            AutomaticStorms = settings.AutomaticStorms;
         }
 
-        public Weather Weather { get; set; }
+        /// <summary>Tempo atual. Trocar à mão (tecla C, save) cancela a tempestade em curso: ela não termina sozinha.</summary>
+        public Weather Weather
+        {
+            get => _weather;
+            set
+            {
+                _weather = value;
+                if (_stormRemaining > 0f)
+                    _secondsToStormRoll = -1f; // tempestade cancelada: o próximo período é sorteado de novo
+                _stormRemaining = 0f;
+            }
+        }
+
+        /// <summary>Sorteia tempestades sozinho (o fundo do menu desliga).</summary>
+        public bool AutomaticStorms { get; set; }
+
+        /// <summary>Tempestade automática em curso.</summary>
+        public bool StormActive => _stormRemaining > 0f;
+
+        /// <summary>Segundos de jogo (tempo real a 1x) até o fim da tempestade; 0 fora dela.</summary>
+        public float StormRemaining => _stormRemaining;
+
+        /// <summary>Segundos de jogo até o próximo sorteio; negativo = ainda não sorteado.</summary>
+        public float SecondsToStormRoll => _secondsToStormRoll;
+
+        /// <summary>Repõe o relógio das tempestades de um save. Chamar depois de atribuir <see cref="Weather"/>.</summary>
+        public void RestoreStorm(float secondsToRoll, float stormRemaining)
+        {
+            _secondsToStormRoll = secondsToRoll;
+            _stormRemaining = Mathf.Max(0f, stormRemaining);
+            if (_stormRemaining > 0f)
+                _weather = Weather.HeavyRain;
+        }
+
+        /// <summary>Começa uma tempestade agora, com a duração configurada (teste e depuração).</summary>
+        public void StartStorm() => BeginStorm();
 
         public IReadOnlyList<RainDrop> Drops => _drops;
 
@@ -97,11 +151,53 @@ namespace Fabula.Incrementant.World
             WaterCells = waterCells;
         }
 
-        public void Step(PixelGrid grid, float deltaTime)
+        /// <param name="gameSpeed">Velocidade da simulação (1, 3, 8): os períodos das tempestades correm em tempo de jogo, não acelerados por ela.</param>
+        public void Step(PixelGrid grid, float deltaTime, float gameSpeed = 1f)
         {
+            StepStorms(deltaTime / Mathf.Max(1f, gameSpeed));
             Spawn(grid, deltaTime);
             Fall(grid);
             Dry(grid, deltaTime);
+        }
+
+        void StepStorms(float gameDelta)
+        {
+            if (_stormRemaining > 0f)
+            {
+                _stormRemaining -= gameDelta;
+                if (_stormRemaining <= 0f)
+                {
+                    _stormRemaining = 0f;
+                    _weather = Weather.Clear;
+                    _secondsToStormRoll = RollStormInterval();
+                }
+                return;
+            }
+            if (!AutomaticStorms)
+                return;
+            if (_secondsToStormRoll < 0f)
+                _secondsToStormRoll = RollStormInterval();
+            _secondsToStormRoll -= gameDelta;
+            if (_secondsToStormRoll > 0f)
+                return;
+            if (_stormRng.NextDouble() < _settings.StormChance)
+                BeginStorm();
+            else
+                _secondsToStormRoll = RollStormInterval();
+        }
+
+        void BeginStorm()
+        {
+            _weather = Weather.HeavyRain;
+            _stormRemaining = _settings.StormDurationMinutes * 60f;
+            _secondsToStormRoll = 0f;
+        }
+
+        float RollStormInterval()
+        {
+            float min = Mathf.Min(_settings.StormMinIntervalMinutes, _settings.StormMaxIntervalMinutes);
+            float max = Mathf.Max(_settings.StormMinIntervalMinutes, _settings.StormMaxIntervalMinutes);
+            return Mathf.Lerp(min, max, (float)_stormRng.NextDouble()) * 60f;
         }
 
         void Spawn(PixelGrid grid, float deltaTime)

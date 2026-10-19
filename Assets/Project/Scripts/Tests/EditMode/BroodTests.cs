@@ -34,6 +34,10 @@ namespace Fabula.Incrementant.Tests
                 for (int y = 1; y <= 3; y++)
                     Assert.IsTrue(grid.SetNurseryRoom(x, y, true));
             }
+            // A rainha só põe ovos na sala dela: uma sala pequena longe do berçário.
+            for (int x = 40; x < 44; x++)
+            for (int y = 1; y <= 3; y++)
+                Assert.IsTrue(grid.SetQueenRoom(x, y, true));
             return grid;
         }
 
@@ -82,6 +86,21 @@ namespace Fabula.Incrementant.Tests
             Assert.AreEqual(BreedingState.WaitingNursery, colony.Breeding);
             Assert.AreEqual(0, colony.Brood.Count);
             Assert.AreEqual(1000, colony.Nutrients, "Sem berçário não gasta alimento.");
+        }
+
+        [Test]
+        public void WithoutAQueenRoom_TheQueenLaysNothing()
+        {
+            PixelGrid grid = MakeWorld(21);
+            for (int x = 40; x < 44; x++)
+            for (int y = 1; y <= 3; y++)
+                grid.SetQueenRoom(x, y, false);
+            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 1);
+            colony.RestoreNutrients(1000, 0, 0);
+            Tick(colony, 40f);
+            Assert.AreEqual(BreedingState.WaitingQueenRoom, colony.Breeding);
+            Assert.AreEqual(0, colony.Brood.Count);
+            Assert.IsFalse(colony.ForceLay(), "O clique na rainha também exige a sala.");
         }
 
         [Test]
@@ -212,6 +231,69 @@ namespace Fabula.Incrementant.Tests
             Tick(colony, 1f);
             Assert.AreEqual(1, colony.Brood.Count, "Com a reserva de 30 N preservada, o ovo sai.");
             Assert.AreEqual(30, colony.Nutrients);
+        }
+
+        [Test]
+        public void ALoneQueen_LaysOneEggIgnoringTheReserve_AndCarriesAndTendsIt()
+        {
+            AntColony colony = MakeColony(21, 18);
+            colony.SetQueenPolicy(QueenMode.Specific, AntRole.Worker);
+            foreach (Ant ant in colony.Ants)
+                ant.Wounds = 1000f;
+            colony.Tick(Dt);
+            Assert.AreEqual(0, colony.Ants.Count);
+
+            Assert.IsTrue(TickUntil(colony, () => colony.Brood.Count == 1, 40f), "Sozinha, a rainha põe o ovo sem a reserva de 30 N.");
+            Assert.AreEqual(0, colony.Nutrients);
+
+            Assert.IsTrue(TickUntil(colony, () => colony.Brood.Brood[0].Phase == EggPhase.Placed, 60f), "A rainha leva o ovo ao berçário.");
+            float remaining = colony.Brood.Brood[0].Remaining;
+            Tick(colony, 3f);
+            Assert.Less(colony.Brood.Brood[0].Remaining, remaining, "Cuidado pela rainha, o ovo se desenvolve.");
+        }
+
+        [Test]
+        public void ClickingTheQueen_ForcesAnEggBelowTheReserve_ButNotWithoutFoodOrWhilePaused()
+        {
+            AntColony colony = MakeColony(21, 40);
+            colony.SetQueenPolicy(QueenMode.Specific, AntRole.Worker);
+            Assert.IsTrue(TickUntil(colony, () => colony.QueenInRoom, 30f), "A rainha vai à sala antes de pôr.");
+            colony.RestoreNutrients(40, 0, 0);
+            Tick(colony, Dt);
+            Assert.AreEqual(BreedingState.WaitingResources, colony.Breeding, "40 N - 18 N fica abaixo da reserva de 30 N.");
+
+            Assert.IsTrue(colony.ForceLay(), "Clicar na rainha ignora a reserva e o relógio.");
+            Assert.AreEqual(1, colony.Brood.Count);
+            Assert.AreEqual(22, colony.Nutrients);
+
+            colony.RestoreNutrients(5, 0, 0);
+            Assert.IsFalse(colony.ForceLay(), "Sem nutrientes para o custo, nada é posto.");
+
+            colony.RestoreNutrients(1000, 0, 0);
+            colony.SetQueenPolicy(QueenMode.Paused, AntRole.Worker);
+            Assert.IsFalse(colony.ForceLay(), "Pausada, a rainha não põe ovos.");
+            Assert.AreEqual(1, colony.Brood.Count);
+        }
+
+        [Test]
+        public void WithoutAGardener_TheQueenEatsTheStoredNutrients()
+        {
+            PixelGrid grid = MakeWorld(21);
+            for (int x = 46; x < 50; x++)
+            for (int y = 1; y <= 2; y++)
+            {
+                Assert.IsTrue(grid.SetNutrientRoom(x, y, true));
+                Assert.IsTrue(grid.SetNutrient(x, y, true));
+            }
+            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 1);
+            colony.Tree.Restore(QueenTree.LegacyMask | 1UL << (int)QueenNode.N0);
+            colony.SetQueenPolicy(QueenMode.Paused, AntRole.Worker);
+            Assert.AreEqual(0, colony.CountOf(AntRole.Gardener));
+            int stored = grid.NutrientCount;
+            Assert.Greater(stored, 0);
+
+            Assert.IsTrue(TickUntil(colony, () => colony.Nutrients > 0, 60f), "A rainha vai à sala e come o nutriente.");
+            Assert.Less(grid.NutrientCount, stored);
         }
 
         [Test]
@@ -350,7 +432,7 @@ namespace Fabula.Incrementant.Tests
             PixelGrid grid = MakeWorld(21);
             Assert.IsFalse(grid.SetQueenRoom(15, 2, true), "Sala da rainha não pinta sobre o berçário.");
             Assert.IsFalse(grid.SetNutrientRoom(15, 2, true), "Sala de nutrientes não pinta sobre o berçário.");
-            Assert.IsTrue(grid.SetQueenRoom(40, 2, true));
+            Assert.IsTrue(grid.IsQueenRoom(40, 2));
             Assert.IsFalse(grid.SetNurseryRoom(40, 2, true), "Berçário não pinta sobre a sala da rainha.");
             Assert.IsFalse(grid.SetNurseryRoom(15, 22, true), "Só o formigueiro (abaixo do solo) aceita berçário.");
         }
