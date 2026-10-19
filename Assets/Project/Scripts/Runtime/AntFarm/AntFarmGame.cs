@@ -4,6 +4,7 @@ using System;
 using Fabula.Incrementant.Audio;
 using Fabula.Incrementant.Colony;
 using Fabula.Incrementant.Diagnostics;
+using Fabula.Incrementant.Juice;
 using Fabula.Incrementant.Save;
 using Fabula.Incrementant.UI;
 using Fabula.Incrementant.World;
@@ -132,12 +133,32 @@ namespace Fabula.Incrementant.AntFarm
         {
             _termiteMarkers.Destroy();
             if (_colony != null)
+            {
                 _colony.Sfx -= PlayColonySfx;
+                _colony.Fx -= PlayColonyFx;
+            }
             // O serviço de áudio sobrevive às cenas: a chuva da partida não pode continuar no menu.
             GameAudio.SetLoop(SfxId.Rain, 0f);
         }
 
         static void PlayColonySfx(SfxId id) => GameAudio.Play(id);
+
+        WorldFx _worldFx;
+
+        /// <summary>Repasse dos fatos visuais da colônia para quem desenha por cima (HUD: números flutuantes). Só na partida, não no menu.</summary>
+        public event Action<FxId, Vector2Int, CellMaterial> ColonyFx;
+
+        /// <summary>Câmera do mundo (para ancorar textos da UI em células).</summary>
+        public Camera WorldCamera => _camera;
+
+        /// <summary>Centro da célula no mundo.</summary>
+        public Vector3 CellToWorld(Vector2Int cell) => _view.transform.position + new Vector3(cell.x + 0.5f, cell.y + 0.5f, 0f);
+
+        void PlayColonyFx(FxId id, Vector2Int cell, CellMaterial material)
+        {
+            _worldFx?.Play(id, cell, material);
+            ColonyFx?.Invoke(id, cell, material);
+        }
 
         /// <summary>Chuva em laço conforme o clima (nada no fundo do menu); o volume de efeitos é aplicado pelo <see cref="GameAudio"/>.</summary>
         void ApplyWeatherSound()
@@ -393,7 +414,10 @@ namespace Fabula.Incrementant.AntFarm
                 snapshot.ApplyTo(_vegetation);
             }
             if (_colony != null)
+            {
                 _colony.Sfx -= PlayColonySfx;
+                _colony.Fx -= PlayColonyFx;
+            }
             _colony = new AntColony(_grid, _colonySettings, _layout, _seed)
             {
                 DeathEnabled = _antDeath, RaidSettings = _raidSettings, RaidsEnabled = _termiteRaids,
@@ -402,7 +426,12 @@ namespace Fabula.Incrementant.AntFarm
             snapshot?.ApplyTo(_colony);
             // O fundo do menu é mudo; na partida a colônia avisa os sons e o jogo toca.
             if (!_showcase)
+            {
                 _colony.Sfx += PlayColonySfx;
+                if (_worldFx == null)
+                    _worldFx = WorldFx.Create(transform, _camera, _view.transform);
+                _colony.Fx += PlayColonyFx;
+            }
             ApplyWeatherSound();
             _showcaseDirector = _showcase ? MenuShowcase.Prepare(_grid, _colony, _layout, _seed) : null;
             // Mapa novo ou save sem área de resíduos liberada: o pincel volta a um que existe.
@@ -846,6 +875,9 @@ namespace Fabula.Incrementant.AntFarm
             }
         }
 
+        /// <summary>Recomeça a partida num mapa novo (botão da tela de game over e tecla R).</summary>
+        public void NewMap() => Regenerate();
+
         void SetWeather(Weather weather)
         {
             _weather = weather;
@@ -907,35 +939,8 @@ namespace Fabula.Incrementant.AntFarm
             }
         }
 
-        /// <summary>Tela de game over (a rainha morreu): fundo escuro, o motivo e as saídas. IMGUI, como o HUD de depuração.</summary>
-        void DrawGameOver()
-        {
-            GUI.color = new Color(0f, 0f, 0f, 0.7f);
-            GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height), Texture2D.whiteTexture);
-            GUI.color = Color.white;
-            var box = new Rect(Screen.width * 0.5f - 220f, Screen.height * 0.5f - 110f, 440f, 220f);
-            GUILayout.BeginArea(box, GUI.skin.box);
-            GUILayout.FlexibleSpace();
-            GUILayout.Label("<size=36><b>" + Loc.T("gameover.title") + "</b></size>", CenteredRichLabel());
-            GUILayout.Label(Loc.T("gameover.body", MatchTimer.Format(_matchTimer.Seconds)), CenteredRichLabel());
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button(Loc.T("gameover.load"), GUILayout.Height(32f)))
-                LoadGame();
-            if (GUILayout.Button(Loc.T("gameover.new"), GUILayout.Height(32f)))
-                Regenerate();
-            GUILayout.EndArea();
-        }
-
-        static GUIStyle CenteredRichLabel()
-        {
-            var style = new GUIStyle(GUI.skin.label) { richText = true, alignment = TextAnchor.MiddleCenter };
-            return style;
-        }
-
         void OnGUI()
         {
-            if (_colony != null && _colony.GameOver)
-                DrawGameOver();
             if (_grid != null && _showChunkLines && Event.current.type == EventType.Repaint)
                 DrawChunkLines();
             if (_colony != null && _showStats)

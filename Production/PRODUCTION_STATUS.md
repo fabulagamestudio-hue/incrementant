@@ -43,6 +43,8 @@ Sala Gotas de Orvalho implementada (PRG-037, REQ-032): pincel novo; operárias e
 
 ### Arte
 
+- **Pulgão:** ART-012 implementado (REQ-033): oito sprites transparentes (lateral e superior), 72x48 a 36 PPU, dois terços do canvas das formigas. Dimensões, paleta, alpha e importação validados na Unity em 2026-10-18. Aprovação visual e integração em gameplay pendentes; novo importador aguarda compilação ao encerrar Play Mode.
+
 - **Inimiga alada:** ART-011 implementado (REQ-027): 16 sprites para voo, pouso/perda das asas e caminhada sem asas (lateral e superior), preparados a 36 PPU com alpha binário. Em uso como cupim (REQ-029), ligada na cena e vista em Play Mode pelo agente; aprovação visual pendente.
 
 - **Refinamento gráfico:** ART-010 implementado (REQ-026): 72 quadros adultos e 69 elementos de cenário com novo desenho, paleta limitada e alpha 0/255. Dimensões e metadados preservados, 1.390.673 pixels conferidos e 141 PNGs reimportados na Unity; aprovação visual e Play Mode pendentes.
@@ -58,7 +60,7 @@ Sala Gotas de Orvalho implementada (PRG-037, REQ-032): pincel novo; operárias e
 ### Programação
 
 - **Entregas verificadas:** PRG-001 Grade e física granular; PRG-002 Formigas; PRG-004 Cena por setup; PRG-005 Modo do mapa; PRG-006 Formigas em sprite; PRG-007 Agarre em paredes; PRG-008 Andar no fundo do formigueiro; PRG-009 Cenário da superfície em camadas; PRG-010 Mundo expansível; PRG-012 Simulação por blocos (8x no mesmo FPS); PRG-013 Chuva leve e forte; PRG-014 Água; PRG-015 Rainha e sala da rainha; PRG-016 Plantas, sala de nutrientes e nutrientes
-- **Pendências:** PRG-003 Render, input e HUD; PRG-017 HUD uGUI e PRG-018 Política da rainha e PRG-019 Tipos de formiga e PRG-025 Corte de plantas corrigido e PRG-026 Carga, rocha e prioridades e PRG-027 Cuidado do berçário e PRG-028 Cuidado da sala de nutrientes e PRG-020 Ciclo de criação, PRG-021 Cria desenhada no berçário e PRG-022 Transporte do ovo e cheat F1 e PRG-023 Construção de fora (sem Play Mode) e PRG-024 Árvore da rainha (tela Evolução) e PRG-029 Andar livre do lado de fora e PRG-030 Reserva do pixel marcado e PRG-031 Menu do ESC e configurações (faltam uso com mouse; só Pintar e Rainha funcionam; cria vista só em captura do agente); PRG-011 Câmera, limitador e paralaxe (falta uso real por mouse/teclado); PRG-034 Ataques de cupins e área de resíduos (Play Mode só pelo agente)
+- **Pendências:** PRG-003 Render, input e HUD; PRG-017 HUD uGUI e PRG-018 Política da rainha e PRG-019 Tipos de formiga e PRG-025 Corte de plantas corrigido e PRG-026 Carga, rocha e prioridades e PRG-027 Cuidado do berçário e PRG-028 Cuidado da sala de nutrientes e PRG-020 Ciclo de criação, PRG-021 Cria desenhada no berçário e PRG-022 Transporte do ovo e cheat F1 e PRG-023 Construção de fora (sem Play Mode) e PRG-024 Árvore da rainha (tela Evolução) e PRG-029 Andar livre do lado de fora e PRG-030 Reserva do pixel marcado e PRG-031 Menu do ESC e configurações (faltam uso com mouse; só Pintar e Rainha funcionam; cria vista só em captura do agente); PRG-011 Câmera, limitador e paralaxe (falta uso real por mouse/teclado); PRG-034 Ataques de cupins e área de resíduos (Play Mode só pelo agente); PRG-038 a PRG-045 Efeitos de dopamina em oito fases (planejado, REQ-034)
 - **Bloqueios:** Nenhum
 - **Riscos:** Render passou a ser o maior custo por frame (KI-001); soluço único ao montar o cache de navegação de áreas grandes (KI-004)
 
@@ -150,6 +152,7 @@ Sala Gotas de Orvalho implementada (PRG-037, REQ-032): pincel novo; operárias e
 | REQ-030 | Tutorial da primeira abertura do jogo | IMPLEMENTED | UNDEFINED |
 | REQ-031 | Menu principal com fundo de colônia trabalhando e sem splash da Unity | IMPLEMENTED | UNDEFINED |
 | REQ-032 | Sala Gotas de Orvalho | IMPLEMENTED | UNDEFINED |
+| REQ-034 | Efeitos de dopamina (juice): botões animados, partículas e animações de feedback | IN_PROGRESS | UNDEFINED |
 
 Registro completo: [REQUESTS.md](REQUESTS.md)
 
@@ -158,6 +161,7 @@ Registro completo: [REQUESTS.md](REQUESTS.md)
 ### Definidas pelo desenvolvedor
 
 - SFX e VFX são a próxima tarefa (REQ-023, informado em 2026-10-18).
+- Efeitos de dopamina (juice) pedidos em 2026-10-18 (REQ-034): análise e skill `juice-dopamina` feitas, fases 0 a 2 (PRG-038 a PRG-040: `Vfx`, `Easing`, botões animados, painéis e pulso dos contadores) verificadas em Play Mode pelo desenvolvedor; fase 3 (PRG-041, partículas de escavar, despejar, obra, nascimento e cupim) verificada em Play Mode pelo desenvolvedor; fase 4 (PRG-042, números flutuantes de nutriente ganho/gasto e formiga ferida) implementada, sem Play Mode; fases 5 a 7 pendentes.
 
 ### Sugeridas pelo agente
 
@@ -185,6 +189,7 @@ Registro completo: [REQUESTS.md](REQUESTS.md)
 - O loop do protótipo (marcar pixels para cavar; jardineiras colhem plantas sozinhas; nutrientes compram formigas) é o desejado? (GD-001)
 - Se o experimento 16x16 e o mapa dobrado vão para a `main` e se formigas e cenário serão redesenhados a 16 px por célula (REQ-024). O mapa dobrado custa ~415 MB a mais e ~1,6x no tempo da colônia com 200 formigas cavando (KI-016); a arte 16x16 não pesa na simulação.
 - Opções da tela de configurações e pausa ao abrir o menu (REQ-022); eventos, origem dos arquivos e música para SFX e VFX (REQ-023).
+- Juice (REQ-034): paleta de feedback e aprovação visual, opção separada para tremor de câmera, quais marcos ganham momento próprio e como REQ-023 e REQ-034 se dividem (a parte de VFX de REQ-023 é coberta por REQ-034).
 - Ataques de cupins: balanceamento, crescimento do teto de cupins por ataque (hoje +5 pontos, até 100%), se a rainha pode ser atacada e se a área de resíduos vira compra (R0) (REQ-029, GD-007, KI-018).
 - Descrição, plataformas-alvo e marco atual do jogo.
 - Substituir a cena de template `Assets/Scenes/SampleScene.unity` e mover `Assets/Settings` para `Assets/Project`? (não feito: quebraria referências; fica como tarefa separada).

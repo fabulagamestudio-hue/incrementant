@@ -46,8 +46,9 @@ namespace Fabula.Incrementant.Colony
             _boosts.Clear();
             _nurseryTargets.Clear();
             _gardenTargets.Clear();
-            _dewTenders = 0;
+            _dewTendedPoints = 0;
             _dewTendCount = 0;
+            _dewTendTargets.Clear();
         }
 
         void CountCare(Ant ant)
@@ -55,7 +56,12 @@ namespace Fabula.Incrementant.Colony
             if (ant.State == AntState.TendingDew)
             {
                 _dewTendCount++;
-                _dewTenders += ant.Interacting ? 1 : 0;
+                if (ant.EggId > 0)
+                {
+                    _dewTendTargets.Add(ant.EggId);
+                    if (ant.Interacting)
+                        _dewTendedPoints += DewBlockSize(ant.EggId - 1);
+                }
             }
             if (ant.Role == AntRole.Worker)
                 _workerCount++;

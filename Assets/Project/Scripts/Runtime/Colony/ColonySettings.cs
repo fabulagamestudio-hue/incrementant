@@ -67,10 +67,10 @@ namespace Fabula.Incrementant.Colony
         [SerializeField, Min(1)] int _dewSpotsPerWorker = 8;
         [Tooltip("Água máxima (células) acumulada dentro da sala: cheia, as gotas esperam as formigas levarem a água.")]
         [SerializeField, Min(1)] int _dewMaxRoomWater = 24;
-        [Tooltip("Quanto cada jardineira cuidando da sala acelera a queda das gotas (1 = cada uma soma +100% ao ritmo).")]
+        [Tooltip("Quanto o cuidado acelera a queda das gotas com todos os pontos de queda cobertos (1 = +100% ao ritmo); cobrindo só parte, soma a parte proporcional.")]
         [SerializeField, Min(0f)] float _dewTendBoost = 1f;
-        [Tooltip("Jardineiras que cuidam da sala de orvalho ao mesmo tempo.")]
-        [SerializeField, Min(1)] int _dewMaxTenders = 3;
+        [Tooltip("Pontos de queda vizinhos que uma jardineira cuida (um bloco da sala de orvalho); a sala chama uma jardineira por bloco.")]
+        [SerializeField, Min(1)] int _dewPointsPerTender = 4;
 
         public int InitialAnts => _initialAnts;
         public int MaxAnts => _maxAnts;
@@ -103,6 +103,6 @@ namespace Fabula.Incrementant.Colony
         public int DewSpotsPerWorker => _dewSpotsPerWorker;
         public int DewMaxRoomWater => _dewMaxRoomWater;
         public float DewTendBoost => _dewTendBoost;
-        public int DewMaxTenders => _dewMaxTenders;
+        public int DewPointsPerTender => _dewPointsPerTender;
     }
 }

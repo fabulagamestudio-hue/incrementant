@@ -49,9 +49,16 @@ Protótipo de viabilidade do formigário implementado: grade de pixels com físi
 | PRG-035 | Tutorial da primeira abertura: abertura, escavar, nutrientes, berçário e rainha, árvore de evolução, inimigos e despedida, com câmera guiada | IMPLEMENTED | UNDEFINED | [TutorialDirector.cs](../Assets/Project/Scripts/Runtime/Tutorial/TutorialDirector.cs), [TutorialPlan.cs](../Assets/Project/Scripts/Runtime/Tutorial/TutorialPlan.cs), [TutorialPlanTests.cs](../Assets/Project/Scripts/Tests/EditMode/TutorialPlanTests.cs) (5/5) + Play Mode pelo agente até a árvore de evolução | REQ-030, PRG-031 | 2026-10-18 |
 | PRG-036 | Menu principal (cena MainMenu) com vitrine de colônia pré-escavada trabalhando ao fundo, Continuar/Iniciar, Configurações, Sobre o jogo e Sair; splash da Unity desligado; "Menu principal" no menu de pausa | IMPLEMENTED | UNDEFINED | [MainMenu.cs](../Assets/Project/Scripts/Runtime/Menu/MainMenu.cs), [MenuShowcase.cs](../Assets/Project/Scripts/Runtime/AntFarm/MenuShowcase.cs), [AntFarmHudSetup.MainMenu.cs](../Assets/Project/Scripts/Editor/UI/AntFarmHudSetup.MainMenu.cs) + Play Mode pelo agente em 2026-10-18 (fundo trabalhando, Configurações, Continuar carregou o save, Menu principal pela pausa); sem teste automatizado | REQ-031, PRG-031 | 2026-10-18 |
 | PRG-037 | Sala Gotas de Orvalho: pincel, terra fofa nos 30% de cima, folha, gota periódica não absorvida pelas paredes | IMPLEMENTED | UNDEFINED | [AntColony.Dew.cs](../Assets/Project/Scripts/Runtime/Colony/AntColony.Dew.cs), [DewRoomTests.cs](../Assets/Project/Scripts/Tests/EditMode/DewRoomTests.cs) (suíte EditMode 217/217 na Unity em 2026-10-18, incluindo os 8 novos; sem Play Mode) | REQ-032 | 2026-10-18 |
+| PRG-038 | Juice fase 0 — fundação: `Vfx` (único leitor do VfxLevel), `Easing` e testes (tweener leve adiado: botões usam Update próprio) | VERIFIED | UNDEFINED | [JuiceTests.cs](../Assets/Project/Scripts/Tests/EditMode/JuiceTests.cs) (4/4) | REQ-034, PRG-031 | 2026-10-18 |
+| PRG-039 | Juice fase 1 — botões: hover, pressionar, soltar e negado (`ButtonJuice.AttachAll` em HUD, menu e telas) | VERIFIED | UNDEFINED | Play Mode relatado pelo desenvolvedor em 2026-10-18 (hover, pressionar, idle dessincronizado) | REQ-034, PRG-038 | 2026-10-18 |
+| PRG-040 | Juice fase 2 — painéis com fade/slide/pop (`PanelAnimator`) e pulso nos contadores do HUD (`Pulse`) | VERIFIED | UNDEFINED | Play Mode relatado pelo desenvolvedor em 2026-10-18 | REQ-034, PRG-039 | 2026-10-18 |
+| PRG-041 | Juice fase 3 — evento `AntColony.Fx` com célula, `WorldFx` com pool e partículas de escavar, despejar, obra, nascimento e cupim | VERIFIED | UNDEFINED | [WorldFx.cs](../Assets/Project/Scripts/Runtime/Juice/WorldFx.cs), [JuiceTests.cs](../Assets/Project/Scripts/Tests/EditMode/JuiceTests.cs) (limitador); Play Mode relatado pelo desenvolvedor em 2026-10-18 | REQ-034, PRG-038 | 2026-10-18 |
+| PRG-042 | Juice fase 4 — números flutuantes agregados (`FloatingText`): nutrientes, custo de compra, dano | IMPLEMENTED | UNDEFINED | [FloatingText.cs](../Assets/Project/Scripts/Runtime/Juice/FloatingText.cs), [JuiceTests.cs](../Assets/Project/Scripts/Tests/EditMode/JuiceTests.cs) (agregador, 6/6); sem Play Mode | REQ-034, PRG-041 | — |
+| PRG-043 | Juice fase 5 — reação corporal (squash, pulo, pisca) de formigas, crias e cultivo | PLANNED | UNDEFINED | — | REQ-034, PRG-041 | — |
+| PRG-044 | Juice fase 6 — árvore de evolução, marcos (nova classe, ataque repelido, game over) e tremor de câmera (`CameraKick`) | PLANNED | UNDEFINED | — | REQ-034, PRG-040, PRG-042, PRG-043 | — |
+| PRG-045 | Juice fase 7 — atmosfera, vida do menu principal e ajuste de orçamento no painel F11 | PLANNED | UNDEFINED | — | REQ-034, PRG-041, PRG-044 | — |
 
 ## Detalhes
-
 ### PRG-001 — Grade de pixels, física granular e geração do mapa
 
 Mapa 320x200 células; terra/grama estáticas, areia e terra despejada granulares, pedra indestrutível. Funcionamento em [AntFarmGuide.md](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md).
@@ -181,6 +188,18 @@ Pedido em REQ-031. `AntFarmGame` ganhou o modo vitrine (sem input, cronômetro, 
 ### PRG-037 — Sala Gotas de Orvalho
 
 Pedido em REQ-032. Sala pintável (pincel 8º, índice 7), operárias comuns e jardineiras cobrem de terra fofa os 30% de cima de cada coluna, depois penduram uma folha (colunas pares), e a sala pronta solta uma gota a cada 8 s; a água dentro da sala não é absorvida pelas paredes. Intervalo, parte, altura mínima de coluna, formigas por ponto e teto de água ficam em `ColonySettings` (seção Sala Gotas de Orvalho). Salva no bit 2 do byte `NurseryRoom` (sem mudar a versão do save). Para VERIFIED falta uma pessoa pintar a sala em Play Mode (botão com ícone de folha provisório; o HUD precisa ser remontado em Incrementant/Setup/Montar HUD da partida para o botão aparecer). Cupins ainda não a tratam como setor. Guia: [DewRoomGuide.md](../Assets/Project/Scripts/Runtime/Colony/DewRoomGuide.md). Pendência: KI-019.
+
+### PRG-038 a PRG-045 — Ordem de execução do juice (REQ-034)
+
+Planejado em 2026-10-18, sem código de jogo ainda. Análise, arquitetura e catálogos na [skill juice-dopamina](../.claude/skills/juice-dopamina/SKILL.md); a [arquitetura](../.claude/skills/juice-dopamina/references/arquitetura.md) detalha classes e eventos. Ordem e porta de saída de cada fase:
+
+1. **PRG-038 fundação.** `Vfx`, `Easing`, tweener e testes EditMode. Também liga o `VfxLevel`, que hoje nenhum código lê. Porta: testes passando.
+2. **PRG-039 botões** e **PRG-041 mundo** podem andar em paralelo depois da fase 0 (são independentes). Botões: ganho visível imediato e pedido explícito. Mundo: `AntColony.Fx`, `WorldFx` e os primeiros efeitos.
+3. **PRG-040 painéis e contadores** depois dos botões. **PRG-042 números flutuantes** e **PRG-043 reação corporal** depois do mundo.
+4. **PRG-044 marcos e câmera** reúne UI, números e corpo; o tremor é o último efeito forte a entrar.
+5. **PRG-045 atmosfera e orçamento** fecha: medição no F11 e ajuste dos tetos.
+
+Porta de cada fase: compila, testes EditMode, Play Mode em 1x e 8x, os três níveis de `VfxLevel` e conferência no F11. Só vira `VERIFIED` com essa evidência.
 
 ## Riscos e bloqueios
 

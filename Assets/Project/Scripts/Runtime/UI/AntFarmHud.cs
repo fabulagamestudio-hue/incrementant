@@ -2,9 +2,11 @@ using Fabula.Incrementant.Texts;
 using Fabula.Incrementant.Audio;
 using Fabula.Incrementant.AntFarm;
 using Fabula.Incrementant.Colony;
+using Fabula.Incrementant.Juice;
 using System;
 using Fabula.Incrementant.Settings;
 using Fabula.Incrementant.Tutorial;
+using Fabula.Incrementant.World;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
@@ -218,13 +220,40 @@ namespace Fabula.Incrementant.UI
             _treePanel.SetActive(false);
             _pauseMenu.gameObject.SetActive(false);
             _raidAlert.SetActive(false);
+            // Entrada dos painéis: submenus e alerta com pop; telas cheias só com fade (têm fundo que não pode se mover).
+            PanelAnimator.Attach(_paintPanel, PanelAnimator.PanelStyle.Pop);
+            PanelAnimator.Attach(_environmentPanel, PanelAnimator.PanelStyle.Pop);
+            PanelAnimator.Attach(_queenPanel, PanelAnimator.PanelStyle.Pop);
+            PanelAnimator.Attach(_raidAlert, PanelAnimator.PanelStyle.Pop);
+            PanelAnimator.Attach(_treePanel, PanelAnimator.PanelStyle.Fade);
+            PanelAnimator.Attach(_pauseMenu.gameObject, PanelAnimator.PanelStyle.Fade);
             // Cliques de todos os botões da tela (painéis, menu do ESC, árvore, configurações).
             ButtonSfx.AttachAll(transform.root);
+            ButtonJuice.AttachAll(transform.root);
             _tooltips = new HudTooltips(_raidAlertText.font);
+            _floatingText = FloatingText.Create(_raidAlertText.font, _game.WorldCamera);
             AttachTooltips();
         }
 
-        void OnDestroy() => _tooltips?.Dispose();
+        void OnDestroy()
+        {
+            _tooltips?.Dispose();
+            if (_floatingText != null)
+                Destroy(_floatingText.gameObject);
+        }
+
+        FloatingText _floatingText;
+
+        /// <summary>Fatos visuais da colônia que viram número flutuante: nutriente consumido pela rainha e formiga ferida.</summary>
+        void OnColonyFx(FxId id, Vector2Int cell, CellMaterial material)
+        {
+            if (_floatingText == null)
+                return;
+            if (id == FxId.NutrientGain)
+                _floatingText.Gain(1, _game.CellToWorld(cell));
+            else if (id == FxId.AntHurt)
+                _floatingText.SpawnWorld(_game.CellToWorld(cell), "-1", Pulse.Loss);
+        }
 
         /// <summary>Dicas dos botões do menu Colônia, da velocidade e dos cartões; as das salas e dos cartões incluem o estado da produção.</summary>
         void AttachTooltips()
@@ -278,6 +307,7 @@ namespace Fabula.Incrementant.UI
 
         void OnEnable()
         {
+            _game.ColonyFx += OnColonyFx;
             _paintButton.onClick.AddListener(TogglePaint);
             _pauseButton.onClick.AddListener(TogglePause);
             if (_recallButton != null)
@@ -299,6 +329,7 @@ namespace Fabula.Incrementant.UI
 
         void OnDisable()
         {
+            _game.ColonyFx -= OnColonyFx;
             SetFingerCursor(false);
             _paintButton.onClick.RemoveListener(TogglePaint);
             _pauseButton.onClick.RemoveListener(TogglePause);
@@ -365,8 +396,10 @@ namespace Fabula.Incrementant.UI
         void ToggleRecall()
         {
             AntColony colony = _game.Colony;
-            if (colony != null)
-                colony.Recalled = !colony.Recalled;
+            if (colony == null)
+                return;
+            colony.Recalled = !colony.Recalled;
+            GameAudio.Play(SfxId.EmergencyBell);
         }
 
         /// <summary>
@@ -473,8 +506,34 @@ namespace Fabula.Incrementant.UI
 
         static readonly Color BlockedTint = new Color(0.62f, 0.62f, 0.62f);
 
+        // Último valor mostrado, para pulsar o contador só quando ele muda (-1 = ainda sem leitura, não pulsa).
+        int _shownNutrients = -1;
+        int _shownAnts = -1;
+
+        void PulseCounters(AntColony colony)
+        {
+            int nutrients = colony.Nutrients;
+            if (_shownNutrients >= 0 && nutrients != _shownNutrients)
+            {
+                Pulse.Play(_nutrientsValue, nutrients > _shownNutrients ? Pulse.Gain : Pulse.Loss);
+                // Gasto (compra, ovo): "-N" sai do cartão. O ganho já aparece junto da rainha, agregado.
+                if (nutrients < _shownNutrients && _floatingText != null)
+                {
+                    Vector2 card = RectTransformUtility.WorldToScreenPoint(null, _nutrientsValue.rectTransform.position);
+                    _floatingText.SpawnScreen(card + new Vector2(0f, -36f), "-" + (_shownNutrients - nutrients), Pulse.Loss);
+                }
+            }
+            _shownNutrients = nutrients;
+
+            int ants = colony.Ants.Count;
+            if (_shownAnts >= 0 && ants > _shownAnts)
+                Pulse.Play(_antsValue, Pulse.Gain);
+            _shownAnts = ants;
+        }
+
         void RefreshTexts(AntColony colony)
         {
+            PulseCounters(colony);
             _nutrientsValue.text = Loc.T("hud.nutrients.value", colony.Nutrients);
             _nutrientsDetail.text = Loc.T("hud.nutrients.consumed", colony.TotalNutrients);
 
@@ -528,7 +587,9 @@ namespace Fabula.Incrementant.UI
             switch (colony.RaidState)
             {
                 case RaidState.Warning:
-                    text = Loc.T("raid.warning", Mathf.CeilToInt(colony.SecondsToNextRaid));
+                    text = colony.RaidHeldByStorm
+                        ? Loc.T("raid.storm")
+                        : Loc.T("raid.warning", Mathf.CeilToInt(colony.SecondsToNextRaid));
                     break;
                 case RaidState.Active:
                     text = Loc.T("raid.active", colony.LiveTermites, ObjectiveText(colony.RaidObjective));

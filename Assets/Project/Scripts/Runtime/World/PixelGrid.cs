@@ -60,6 +60,8 @@ namespace Fabula.Incrementant.World
         // Obra: sólido encaixado por uma formiga construindo. Some quando o material da célula muda.
         readonly bool[] _built;
         readonly int[] _surfaceY;
+        // Nível da água do laguinho original por coluna (-1 = sem laguinho). Água acima do solo fora dele evapora.
+        readonly int[] _lakeLevelY;
 
         // Blocos de ChunkSize x ChunkSize células. Toda mudança de célula "toca" o bloco dela e os vizinhos que
         // encostam na célula: acorda o bloco para a simulação granular e muda a versão do bloco (caches de navegação).
@@ -171,6 +173,9 @@ namespace Fabula.Incrementant.World
             _surfaceY = new int[width];
             for (int x = 0; x < width; x++)
                 _surfaceY[x] = -1;
+            _lakeLevelY = new int[width];
+            for (int x = 0; x < width; x++)
+                _lakeLevelY[x] = -1;
             _maxX = width;
             _maxY = height;
 
@@ -998,6 +1003,15 @@ namespace Fabula.Incrementant.World
                 _surfaceY[x] = y;
                 TouchRect(x, 0, x + 1, Height);
             }
+        }
+
+        /// <summary>Nível da água do laguinho original na coluna (-1 = sem laguinho): a água até ele não evapora.</summary>
+        public int GetLakeLevelY(int x) => (uint)x < (uint)Width ? _lakeLevelY[x] : -1;
+
+        public void SetLakeLevelY(int x, int y)
+        {
+            if ((uint)x < (uint)Width)
+                _lakeLevelY[x] = y;
         }
 
         void ClearMarkAt(int index)

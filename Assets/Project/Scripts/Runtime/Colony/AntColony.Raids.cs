@@ -1,4 +1,5 @@
 using Fabula.Incrementant.Audio;
+using Fabula.Incrementant.Juice;
 using System.Collections.Generic;
 using Fabula.Incrementant.World;
 using UnityEngine;
@@ -81,6 +82,9 @@ namespace Fabula.Incrementant.Colony
 
         /// <summary>Chuva forte no mapa (o jogo atualiza a cada passo): mata os cupins vivos e segura os ataques novos.</summary>
         public bool Raining { get; set; }
+
+        /// <summary>O alerta zerou mas os cupins esperam a chuva passar (ataque forçado pelo F4 não espera).</summary>
+        public bool RaidHeldByStorm => RaidState == RaidState.Warning && _raidTimer <= 0f && Raining && !_forcedRaid;
 
         /// <summary>Cupins do ataque em curso, vivos e mortos (corpos).</summary>
         public IReadOnlyList<Termite> Termites => _termites;
@@ -212,7 +216,7 @@ namespace Fabula.Incrementant.Colony
                 case RaidState.Warning:
                     if (belowMinimum && !_forcedRaid)
                         break;
-                    _raidTimer -= deltaTime;
+                    _raidTimer = Mathf.Max(0f, _raidTimer - deltaTime);
                     if (_raidTimer <= 0f && !stormHold)
                         LaunchRaid();
                     break;
@@ -521,6 +525,7 @@ namespace Fabula.Incrementant.Colony
                     t.AttackTimer = RaidSettings.AttackSeconds;
                     victim.Wounds += RaidSettings.TermiteDamage;
                     Emit(SfxId.AntHurt);
+                    EmitFx(FxId.AntHurt, victim.X, victim.Y);
                     victim.LastHitTime = SimulationTime;
                 }
                 return false;
@@ -675,9 +680,11 @@ namespace Fabula.Incrementant.Colony
             if (t.Health > 0f)
             {
                 Emit(SfxId.TermiteHit);
+                EmitFx(FxId.TermiteHit, t.X, t.Y);
                 return;
             }
             Emit(SfxId.TermiteKilled);
+            EmitFx(FxId.TermiteKilled, t.X, t.Y);
             KillTermite(t);
         }
 

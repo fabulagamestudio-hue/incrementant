@@ -68,6 +68,12 @@ namespace Fabula.Incrementant.World
                     }
                 }
                 grid.SetSurfaceY(x, surface);
+
+                // Laguinho pintado: a água contínua logo acima do solo da coluna.
+                int level = -1;
+                for (int y = surface + 1; y < height && grid.HasWater(x, y); y++)
+                    level = y;
+                grid.SetLakeLevelY(x, level);
             }
 
             for (int y = 0; y < height; y++)

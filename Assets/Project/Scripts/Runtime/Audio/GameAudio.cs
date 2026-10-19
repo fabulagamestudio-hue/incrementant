@@ -64,6 +64,7 @@ namespace Fabula.Incrementant.Audio
             r[(int)SfxId.Crumble] = new Rule(0.4f, 0.1f, 0.1f);
             r[(int)SfxId.GameOver] = new Rule(0.8f, 2f);
             r[(int)SfxId.Rain] = new Rule(0.5f);
+            r[(int)SfxId.EmergencyBell] = new Rule(0.65f, 1f);
             return r;
         }
 

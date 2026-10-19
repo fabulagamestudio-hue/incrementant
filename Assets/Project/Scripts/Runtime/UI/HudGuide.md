@@ -22,7 +22,7 @@ Como o HUD (uGUI) funciona e como mexer nele. Onde estão os arquivos: [Runtime/
 | Menu Colônia → Evolução | Real: tela cheia `TelaEvolucao` com duas abas (ver "Tela Evolução"): Rainha e classes (compra de verdade) e Formigueiro (só exibição) |
 | Avisos | Desativado (sem sistema por trás) |
 | Pausa e 1x/3x/8x | Reais (P também pausa; 1/2/3 trocam a velocidade) |
-| Sino (acima da velocidade, ícone `icons/bell`) | Real: alterna `AntColony.Recalled`. Ligado ("volte para o formigueiro"), as formigas terminam o que carregam e só vagam pelo formigueiro; cuidadoras e soldados seguem normais. Desligado ("volte ao trabalho"), retomam as tarefas. Não vai para o save |
+| Sino (acima da velocidade, ícone `icons/bell`) | Real: alterna `AntColony.Recalled`. Ligado ("volte para o formigueiro"), as formigas terminam o que carregam e só vagam pelo formigueiro; cuidadoras e soldados seguem normais. Desligado ("volte ao trabalho"), retomam as tarefas. Ao ligar ou desligar toca o `EmergencyBell`. Não vai para o save |
 | FPS e tempo jogado (canto superior direito, abaixo do cartão Rainha) | Real (some com "Mostrar FPS e tempo" desligado nas configurações): FPS médio a cada 0,25 s e relógio da sessão em HH:MM:SS (tempo real, ignora pausa e velocidade; não vai no save) |
 | Dica do rodapé | Mostra o aviso de salvar/carregar por 5 s |
 | Menu do ESC e Configurações | Reais (ver "Menu do ESC e configurações") |
@@ -52,6 +52,10 @@ O botão EVOLUÇÃO abre `TelaEvolucao` (`SkillTreeScreen`), em tela cheia sobre
 - **Menu (`PauseMenu`, objeto `MenuPausa`).** Fundo escurecido em tela cheia que bloqueia cliques no mundo e no HUD, e o painel MENU: Continuar, Configurações, Salvar partida (F5), Carregar partida (F9), Menu principal (volta à cena `MainMenu` sem salvar), Sair do jogo. Abrir pausa a simulação e liga `AntFarmGame.InputLocked` (sem atalhos, câmera nem pincel); fechar devolve a pausa como estava. O aviso de salvar/carregar aparece no próprio painel. Sair no Editor só mostra um aviso.
 - **Configurações (`SettingsScreen`, objeto `TelaConfiguracoes`).** Troca de lugar com o painel do menu. Linhas: volume geral, música, efeitos sonoros (sliders com %), efeitos visuais (Completo/Reduzido/Desligado), tela cheia, resolução (nativa + as do monitor), VSync, limite de FPS (apagado com VSync ligado) e mostrar FPS e tempo; rodapé com PADRÃO e VOLTAR. Cada mudança é aplicada na hora; o arquivo é gravado ao sair da tela. Dados e aplicação: [SettingsGuide.md](../Settings/SettingsGuide.md).
 - **Montagem.** `BuildPauseMenu` e `BuildSettingsScreen` em `Editor/UI/AntFarmHudSetup.cs`, por último sob o canvas (cobrem até a tela Evolução). Sliders, interruptores (`controls/toggle_*`) e alças em escala 2 (`BuildScaledSprite`); o Slider estica a alça na altura da área, então só a largura vai no `sizeDelta`.
+
+## Game over
+
+`GameOverScreen` (objeto `GameOver`, montado por `BuildGameOverScreen`) mostra um fundo escurecido em tela cheia com o título, o motivo e o tempo de partida, e os botões "Carregar o último save [F9]" (`AntFarmGame.LoadGame`) e "Novo mapa [R]" (`AntFarmGame.NewMap`). Aparece sozinho quando `AntColony.GameOver` liga e some quando a partida recomeça; o aviso de "sem save" aparece no próprio painel. Fica sob o menu do ESC, que ainda abre por cima. Substituiu o IMGUI antigo do `AntFarmGame`. Não foi conferido visualmente em Play Mode.
 
 ## Como estender
 

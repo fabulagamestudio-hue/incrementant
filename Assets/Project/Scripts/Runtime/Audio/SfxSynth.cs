@@ -112,6 +112,9 @@ namespace Fabula.Incrementant.Audio
                 case SfxId.Rain:
                     b.Rain();
                     break;
+                case SfxId.EmergencyBell:
+                    EmergencyBell(b);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(id), id, null);
             }
@@ -147,11 +150,31 @@ namespace Fabula.Incrementant.Audio
                 case SfxId.Crumble: return 0.45f;
                 case SfxId.GameOver: return 1.5f;
                 case SfxId.Rain: return 2.5f;
+                case SfxId.EmergencyBell: return 4f;
                 default: return 0.5f;
             }
         }
 
         static int Length(SfxId id) => (int)(Seconds(id) * SampleRate);
+
+        /// <summary>
+        /// Sino de aldeia tocado por corda: o badalo bate nas laterais de um lado e do outro, em ritmo quase regular com
+        /// pequenas irregularidades da mão (tempo e força), e cada batida soa por cima da cauda da anterior.
+        /// </summary>
+        static void EmergencyBell(Buffer b)
+        {
+            const float baseHz = 760f;
+            float t = 0.02f;
+            for (int i = 0; i < 11; i++)
+            {
+                bool otherSide = i % 2 == 1;
+                // A batida do outro lado pega outra parte do bronze: um pouco mais grave e mais fraca.
+                float hz = baseHz * (otherSide ? 0.992f : 1f) * (1f + (b.Rand() - 0.5f) * 0.004f);
+                float strength = (otherSide ? 0.82f : 1f) * (0.88f + b.Rand() * 0.12f);
+                b.BellStrike(t, hz, strength);
+                t += 0.235f + (b.Rand() - 0.5f) * 0.05f;
+            }
+        }
 
         static void Arpeggio(Buffer b, float start, float step, float noteLength, float decay, Wave wave, params float[] notes)
         {
@@ -197,6 +220,36 @@ namespace Fabula.Incrementant.Audio
                     float env = Math.Min(1f, t / Math.Max(attack, 1e-4f)) * (float)Math.Exp(-t * decay);
                     _samples[first + i] += Shape(wave, (float)phase) * amp * env;
                 }
+            }
+
+            // Parciais de um sino pequeno de bronze (relação com a fundamental, amplitude, queda por segundo): zumbido grave,
+            // terça menor e demais parciais inarmônicos; os agudos somem primeiro, o que dá o "tlim" e a cauda metálica.
+            static readonly float[,] BellPartials =
+            {
+                { 0.5f, 0.40f, 2.6f },
+                { 1.0f, 1.00f, 3.2f },
+                { 1.19f, 0.55f, 3.8f },
+                { 1.5f, 0.42f, 4.8f },
+                { 2.0f, 0.50f, 5.8f },
+                { 2.51f, 0.32f, 7.5f },
+                { 3.2f, 0.22f, 10f },
+                { 4.1f, 0.15f, 14f },
+            };
+
+            /// <summary>Uma batida de badalo: parciais do sino mais um estalo curto e brilhante do metal contra metal.</summary>
+            public void BellStrike(float start, float hz, float strength)
+            {
+                for (int p = 0; p < BellPartials.GetLength(0); p++)
+                {
+                    float f = hz * BellPartials[p, 0];
+                    float amp = BellPartials[p, 1] * strength;
+                    float decay = BellPartials[p, 2];
+                    Tone(start, 2f, f, f, Wave.Sine, amp, 0.0008f, decay);
+                    // Gêmeo levemente desafinado nas duas primeiras: o batimento é o tremor típico de um sino real.
+                    if (p == 1 || p == 4)
+                        Tone(start, 2f, f * 1.006f, f * 1.006f, Wave.Sine, amp * 0.5f, 0.0008f, decay * 1.1f);
+                }
+                Noise(start, 0.02f, strength * 0.7f, 0.7f, 0.0003f, 170f);
             }
 
             /// <summary>Ruído passa-baixa (<paramref name="smooth"/> perto de 0 = grave e abafado, perto de 1 = chiado).</summary>

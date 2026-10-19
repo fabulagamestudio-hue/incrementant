@@ -31,6 +31,8 @@ namespace Fabula.Incrementant.Audio
         GameOver,
         // Ambiente (em laço)
         Rain,
+        // Sinos
+        EmergencyBell,
         Count,
     }
 }

@@ -372,6 +372,30 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
+        public void Gardeners_TendOneBlockEach_NoMoreThanTheRoomHas()
+        {
+            PixelGrid grid = MakeReadyWorld();
+            var settings = new ColonySettings();
+            var colony = new AntColony(grid, settings, Layout, seed: 4);
+            foreach (Ant ant in colony.Ants)
+                ant.Role = AntRole.Gardener;
+            for (int i = 0; i < 60 * 30; i++)
+                colony.Tick(Dt);
+            // Sala de 8 colunas, 4 pontos por bloco: 2 blocos, uma jardineira em cada.
+            int blocks = (RoomX1 - RoomX0 + 1 + settings.DewPointsPerTender - 1) / settings.DewPointsPerTender;
+            var targets = new System.Collections.Generic.HashSet<int>();
+            int tenders = 0;
+            foreach (Ant ant in colony.Ants)
+            {
+                if (ant.State != AntState.TendingDew)
+                    continue;
+                tenders++;
+                Assert.IsTrue(targets.Add(ant.EggId), "Duas jardineiras não cuidam do mesmo bloco.");
+            }
+            Assert.AreEqual(blocks, tenders, "Uma jardineira por bloco da sala.");
+        }
+
+        [Test]
         public void Gardeners_AlsoCoverTheTopWithSoil()
         {
             PixelGrid grid = MakeWorld();

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Fabula.Incrementant.Audio;
 using Fabula.Incrementant.Diagnostics;
+using Fabula.Incrementant.Juice;
 using Fabula.Incrementant.World;
 using UnityEngine;
 
@@ -464,8 +465,9 @@ namespace Fabula.Incrementant.Colony
                 Emit(SfxId.EggLaid);
             foreach (AntRole born in _born)
             {
-                Spawn(born);
+                Ant newborn = Spawn(born);
                 Emit(SfxId.AntBorn);
+                EmitFx(FxId.Hatch, newborn.X, newborn.Y);
             }
             // Quem nasce libera o ponto do berçário que ocupava.
             _nurseryDirty |= _born.Count > 0;
@@ -1215,6 +1217,7 @@ namespace Fabula.Incrementant.Colony
                     return false;
                 Nutrients++;
                 TotalNutrients++;
+                EmitFx(FxId.NutrientGain, queen.X, queen.Y);
                 queen.Cooldown = _settings.DropSeconds;
                 return true;
             }
@@ -1231,6 +1234,7 @@ namespace Fabula.Incrementant.Colony
             {
                 Nutrients++;
                 TotalNutrients++;
+                EmitFx(FxId.NutrientGain, Queen.X, Queen.Y);
                 ant.State = AntState.Idle;
                 ant.Cooldown = _settings.DropSeconds;
                 return;
@@ -2725,6 +2729,7 @@ namespace Fabula.Incrementant.Colony
                 _grid.SetMarked(ant.DigX, ant.DigY, true);
                 VegetationSimulation.DropDisconnected(_grid, ant.DigX, ant.DigY);
                 Emit(SfxId.Dig);
+                EmitFx(FxId.Dig, ant.DigX, ant.DigY, material);
                 return;
             }
 
@@ -2732,6 +2737,7 @@ namespace Fabula.Incrementant.Colony
             ant.PickUp(debris ? CellMaterials.FromDebris(material) : material, _grid.GetShade(ant.DigX, ant.DigY), _grid.ToIndex(ant.DigX, ant.DigY));
             _grid.Set(ant.DigX, ant.DigY, CellMaterial.Empty, 0);
             Emit(SfxId.Dig);
+            EmitFx(FxId.Dig, ant.DigX, ant.DigY, ant.Carried);
             // Mão não cheia e mais um pixel do mesmo tipo ao alcance: continua antes de entregar.
             if (ant.CarriedCount >= LoadCapacity(ant))
             {
@@ -2797,6 +2803,7 @@ namespace Fabula.Incrementant.Colony
             ant.ReturningSoil = false;
             _grid.Set(ant.DigX, ant.DigY, CellMaterial.Empty, 0);
             Emit(SfxId.Dig);
+            EmitFx(FxId.Dig, ant.DigX, ant.DigY, ant.Carried);
             // Mão não cheia e mais terra solta ao alcance: pega mais antes de ir à obra.
             if (ant.CarriedCount < Tree.SoilCapacity(ant.Role) && TryStartGather(ant, continuing: true))
                 return;
@@ -2876,6 +2883,7 @@ namespace Fabula.Incrementant.Colony
             // Marca como obra: do lado de fora a formiga anda por dentro dela (AntNavigation.IsOutdoorBuilt).
             _grid.SetBuilt(ant.DigX, ant.DigY, true);
             Emit(SfxId.Build);
+            EmitFx(FxId.Build, ant.DigX, ant.DigY, ant.Carried);
             ant.DropTop();
             // Sobrou terra na mão: segue para o próximo ponto da obra.
             ant.State = ant.CarriedCount > 0 ? AntState.Hauling : AntState.Idle;
@@ -2963,6 +2971,7 @@ namespace Fabula.Incrementant.Colony
 
                 _grid.Set(x, y, CellMaterials.ToDumped(ant.Carried), ant.CarriedShade);
                 Emit(SfxId.Drop);
+                EmitFx(FxId.Drop, x, y, ant.Carried);
                 ant.DropTop();
                 // O pixel solto já conta no monte (DumpLoad): sai dos que estão a caminho.
                 if (ant.DumpSide >= 0 && ant.DumpPixels > 0)

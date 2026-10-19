@@ -235,7 +235,10 @@ namespace Fabula.Incrementant.World
                 throw new ArgumentException($"A grade ({grid.Width}x{grid.Height}) precisa ter o tamanho do mundo ({WorldWidth}x{WorldHeight}).", nameof(grid));
 
             for (int x = 0; x < WorldWidth; x++)
+            {
                 grid.SetSurfaceY(x, _surface[x]);
+                grid.SetLakeLevelY(x, _lakeLevel[x]);
+            }
             grid.SetActive(StartArea);
             Fill(grid, StartArea);
 

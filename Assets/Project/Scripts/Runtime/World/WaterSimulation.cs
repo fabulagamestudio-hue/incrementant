@@ -18,6 +18,11 @@ namespace Fabula.Incrementant.World
         [Min(0.1f)] public float ErosionSeconds = 6f;
         [Tooltip("A cada quantos segundos simulados a erosão é verificada.")]
         [Min(0.02f)] public float CheckInterval = 0.25f;
+
+        [Header("Evaporação (fora do formigueiro)")]
+        [Tooltip("Vida média, em segundos simulados, de um pixel de água da chuva no céu. Só o laguinho original (até o " +
+                 "nível dele) não evapora; 0 desliga a evaporação.")]
+        [Min(0f)] public float EvaporationSeconds = 40f;
     }
 
     /// <summary>
@@ -30,8 +35,8 @@ namespace Fabula.Incrementant.World
     /// A cada <see cref="WaterSettings.CheckInterval"/>: dentro do formigueiro (abaixo do solo original), a terra fixa
     /// encostada na água (4 vizinhos) há <see cref="WaterSettings.ErosionSeconds"/> seguidos vira
     /// <see cref="CellMaterial.Mud"/>, que cai pela física granular, e a água que a molhou é consumida (solo já solto
-    /// ou mole só absorve a água; exceto a água dentro da sala Gotas de Orvalho, que nada absorve). Só ali a água é consumida: no céu (laguinhos, poças da chuva) ela não infiltra nem
-    /// evapora, só escorre.
+    /// ou mole só absorve a água; exceto a água dentro da sala Gotas de Orvalho, que nada absorve). No céu a água não infiltra: a do laguinho original (até <see cref="PixelGrid.GetLakeLevelY"/>)
+    /// só escorre; a da chuva fora dele evapora aos poucos (<see cref="WaterSettings.EvaporationSeconds"/>).
     /// </summary>
     public sealed class WaterSimulation
     {
@@ -44,16 +49,18 @@ namespace Fabula.Incrementant.World
         // Contato com a água por célula de terra: quantas verificações seguidas e a última em que encostou.
         readonly ushort[] _soak;
         readonly int[] _soakCheck;
+        readonly System.Random _evaporationRng;
         int _tick;
         int _check;
         float _checkTimer;
 
-        /// <param name="seed">Sem uso hoje (a água é determinística); mantido para quem cria a simulação com a seed do mapa.</param>
+        /// <param name="seed">Semeia só a evaporação; o escoamento é determinístico.</param>
         public WaterSimulation(WaterSettings settings, PixelGrid grid, int seed)
         {
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             if (grid == null)
                 throw new ArgumentNullException(nameof(grid));
+            _evaporationRng = new System.Random(seed ^ 0x3E4A);
             int cells = grid.Width * grid.Height;
             _moved = new int[cells];
             _soak = new ushort[cells];
@@ -215,6 +222,7 @@ namespace Fabula.Incrementant.World
         {
             _check++;
             int needed = Mathf.Max(1, Mathf.CeilToInt(_settings.ErosionSeconds / _settings.CheckInterval - 0.001f));
+            double evaporation = _settings.EvaporationSeconds > 0f ? _settings.CheckInterval / _settings.EvaporationSeconds : 0.0;
             RectInt area = grid.Active;
             int w = grid.Width;
             int cxMin = area.xMin >> PixelGrid.ChunkShift, cxMax = (area.xMax - 1) >> PixelGrid.ChunkShift;
@@ -236,8 +244,17 @@ namespace Fabula.Incrementant.World
                     {
                         // Só a água dentro do formigueiro (abaixo do solo original) molha e é consumida; a da sala Gotas de
                         // Orvalho não: as paredes dela não absorvem a gota.
-                        if (y <= grid.GetSurfaceY(x) && grid.HasWaterAt(y * w + x) && !grid.IsDewRoom(x, y))
-                            Soak(grid, x, y, needed);
+                        if (!grid.HasWaterAt(y * w + x))
+                            continue;
+                        if (y <= grid.GetSurfaceY(x))
+                        {
+                            if (!grid.IsDewRoom(x, y))
+                                Soak(grid, x, y, needed);
+                        }
+                        else if (evaporation > 0.0 && y > grid.GetLakeLevelY(x) && _evaporationRng.NextDouble() < evaporation)
+                        {
+                            grid.SetWater(x, y, false);
+                        }
                     }
                 }
             }

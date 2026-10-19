@@ -228,6 +228,8 @@ namespace Fabula.Incrementant.EditorTools.UI
             SetObject(refs, "_treePanel", BuildTreeScreen(root, game));
             // O tutorial fica acima da tela de evolução (ele a explica) e abaixo do menu do ESC.
             SetObject(refs, "_tutorial", BuildTutorial(root, game, hud));
+            // O game over cobre o HUD inteiro, mas o menu do ESC ainda abre por cima dele.
+            BuildGameOverScreen(root, game);
             // O menu do ESC fica acima de tudo, inclusive da tela de evolução e do tutorial.
             SetObject(refs, "_pauseMenu", BuildPauseMenu(root, game));
 
@@ -462,6 +464,54 @@ namespace Fabula.Incrementant.EditorTools.UI
             rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0f);
             rect.pivot = new Vector2(0.5f, 0f);
             rect.anchoredPosition = new Vector2(0f, bottom);
+        }
+
+        // ---------------------------------------------------------------- game over
+
+        /// <summary>
+        /// Tela de game over: fundo escurecido em tela cheia (bloqueia cliques no mundo e no HUD), título, motivo com o tempo
+        /// de partida e os botões carregar o último save / novo mapa. O objeto fica ativo e o <see cref="GameOverScreen"/>
+        /// liga e desliga o fundo conforme <c>AntColony.GameOver</c>.
+        /// </summary>
+        static void BuildGameOverScreen(Transform root, AntFarmGame game)
+        {
+            var go = new GameObject("GameOver", typeof(RectTransform), typeof(GameOverScreen));
+            go.layer = LayerMask.NameToLayer("UI");
+            go.transform.SetParent(root, false);
+            Stretch((RectTransform)go.transform);
+
+            Image backdrop = BuildPlain(go.transform, "Fundo", new Color(0.05f, 0.03f, 0.02f, 0.7f));
+            backdrop.raycastTarget = true;
+            Stretch(backdrop.rectTransform);
+
+            const float width = 700f, height = 380f;
+            Image panel = BuildPanelWithHeader(backdrop.transform, "PainelGameOver", new Vector2(0.5f, 0.5f), Vector2.zero,
+                                               new Vector2(width, height), "");
+            panel.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+
+            Text title = BuildText(panel.transform, "Titulo", "GAME OVER", TextTitle, Ink, TextAnchor.MiddleCenter);
+            PlaceStretchTop(title.rectTransform, 64, 56, 16);
+            Text body = BuildText(panel.transform, "Motivo", "", TextSmall, Ink, TextAnchor.UpperCenter);
+            body.horizontalOverflow = HorizontalWrapMode.Wrap;
+            body.lineSpacing = 1.5f;
+            PlaceStretchTop(body.rectTransform, 140, 56, 16);
+
+            Button load = BuildButton(panel.transform, "Carregar", new Vector2(0.5f, 1), new Vector2(0, -216), new Vector2(width - 48, 46),
+                                      "icons/arrow_up", "Carregar o último save  [F9]", true, out _);
+            Button newMap = BuildButton(panel.transform, "NovoMapa", new Vector2(0.5f, 1), new Vector2(0, -272), new Vector2(width - 48, 46),
+                                        "icons/play", "Novo mapa  [R]", true, out _);
+            Text status = BuildText(panel.transform, "Aviso", "", TextSmall, Ink, TextAnchor.MiddleCenter);
+            Place(status.rectTransform, new Vector2(16, -330), new Vector2(width - 32, 32));
+
+            var so = new SerializedObject(go.GetComponent<GameOverScreen>());
+            SetObject(so, "_game", game);
+            SetObject(so, "_panel", backdrop.gameObject);
+            SetText(so, "_body", body);
+            SetObject(so, "_load", load);
+            SetObject(so, "_newMap", newMap);
+            SetText(so, "_status", status);
+            so.ApplyModifiedPropertiesWithoutUndo();
+            backdrop.gameObject.SetActive(false);
         }
 
         // ---------------------------------------------------------------- menu do ESC e configurações

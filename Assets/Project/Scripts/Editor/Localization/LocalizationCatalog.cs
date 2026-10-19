@@ -119,6 +119,7 @@ namespace Fabula.Incrementant.EditorTools.Localization
             Add(l, "breed.resources", "AGUARDANDO RECURSOS (RES. {0} N)", "WAITING FOR RESOURCES (RES. {0} N)");
             Add(l, "breed.next", "PRÓXIMO OVO EM {0} S", "NEXT EGG IN {0} S");
             Add(l, "raid.warning", "ATAQUE DE CUPINS IMINENTE! CHEGAM EM {0} S", "TERMITE ATTACK INCOMING! ARRIVING IN {0} S");
+            Add(l, "raid.storm", "ATAQUE DE CUPINS IMINENTE! ESPERANDO A CHUVA PASSAR", "TERMITE ATTACK INCOMING! WAITING OUT THE RAIN");
             Add(l, "raid.active", "CUPINS ATACANDO: {0} · {1}", "TERMITES ATTACKING: {0} · {1}");
             Add(l, "raid.over.first", "ATAQUE REPELIDO! SOLDADO E ÁREA DE RESÍDUOS LIBERADOS", "ATTACK REPELLED! SOLDIER AND WASTE AREA UNLOCKED");
             Add(l, "raid.over", "ATAQUE DE CUPINS TERMINOU", "TERMITE ATTACK OVER");

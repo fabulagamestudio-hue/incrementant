@@ -19,9 +19,11 @@ namespace Fabula.Incrementant.Colony
         FlowField _dewSoilField;
         // Campo até a queda das gotas (_dewDropCells): de onde a jardineira cuida da sala pronta.
         FlowField _dewTendField;
-        // Jardineiras cuidando da sala neste passo: todas, e as que já estão ao lado da queda (só elas aceleram).
+        // Jardineiras cuidando da sala neste passo, os blocos que cada uma escolheu (chave = bloco + 1) e os pontos de queda
+        // que já têm jardineira ao lado (só eles aceleram).
         int _dewTendCount;
-        int _dewTenders;
+        int _dewTendedPoints;
+        readonly HashSet<int> _dewTendTargets = new HashSet<int>();
         bool _dewFieldIdle = true;
         // Pontos de terra fofa e de folha ainda por pôr (índices de célula), mais os de onde cai a gota.
         readonly List<int> _dewSoilCells = new List<int>();
@@ -282,8 +284,9 @@ namespace Fabula.Incrementant.Colony
                 _dewTimer = 0f;
                 return;
             }
-            // Cada jardineira ao lado da queda soma DewTendBoost ao ritmo (a gota cai mais cedo).
-            _dewTimer += deltaTime * (1f + _dewTenders * _settings.DewTendBoost);
+            // Os pontos de queda com jardineira ao lado somam DewTendBoost ao ritmo, na proporção da sala coberta (a gota cai mais cedo).
+            float covered = _dewDropCells.Count > 0 ? Mathf.Min(1f, _dewTendedPoints / (float)_dewDropCells.Count) : 0f;
+            _dewTimer += deltaTime * (1f + covered * _settings.DewTendBoost);
             if (_dewTimer < _settings.DewDropSeconds)
                 return;
             // Cheia ou sem ponto livre, a gota espera o próximo intervalo.
@@ -305,39 +308,101 @@ namespace Fabula.Incrementant.Colony
 
         // ---------------------------------------------------------------- cuidado da sala
 
-        /// <summary>Jardineira ociosa vai cuidar da sala pronta, até <see cref="ColonySettings.DewMaxTenders"/> ao mesmo tempo.</summary>
+        /// <summary>Blocos da sala: grupos de <see cref="ColonySettings.DewPointsPerTender"/> pontos de queda vizinhos (a lista vem em ordem de x).</summary>
+        int DewBlockCount => (_dewDropCells.Count + _settings.DewPointsPerTender - 1) / _settings.DewPointsPerTender;
+
+        /// <summary>Pontos de queda que o bloco <paramref name="block"/> cobre (o último grupo pode ser menor).</summary>
+        int DewBlockSize(int block) => Mathf.Clamp(_dewDropCells.Count - block * _settings.DewPointsPerTender, 0, _settings.DewPointsPerTender);
+
+        /// <summary>Ponto de queda do meio do bloco: onde a jardineira fica ao lado.</summary>
+        Vector2Int DewBlockAnchor(int block)
+        {
+            int i = _dewDropCells[block * _settings.DewPointsPerTender + DewBlockSize(block) / 2];
+            return new Vector2Int(i % _grid.Width, i / _grid.Width);
+        }
+
+        /// <summary>Bloco que outra jardineira ainda não escolheu (e, se possível, não o último que esta cuidou); chave = bloco + 1.</summary>
+        bool PickDewBlock(Ant ant, out int block)
+        {
+            int count = DewBlockCount;
+            block = -1;
+            for (int pass = 0; pass < 2; pass++)
+            {
+                int seen = 0;
+                for (int b = 0; b < count; b++)
+                {
+                    if (_dewTendTargets.Contains(b + 1) || pass < 1 && b + 1 == ant.LastBlock)
+                        continue;
+                    if (_rng.Next(++seen) == 0)
+                        block = b;
+                }
+                if (seen > 0)
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Jardineira ociosa vai cuidar de um bloco da sala pronta: uma por bloco (<see cref="DewBlockCount"/>), cada uma
+        /// com vários pontos de queda, como nos canteiros da sala de nutrientes.
+        /// </summary>
         bool TryStartDewCare(Ant ant)
         {
-            if (!_dewActive || _dewDropCells.Count == 0 || _dewTendCount >= _settings.DewMaxTenders ||
-                _dewTendField == null || _dewTendField.Get(ant.X, ant.Y) == FlowField.Unreachable)
+            if (!_dewActive || _dewDropCells.Count == 0 || _dewTendCount >= DewBlockCount ||
+                _dewTendField == null || _dewTendField.Get(ant.X, ant.Y) == FlowField.Unreachable ||
+                !PickDewBlock(ant, out int block))
                 return false;
             ant.State = AntState.TendingDew;
             ant.Interacting = false;
+            ant.EggId = block + 1;
+            _dewTendTargets.Add(ant.EggId);
             _dewTendCount++;
             UpdateTendingDew(ant);
             return true;
         }
 
-        /// <summary>Vai até a queda das gotas e fica ao lado (<see cref="Ant.Interacting"/>); sai se a sala deixa de precisar dela.</summary>
+        void LeaveDewCare(Ant ant)
+        {
+            ant.State = AntState.Idle;
+            ant.EggId = 0;
+            ant.Interacting = false;
+            Hold(ant);
+        }
+
+        /// <summary>Vai até o bloco escolhido e fica ao lado (<see cref="Ant.Interacting"/>); sai se a sala deixa de precisar dela.</summary>
         void UpdateTendingDew(Ant ant)
         {
-            if (!_dewActive || _dewDropCells.Count == 0 || _dewTendField == null || _dewTendCount > _settings.DewMaxTenders ||
+            if (!_dewActive || _dewDropCells.Count == 0 || _dewTendField == null ||
                 _dewTendField.Get(ant.X, ant.Y) == FlowField.Unreachable || WantsTender(ant, _garden))
             {
-                ant.State = AntState.Idle;
-                ant.Interacting = false;
-                Hold(ant);
+                LeaveDewCare(ant);
                 return;
             }
-            int d = _dewTendField.Get(ant.X, ant.Y);
-            if (d > 1)
+            // A sala encolheu e o bloco sumiu: escolhe outro.
+            if (ant.EggId <= 0 || ant.EggId > DewBlockCount)
             {
                 ant.Interacting = false;
-                if (!StepDownhill(ant, _dewTendField))
-                    Wander(ant);
+                if (!PickDewBlock(ant, out int block))
+                {
+                    LeaveDewCare(ant);
+                    return;
+                }
+                ant.EggId = block + 1;
+                _dewTendTargets.Add(ant.EggId);
+            }
+            // Os pontos livres mudam com a água: o ponto de ficar é refeito a cada passo.
+            Vector2Int cell = DewBlockAnchor(ant.EggId - 1);
+            ant.TargetX = cell.x;
+            ant.TargetY = cell.y;
+            if (!NearCell(ant, cell))
+            {
+                ant.Interacting = false;
+                WalkToCell(ant, cell, _dewTendField, _grid.IsDewRoom(ant.X, ant.Y));
                 return;
             }
             ant.Interacting = true;
+            if (cell.x != ant.X)
+                ant.FacingX = cell.x > ant.X ? 1 : -1;
             ant.Cooldown = _settings.CarePauseSeconds;
         }
 

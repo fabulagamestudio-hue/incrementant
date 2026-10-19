@@ -23,6 +23,7 @@ Como os SFX funcionam e como ligar um som novo. Onde estão os arquivos: [Runtim
 | `Mark`/`Unmark` | início do traço do pincel (`AntFarmGame.HandleInput`) |
 | `UiClick`, `UiTick`, `UiDeny` | botões, sliders, clique na rainha recusado |
 | `Rain` | clima (`AntFarmGame.ApplyWeatherSound`) |
+| `EmergencyBell` | sino do HUD ao ligar ou desligar o recolhimento (`AntFarmHud.ToggleRecall`). Sino de aldeia tocado por corda: 11 batidas de badalo (lados alternados, tempo e força levemente irregulares) com parciais inarmônicos e cauda de ~1,3 s (`SfxSynth.EmergencyBell` / `Buffer.BellStrike`) |
 
 ## Como adicionar um som
 
@@ -41,4 +42,4 @@ Como os SFX funcionam e como ligar um som novo. Onde estão os arquivos: [Runtim
 
 - Sem posição no espaço: tudo toca centrado, sem atenuar por distância da câmera.
 - Sem sons de tutorial/pop-up nem de passos.
-- Não ouvido em Play Mode por mim: os níveis relativos (regras de volume) pedem ajuste de ouvido.
+- Não ouvido em Play Mode por mim: os níveis relativos (regras de volume) pedem ajuste de ouvido. O `EmergencyBell` foi só renderizado fora da Unity (pico, fim sem estalo, envelope); timbre (`baseHz` 760, tabela `BellPartials`) e volume pedem ouvido.

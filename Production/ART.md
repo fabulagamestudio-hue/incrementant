@@ -24,7 +24,13 @@ Só há arte provisória gerada por código para o protótipo: as formigas (pixe
 | ART-010 | Refinamento pixel art das formigas adultas e do cenário | IMPLEMENTED | UNDEFINED | [Formigas](../Assets/Project/Art/Ants/README.md); [cenário](../Assets/Project/Art/Scenery/README.md); 141 PNGs reimportados e configurações conferidas na Unity em 2026-10-18 | REQ-026, ART-009 | 2026-10-18 |
 | ART-011 | Formiga inimiga alada: voo, perda das asas e caminhada (usada como cupim) | IMPLEMENTED | UNDEFINED | [16 sprites e validação](../Assets/Project/Art/Ants/InimigaAlada/README.md); ligada aos cupins na cena e vista em Play Mode pelo agente em 2026-10-18 (PRG-034) | REQ-027, REQ-029 | 2026-10-18 |
 
+| ART-012 | Pulgão: 4 quadros laterais e 4 superiores, menor que a formiga | IMPLEMENTED | UNDEFINED | [Pacote e validação na Unity](../Assets/Project/Art/Aphids/README.md); ver detalhes ART-012 | REQ-033 | 2026-10-18 |
+
 ## Detalhes
+
+### ART-012 — Arte do pulgão menor que a formiga
+
+Pacote em [Art/Aphids](../Assets/Project/Art/Aphids/README.md), solicitado em REQ-033: quatro quadros laterais e quatro superiores, gerados com `image_gen.imagegen` usando a formiga atual como referência. Em 2026-10-18, validador executado na Unity confirmou 8 sprites, 27.648 pixels, 72x48, 36 PPU, pivôs, Point, sem compressão/mipmaps, até 16 cores e alpha binário. Prévia do quadro lateral inspecionada. Canvas com dois terços do tamanho das formigas. Importação gravada diretamente nos assets durante Play Mode; compilação do novo importador aguarda recarga do Editor. Aprovação visual e integração em gameplay pendentes.
 
 ### ART-001 — Sprites provisórios das formigas (caminhada, 4 quadros)
 

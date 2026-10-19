@@ -1,5 +1,6 @@
 using Fabula.Incrementant.Texts;
 using Fabula.Incrementant.Audio;
+using Fabula.Incrementant.Juice;
 using System;
 using Fabula.Incrementant.AntFarm;
 using Fabula.Incrementant.Colony;
@@ -151,7 +152,10 @@ namespace Fabula.Incrementant.UI
             BuyBlock block = colony.TryBuy(_selectedQueen);
             _message = BlockKey(block);
             if (block != BuyBlock.None)
+            {
                 GameAudio.Play(SfxId.UiDeny);
+                ButtonJuice.Deny(_buyButton.gameObject);
+            }
         }
 
         static string BlockKey(BuyBlock block)

@@ -1,5 +1,6 @@
 using Fabula.Incrementant.Texts;
 using Fabula.Incrementant.Audio;
+using Fabula.Incrementant.Juice;
 using System.IO;
 using Fabula.Incrementant.Save;
 using Fabula.Incrementant.Settings;
@@ -60,6 +61,7 @@ namespace Fabula.Incrementant.Menu
                 return;
             }
             ButtonSfx.AttachAll(transform.root);
+            ButtonJuice.AttachAll(transform.root);
         }
 
         void OnEnable()

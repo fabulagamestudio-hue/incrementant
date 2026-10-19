@@ -41,9 +41,9 @@ namespace Fabula.Incrementant.World
         [Tooltip("Liga o sorteio de tempestades. Desligado, o tempo só muda pela tecla C.")]
         public bool AutomaticStorms = true;
         [Tooltip("Menor período, em minutos de jogo, entre dois sorteios de tempestade.")]
-        [Min(0.1f)] public float StormMinIntervalMinutes = 1f;
+        [Min(0.1f)] public float StormMinIntervalMinutes = 2f;
         [Tooltip("Maior período, em minutos de jogo, entre dois sorteios de tempestade.")]
-        [Min(0.1f)] public float StormMaxIntervalMinutes = 10f;
+        [Min(0.1f)] public float StormMaxIntervalMinutes = 20f;
         [Tooltip("Chance de a tempestade acontecer quando o período termina.")]
         [Range(0f, 1f)] public float StormChance = 0.5f;
         [Tooltip("Duração da tempestade, em minutos de jogo.")]

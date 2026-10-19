@@ -38,6 +38,8 @@
 | REQ-030 | 2026-10-18 | Tutorial da primeira abertura do jogo | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
 | REQ-031 | 2026-10-18 | Menu principal com fundo de colônia trabalhando e sem splash da Unity | PROGRAMMING, ART | UNDEFINED | IMPLEMENTED |
 | REQ-032 | 2026-10-18 | Sala Gotas de Orvalho | PROGRAMMING | UNDEFINED | IMPLEMENTED |
+| REQ-033 | 2026-10-18 | Arte do pulgão menor que a formiga | ART | UNDEFINED | IMPLEMENTED |
+| REQ-034 | 2026-10-18 | Efeitos de dopamina (juice): botões animados, partículas e animações de feedback | PROGRAMMING, ART | UNDEFINED | IN_PROGRESS |
 
 ## Registros
 
@@ -603,3 +605,38 @@
 - **Histórico:**
   - 2026-10-18 — PLANNED: pedido registrado.
   - 2026-10-18 — IMPLEMENTED: sala, pincel, etapas, gota e água não absorvida; suíte EditMode 217/217 na Unity (8 testes novos).
+
+### REQ-033 — Arte do pulgão menor que a formiga
+
+- **Data de registro:** 2026-10-18
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** ART
+- **Descrição:** "Assim como para as formigas, crie para pulgão. A arte deve ser menor que a da formiga."
+- **Critérios de aceitação:** Arte no padrão das formigas e menor que a delas.
+- **Dependências:** —
+- **Itens relacionados:** ART-012
+- **Referências:** [Sprites, escala e prompt](../Assets/Project/Art/Aphids/README.md)
+- **Decisões pendentes:** aprovação visual pelo desenvolvedor.
+- **Histórico:**
+  - 2026-10-18 — PLANNED: pedido registrado.
+  - 2026-10-18 — IMPLEMENTED: oito PNGs (4 laterais, 4 superiores), 72x48 a 36 PPU. Validador na Unity conferiu 27.648 pixels, dimensões, pivôs, alpha binário, paleta e importação. Arte pronta para integração; novo importador aguarda recarga após Play Mode.
+
+### REQ-034 — Efeitos de dopamina (juice): botões animados, partículas e animações de feedback
+
+- **Data de registro:** 2026-10-18
+- **Estado:** PLANNED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, ART
+- **Descrição:** "Precisamos agora de adicionar efeitos de dopamina no projeto." Botões animados, com feedback visual de clique e hover; efeitos no jogo com partículas e animações como fade, squash e pulo. Análise e skill primeiro; implementação depois, em fases.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-022, REQ-023
+- **Itens relacionados:** PRG-038, PRG-039, PRG-040, PRG-041, PRG-042, PRG-043, PRG-044, PRG-045, ART-007
+- **Referências:** [Skill juice-dopamina](../.claude/skills/juice-dopamina/SKILL.md); [estado atual e lacunas](../.claude/skills/juice-dopamina/references/estado-atual.md); [arquitetura e ordem de execução](../.claude/skills/juice-dopamina/references/arquitetura.md); [35 — Áudio atmosfera e juice](../Docs/02_World_Art_UI/35_Audio_atmosfera_e_juice.md)
+- **Decisões pendentes:** Paleta de feedback e aprovação visual; se haverá opção separada para tremor de câmera; quais marcos ganham momento próprio; relação com REQ-023 (a parte de VFX dele é entregue por este pedido).
+- **Histórico:**
+  - 2026-10-18 — PLANNED: pedido registrado; análise do projeto e skill `juice-dopamina` criadas (sem código de jogo); ordem de execução em PRG-038 a PRG-045.
+  - 2026-10-18 — IN_PROGRESS: fases 0 e 1 implementadas (`Vfx`, `Easing`, `ButtonJuice` no HUD, menu e compra negada); testes EditMode passam; falta conferir em Play Mode.
+  - 2026-10-18 — IN_PROGRESS: fase 2 implementada (`PanelAnimator` nos painéis do HUD e menu do ESC, `Pulse` em Nutrientes e Formigas); compila, falta Play Mode.
+  - 2026-10-18 — IN_PROGRESS: fases 1 e 2 confirmadas em Play Mode pelo desenvolvedor (PRG-039, PRG-040 VERIFIED); fase 3 implementada (`AntColony.Fx`, `WorldFx`: escavar, despejar, obra, nascimento, cupim); compila, falta Play Mode.
+  - 2026-10-18 — IN_PROGRESS: fase 3 confirmada em Play Mode pelo desenvolvedor (PRG-041 VERIFIED, partículas ampliadas a pedido); fase 4 implementada (`FloatingText`: +N de nutrientes, -N de gasto, -1 de formiga ferida); compila, falta Play Mode.
