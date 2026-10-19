@@ -64,6 +64,9 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField, Min(1f)] float _ticksPerSecond = 60f;
         [Tooltip("Limite de passos por frame, para um frame lento não virar uma espiral de atraso.")]
         [SerializeField, Min(1)] int _maxTicksPerFrame = 12;
+        [Tooltip("Tempo máximo de simulação por frame (ms). Quando um passo custa caro (chuva forte no 8x), o frame para de " +
+                 "simular ao chegar aqui e o jogo anda mais devagar que a velocidade escolhida, em vez de derrubar o FPS.")]
+        [SerializeField, Min(1f)] float _maxSimMsPerFrame = 25f;
         [SerializeField, Range(1, 30)] int _brushRadius = 4;
         [Header("Chuva")]
         [Tooltip("Tempo ao dar Play e ao gerar outro mapa. No Play, troque com C ou pelo HUD.")]
@@ -136,6 +139,7 @@ namespace Fabula.Incrementant.AntFarm
             {
                 _colony.Sfx -= PlayColonySfx;
                 _colony.Fx -= PlayColonyFx;
+                _colony.NutrientsSpent -= RelayNutrientsSpent;
             }
             // O serviço de áudio sobrevive às cenas: a chuva da partida não pode continuar no menu.
             GameAudio.SetLoop(SfxId.Rain, 0f);
@@ -158,6 +162,20 @@ namespace Fabula.Incrementant.AntFarm
         {
             _worldFx?.Play(id, cell, material);
             ColonyFx?.Invoke(id, cell, material);
+        }
+
+        /// <summary>Repasse de <c>AntColony.NutrientsSpent</c> (quanto foi gasto) para o HUD. Só na partida.</summary>
+        public event Action<int> ColonyNutrientsSpent;
+
+        void RelayNutrientsSpent(int amount) => ColonyNutrientsSpent?.Invoke(amount);
+
+        /// <summary>Clique no mundo recusado (na célula dada): par visual do <c>SfxId.UiDeny</c>, desenhado pelo HUD.</summary>
+        public event Action<Vector2Int> WorldDenied;
+
+        void DenyAt(Vector2Int cell)
+        {
+            GameAudio.Play(SfxId.UiDeny);
+            WorldDenied?.Invoke(cell);
         }
 
         /// <summary>Chuva em laço conforme o clima (nada no fundo do menu); o volume de efeitos é aplicado pelo <see cref="GameAudio"/>.</summary>
@@ -417,6 +435,7 @@ namespace Fabula.Incrementant.AntFarm
             {
                 _colony.Sfx -= PlayColonySfx;
                 _colony.Fx -= PlayColonyFx;
+                _colony.NutrientsSpent -= RelayNutrientsSpent;
             }
             _colony = new AntColony(_grid, _colonySettings, _layout, _seed)
             {
@@ -431,6 +450,7 @@ namespace Fabula.Incrementant.AntFarm
                 if (_worldFx == null)
                     _worldFx = WorldFx.Create(transform, _camera, _view.transform);
                 _colony.Fx += PlayColonyFx;
+                _colony.NutrientsSpent += RelayNutrientsSpent;
             }
             ApplyWeatherSound();
             _showcaseDirector = _showcase ? MenuShowcase.Prepare(_grid, _colony, _layout, _seed) : null;
@@ -613,10 +633,16 @@ namespace Fabula.Incrementant.AntFarm
 
             SimProfiler profiler = _colony.Profiler;
             _stopwatch.Restart();
+            bool budgetHit = false;
             while (_accumulator >= tickDuration && ticks < maxTicks)
             {
+                // Orçamento de tempo: se mais um passo (pela média dos deste frame) passar do limite, este é o último. O
+                // limite só de passos não basta: com o passo caro, 96 passos no 8x davam frames de ~400 ms, cada um
+                // pedindo outros 96 (espiral de atraso). O primeiro passo sempre roda, para a simulação nunca travar.
+                double elapsedMs = _stopwatch.Elapsed.TotalMilliseconds;
+                bool lastByBudget = ticks > 0 && elapsedMs + elapsedMs / ticks > _maxSimMsPerFrame;
                 // Só o último passo do frame refaz os campos de navegação (ver AntColony.DeferFieldRefresh).
-                _colony.DeferFieldRefresh = ticks + 1 < maxTicks && _accumulator - tickDuration >= tickDuration;
+                _colony.DeferFieldRefresh = !lastByBudget && ticks + 1 < maxTicks && _accumulator - tickDuration >= tickDuration;
                 long stageStart = SimProfiler.Now();
                 _rain.Step(_grid, tickDuration, SpeedSteps[_speedIndex]);
                 _colony.Raining = _rain.Weather == Weather.HeavyRain;
@@ -643,9 +669,15 @@ namespace Fabula.Incrementant.AntFarm
                 profiler.Count(ProfileCounter.Ticks);
                 _accumulator -= tickDuration;
                 ticks++;
+                if (lastByBudget)
+                {
+                    budgetHit = true;
+                    break;
+                }
             }
             _colony.DeferFieldRefresh = false;
-            bool tickLimitHit = ticks == maxTicks;
+            // O atraso que sobrou é descartado: o jogo fica mais lento que a velocidade pedida, mas o frame não cresce.
+            bool tickLimitHit = ticks == maxTicks || budgetHit;
             if (tickLimitHit)
                 _accumulator = 0f;
             _statsOverlay.NoteFrame(Time.unscaledDeltaTime, tickLimitHit && !_paused);
@@ -853,12 +885,12 @@ namespace Fabula.Incrementant.AntFarm
             {
                 // O dedo não pinta: cada clique fere o cupim mais perto da mira; na rainha, força um ovo.
                 if (mouse.leftButton.wasPressedThisFrame && !_colony.GameOver && _paused)
-                    GameAudio.Play(SfxId.UiDeny); // jogo pausado: o dedo não fere nem força ovo
+                    DenyAt(_brushCell); // jogo pausado: o dedo não fere nem força ovo
                 else if (mouse.leftButton.wasPressedThisFrame && !_colony.GameOver)
                 {
                     if (!_colony.HitTermiteAt(_brushCell.x, _brushCell.y) && _colony.IsQueenAt(_brushCell.x, _brushCell.y)
                         && !_colony.ForceLay())
-                        GameAudio.Play(SfxId.UiDeny);
+                        DenyAt(_brushCell);
                 }
             }
             else if (mouse.leftButton.isPressed)
@@ -947,7 +979,7 @@ namespace Fabula.Incrementant.AntFarm
             {
                 // Canto inferior direito: o HUD de jogo ocupa o topo e a esquerda.
                 var statsRect = new Rect(Screen.width - StatsPanelWidth - 10f, Screen.height - StatsPanelHeight - 10f, StatsPanelWidth, StatsPanelHeight);
-                _statsOverlay.Draw(statsRect, _colony, _grid, _vegetation, SpeedSteps[_speedIndex], _paused, _ticksPerSecond, _maxTicksPerFrame);
+                _statsOverlay.Draw(statsRect, _colony, _grid, _vegetation, SpeedSteps[_speedIndex], _paused, _ticksPerSecond, _maxTicksPerFrame, _maxSimMsPerFrame);
             }
             if (_colony == null || !_showDebugHud)
                 return;

@@ -51,6 +51,19 @@ namespace Fabula.Incrementant.Colony
     }
 
     /// <summary>
+    /// Pedido que a formiga ociosa aceitou e ainda está indo atender, sem o bloco na mão (não vai para o save). Enquanto
+    /// vale, ela conta como quem atende o pedido, e as outras não saem atrás do mesmo.
+    /// </summary>
+    public enum AntErrand : byte
+    {
+        None,
+        /// <summary>Indo cortar a planta-alvo (ou esperando a vez no pé dela).</summary>
+        Cut,
+        /// <summary>Indo à pilha de fora buscar terra para a obra.</summary>
+        Build,
+    }
+
+    /// <summary>
     /// Papel de gameplay da formiga (valores gravados no save: não renumerar). Quem corta plantas está em
     /// <see cref="AntRoles.Harvests"/>. A jardineira cuida da sala de nutrientes (o cultivo). O soldado
     /// só ataca: libera-se depois do primeiro ataque de cupins (nó S0 da árvore da rainha).
@@ -309,6 +322,8 @@ namespace Fabula.Incrementant.Colony
         /// vale, as outras não o escolhem e ele sai dos campos de escavação. Não vai para o save.
         /// </summary>
         public int SeekTarget = -1;
+        /// <summary>Pedido aceito e ainda a caminho (corte, obra). Some quando ela muda de estado ou desiste; não vai para o save.</summary>
+        public AntErrand Errand;
         /// <summary>A reserva em <see cref="SeekTarget"/> é de rocha (campo da escavadora), não de terra/planta solta.</summary>
         public bool SeekRock;
 

@@ -13,6 +13,9 @@ namespace Fabula.Incrementant.Juice
 
         public FxAggregator(float windowSeconds) => _window = windowSeconds;
 
+        /// <summary>Há uma janela aberta (algo somado e ainda não entregue).</summary>
+        public bool Open => _open;
+
         public void Add(int amount, float now)
         {
             if (!_open)

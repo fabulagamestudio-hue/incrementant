@@ -17,5 +17,14 @@ namespace Fabula.Incrementant.Colony
 
         void EmitFx(FxId id, int x, int y, CellMaterial material = CellMaterial.Empty) =>
             Fx?.Invoke(id, new Vector2Int(x, y), material);
+
+        /// <summary>Nutrientes saíram do estoque (compra na árvore, ovo posto): quanto foi gasto. Inscreva e remova de forma simétrica.</summary>
+        public event Action<int> NutrientsSpent;
+
+        void EmitSpent(int amount)
+        {
+            if (amount > 0)
+                NutrientsSpent?.Invoke(amount);
+        }
     }
 }

@@ -758,6 +758,39 @@ namespace Fabula.Incrementant.Tests
             Assert.Greater(colony.HarvestedPixels, harvested, "Reaberta, a cortadora volta ao corte e planta pixels novos.");
         }
 
+        /// <summary>
+        /// Pedido atendido (pedido do desenvolvedor em 2026-10-19): um canteiro esperando planta chama uma formiga para
+        /// cortar, não a colônia inteira em fila até a planta.
+        /// </summary>
+        [Test]
+        public void OneBedWaiting_OnlyOneAntGoesToCut()
+        {
+            var (grid, vegetation, _, _) = MakeGarden();
+            AddBeds(grid, 24);
+            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 5) { DeathEnabled = false };
+            colony.AttachVegetation(vegetation);
+            for (int i = 0; i < 7; i++)
+                colony.Spawn(AntRole.Worker);
+
+            var granular = new GranularSimulation();
+            int most = 0;
+            for (int i = 0; i < 60 * 240 && grid.GetBedStage(24, 1) == BedStage.Soil; i++)
+            {
+                colony.Tick(Dt);
+                granular.Step(grid);
+                int cutting = 0;
+                foreach (Ant ant in colony.Ants)
+                {
+                    bool onPlant = ant.State == AntState.Digging && CellMaterials.IsPlant(grid.Get(ant.DigX, ant.DigY));
+                    cutting += ant.Errand == AntErrand.Cut || onPlant ? 1 : 0;
+                }
+                most = Mathf.Max(most, cutting);
+            }
+
+            Assert.AreEqual(1, most, "Um canteiro esperando: uma formiga atende o pedido de planta.");
+            Assert.AreNotEqual(BedStage.Soil, grid.GetBedStage(24, 1), "O canteiro ainda recebe a planta.");
+        }
+
         [Test]
         public void Colony_StartsWithOnlyWorkers()
         {

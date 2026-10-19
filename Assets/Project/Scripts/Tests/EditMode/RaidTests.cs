@@ -402,12 +402,79 @@ namespace Fabula.Incrementant.Tests
             Assert.IsTrue(TickUntil(colony, () => colony.Termites.Count == 0, 120f), "O corpo é desmembrado até o fim.");
             Assert.IsTrue(TickUntil(colony, () => colony.HarvestedPixels >= 2 && colony.WasteDeposited >= 1, 120f),
                           $"As 2 folhas vão aos canteiros (plantadas {colony.HarvestedPixels}) e o resto à área de resíduos ({colony.WasteDeposited}).");
-            Assert.Greater(CountMaterial(grid, CellMaterial.Refuse), 0);
+            Assert.AreEqual(1, CountMaterial(grid, CellMaterial.TermiteRemains), "O resto fica na área como resto de cupim.");
             foreach (Ant ant in colony.Ants)
                 Assert.AreNotEqual(AntState.Fighting, ant.State, "Sem cupim, voltam ao trabalho.");
 
-            Assert.IsTrue(TickUntil(colony, () => CountMaterial(grid, CellMaterial.Refuse) == 0, 130f),
-                          "O resíduo se decompõe sozinho (120 s).");
+            Assert.IsTrue(TickUntil(colony, () => CountMaterial(grid, CellMaterial.TermiteRemains) == 0, 130f),
+                          "O resto se decompõe sozinho (120 s).");
+            Assert.AreEqual(1, colony.RemainsRotted, "E vira folhas na área de resíduos.");
+        }
+
+        /// <summary>Coloca resíduos na área (x 10..16, y 1..3) e recomeça a decomposição, como ao carregar um save, sem formigas.</summary>
+        static AntColony MakeColonyWithWaste(PixelGrid grid, params (int x, int y, CellMaterial material)[] waste)
+        {
+            AntColony colony = MakeColony(grid);
+            foreach (var (x, y, material) in waste)
+                grid.Set(x, y, material);
+            colony.RestoreState(0, 0, colony.SimulationTime, new Ant[0]);
+            return colony;
+        }
+
+        [Test]
+        public void TermiteRemains_RotIntoThreeMarkedLeaves_InsideTheWasteRoom_ThatFall_WhileRubbleJustDisappears()
+        {
+            PixelGrid grid = MakeWorld();
+            AntColony colony = MakeColonyWithWaste(grid, (12, 1, CellMaterial.TermiteRemains), (12, 2, CellMaterial.TermiteRemains),
+                                                   (15, 1, CellMaterial.Refuse));
+
+            Tick(colony, 119f);
+            Assert.AreEqual(2, CountMaterial(grid, CellMaterial.TermiteRemains), "Antes de 120 s nada se decompõe.");
+            Assert.AreEqual(0, CountMaterial(grid, CellMaterial.FallenLeaf));
+
+            Tick(colony, 2f);
+            Assert.AreEqual(0, CountMaterial(grid, CellMaterial.TermiteRemains));
+            Assert.AreEqual(0, CountMaterial(grid, CellMaterial.Refuse), "O entulho só some.");
+            Assert.AreEqual(2, colony.RemainsRotted);
+
+            // A colônia não roda a física dos grãos; o jogo a roda a cada passo.
+            var granular = new GranularSimulation();
+            for (int i = 0; i < 30; i++)
+                granular.Step(grid);
+            int leaves = 0;
+            for (int x = 0; x < grid.Width; x++)
+            for (int y = 1; y < grid.Height; y++)
+            {
+                if (grid.Get(x, y) != CellMaterial.FallenLeaf)
+                    continue;
+                leaves++;
+                Assert.IsTrue(grid.IsMarked(x, y), $"A folha ({x}, {y}) nasce marcada, para as formigas a levarem aos canteiros.");
+                Assert.That(x, Is.InRange(9, 17), "As folhas surgem dentro da área de resíduos.");
+                Assert.IsTrue(grid.IsSolid(x, y - 1), $"A folha ({x}, {y}) cai até apoiar em algo.");
+            }
+            Assert.AreEqual(6, leaves, "3 folhas por resto de cupim.");
+        }
+
+        [Test]
+        public void TermiteRemains_WaitForEmptyCells_InTheWasteRoom_BeforeRotting()
+        {
+            PixelGrid grid = MakeWorld();
+            AntColony colony = MakeColonyWithWaste(grid, (12, 1, CellMaterial.TermiteRemains));
+            // Área tomada (rocha em toda célula menos a do resto): sem lugar para as outras 2 folhas.
+            for (int x = 10; x <= 16; x++)
+            for (int y = 1; y <= 3; y++)
+                if (x != 12 || y != 1)
+                    grid.Set(x, y, CellMaterial.Rock);
+
+            Tick(colony, 125f);
+            Assert.AreEqual(1, CountMaterial(grid, CellMaterial.TermiteRemains), "Sem lugar, o resto espera.");
+            Assert.AreEqual(0, colony.RemainsRotted);
+
+            grid.Set(13, 1, CellMaterial.Empty);
+            grid.Set(12, 2, CellMaterial.Empty);
+            Tick(colony, 1.5f);
+            Assert.AreEqual(0, CountMaterial(grid, CellMaterial.TermiteRemains), "Com lugar, vira folhas.");
+            Assert.AreEqual(3, CountMaterial(grid, CellMaterial.FallenLeaf));
         }
 
         [Test]

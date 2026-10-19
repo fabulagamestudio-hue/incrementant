@@ -38,6 +38,15 @@ namespace Fabula.Incrementant.Colony
         int _soilCarriers;
         int _waterCarriers;
         int _builtWaterVersion = -1;
+        // Origens do campo da água da última varredura e o tempo (de jogo) desde ela: a água que escorre só pede outra
+        // varredura depois de ColonySettings.WaterFieldRefreshSeconds (ver WaterFieldStale).
+        readonly List<int> _waterFieldSources = new List<int>();
+        float _waterFieldAge;
+        // Blocos de água e canteiros com planta que uma formiga reservou (Ant.SeekTarget) ao sair para buscá-los ou regá-los:
+        // saem dos campos da água para as outras irem a outro. Recontados a cada Tick.
+        readonly HashSet<int> _waterClaims = new HashSet<int>();
+        long _waterClaimHash;
+        long _builtWaterClaimHash;
 
         /// <summary>Canteiros só com terra, com lado livre e alcançáveis: cada um recebe um pedaço de planta.</summary>
         public int BedsAwaitingPlant => _bedsAwaitingPlant;
@@ -93,6 +102,8 @@ namespace Fabula.Incrementant.Colony
             _bedsAwaitingPlant = 0;
             _bedsAwaitingWater = 0;
             _activeBeds = 0;
+            bool waterClaimsChanged = _waterClaimHash != _builtWaterClaimHash;
+            _builtWaterClaimHash = _waterClaimHash;
             _reclaimSoil.Clear();
             int bedPlants = 0;
             int w = _grid.Width;
@@ -149,7 +160,10 @@ namespace Fabula.Incrementant.Colony
                         break;
                     case BedStage.Planted:
                         bedPlants++;
-                        if (AddStandCells(bx, by, _waterBedSources))
+                        // Já tem formiga indo regá-lo: continua esperando água, mas sai do campo para as outras irem a outro.
+                        if (_waterClaims.Contains(_grid.ToIndex(bx, by)))
+                            _bedsAwaitingWater++;
+                        else if (AddStandCells(bx, by, _waterBedSources))
                             _bedsAwaitingWater++;
                         break;
                     case BedStage.Growing:
@@ -174,7 +188,7 @@ namespace Fabula.Incrementant.Colony
             UpdateField(_bedSpotField, _bedSpotCells);
             SyncReclaimMarks();
             BuildSoilPileField();
-            BuildWaterField();
+            BuildWaterField(waterClaimsChanged);
 
             _nutrientsReachQueen = false;
             foreach (int i in _buildSources)
@@ -260,16 +274,38 @@ namespace Fabula.Incrementant.Colony
 
         /// <summary>
         /// Campo até a água do mapa (laguinhos, poças da chuva, água nos túneis): as células caminháveis e secas ao lado
-        /// dela. Só é montado com canteiro esperando água; a água que escorre o refaz a cada rodada.
+        /// dela. Só é montado com canteiro esperando água. A água que escorre só pede outra varredura depois de
+        /// <see cref="ColonySettings.WaterFieldRefreshSeconds"/>: na chuva forte ela muda a cada passo, e refazer as origens
+        /// em toda rodada custava a maior parte da rodada. Entre varreduras o campo segue as mudanças de caminhabilidade com
+        /// as origens de antes (sem as que viraram parede). Reserva nova também não varre o mapa: só saem as origens que ficaram
+        /// sem água livre ao lado (a reserva solta volta na próxima varredura). A formiga que chega e não acha mais água
+        /// espera a próxima.
         /// </summary>
-        void BuildWaterField()
+        void BuildWaterField(bool claimsChanged)
         {
+            bool waterMoved = _grid.WaterVersion != _builtWaterVersion &&
+                              _waterFieldAge >= _settings.WaterFieldRefreshSeconds;
+            if (!waterMoved && _bedsAwaitingWater > 0 && _waterFieldSources.Count > 0)
+            {
+                int kept = 0;
+                for (int k = 0; k < _waterFieldSources.Count; k++)
+                {
+                    int i = _waterFieldSources[k];
+                    if (_walkability.IsWalkableAt(i) && (!claimsChanged || HasFreeWaterAround(i)))
+                        _waterFieldSources[kept++] = i;
+                }
+                _waterFieldSources.RemoveRange(kept, _waterFieldSources.Count - kept);
+                UpdateField(_waterField, _waterFieldSources);
+                return;
+            }
+            _waterFieldAge = 0f;
             _builtWaterVersion = _grid.WaterVersion;
-            _waterSources.Clear();
+            List<int> sources = _waterFieldSources;
+            sources.Clear();
             _waterSeen.Clear();
             if (_bedsAwaitingWater == 0 || _grid.WaterCount == 0)
             {
-                UpdateField(_waterField, _waterSources);
+                UpdateField(_waterField, sources);
                 return;
             }
             int w = _grid.Width;
@@ -288,7 +324,8 @@ namespace Fabula.Incrementant.Colony
                 for (int y = y0; y < y1; y++)
                 for (int x = x0; x < x1; x++)
                 {
-                    if (!_grid.HasWater(x, y))
+                    // Bloco reservado por outra formiga não chama mais ninguém.
+                    if (!_grid.HasWater(x, y) || _waterClaims.Contains(y * w + x))
                         continue;
                     for (int k = 0; k < 8; k++)
                     {
@@ -296,11 +333,25 @@ namespace Fabula.Incrementant.Colony
                         if (!_grid.InBounds(nx, ny) || _grid.HasWater(nx, ny) || !_walkability.IsWalkableAt(ny * w + nx))
                             continue;
                         if (_waterSeen.Add(ny * w + nx))
-                            _waterSources.Add(ny * w + nx);
+                            sources.Add(ny * w + nx);
                     }
                 }
             }
-            UpdateField(_waterField, _waterSources);
+            UpdateField(_waterField, sources);
+        }
+
+        /// <summary>Alguma vizinha da célula tem água que nenhuma formiga reservou (a célula ainda serve de origem do campo da água).</summary>
+        bool HasFreeWaterAround(int index)
+        {
+            int w = _grid.Width;
+            int x = index % w, y = index / w;
+            for (int k = 0; k < 8; k++)
+            {
+                int nx = x + AntNavigation.Dx[k], ny = y + AntNavigation.Dy[k];
+                if (_grid.HasWater(nx, ny) && !_waterClaims.Contains(ny * w + nx))
+                    return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -349,8 +400,13 @@ namespace Fabula.Incrementant.Colony
             return material == CellMaterial.Spoil || material == CellMaterial.Mud;
         }
 
-        /// <summary>A água mudou e há canteiro esperando por ela: o campo da água precisa de outra rodada.</summary>
-        bool WaterFieldStale => _bedsAwaitingWater > 0 && _grid.WaterVersion != _builtWaterVersion;
+        /// <summary>
+        /// As reservas mudaram, ou a água mudou há mais de <see cref="ColonySettings.WaterFieldRefreshSeconds"/>, e há canteiro
+        /// esperando água: os campos da água precisam de outra rodada.
+        /// </summary>
+        bool WaterFieldStale =>
+            _bedsAwaitingWater > 0 && (_waterClaimHash != _builtWaterClaimHash ||
+                                       _grid.WaterVersion != _builtWaterVersion && _waterFieldAge >= _settings.WaterFieldRefreshSeconds);
 
         /// <summary>
         /// Cabe um canteiro novo na célula: na sala de nutrientes, livre (sem material, nutriente nem água), caminhável e
@@ -414,7 +470,7 @@ namespace Fabula.Incrementant.Colony
         bool TryStartBedSoil(Ant ant)
         {
             // Restos de cupim não viram canteiro (sem área de resíduos, vão ao despejo).
-            if (ant.Carried == CellMaterial.Refuse || CellMaterials.ToDumped(ant.Carried) != CellMaterial.Spoil)
+            if (ant.Carried == CellMaterial.TermiteRemains || ant.Carried == CellMaterial.Refuse || CellMaterials.ToDumped(ant.Carried) != CellMaterial.Spoil)
                 return false;
             ChooseSoilRoom(ant, false, out bool toBed, out bool toDew);
             if (!toBed && !toDew)
@@ -634,7 +690,7 @@ namespace Fabula.Incrementant.Colony
 
         /// <summary>
         /// Ociosa: se há canteiro com planta esperando água sem ninguém levando, e água e canteiro são alcançáveis, vai
-        /// buscar um bloco de água.
+        /// buscar um bloco de água. Ao sair, reserva o bloco (<see cref="PlanWaterFetch"/>), para as outras irem a outro.
         /// </summary>
         bool TryStartWaterFetch(Ant ant)
         {
@@ -644,46 +700,167 @@ namespace Fabula.Incrementant.Colony
                 return false;
             ant.State = AntState.FetchingWater;
             _waterCarriers++;
+            ant.ClearSeek();
             UpdateFetchingWater(ant);
             return true;
         }
 
-        /// <summary>Desce o campo da água e, ao lado dela, tira um bloco (a célula de água some do mapa).</summary>
+        /// <summary>Trava o bloco de água ou o canteiro para as outras formigas; os campos da água o tiram na próxima rodada.</summary>
+        void ClaimWater(int index)
+        {
+            if (_waterClaims.Add(index))
+                _waterClaimHash += index * 2654435761L;
+        }
+
+        /// <summary>A célula está reservada por outra formiga (a reserva da própria não conta).</summary>
+        bool WaterClaimedByOther(Ant ant, int index) => index != ant.SeekTarget && _waterClaims.Contains(index);
+
+        /// <summary>
+        /// Traça o caminho pelo campo da água até a célula ao lado dela e reserva ali um bloco de água livre
+        /// (<see cref="Ant.SeekTarget"/>). <c>false</c> sem reserva: a formiga segue o campo como antes.
+        /// </summary>
+        bool PlanWaterFetch(Ant ant)
+        {
+            if (!TracePath(ant, _waterField, out int x, out int y, out _))
+                return false;
+            int count = 0;
+            for (int k = 0; k < 8; k++)
+            {
+                int tx = x + AntNavigation.Dx[k], ty = y + AntNavigation.Dy[k];
+                if (_grid.HasWater(tx, ty) && !_waterClaims.Contains(_grid.ToIndex(tx, ty)))
+                    _candidates[count++] = k;
+            }
+            return ReserveWaterTarget(ant, x, y, count);
+        }
+
+        /// <summary>
+        /// Traça o caminho pelo campo dos canteiros com planta e reserva um deles, livre, ao lado da chegada.
+        /// <c>false</c> sem reserva: a formiga segue o campo como antes.
+        /// </summary>
+        bool PlanWaterDelivery(Ant ant)
+        {
+            if (!TracePath(ant, _waterBedField, out int x, out int y, out _))
+                return false;
+            int count = 0;
+            for (int k = 0; k < 8; k++)
+            {
+                int tx = x + AntNavigation.Dx[k], ty = y + AntNavigation.Dy[k];
+                if (_grid.GetBedStage(tx, ty) == BedStage.Planted && !_waterClaims.Contains(_grid.ToIndex(tx, ty)))
+                    _candidates[count++] = k;
+            }
+            return ReserveWaterTarget(ant, x, y, count);
+        }
+
+        /// <summary>Reserva um dos <paramref name="count"/> vizinhos candidatos de (<paramref name="x"/>, <paramref name="y"/>).</summary>
+        bool ReserveWaterTarget(Ant ant, int x, int y, int count)
+        {
+            if (count == 0)
+            {
+                ant.ClearSeek();
+                return false;
+            }
+            int pick = _candidates[_rng.Next(count)];
+            ant.SeekTarget = _grid.ToIndex(x + AntNavigation.Dx[pick], y + AntNavigation.Dy[pick]);
+            ClaimWater(ant.SeekTarget);
+            return true;
+        }
+
+        /// <summary>
+        /// Segue o caminho até o alvo reservado (bloco de água ou canteiro). <c>true</c> = andou ou está ao lado dele;
+        /// <c>false</c> = sem reserva, ou caminho cortado (a reserva cai e ela segue o campo).
+        /// </summary>
+        bool FollowWaterPath(Ant ant)
+        {
+            if (ant.SeekTarget < 0)
+                return false;
+            int step = StepPath(ant);
+            if (step > 0)
+                return true;
+            int w = _grid.Width;
+            int tx = ant.SeekTarget % w, ty = ant.SeekTarget / w;
+            if (step == 0 && Mathf.Abs(tx - ant.X) <= 1 && Mathf.Abs(ty - ant.Y) <= 1)
+                return true;
+            ant.ClearSeek();
+            return false;
+        }
+
+        /// <summary>Volta a ficar ociosa largando a reserva da água.</summary>
+        void EndWaterTrip(Ant ant)
+        {
+            ant.ClearSeek();
+            ant.State = AntState.Idle;
+        }
+
+        /// <summary>
+        /// Vai ao bloco de água reservado (ou, sem reserva, desce o campo da água) e, ao lado dele, o tira: a célula de
+        /// água some do mapa e a formiga já reserva o canteiro que vai regar.
+        /// </summary>
         void UpdateFetchingWater(Ant ant)
         {
             if (_bedsAwaitingWater == 0)
             {
-                ant.State = AntState.Idle;
+                EndWaterTrip(ant);
                 return;
+            }
+            if (ant.SeekTarget < 0)
+                PlanWaterFetch(ant);
+            if (FollowWaterPath(ant))
+            {
+                if (!ant.SeekArrived)
+                    return;
+                // Chegou: pega o bloco reservado; se ele escorreu, qualquer outro livre ao lado.
+                int w = _grid.Width;
+                if (TakeWater(ant, ant.SeekTarget % w, ant.SeekTarget / w) || TakeAdjacentWater(ant))
+                    return;
+                ant.ClearSeek();
             }
             int d = _waterField.Get(ant.X, ant.Y);
             if (d == 0)
             {
-                for (int k = 0; k < 8; k++)
-                {
-                    int x = ant.X + AntNavigation.Dx[k], y = ant.Y + AntNavigation.Dy[k];
-                    if (!_grid.HasWater(x, y))
-                        continue;
-                    _grid.SetWater(x, y, false);
-                    WaterCollected++;
-                    if (x != ant.X)
-                        ant.FacingX = x > ant.X ? 1 : -1;
-                    ant.State = AntState.CarryingWater;
-                    ant.Cooldown = _settings.DropSeconds;
+                if (TakeAdjacentWater(ant))
                     return;
-                }
                 // A água escorreu dali: espera o campo ser refeito.
-                ant.State = AntState.Idle;
+                EndWaterTrip(ant);
                 Hold(ant);
                 return;
             }
             if (d != FlowField.Unreachable && StepDownhill(ant, _waterField))
                 return;
-            ant.State = AntState.Idle;
+            EndWaterTrip(ant);
             Hold(ant);
         }
 
-        /// <summary>Leva o bloco de água ao canteiro com planta e o rega: ele começa a brotar.</summary>
+        bool TakeAdjacentWater(Ant ant)
+        {
+            for (int k = 0; k < 8; k++)
+            {
+                int x = ant.X + AntNavigation.Dx[k], y = ant.Y + AntNavigation.Dy[k];
+                if (_grid.InBounds(x, y) && !WaterClaimedByOther(ant, _grid.ToIndex(x, y)) && TakeWater(ant, x, y))
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>Tira o bloco de água vizinho em (<paramref name="x"/>, <paramref name="y"/>), se ainda houver água ali.</summary>
+        bool TakeWater(Ant ant, int x, int y)
+        {
+            if (Mathf.Abs(x - ant.X) > 1 || Mathf.Abs(y - ant.Y) > 1 || !_grid.HasWater(x, y))
+                return false;
+            _grid.SetWater(x, y, false);
+            WaterCollected++;
+            if (x != ant.X)
+                ant.FacingX = x > ant.X ? 1 : -1;
+            ant.State = AntState.CarryingWater;
+            ant.Cooldown = _settings.DropSeconds;
+            ant.ClearSeek();
+            PlanWaterDelivery(ant);
+            return true;
+        }
+
+        /// <summary>
+        /// Leva o bloco de água ao canteiro com planta reservado (ou, sem reserva, desce o campo dos canteiros) e o rega:
+        /// ele começa a brotar.
+        /// </summary>
         void UpdateCarryingWater(Ant ant)
         {
             // Nenhum canteiro na sala para regar (a sala foi apagada): a água volta ao mapa em vez de esperar para sempre.
@@ -691,6 +868,15 @@ namespace Fabula.Incrementant.Colony
             {
                 PourOutWater(ant);
                 return;
+            }
+            if (ant.SeekTarget < 0)
+                PlanWaterDelivery(ant);
+            if (FollowWaterPath(ant))
+            {
+                if (!ant.SeekArrived || TryWater(ant))
+                    return;
+                // O canteiro deixou de esperar água (foi apagado ou regado): procura outro.
+                ant.ClearSeek();
             }
             int d = _waterBedField.Get(ant.X, ant.Y);
             if (d == 0)
@@ -716,26 +902,36 @@ namespace Fabula.Incrementant.Colony
                 _grid.SetWater(x, y, true);
                 break;
             }
-            ant.State = AntState.Idle;
+            EndWaterTrip(ant);
             ant.Cooldown = _settings.DropSeconds;
         }
 
+        /// <summary>Rega um canteiro com planta vizinho: o reservado por ela primeiro; nunca o reservado por outra.</summary>
         bool TryWater(Ant ant)
         {
+            int w = _grid.Width;
+            if (ant.SeekTarget >= 0 && WaterBed(ant, ant.SeekTarget % w, ant.SeekTarget / w))
+                return true;
             for (int k = 0; k < 8; k++)
             {
                 int x = ant.X + AntNavigation.Dx[k], y = ant.Y + AntNavigation.Dy[k];
-                if (_grid.GetBedStage(x, y) != BedStage.Planted)
-                    continue;
-                _grid.SetBed(x, y, BedStage.Growing, _settings.NutrientCureSeconds);
-                _bedsAwaitingWater = Mathf.Max(0, _bedsAwaitingWater - 1);
-                if (x != ant.X)
-                    ant.FacingX = x > ant.X ? 1 : -1;
-                ant.State = AntState.Idle;
-                ant.Cooldown = _settings.DropSeconds;
-                return true;
+                if (_grid.InBounds(x, y) && !WaterClaimedByOther(ant, _grid.ToIndex(x, y)) && WaterBed(ant, x, y))
+                    return true;
             }
             return false;
+        }
+
+        bool WaterBed(Ant ant, int x, int y)
+        {
+            if (Mathf.Abs(x - ant.X) > 1 || Mathf.Abs(y - ant.Y) > 1 || _grid.GetBedStage(x, y) != BedStage.Planted)
+                return false;
+            _grid.SetBed(x, y, BedStage.Growing, _settings.NutrientCureSeconds);
+            _bedsAwaitingWater = Mathf.Max(0, _bedsAwaitingWater - 1);
+            if (x != ant.X)
+                ant.FacingX = x > ant.X ? 1 : -1;
+            EndWaterTrip(ant);
+            ant.Cooldown = _settings.DropSeconds;
+            return true;
         }
     }
 }

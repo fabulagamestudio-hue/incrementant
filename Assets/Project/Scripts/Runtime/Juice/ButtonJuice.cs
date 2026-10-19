@@ -5,11 +5,12 @@ using UnityEngine.UI;
 namespace Fabula.Incrementant.Juice
 {
     /// <summary>
-    /// Animação de um <see cref="Button"/>/<see cref="Toggle"/>: flutuar leve em repouso (idle), realce no hover, afundar
-    /// ao pressionar, retorno elástico ao soltar e tremidinha quando a ação é negada. Mexe só em escala e deslocamento do
-    /// próprio RectTransform, então é ortogonal ao <c>SpriteSwap</c>/cor do botão e ao destaque feito por código no HUD.
-    /// O deslocamento é aditivo (aplica só a diferença do frame anterior), então convive com layouts que reposicionam o botão.
-    /// Respeita <see cref="Vfx"/>: Completo = tudo; Reduzido = só um leve afundar; Desligado = nada. Tempo não escalado.
+    /// Animação de um <see cref="Button"/>/<see cref="Toggle"/>: flutuar em repouso (idle, todos dessincronizados),
+    /// realce no hover, afundar ao pressionar, retorno elástico ao soltar e tremidinha + cor de erro quando a ação é negada.
+    /// Mexe em escala e deslocamento do próprio RectTransform (ortogonal ao <c>SpriteSwap</c> e ao destaque por código do
+    /// HUD); a cor de erro passa pela cor de vértice do gráfico alvo e volta ao valor exato. O deslocamento é aditivo
+    /// (aplica só a diferença do frame anterior), então convive com layouts que reposicionam o botão.
+    /// Respeita <see cref="Vfx"/>: Completo = tudo; Reduzido = leve afundar e cor de erro; Desligado = nada. Tempo não escalado.
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Selectable))]
@@ -23,9 +24,13 @@ namespace Fabula.Incrementant.Juice
         const float ShakeSeconds = 0.18f;
         const float ShakePixels = 3f;
         const int ShakeCycles = 3;
+        const float DenyColorSeconds = 0.15f;
+        const float DenyColorAmount = 0.65f;
+        // Todos os botões flutuam, cada um com fase e período próprios (decisão do desenvolvedor em 2026-10-19: um botão
+        // por vez ficou ruim). Valores provisórios.
         const float IdlePixels = 2f;
-        const float IdlePeriodMin = 2.4f;
-        const float IdlePeriodMax = 4.2f;
+        const float IdlePeriodMin = 1.2f;
+        const float IdlePeriodMax = 2.0f;
         const float IdleFade = 0.25f;
 
         [SerializeField, Tooltip("Flutuar leve enquanto o botão está parado e disponível.")]
@@ -42,9 +47,12 @@ namespace Fabula.Incrementant.Juice
         bool _hover;
         bool _pressed;
         float _shakeT = 1f;
+        float _denyColorT = 1f;
+        Color _denyRestColor;
+        Color _denyApplied;   // última cor escrita pela cor de erro (detecta troca feita por outro código)
         float _idleWeight;
         float _idlePhase;
-        float _idlePeriod = 3.2f;
+        float _idlePeriod = 1.6f;
         Vector2 _applied; // deslocamento que este componente soma à posição do botão
 
         void Awake()
@@ -99,11 +107,25 @@ namespace Fabula.Incrementant.Juice
             Go(rest, rest, 0.22f, Easing.OutBack);
         }
 
-        /// <summary>Ação negada (sem custo, bloqueada): tremidinha horizontal. Só no nível Completo.</summary>
+        /// <summary>
+        /// Ação negada (sem custo, bloqueada): cor de erro curta (Completo e Reduzido) e tremidinha horizontal (só Completo).
+        /// Par visual do <c>SfxId.UiDeny</c>: a recusa não depende só do som.
+        /// </summary>
         public void Deny()
         {
-            if (Vfx.Strong && isActiveAndEnabled)
+            if (!Vfx.Motion || !isActiveAndEnabled)
+                return;
+            if (Vfx.Strong)
                 _shakeT = 0f;
+            Graphic g = _selectable.targetGraphic;
+            if (g == null)
+                return;
+            if (_denyColorT >= 1f)
+            {
+                _denyRestColor = g.color;
+                _denyApplied = g.color;
+            }
+            _denyColorT = 0f;
         }
 
         /// <summary>Tremidinha de negado no botão dado (no-op se ele não tiver <see cref="ButtonJuice"/>).</summary>
@@ -128,7 +150,8 @@ namespace Fabula.Incrementant.Juice
         {
             if (!Vfx.Motion)
             {
-                if (_t < 1f || _shakeT < 1f || _applied != Vector2.zero)
+                // Inclui a escala: desligar com o cursor em cima deixaria o botão preso no tamanho do hover.
+                if (_t < 1f || _shakeT < 1f || _denyColorT < 1f || _applied != Vector2.zero || _rect.localScale != _restScale)
                     Snap();
                 return;
             }
@@ -148,6 +171,14 @@ namespace Fabula.Incrementant.Juice
                     offset.x = Mathf.Sin(_shakeT * ShakeCycles * 2f * Mathf.PI) * ShakePixels * (1f - _shakeT);
             }
 
+            if (_denyColorT < 1f)
+            {
+                _denyColorT = Mathf.Min(1f, _denyColorT + dt / DenyColorSeconds);
+                SetDenyColor(_denyColorT >= 1f
+                    ? _denyRestColor
+                    : Color.Lerp(_denyRestColor, Pulse.Loss, Mathf.Sin(_denyColorT * Mathf.PI) * DenyColorAmount));
+            }
+
             // Flutuar: só no Completo, com o botão parado e disponível; some suavemente no hover/clique/desabilitado.
             bool floating = _idle && Vfx.Strong && !_hover && !_pressed && _selectable.IsInteractable();
             _idleWeight = Mathf.MoveTowards(_idleWeight, floating ? 1f : 0f, dt / IdleFade);
@@ -159,6 +190,19 @@ namespace Fabula.Incrementant.Juice
             }
 
             ApplyOffset(offset);
+        }
+
+        // Se outro código trocou a cor no meio do efeito (o HUD pinta alguns botões), desiste sem sobrescrever.
+        void SetDenyColor(Color c)
+        {
+            Graphic g = _selectable.targetGraphic;
+            if (g == null || g.color != _denyApplied)
+            {
+                _denyColorT = 1f;
+                return;
+            }
+            g.color = c;
+            _denyApplied = c;
         }
 
         void ApplyOffset(Vector2 offset)
@@ -176,8 +220,15 @@ namespace Fabula.Incrementant.Juice
                 return;
             _rect.localScale = _restScale;
             ApplyOffset(Vector2.zero);
+            if (_denyColorT < 1f)
+            {
+                Graphic g = _selectable != null ? _selectable.targetGraphic : null;
+                if (g != null && g.color == _denyApplied)
+                    g.color = _denyRestColor;
+            }
             _t = 1f;
             _shakeT = 1f;
+            _denyColorT = 1f;
             _idleWeight = 0f;
             _hover = false;
             _pressed = false;

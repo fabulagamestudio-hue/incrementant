@@ -297,6 +297,26 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
+        public void WithAGardener_TheQueenStillGoesToTheNutrientRoomToEat()
+        {
+            PixelGrid grid = MakeWorld(21);
+            for (int x = 46; x < 50; x++)
+            for (int y = 1; y <= 2; y++)
+            {
+                Assert.IsTrue(grid.SetNutrientRoom(x, y, true));
+                Assert.IsTrue(grid.SetNutrient(x, y, true));
+            }
+            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 1);
+            colony.Tree.Restore(QueenTree.LegacyMask | 1UL << (int)QueenNode.N0);
+            colony.SetQueenPolicy(QueenMode.Paused, AntRole.Worker);
+            colony.Spawn(AntRole.Gardener);
+            Assert.Greater(colony.CountOf(AntRole.Gardener), 0);
+
+            Assert.IsTrue(TickUntil(colony, () => grid.IsNutrientRoom(colony.Queen.X, colony.Queen.Y), 60f),
+                "Com jardineira viva, a rainha continua indo à sala de nutrientes.");
+        }
+
+        [Test]
         public void Paused_StopsNewEggs_ButKeepsTheOnesAlreadyLaid()
         {
             AntColony colony = MakeColony(21, 1000);

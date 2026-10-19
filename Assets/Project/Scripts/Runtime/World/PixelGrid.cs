@@ -892,7 +892,28 @@ namespace Fabula.Incrementant.World
             int y = index / Width;
             _chunkWater[(y >> ChunkShift) * ChunkColumns + ((index % Width) >> ChunkShift)] += delta;
             _rowWater[y >> ChunkShift] += delta;
-            Touch(index % Width, y);
+            TouchWater(index % Width, y);
+        }
+
+        /// <summary>
+        /// Acorda só a água dos blocos em volta (1 célula de folga), sem acordar a física granular nem mudar a versão do
+        /// bloco: o grão cai em célula com ou sem água igual (<see cref="CanFallIntoAt"/>) e a caminhabilidade não olha a
+        /// água, então água que escorre não dá trabalho a mais nenhum dos dois. Na chuva forte isso mantinha acordados
+        /// todos os blocos com poça, e a varredura granular custava tanto quanto a da água.
+        /// </summary>
+        void TouchWater(int x, int y)
+        {
+            int cx0 = Math.Max(0, (x - 1) >> ChunkShift);
+            int cy0 = Math.Max(0, (y - 1) >> ChunkShift);
+            int cx1 = Math.Min(ChunkColumns - 1, (x + 1) >> ChunkShift);
+            int cy1 = Math.Min(ChunkRows - 1, (y + 1) >> ChunkShift);
+            for (int cy = cy0; cy <= cy1; cy++)
+            for (int cx = cx0; cx <= cx1; cx++)
+            {
+                int c = cy * ChunkColumns + cx;
+                _waterAwake[c] = true;
+                _waterAwakeNext[c] = true;
+            }
         }
 
         /// <summary>Quantas células com água há no bloco.</summary>

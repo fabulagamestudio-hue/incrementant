@@ -7,7 +7,8 @@ namespace Fabula.Incrementant.Colony
     /// <summary>
     /// Regras de onde uma formiga pode ficar. Abaixo do solo original, todo vazio é caminhável: é túnel e tem
     /// o fundo do formigueiro (a parede de trás) como apoio. No céu, células encostadas (8 vizinhos) em algo sólido e,
-    /// em qualquer lugar, as cobertas pela arte do cenário de perto (<see cref="PixelGrid.IsBackdrop"/>) e as de obra.
+    /// em qualquer lugar, as cobertas pela arte do cenário de perto (<see cref="PixelGrid.IsBackdrop"/>); por dentro, a
+    /// obra e a terra que as formigas trouxeram para fora (<see cref="IsOutdoorWall"/>).
     /// </summary>
     public static class AntNavigation
     {
@@ -20,8 +21,8 @@ namespace Fabula.Incrementant.Colony
                 return false;
             if (grid.IsSolid(x, y))
                 // Planta é como o túnel do formigueiro: a formiga entra nela e sobe por ela (pedido do desenvolvedor em
-                // 2026-10-17). Obra do lado de fora também (pedido de 2026-10-18); o resto do sólido é parede.
-                return CellMaterials.IsPlant(grid.Get(x, y)) || IsOutdoorBuilt(grid, x, y);
+                // 2026-10-17). Obra e terra trazida para fora também (pedidos de 2026-10-18 e 2026-10-19); o resto do sólido é parede.
+                return CellMaterials.IsPlant(grid.Get(x, y)) || IsOutdoorWall(grid, x, y);
             if (IsBackground(grid, x, y))
                 return true;
             return TouchesSolid(grid, x, y);
@@ -41,6 +42,23 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Obra (<see cref="PixelGrid.IsBuilt"/>) acima do solo original: a formiga anda por dentro dela.</summary>
         public static bool IsOutdoorBuilt(PixelGrid grid, int x, int y) =>
             y > grid.GetSurfaceY(x) && grid.IsBuilt(x, y);
+
+        /// <summary>
+        /// Bloco acima do solo original em cuja face a formiga anda, como na parede de trás do formigueiro (pedido do
+        /// desenvolvedor em 2026-10-19): a obra, a terra e a areia que elas despejaram (soltas, compactadas pela chuva ou
+        /// amolecidas pela água). Acima do solo original não há terreno natural, então esse material só pode ter vindo
+        /// das formigas.
+        /// </summary>
+        public static bool IsOutdoorWall(PixelGrid grid, int x, int y)
+        {
+            if (y <= grid.GetSurfaceY(x))
+                return false;
+            if (grid.IsBuilt(x, y))
+                return true;
+            CellMaterial material = grid.Get(x, y);
+            return material == CellMaterial.Spoil || material == CellMaterial.PackedSpoil || material == CellMaterial.Mud ||
+                   material == CellMaterial.Sand || material == CellMaterial.PackedSand;
+        }
 
         /// <summary>
         /// Algum dos 8 vizinhos é sólido. Acima do topo do mundo é céu aberto, não apoio: sem isso a última linha da
@@ -249,7 +267,10 @@ namespace Fabula.Incrementant.Colony
                 if (mark[old] != -stamp)
                     scratch.RemovedSources.Add(old);
             }
-            if (scratch.AddedSources.Count + scratch.RemovedSources.Count > MaxIncrementalSourceChanges)
+            // Nenhuma origem antiga sobrou (a rainha fora da sala andou uma célula): todo o campo dependia delas e seria
+            // invalidado; refazer custa uma fração disso.
+            if (scratch.AddedSources.Count + scratch.RemovedSources.Count > MaxIncrementalSourceChanges ||
+                scratch.RemovedSources.Count > 0 && scratch.RemovedSources.Count == _sources.Count)
             {
                 Build(walkability, sourceIndices);
                 return;
@@ -264,7 +285,6 @@ namespace Fabula.Incrementant.Colony
                 _isSource[c] = true;
             _sources.Clear();
             _sources.AddRange(sourceIndices);
-            _queueIsReachedList = false;
 
             // Fase 1: células cuja distância pode crescer (deixaram de ser caminháveis ou de ser origem) e as que dependiam só delas.
             stamp = ++scratch.Counter;
@@ -280,8 +300,18 @@ namespace Fabula.Incrementant.Colony
                 if (_distance[c] != Unreachable && !_isSource[c])
                     MarkInvalid(c, stamp);
             }
+            // Invalidar mais da metade do alcançado (a origem única que andou uma célula invalida tudo) custa várias vezes um
+            // Build: medido no campo de casa com a rainha andando, ~30 ms corrigindo contra ~6 ms refazendo. Até aqui as
+            // distâncias não mudaram, então o Build parte de um estado válido; o resultado é o mesmo pelos dois caminhos.
+            int maxInvalid = _reached / 2;
             for (int head = 0; head < scratch.Invalid.Count; head++)
             {
+                if (scratch.Invalid.Count > maxInvalid)
+                {
+                    Build(walkability, sourceIndices);
+                    LastUpdateWasIncremental = false;
+                    return;
+                }
                 int c = scratch.Invalid[head];
                 int cx = c % _width;
                 int cy = c / _width;
@@ -299,6 +329,7 @@ namespace Fabula.Incrementant.Colony
                         MarkInvalid(ni, stamp);
                 }
             }
+            _queueIsReachedList = false;
             foreach (int c in scratch.Invalid)
             {
                 _distance[c] = Unreachable;

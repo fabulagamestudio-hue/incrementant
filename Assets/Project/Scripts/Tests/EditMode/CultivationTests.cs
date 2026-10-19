@@ -299,5 +299,52 @@ namespace Fabula.Incrementant.Tests
             Assert.AreEqual(1, colony.BedsAwaitingWater);
             Assert.AreEqual(0, grid.NutrientCount);
         }
+
+        /// <summary>
+        /// Pedido atendido também na água (pedido do desenvolvedor em 2026-10-19): cada formiga reserva o bloco de água que
+        /// vai tirar e o canteiro que vai regar; duas nunca vão ao mesmo, e todos os canteiros são regados.
+        /// </summary>
+        [Test]
+        public void WaterCarriers_ReserveDifferentBlocksAndBeds()
+        {
+            PixelGrid grid = MakeWorld();
+            int[] beds = { 31, 34, 37, 40 };
+            foreach (int x in beds)
+                AddBed(grid, x, BedStage.Planted);
+            for (int x = 60; x <= 66; x++)
+                grid.SetWater(x, 1, true);
+            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 6);
+            for (int i = 0; i < 7; i++)
+                colony.Spawn(AntRole.Worker);
+
+            var taken = new System.Collections.Generic.HashSet<int>();
+            bool sawWaterReserve = false, sawBedReserve = false;
+            int carriersAtOnce = 0;
+            for (int i = 0; i < 60 * 120 && colony.WaterCollected < beds.Length; i++)
+            {
+                colony.Tick(Dt);
+                taken.Clear();
+                int carriers = 0;
+                foreach (Ant ant in colony.Ants)
+                {
+                    bool water = ant.State == AntState.FetchingWater || ant.State == AntState.CarryingWater;
+                    carriers += water ? 1 : 0;
+                    if (!water || ant.SeekTarget < 0)
+                        continue;
+                    sawWaterReserve |= ant.State == AntState.FetchingWater;
+                    sawBedReserve |= ant.State == AntState.CarryingWater;
+                    Assert.IsTrue(taken.Add(ant.SeekTarget), $"Duas formigas reservaram o mesmo bloco de água ou canteiro no passo {i}.");
+                }
+                carriersAtOnce = Mathf.Max(carriersAtOnce, carriers);
+            }
+            for (int i = 0; i < 60 * 10; i++)
+                colony.Tick(Dt);
+
+            Assert.IsTrue(sawWaterReserve && sawBedReserve, "As formigas reservam o bloco de água e depois o canteiro.");
+            Assert.LessOrEqual(carriersAtOnce, beds.Length, "Uma formiga por canteiro esperando água.");
+            Assert.AreEqual(beds.Length, colony.WaterCollected, "Cada canteiro recebeu um bloco, sem bloco a mais.");
+            foreach (int x in beds)
+                Assert.AreNotEqual(BedStage.Planted, grid.GetBedStage(x, 1), $"O canteiro em x = {x} foi regado.");
+        }
     }
 }

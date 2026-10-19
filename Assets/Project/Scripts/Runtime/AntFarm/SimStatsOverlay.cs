@@ -41,7 +41,7 @@ namespace Fabula.Incrementant.AntFarm
         GUIStyle _style;
         Texture2D _background;
 
-        /// <summary>Frames em que o limite de ticks por frame foi atingido (a simulação não acompanhou o tempo real).</summary>
+        /// <summary>Frames em que o limite de ticks ou de tempo por frame foi atingido (a simulação não acompanhou o tempo real).</summary>
         public void NoteFrame(float unscaledDelta, bool tickLimitHit)
         {
             _frameMs = Mathf.Lerp(_frameMs, unscaledDelta * 1000f, 0.1f);
@@ -51,13 +51,13 @@ namespace Fabula.Incrementant.AntFarm
         }
 
         public void Draw(Rect area, AntColony colony, PixelGrid grid, VegetationSimulation vegetation, int speed, bool paused,
-                         float ticksPerSecond, int maxTicksPerFrame)
+                         float ticksPerSecond, int maxTicksPerFrame, float maxSimMs)
         {
             EnsureStyles();
             if (Time.unscaledTime >= _nextRefresh)
             {
                 _nextRefresh = Time.unscaledTime + RefreshSeconds;
-                Rebuild(colony, grid, vegetation, speed, paused, ticksPerSecond, maxTicksPerFrame);
+                Rebuild(colony, grid, vegetation, speed, paused, ticksPerSecond, maxTicksPerFrame, maxSimMs);
             }
             // Fundo opaco: o painel fica sobre o HUD e o cenário, e o texto precisa ler em qualquer um.
             GUI.DrawTexture(area, _background);
@@ -65,7 +65,7 @@ namespace Fabula.Incrementant.AntFarm
         }
 
         void Rebuild(AntColony colony, PixelGrid grid, VegetationSimulation vegetation, int speed, bool paused,
-                     float ticksPerSecond, int maxTicksPerFrame)
+                     float ticksPerSecond, int maxTicksPerFrame, float maxSimMs)
         {
             SimProfiler p = colony.Profiler;
             StringBuilder t = _text;
@@ -73,7 +73,7 @@ namespace Fabula.Incrementant.AntFarm
             float fps = 1000f / Mathf.Max(_frameMs, 0.01f);
             t.Append("<b>Estatísticas [F11]</b>\n");
             t.Append($"{fps:0} fps · frame {_frameMs:0.0} ms · x{speed}{(paused ? " (pausado)" : string.Empty)}\n");
-            t.Append($"Ticks/s {p.RatePerSecond(ProfileCounter.Ticks):0} (alvo {ticksPerSecond * speed:0}, máx {maxTicksPerFrame * speed}/frame)");
+            t.Append($"Ticks/s {p.RatePerSecond(ProfileCounter.Ticks):0} (alvo {ticksPerSecond * speed:0}, máx {maxTicksPerFrame * speed}/frame ou {maxSimMs:0} ms)");
             t.Append($" · frames no limite: {_maxTickFrames}/{_frames}\n");
             t.Append($"Campos refeitos/s: {p.RatePerSecond(ProfileCounter.FieldRebuilds):0.0}\n\n");
 

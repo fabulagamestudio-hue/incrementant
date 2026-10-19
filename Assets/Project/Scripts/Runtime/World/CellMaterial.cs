@@ -31,8 +31,13 @@ namespace Fabula.Incrementant.World
         /// levarem embora, de preferência para a área de resíduos.
         /// </summary>
         Rubble = 14,
-        /// <summary>Resíduo depositado na área de resíduos (restos de cupim, entulho). Fixo; some sozinho ao se decompor.</summary>
+        /// <summary>Entulho depositado na área de resíduos. Fixo; some sozinho ao se decompor.</summary>
         Refuse = 15,
+        /// <summary>
+        /// Resto de cupim morto: na boca da formiga e depositado na área de resíduos. Fixo; ao se decompor vira folhas soltas
+        /// (<see cref="FallenLeaf"/>) dentro da área.
+        /// </summary>
+        TermiteRemains = 16,
     }
 
     /// <summary>Regras e cores por material. Tabela fixa enquanto o protótipo não pede dados configuráveis.</summary>
@@ -119,8 +124,16 @@ namespace Fabula.Incrementant.World
             }
         }
 
-        /// <summary>Vai para a área de resíduos quando há uma: entulho dos cupins e restos de cupim (<see cref="CellMaterial.Refuse"/> na mão).</summary>
-        public static bool IsWaste(CellMaterial material) => material == CellMaterial.Rubble || material == CellMaterial.Refuse;
+        /// <summary>
+        /// Vai para a área de resíduos quando há uma: entulho dos cupins e restos de cupim (<see cref="CellMaterial.TermiteRemains"/>
+        /// na mão; <see cref="CellMaterial.Refuse"/> só aparece na mão em saves antigos).
+        /// </summary>
+        public static bool IsWaste(CellMaterial material) =>
+            material == CellMaterial.Rubble || material == CellMaterial.Refuse || material == CellMaterial.TermiteRemains;
+
+        /// <summary>Resíduo já depositado na área, que se decompõe com o tempo.</summary>
+        public static bool IsDepositedWaste(CellMaterial material) =>
+            material == CellMaterial.Refuse || material == CellMaterial.TermiteRemains;
 
         /// <summary>No que um pixel carregado vira ao ser despejado fora do formigueiro (o que foi compactado volta a soltar).</summary>
         public static CellMaterial ToDumped(CellMaterial carried) =>
@@ -145,6 +158,7 @@ namespace Fabula.Incrementant.World
                 case CellMaterial.FallenLeaf: return new Color32(62, 132, 70, 255);
                 case CellMaterial.Rubble: return new Color32(132, 96, 66, 255);
                 case CellMaterial.Refuse: return new Color32(92, 80, 70, 255);
+                case CellMaterial.TermiteRemains: return new Color32(112, 66, 58, 255);
                 default: return new Color32(0, 0, 0, 0);
             }
         }

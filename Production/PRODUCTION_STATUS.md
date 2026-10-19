@@ -7,7 +7,7 @@
 - **Engine:** Unity 6000.3.11f1, URP 17.3.0
 - **Plataformas-alvo:** Pendente de definição
 - **Marco atual:** Pendente de definição
-- **Última avaliação:** 2026-10-18
+- **Última avaliação:** 2026-10-19
 
 ## Resumo executivo
 
@@ -15,7 +15,7 @@ Ataques de cupins implementados (PRG-034, REQ-029): a partir de 15 formigas, a c
 
 Apertar ESC abre o menu do jogo (continuar, configurações, salvar, carregar, sair), que pausa a simulação; a tela de configurações tem volumes, efeitos visuais, tela cheia, resolução, VSync, limite de FPS e o contador do canto, gravados num arquivo próprio (PRG-031, REQ-022). Testes novos e Play Mode pelo agente; falta uso por uma pessoa. Os volumes de música e efeitos e o nível de efeitos visuais esperam os sistemas de SFX e VFX, próxima tarefa anunciada (REQ-023).
 
-As formigas passaram a reservar o pixel marcado ao sair para buscá-lo: cada pixel tem no máximo uma formiga indo atrás dele, e as demais vão a outro pixel ou a outro trabalho, em vez de um bando ir e voltar (PRG-030, REQ-021). Testes novos e Play Mode pelo agente; falta ver o movimento em jogo.
+As formigas passaram a reservar o pixel marcado ao sair para buscá-lo: cada pixel tem no máximo uma formiga indo atrás dele, e as demais vão a outro pixel ou a outro trabalho, em vez de um bando ir e voltar (PRG-030, REQ-021). Em 2026-10-19, o corte da planta e a busca de terra para obra passaram a marcar o pedido como atendido por quem está indo, para não chamar todas as ociosas de uma vez, e quem busca água reserva o bloco de água e o canteiro que vai regar. Testes novos (e Play Mode pelo agente só na primeira parte); falta ver o movimento em jogo.
 
 As formigas passaram a andar livres do lado de fora: pelo meio da arte do cenário de perto (cogumelos, gravetos, folhas secas, pedrinhas) e por dentro das obras de fora, não só pelo contorno (PRG-029, REQ-020). Testes novos e Play Mode pelo agente; quatro testes antigos já falhavam no working tree e foram registrados em KI-015.
 
@@ -110,7 +110,7 @@ Sala Gotas de Orvalho implementada (PRG-037, REQ-032): pincel novo; operárias e
 | Operária leva o ovo ao berçário; cheat F1 (+50 operárias, +50 cortadeiras) | IMPLEMENTED | PRG-022 |
 | Construção do lado de fora do formigueiro | IMPLEMENTED | PRG-023 |
 | Árvore da rainha: classes por compra, Q1, Q2, O2, L3, E1 e tela Evolução | IMPLEMENTED | PRG-024 |
-| Formigas andam pelo meio da arte do cenário e das obras de fora | IMPLEMENTED | PRG-029 |
+| Formigas andam pelo meio da arte do cenário, das obras e dos blocos de terra de fora | IMPLEMENTED | PRG-029 |
 | Menu do ESC e tela de configurações | IMPLEMENTED | PRG-031 |
 | Ataques de cupins, combate, área de resíduos e soldado | IMPLEMENTED | PRG-034 |
 | Sala Gotas de Orvalho (terra fofa, folha, gota que as paredes não absorvem) | IMPLEMENTED | PRG-037 |
@@ -161,7 +161,7 @@ Registro completo: [REQUESTS.md](REQUESTS.md)
 ### Definidas pelo desenvolvedor
 
 - SFX e VFX são a próxima tarefa (REQ-023, informado em 2026-10-18).
-- Efeitos de dopamina (juice) pedidos em 2026-10-18 (REQ-034): análise e skill `juice-dopamina` feitas, fases 0 a 2 (PRG-038 a PRG-040: `Vfx`, `Easing`, botões animados, painéis e pulso dos contadores) verificadas em Play Mode pelo desenvolvedor; fase 3 (PRG-041, partículas de escavar, despejar, obra, nascimento e cupim) verificada em Play Mode pelo desenvolvedor; fase 4 (PRG-042, números flutuantes de nutriente ganho/gasto e formiga ferida) implementada, sem Play Mode; fases 5 a 7 pendentes.
+- Efeitos de dopamina (juice) pedidos em 2026-10-18 (REQ-034): análise e skill `juice-dopamina` feitas, fases 0 a 2 (PRG-038 a PRG-040: `Vfx`, `Easing`, botões animados, painéis e pulso dos contadores) verificadas em Play Mode pelo desenvolvedor; fase 3 (PRG-041, partículas de escavar, despejar, obra, nascimento e cupim) verificada em Play Mode pelo desenvolvedor; fase 4 (PRG-042, números flutuantes de nutriente ganho/gasto e formiga ferida) implementada, sem Play Mode; revisão pela skill em 2026-10-19 corrigiu negado, gasto como fato e escala dos números, e o idle ficou com todos os botões dessincronizados e mais rápidos a pedido do desenvolvedor, o que devolve PRG-039 a IMPLEMENTED até nova conferência em Play Mode; fases 5 a 7 pendentes.
 
 ### Sugeridas pelo agente
 
@@ -174,7 +174,7 @@ Registro completo: [REQUESTS.md](REQUESTS.md)
 - Jogar com chuva forte até a água entrar no ninho e ajustar X (erosão), Y (afogamento) e a quantidade de água (REQ-006, PRG-014).
 - Pintar uma sala da rainha (tecla B até "Sala da rainha"), cavá-la e conferir a rainha e as ociosas espalhadas (REQ-007, PRG-015).
 - Pintar uma sala de nutrientes (pincel "Sala de nutrientes"), ver as jardineiras colherem sozinhas (maior planta crescida, de cima para baixo) e conferir o ciclo até a rainha e a compra de formigas com nutrientes (REQ-008, PRG-016).
-- Ver as formigas atravessando um cogumelo e uma obra de fora em jogo (REQ-020, PRG-029).
+- Ver as formigas atravessando um cogumelo, uma obra e um monte de terra (solto ou compactado pela chuva) de fora em jogo (REQ-020, PRG-029; ampliado em 2026-10-19).
 - Abrir o menu com ESC, mexer nas configurações e conferir que elas voltam ao reiniciar o Play (REQ-022, PRG-031).
 - Definir o que o protótipo precisa provar para ser considerado viável (critérios de REQ-001).
 

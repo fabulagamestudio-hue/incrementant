@@ -49,7 +49,7 @@ O objetivo passa ao próximo quando não tem mais alvo, quando nenhum cupim prog
 O cupim morto (`TermitePhase.Dead`) fica no chão com **Corpse Leaves** (2) folhas e **Corpse Remains** (1) resto. A comum, a carregadora e o soldado ociosos (`AntRoles.ClearsCorpses`; prioridade logo antes de buscar nutriente) vão até ele (`AntState.Dismembering`, campo do combate apontando para os corpos), trabalham **Dismember Seconds** (1 s) e saem com uma parte:
 
 - **Folha** (`PlantLeaf` na boca) só se algum canteiro espera planta (`CanHarvest`): vai ao canteiro como um pedaço de planta colhido (conta em `HarvestedPixels`).
-- **Resto** (`CellMaterial.Refuse` na boca): vai à área de resíduos; sem área, ao despejo como terra (nunca vira canteiro).
+- **Resto** (`CellMaterial.TermiteRemains` na boca): vai à área de resíduos, onde vira folhas ao se decompor (ver abaixo); sem área, ao despejo como terra (nunca vira canteiro).
 
 Folhas sem canteiro esperando ficam no corpo até abrir vaga. O corpo some quando não sobra parte.
 
@@ -57,8 +57,10 @@ Folhas sem canteiro esperando ficam no corpo até abrir vaga. O corpo some quand
 
 - **Liberação.** O pincel **Resíduos** (6º do HUD, tecla B) fica bloqueado até o primeiro ataque terminar (`AntColony.WasteUnlocked`, `AntFarmGame.IsBrushUnlocked`). O mesmo fim de ataque liga `QueenTree.SoldiersAvailable`, que abre o ramo do soldado (S0 a S2; S3, a contenção, segue EM BREVE).
 - **Pintura.** Camada `PixelGrid.SetWasteRoom`, como o berçário: só no formigueiro, nunca sobre outra sala. Muda `MarkVersion`. Desenho em `AntFarmView` com **Waste Room Color**.
-- **Depósito.** Entulho e restos na mão vão à área (`TryStartWaste` em `StartDelivery`, antes dos canteiros e do despejo; estado `CarryingWaste`, campo `_wasteField`). A formiga larga cada pixel num ponto livre vizinho (`IsWasteSpot`: célula da área, vazia, apoiada em algo sólido embaixo, caminhável e sem fechar passagem, `KeepsPassage`), que vira `Refuse` (fixo). Sem ponto ou sem caminho, entrega como terra.
-- **Decomposição.** Cada célula de resíduo some sozinha depois de **Waste Decay Seconds** (120 s, o R0 do design). Ao carregar um save, o tempo recomeça cheio para todo `Refuse` do mapa.
+- **Depósito.** Entulho e restos na mão vão à área (`TryStartWaste` em `StartDelivery`, antes dos canteiros e do despejo; estado `CarryingWaste`, campo `_wasteField`). A formiga larga cada pixel num ponto livre vizinho (`IsWasteSpot`: célula da área, vazia, apoiada em algo sólido embaixo, caminhável e sem fechar passagem, `KeepsPassage`), que vira `Refuse` (entulho) ou `TermiteRemains` (resto de cupim), os dois fixos. Sem ponto ou sem caminho, entrega como terra.
+- **Decomposição.** Cada célula de resíduo se decompõe depois de **Waste Decay Seconds** (120 s, o R0 do design). Ao carregar um save, o tempo recomeça cheio para todo `Refuse` e `TermiteRemains` do mapa.
+  - **Entulho** (`Refuse`): só some e libera espaço.
+  - **Resto de cupim** (`TermiteRemains`, pedido do desenvolvedor em 2026-10-19): vira **Remains Leaves** (3) folhas soltas dentro da área (`TryRotRemains`). A própria célula e as vazias mais próximas da área (xadrez até 12 células, `IsLeafSpot`: na área, vazia, sem água, nutriente nem formiga) recebem `FallenLeaf` **marcado**, que cai como grão e é colhido para os canteiros quando algum espera planta (`CanStoreDebris`), como qualquer pixel de planta solto. Enquanto não há células vazias para todas as folhas, o resto não muda e tenta de novo a cada 1 s. Contador `RemainsRotted` (não vai para o save).
 
 ## Tempestades (pedido do desenvolvedor em 2026-10-18)
 

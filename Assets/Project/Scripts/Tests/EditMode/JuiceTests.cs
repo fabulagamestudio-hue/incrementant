@@ -65,6 +65,19 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
+        public void Aggregator_OpenOnlyBetweenFirstAddAndFlush()
+        {
+            // FloatingText usa Open para ancorar o número onde o primeiro evento da janela aconteceu.
+            var agg = new FxAggregator(0.3f);
+            Assert.IsFalse(agg.Open);
+            agg.Add(1, 0f);
+            Assert.IsTrue(agg.Open);
+            agg.Add(1, 0.1f);
+            Assert.IsTrue(agg.TryFlush(0.3f, out _));
+            Assert.IsFalse(agg.Open);
+        }
+
+        [Test]
         public void ScaleFollowsVfxLevel()
         {
             Assert.AreEqual(8, Vfx.Scale(VfxLevel.Full, 8));

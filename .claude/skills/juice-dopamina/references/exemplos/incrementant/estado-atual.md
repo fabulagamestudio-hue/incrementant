@@ -1,6 +1,10 @@
 # Estado atual do feedback (análise de 2026-10-18)
 
+> **Exemplo específico do Incrementant** (incremental 2D cozy em pixel art, análise de 2026-10-18). Serve de modelo de como aplicar a skill; os nomes e valores aqui não valem para outros jogos. A versão genérica está na pasta `references/` acima.
+
 Levantado a partir do código em `Assets/Project/Scripts`. Reconfira antes de depender de um item: o projeto muda rápido.
+
+> **Situação em 2026-10-19.** Este arquivo é a foto da análise **antes** do código de juice. As fases 0 a 4 já existem (`Assets/Project/Scripts/Runtime/Juice`, guia `JuiceGuide.md`): as lacunas 1, 2 (escavar, despejar, obra, nascimento, cupim), 3, 4, 5, 6 (entrada dos painéis do HUD) e 8 foram fechadas. Continuam abertas: a 7 (marcos), a 9 (reação corporal), a 10 (câmera), a 11 (tooltips) e partes da 2 e da 6 (chuva, afogamento, Configurações, Game over, saída dos painéis). A revisão de 2026-10-19 pela skill corrigiu dois desvios: recusa só sonora (agora cor de erro e `!` no mundo) e "-N" de gasto tirado da diferença do contador (agora é um fato com quantia). O idle "um botão por vez" do catálogo foi testado e recusado pelo desenvolvedor: aqui todos os botões flutuam, mais rápido (1,2 a 2,0 s) e dessincronizados. Para o estado vivo, use o guia e `Production/`.
 
 ## O que já existe
 

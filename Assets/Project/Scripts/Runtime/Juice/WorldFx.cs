@@ -41,6 +41,7 @@ namespace Fabula.Incrementant.Juice
         const float ViewMargin = 2f;
 
         ParticleSystem[] _systems;
+        Material _material;
         FxLimiter _limiter;
         Camera _camera;
         Transform _origin;
@@ -62,13 +63,20 @@ namespace Fabula.Incrementant.Juice
         {
             var intervals = new float[Recipes.Length];
             _systems = new ParticleSystem[Recipes.Length];
-            Material material = new Material(Shader.Find("Sprites/Default")) { name = "WorldFx" };
+            _material = new Material(Shader.Find("Sprites/Default")) { name = "WorldFx" };
             for (int i = 0; i < Recipes.Length; i++)
             {
                 intervals[i] = Recipes[i].MinInterval;
-                _systems[i] = BuildSystem(((FxId)i).ToString(), Recipes[i], material);
+                _systems[i] = BuildSystem(((FxId)i).ToString(), Recipes[i], _material);
             }
             _limiter = new FxLimiter(intervals);
+        }
+
+        // O material é criado em código: sem isto, cada partida deixaria uma cópia órfã na memória.
+        void OnDestroy()
+        {
+            if (_material != null)
+                Destroy(_material);
         }
 
         ParticleSystem BuildSystem(string systemName, Recipe r, Material material)

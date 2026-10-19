@@ -297,14 +297,14 @@ namespace Fabula.Incrementant.AntFarm
             }
 
             // No meio de um túnel ou sobre a arte do cenário, sem nada encostado, ela está no fundo: vista de cima,
-            // girando livre. Dentro da obra de fora também (anda pela face da obra, não pelo contorno).
+            // girando livre. Dentro da obra e da terra de fora também (anda pela face do bloco, não pelo contorno).
             Sprite[] walkFrames = walkOverride ?? _walkFrames;
             Sprite[] topFrames = topOverride ?? _topFrames;
             if (!visual.IsQueen && walkOverride == null)
                 ApplyRoleArt(ant.Role, ref walkFrames, ref topFrames);
             bool topView = topFrames != null && topFrames.Length > 0 && topFrames[0] != null
                            && (AntNavigation.IsBackground(grid, ant.X, ant.Y) && !AntNavigation.TouchesSolid(grid, ant.X, ant.Y)
-                               || AntNavigation.IsOutdoorBuilt(grid, ant.X, ant.Y));
+                               || AntNavigation.IsOutdoorWall(grid, ant.X, ant.Y));
             if (topView)
                 UpdateTopOrientation(visual, heading, deltaTime);
             else

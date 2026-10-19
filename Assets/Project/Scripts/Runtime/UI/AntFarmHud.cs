@@ -231,7 +231,7 @@ namespace Fabula.Incrementant.UI
             ButtonSfx.AttachAll(transform.root);
             ButtonJuice.AttachAll(transform.root);
             _tooltips = new HudTooltips(_raidAlertText.font);
-            _floatingText = FloatingText.Create(_raidAlertText.font, _game.WorldCamera);
+            _floatingText = FloatingText.Create(_raidAlertText.font, _game.WorldCamera, GetComponentInParent<CanvasScaler>());
             AttachTooltips();
         }
 
@@ -252,7 +252,25 @@ namespace Fabula.Incrementant.UI
             if (id == FxId.NutrientGain)
                 _floatingText.Gain(1, _game.CellToWorld(cell));
             else if (id == FxId.AntHurt)
-                _floatingText.SpawnWorld(_game.CellToWorld(cell), "-1", Pulse.Loss);
+                _floatingText.Hurt(1, _game.CellToWorld(cell));
+        }
+
+        /// <summary>Gasto real (compra, ovo) vira "-N" logo abaixo do cartão de Nutrientes, somado numa janela.</summary>
+        void OnNutrientsSpent(int amount)
+        {
+            if (_floatingText == null)
+                return;
+            Vector2 card = RectTransformUtility.WorldToScreenPoint(null, _nutrientsValue.rectTransform.position);
+            Canvas canvas = _nutrientsValue.canvas;
+            float scale = canvas != null ? canvas.scaleFactor : 1f;
+            _floatingText.Spent(amount, card + new Vector2(0f, -36f * scale));
+        }
+
+        /// <summary>Clique recusado no mundo (rainha sem vaga/nutrientes, dedo com o jogo pausado): "!" na célula.</summary>
+        void OnWorldDenied(Vector2Int cell)
+        {
+            if (_floatingText != null)
+                _floatingText.SpawnWorld(_game.CellToWorld(cell), "!", FloatingText.LossColor);
         }
 
         /// <summary>Dicas dos botões do menu Colônia, da velocidade e dos cartões; as das salas e dos cartões incluem o estado da produção.</summary>
@@ -308,6 +326,8 @@ namespace Fabula.Incrementant.UI
         void OnEnable()
         {
             _game.ColonyFx += OnColonyFx;
+            _game.ColonyNutrientsSpent += OnNutrientsSpent;
+            _game.WorldDenied += OnWorldDenied;
             _paintButton.onClick.AddListener(TogglePaint);
             _pauseButton.onClick.AddListener(TogglePause);
             if (_recallButton != null)
@@ -330,6 +350,8 @@ namespace Fabula.Incrementant.UI
         void OnDisable()
         {
             _game.ColonyFx -= OnColonyFx;
+            _game.ColonyNutrientsSpent -= OnNutrientsSpent;
+            _game.WorldDenied -= OnWorldDenied;
             SetFingerCursor(false);
             _paintButton.onClick.RemoveListener(TogglePaint);
             _pauseButton.onClick.RemoveListener(TogglePause);
@@ -515,13 +537,8 @@ namespace Fabula.Incrementant.UI
             int nutrients = colony.Nutrients;
             if (_shownNutrients >= 0 && nutrients != _shownNutrients)
             {
+                // Os números vêm dos fatos (ganho junto da rainha, gasto em OnNutrientsSpent); aqui só o contador reage.
                 Pulse.Play(_nutrientsValue, nutrients > _shownNutrients ? Pulse.Gain : Pulse.Loss);
-                // Gasto (compra, ovo): "-N" sai do cartão. O ganho já aparece junto da rainha, agregado.
-                if (nutrients < _shownNutrients && _floatingText != null)
-                {
-                    Vector2 card = RectTransformUtility.WorldToScreenPoint(null, _nutrientsValue.rectTransform.position);
-                    _floatingText.SpawnScreen(card + new Vector2(0f, -36f), "-" + (_shownNutrients - nutrients), Pulse.Loss);
-                }
             }
             _shownNutrients = nutrients;
 

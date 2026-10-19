@@ -1581,7 +1581,7 @@ namespace Fabula.Incrementant.Colony
             else if (corpse.RemainsLeft > 0)
             {
                 corpse.RemainsLeft--;
-                ant.PickUp(CellMaterial.Refuse, 128);
+                ant.PickUp(CellMaterial.TermiteRemains, 128);
             }
             else
             {

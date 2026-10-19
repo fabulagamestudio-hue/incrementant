@@ -79,6 +79,8 @@ namespace Fabula.Incrementant.Colony
         [SerializeField, Min(0.05f)] float _dismemberSeconds = 1f;
         [Tooltip("Segundos para cada célula de resíduo se decompor na área de resíduos (design R0: 120 s por UR).")]
         [SerializeField, Min(1f)] float _wasteDecaySeconds = 120f;
+        [Tooltip("Folhas soltas (pixels de planta para os canteiros) em que cada resto de cupim se transforma ao se decompor na área de resíduos.")]
+        [SerializeField, Min(0)] int _remainsLeaves = 3;
 
         public int MinAnts => _minAnts;
         public float MinIntervalMinutes => _minIntervalMinutes;
@@ -116,5 +118,6 @@ namespace Fabula.Incrementant.Colony
         public int CorpseRemains => _corpseRemains;
         public float DismemberSeconds => _dismemberSeconds;
         public float WasteDecaySeconds => _wasteDecaySeconds;
+        public int RemainsLeaves => _remainsLeaves;
     }
 }

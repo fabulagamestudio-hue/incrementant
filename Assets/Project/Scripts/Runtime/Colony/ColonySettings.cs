@@ -18,6 +18,8 @@ namespace Fabula.Incrementant.Colony
         [SerializeField, Min(0f)] float _nutrientCureSeconds = 30f;
         [Tooltip("Intervalo mínimo entre recálculos dos campos de navegação.")]
         [SerializeField, Min(0f)] float _fieldRebuildInterval = 0.1f;
+        [Tooltip("Segundos (de jogo) mínimos entre varreduras da água para o campo de buscar água. Na chuva a água escorre a cada passo; refazer o campo por isso em toda rodada pesava a rodada inteira.")]
+        [SerializeField, Min(0f)] float _waterFieldRefreshSeconds = 1f;
         [Tooltip("Velocidade da rainha (células por segundo). Ela só anda dentro da maior sala da rainha pintada.")]
         [SerializeField, Min(0.1f)] float _queenSpeed = 4f;
         [Tooltip("Chance, a cada passo da rainha dentro da sala, de parar um pouco antes de seguir.")]
@@ -79,6 +81,7 @@ namespace Fabula.Incrementant.Colony
         public float DropSeconds => _dropSeconds;
         public float NutrientCureSeconds => _nutrientCureSeconds;
         public float FieldRebuildInterval => _fieldRebuildInterval;
+        public float WaterFieldRefreshSeconds => _waterFieldRefreshSeconds;
         public float QueenSpeed => _queenSpeed;
         public float QueenRestChance => _queenRestChance;
         public float QueenRestSeconds => _queenRestSeconds;

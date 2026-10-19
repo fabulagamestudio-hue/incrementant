@@ -73,17 +73,17 @@ namespace Fabula.Incrementant.Tests
         public void OutdoorBuilt_IsWalkableInside_ButOtherSolidsAreNot()
         {
             PixelGrid grid = MakeGround(20, 30);
-            // Bloco 3x3 de obra fora do formigueiro e um de terra compactada (crosta de chuva) do lado.
+            // Bloco 3x3 de obra fora do formigueiro e uma rocha do lado.
             for (int x = 4; x <= 6; x++)
             for (int y = Surface + 1; y <= Surface + 3; y++)
             {
                 grid.Set(x, y, CellMaterial.PackedSpoil);
                 Assert.IsTrue(grid.SetBuilt(x, y, true));
             }
-            grid.Set(12, Surface + 1, CellMaterial.PackedSpoil);
+            grid.Set(12, Surface + 1, CellMaterial.Rock);
 
             Assert.IsTrue(AntNavigation.IsWalkable(grid, 5, Surface + 2), "Meio da obra de fora: anda por dentro.");
-            Assert.IsFalse(AntNavigation.IsWalkable(grid, 12, Surface + 1), "Terra compactada que não é obra continua parede.");
+            Assert.IsFalse(AntNavigation.IsWalkable(grid, 12, Surface + 1), "Rocha de fora continua parede.");
 
             // Dentro do formigueiro a obra continua parede (só a de fora é caminhável).
             grid.Set(10, 4, CellMaterial.PackedSpoil);
@@ -93,6 +93,37 @@ namespace Fabula.Incrementant.Tests
             Assert.IsFalse(grid.SetBuilt(15, 20, true), "Célula vazia não vira obra.");
             grid.Set(5, Surface + 2, CellMaterial.Mud);
             Assert.IsFalse(grid.IsBuilt(5, Surface + 2), "Trocar o material desfaz a obra.");
+        }
+
+        [Test]
+        public void SoilBroughtOutside_IsWalkableInside_LikeTheAnthillBackWall()
+        {
+            // Pedido de 2026-10-19: a formiga anda pela face dos blocos de fora (terra despejada, solta ou compactada pela
+            // chuva, areia, lama), não só pelo contorno. O terreno natural continua parede.
+            PixelGrid grid = MakeGround(20, 30);
+            CellMaterial[] outside =
+            {
+                CellMaterial.Spoil, CellMaterial.PackedSpoil, CellMaterial.Sand, CellMaterial.PackedSand, CellMaterial.Mud,
+            };
+            foreach (CellMaterial material in outside)
+            {
+                for (int x = 4; x <= 8; x++)
+                for (int y = Surface + 1; y <= Surface + 5; y++)
+                    grid.Set(x, y, material);
+                Assert.IsTrue(AntNavigation.IsWalkable(grid, 6, Surface + 3), $"Meio de um bloco de {material} fora: anda por dentro.");
+                Assert.IsTrue(AntNavigation.IsOutdoorWall(grid, 6, Surface + 3));
+            }
+
+            Assert.IsFalse(AntNavigation.IsWalkable(grid, 6, Surface - 2), "Terra natural do formigueiro continua parede.");
+            grid.Set(12, Surface + 1, CellMaterial.Rock);
+            Assert.IsFalse(AntNavigation.IsWalkable(grid, 12, Surface + 1), "Rocha de fora não é bloco das formigas.");
+            grid.Set(10, 4, CellMaterial.PackedSpoil);
+            Assert.IsFalse(AntNavigation.IsWalkable(grid, 10, 4), "Terra compactada dentro do formigueiro continua parede.");
+
+            // O caminho atravessa o bloco pelo meio, em linha reta.
+            var field = new FlowField(grid.Width, grid.Height);
+            field.Build(grid, new List<int> { grid.ToIndex(6, Surface + 6) });
+            Assert.AreEqual(5, field.Get(6, Surface + 1), "Do topo do bloco ao pé dele, por dentro.");
         }
 
         [Test]

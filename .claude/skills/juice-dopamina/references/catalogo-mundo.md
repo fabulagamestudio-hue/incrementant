@@ -1,77 +1,108 @@
-# Catálogo — mundo (partículas e animação)
+# Catálogo — mundo, combate e câmera
 
-Cada linha liga um **fato da simulação** a um efeito. "Fonte" é onde o fato já nasce hoje (`Emit(SfxId.X)` ou estado lido pela view). "Teto" é o máximo simultâneo; a 8x, reduza cadência, não quantidade por rajada. `Reduzido` = metade das partículas, sem tremor/flash; `Off` = nada.
+Cada linha liga um **fato** a um efeito. Intensidade pela magnitude; canal pela frequência (frequente = leve; raro = forte). "Teto" é o máximo simultâneo; em velocidade alta reduza cadência, não quantidade por rajada. Reduzido = metade das partículas, sem tremor/flash; Off = nada além da informação. Exemplos com números de dois jogos: [exemplos/spacefall.md](exemplos/spacefall.md) e [exemplos/incrementant/catalogo-mundo.md](exemplos/incrementant/catalogo-mundo.md).
 
-## Partículas (`WorldFx`, `ParticleSystem` com pool por tipo)
+## 1. Ação do jogador
 
-Partícula padrão: quadrado de 1 célula (ou 0,5 célula) em `Sprites/Default`, filtro Point, sem rotação, simulação em espaço de mundo, gravidade leve, vida 0,25–0,6 s, cor do material afetado. Um sistema pré-aquecido por `FxId`; dispara com `Emit(count)` na posição da célula (sem `Instantiate`).
+| Fato | Efeito |
+|---|---|
+| Disparo/golpe/habilidade | clarão na boca/ponto de origem na direção da ação, tingido com a cor da arma; miolo curto (~0,13 s), raios rápidos e leque de faíscas; uma vez por rajada, não por projétil; recuo do corpo |
+| Uso de habilidade especial | efeito próprio por habilidade, com carga e liberação distintas (descargas convergindo, jato ao liberar) |
 
-| Fato (fonte) | Efeito | Qtd / vida | Teto |
-|---|---|---|---|
-| Escavar (`Dig`) | poeira: 3–5 grãos na cor do material, saltam para cima/lado e caem | 4 / 0,4 s | 24 vivos, 1 emissão por célula a cada 0,15 s |
-| Despejar / depositar (`Drop`) | grãos caindo da mandíbula, "tum" de poeira ao pousar | 3 / 0,35 s | 16 |
-| Obra concluída (`Build`) | contorno da área pisca claro 0,3 s + anel de poeira dourada nos cantos; marca de obra some em fade | 8 / 0,5 s | 1 por sala por vez |
-| Plantar / broto (`Plant`) | 2–3 pixels verdes sobem e o broto faz "pop" (0→1,2→1 em 0,25 s) | 3 / 0,5 s | 12 |
-| Nutriente entregue à rainha | faíscas douradas do ponto de entrega + "+N" agregado (ver UI) | 3–6 / 0,6 s | 20 |
-| Ovo posto (`EggLaid`) | ovo "salta" ao surgir (0→1,15→1), 2 pontinhos claros | 2 / 0,4 s | 8 |
-| Nascimento (`AntBorn`) | casca se abre: 5 pixels de casca, formiga emerge com squash vertical (0,6→1,1→1, 0,3 s), halo claro curto | 5 / 0,5 s | 8 |
-| Formiga morre (`AntDie`, velhice) | desmaio suave: fade+afunda 4 px, 2 pontos esbranquiçados sobem (sem sangue) | 2 / 0,6 s | 6 |
-| Afogamento (`Drowned`) | bolhas azuis sobem, formiga balança | 4 / 0,8 s | 6 |
-| Água/chuva | respingos na superfície, ondinhas nas poças; só na vista, pela câmera | 1–2 / 0,25 s por gota visível | 40 (proporcional à intensidade) |
-| Aviso de ataque (`RaidWarning`) | poeira cai do teto, vibração de 1 px da borda superior do formigueiro (só Completo) | 6 / 0,8 s | 12 |
-| Cupim pousa (`RaidStart`) | nuvem de poeira e folhinhas no ponto de pouso; asas soltas caem (já há quadros de "pouso") | 8 / 0,6 s | 16 |
-| Cupim atingido (`TermiteHit`) | pisca (já existe `_termiteHitColor`) + 3 faíscas + recuo de 1 célula em 0,1 s | 3 / 0,25 s | 12 |
-| Cupim morto (`TermiteKilled`) | estouro de pixels marrons, "plop" de escala; corpo cai e escurece (já há cor de cadáver) | 8 / 0,5 s | 16 |
-| Formiga ferida (`AntHurt`) | pisca branco-avermelhado 0,08 s + 2 pixels; encolhe (squash) 1→0,85→1 | 2 / 0,3 s | 12 |
-| Desabamento (`Crumble`) | rajada de grãos conforme as células caem + tremor leve da câmera (só Completo) | 12 / 0,7 s | 48, 1 por 0,3 s |
-| Decomposição de resíduos | fragmentos pequenos desaparecendo, pilha encolhe | 2 / 0,5 s | 10 |
-| Gotas de orvalho (sala) | gotinha brilha e cai no ritmo da produção | 1 / 0,6 s | 6 |
-| Compra de evolução (`Buy`) | ver catálogo de UI (a faísca nasce na tela, não no mundo) | — | — |
+## 2. Acerto e dano causado
 
-## Animação corporal (views, sem partículas)
+| Fato | Efeito |
+|---|---|
+| Acerto | marcador de traços que abrem do ponto do impacto (nascem finos e engrossam, ease-out), toque seco; número de dano (ver catálogo de UI) |
+| Dano num inimigo comum | clarão branco no alvo (valor acima de 1 para estourar) e volta à cor; não em chefes com brilho próprio |
+| Camada de proteção quebra | estilhaço por camada, maior na última |
+| Proteção do alvo zerada | pausa de impacto curta |
 
-Aplique no filho/visual, nunca na rotação que `AntSwarmView` calcula.
+## 3. Morte e abate
+
+| Fato | Efeito |
+|---|---|
+| Morte de inimigo comum | marcador de kill maior (mais traços), toque agudo (máx. 1 a cada ~60 ms), explosão do jogo, tremor de câmera que **cresce com a robustez** do alvo (camadas ou vida) |
+| Morte robusta (2+ camadas) | pausa de impacto curta |
+| Multikill (N kills quase simultâneas) | `+N` no centro das mortes e sino; agrupe por intervalo curto (~0,15 s), assim explosões em área contam sem saber a origem |
+
+## 4. Encadeamento (combo)
+
+- **Sequência:** cada kill reinicia a janela (ex.: 4 s); o contador só aparece a partir de um mínimo (ex.: 3); a barra mostra a janela; cada kill dá um tranco de mola no número; a cor esquenta com o tamanho.
+- **Marcos do combo** (ex.: 10, 25, 50, 100): número salta, bordas da tela brilham, sino sobe de tom a cada marco; o contador passa a ser desenhado maior por faixa.
+- **Janela esvaziando:** abaixo de ~30% o número treme e a barra pisca em vermelho cada vez mais depressa; cruzar 30/20/10% toca um tique grave; uma kill que enche a barra quando estava abaixo de ~40% "salva" o combo (pisca branco, número pula).
+- **Recompensa no fim:** bônus **separado do loot**, pago de uma vez como clímax. Fórmula pura e testada, crescente mais que linear. Durante o combo a placa mostra o bônus futuro. No fim, os recursos **saem do número do combo** e caem como itens coletáveis (com arco e giro), divididos em 2–8 pedaços escalonados; ao pousar, faíscas, tranco leve e toque agudo. Festa: varredura de luz, bordas brilhando, tamanho do combo subindo, soco de FOV, arpejo e sino de tom crescente.
+- Combo perdido se a sessão termina antes de pagar: decisão de design, registre.
+
+## 5. Marcos da sessão
+
+Total acumulado (ex.: 50, 100, 250, 500, 1000 e a cada 500): número sobe da nave/personagem, bordas brilham, soco de FOV crescente (de ~2° a ~3,5°), pausa curta, tremor e arpejo mais agudo a cada marco.
+
+## 6. Ritmo da partida
+
+- **Chegada de onda:** som grave, bordas âmbar e tranco de câmera, escalados pela ameaça normalizada. Sem texto (ondas vêm toda hora). A primeira onda não avisa.
+- **Onda limpa:** arpejo + um brilho que desce a tela **acendendo só os elementos da HUD** (troca momentânea de material aditivo por sprite).
+- **Aviso de chefe:** sirene, tremor, tela escurece, faixa com título e nome, bordas piscando três vezes (~2,8 s).
+
+## 7. Clímax: morte de chefe
+
+Pausa de impacto (~0,12 s) → **câmera lenta** → soco de FOV (~−4°, volta em ~1,3 s) → bordas douradas → fanfarra (arpejo + sino grave). Não acrescente chuva de loot sem decisão de balanceamento.
+
+## 8. Dano recebido e risco
+
+| Fato | Efeito |
+|---|---|
+| Golpe no casco | tremor `base + k × fração do dano`, brilho vermelho nas bordas (força e duração pela fração), pausa curta em golpe grande (≥ ~15%) |
+| Golpe na proteção | tremor leve, brilho ciano discreto |
+| Vida baixa (< ~30%) | bordas **pulsam** em vermelho, batimento cardíaco que acelera até ~5%; apaga ao curar/morrer |
+| Reparo grande (≥ ~5% mais de uma vez) | brilho verde nas bordas e sino; a regeneração lenta **não** conta |
+| Trava/proteção que anula dano | placas que fecham sobre o ponto atingido, raio na emenda, faíscas para o lado do golpe, som seco; sem bolha nem disco |
+| Marca/debuff em inimigo | descargas curtas no casco, ligação por raio entre origem e alvo |
+
+Só no modo solo se for efeito de tela cheia.
+
+## 9. Movimento
+
+| Fato | Efeito |
+|---|---|
+| Arrancada/dash | som de rajada (mais agudo no dash, máx. 1 a cada ~0,3 s), soco de FOV **para fora** só no dash, leque de faíscas, rastros |
+| Enquanto dura | FOV abre aos poucos (a velocidade sobe devagar e desce mais rápido), rastros laterais com largura e duração pela mistura, **linhas de velocidade** na velocidade real na tela (≥ 4–7 px, paralaxe 0,55–1,25) |
+| Esgotar o recurso | tom que cai com um sopro, borda pisca laranja |
+
+Corrida contínua não leva soco (parece impacto); só abre o FOV.
+
+## 10. Recompensa e coleta
+
+- **Brilho no loot:** raios finos em cruz no plano do jogo (sem disco, coluna nem nada subindo no espaço), na cor do recurso, girando devagar e cintilando; cresce com a quantidade; **grande** o bastante para sobreviver à pixelização.
+- **Atração:** dentro do raio, começa lenta (~0,7×) e acelera em ease-in até ~3× em ~0,45 s; o brilho cresce e deixa rastro.
+- **Coleta:** luz em cometa (cabeça + fita com cauda) do ponto da coleta até o ícone do contador, com arco para um lado sorteado; ao chegar, o contador pulsa e o ícone dá um tranco.
+- **Cadeia:** o tom sobe numa escala pentatônica (0, 2, 4, 7, 9, 12 semitons) e fecha na oitava; a HUD mostra `+total xN` com soco por coleta; a sexta seguida pisca as bordas em dourado.
+- Fora do alcance de voo (muitos em voo, ponto atrás da câmera, jogo parado, sem alvo) o contador pulsa na hora.
+
+## 11. Animação corporal e reação de entidades
+
+Função do tempo e de um instante guardado por entidade, calculada ao desenhar. Aplique no filho/visual, nunca na rotação que o movimento calcula.
 
 | Situação | Animação | Duração |
 |---|---|---|
-| Entregar carga | "sacudidela" de alívio: squash 1→0,9 (y) →1,05→1 | 0,2 s |
-| Pegar carga | leve inclinação para baixo e retorno | 0,15 s |
-| Cavar | já tem quadros (`_digFramesPerSecond`); adicionar micro vibração de 0,5 px a cada golpe | contínuo |
-| Nascer | squash vertical (ver acima) | 0,3 s |
-| Ferida | recuo + pisca; fica 0,3 s mais lenta visualmente (não na simulação) | 0,3 s |
-| Rainha põe ovo | barra de postura já existe; adicionar "contração" 1→1,08→1 e pulso ao pôr | 0,25 s |
-| Cupim em voo/pouso | oscilação vertical senoidal no voo; "queda" com stretch ao pousar | 0,3 s |
-| Cultivo (fungo/broto) | `CultivationView` já recebe `time`; adicionar balanço de brisa ±1 px e "pop" ao amadurecer | contínuo |
-| Cria (BroodView) | ovo/larva balançam lentamente, sincronizados por fase aleatória fixa | contínuo |
+| Entregar/pegar carga | squash de alívio (1→0,9→1,05→1) / leve inclinação | 0,15–0,2 s |
+| Nascer | squash vertical 0,6→1,1→1, casca/halo | 0,3 s |
+| Ferida | recuo + pisca + squash 1→0,85→1 | 0,3 s |
+| Morte natural | fade, afunda, pontos claros sobem (sem sangue em jogo cozy) | 0,6 s |
+| Ciclo contínuo (cria, planta) | balanço lento com fase aleatória fixa | contínuo |
 
-Regra de custo: a animação é função do **tempo e de um timestamp por entidade** (padrão `LastHitTime`), calculada na view ao desenhar — nada de corrotina por formiga.
+## 12. Câmera
 
-## Câmera (`CameraKick`)
-
-| Gatilho | Efeito | Só em |
-|---|---|---|
-| Desabamento grande, pouso do cupim, game over | deslocamento aditivo decaindo 0,15–0,3 s, amplitude ≤ 0,3 célula | Completo |
-| Marco (nova classe) | leve "respiro": zoom +2% e volta em 0,5 s, **só** se o jogador não estiver arrastando a câmera | Completo |
-| Clique no mapa com Dedo | micro empurrão de 1 px na direção do impacto (opcional) | Completo |
-
-Aplicar após o `Clamp`/`StepTransition` de `MapCamera`, remover antes do próximo quadro. Nunca em Reduzido ou Desligado.
-
-## Feedback do pincel (cavar, construir)
-
-| Momento | Efeito |
+| Gatilho | Efeito |
 |---|---|
-| Passar o pincel | prévia colorida com custo acompanhando (design 35) |
-| Início do traço (`Mark`) | pulso curto no ponto inicial |
-| Preenchimento confirmado | área marcada "enche" com animação (varredura de 0,2 s) em vez de aparecer de uma vez |
-| Pincel inválido/negado | borda pisca vermelho-terra + `UiDeny` |
+| Desabamento, pouso, game over, explosão grande | deslocamento aditivo decaindo 0,15–0,3 s, amplitude proporcional |
+| Marco | respiro de zoom (+2%) que volta em 0,5 s, **só** se o jogador não estiver arrastando a câmera |
+| Impacto forte | soco de FOV de −2° a −4° em tempo real |
 
-## Atmosfera (vida de fundo, barata)
+Aplicar depois da suavização e do limitador, remover antes do quadro seguinte, nunca em Reduzido/Off. Atenuar com a distância ao ponto de interesse (cheio até X, some em Y).
 
-Poeira flutuando na luz da superfície, folhas ocasionais, vagalumes à noite se houver ciclo dia/noite. Máx. ~30 partículas, só visíveis, parados na pausa. `Off` desliga; `Reduzido` corta pela metade.
+## 13. Partículas e atmosfera
 
-## Orçamento global
+Partícula padrão: forma simples no estilo do jogo (quadrado de 1 pixel em pixel art; faísca em 3D), espaço de mundo, vida 0,25–0,6 s, cor do material afetado. Um sistema pré-aquecido por tipo, disparado com `Emit(n)` na posição; sem instanciar. Atmosfera de fundo barata (poeira, folhas, vagalumes), ≤ ~30 partículas, só visíveis, paradas na pausa.
 
-- Soma de partículas vivas ≤ ~300 em Completo, ~150 em Reduzido (medir no F11 antes de aumentar).
-- Emissões por segundo limitadas por `FxId` (tabela acima) e agregadas por célula/sala.
-- Culling por câmera: não emita fora da vista (use a janela visível que `AntFarmView` já calcula).
-- A 8x, o fato continua chegando em ritmo de simulação; mantenha o teto por tempo real, não por passo.
+Orçamento global: soma viva ≲ 300 em Completo e ≲ 150 em Reduzido (meça antes de aumentar); emissões por segundo limitadas por tipo; sem emitir fora da vista.

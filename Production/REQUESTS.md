@@ -1,7 +1,7 @@
 # Solicitações do desenvolvedor
 
 **Projeto:** Incrementant
-**Última atualização:** 2026-10-18
+**Última atualização:** 2026-10-19
 
 ## Índice
 
@@ -377,7 +377,7 @@
 - **Estado:** IMPLEMENTED
 - **Prioridade:** UNDEFINED
 - **Setores:** PROGRAMMING
-- **Descrição:** "As formigas podem andar livremente na área externa, incluindo o meio de props e construções. Antes só podiam andar pelo contorno da arte." Esclarecido pelo desenvolvedor: todo pixel coberto pela arte de cogumelo, graveto, folha seca e pedrinha vira fundo caminhável, como a parede de trás do túnel; construções do lado de fora do formigueiro também ficam completamente caminháveis.
+- **Descrição:** "As formigas podem andar livremente na área externa, incluindo o meio de props e construções. Antes só podiam andar pelo contorno da arte." Esclarecido pelo desenvolvedor: todo pixel coberto pela arte de cogumelo, graveto, folha seca e pedrinha vira fundo caminhável, como a parede de trás do túnel; construções do lado de fora do formigueiro também ficam completamente caminháveis. Ampliado em 2026-10-19: "as formigas têm que ter a possibilidade de andar nas paredes destes blocos, acima da superfície. Tanto os congelados pela chuva, quanto os blocos que elas mesmas colocaram na superfície, quanto as próprias construções."
 - **Critérios de aceitação:** Pendente de definição
 - **Dependências:** REQ-002, REQ-016
 - **Itens relacionados:** PRG-029
@@ -386,6 +386,7 @@
 - **Histórico:**
   - 2026-10-18 — PLANNED: pedido registrado.
   - 2026-10-18 — IMPLEMENTED: PRG-029; 7 testes novos passando e Play Mode pelo agente (8.266 células do céu cobertas pela arte, todas caminháveis). Sem uso por uma pessoa.
+  - 2026-10-19 — IMPLEMENTED: ampliado aos blocos de terra/areia despejada acima do solo original (soltos, compactados pela chuva ou em lama); suíte EditMode na Unity e Play Mode pelo agente com o save do desenvolvedor (formigas que estavam presas no despejo atravessaram o monte e entregaram). Sem conferência por uma pessoa.
 
 ### REQ-021 — Reserva do pixel a coletar: uma formiga por pixel, sem bando indo e voltando
 
@@ -402,6 +403,8 @@
 - **Histórico:**
   - 2026-10-18 — PLANNED: pedido registrado.
   - 2026-10-18 — IMPLEMENTED: PRG-030; 2 testes novos passando e Play Mode pelo agente (16 formigas, 136 pixels marcados, nenhuma reserva repetida). Sem uso por uma pessoa.
+  - 2026-10-19 — IMPLEMENTED: o desenvolvedor viu de novo as formigas em grupo gigante, "como se todas estivessem recebendo a mesma tarefa", e pediu que, além de bloquear o bloco, o pedido fique marcado como atendido por quem está indo resolvê-lo. Corte da planta-alvo e busca de terra para obra passaram a contar quem está a caminho (PRG-030). Teste novo passando na Unity; sem Play Mode.
+  - 2026-10-19 — IMPLEMENTED: o desenvolvedor apontou que os blocos de água ficaram de fora. A formiga que vai buscar água reserva o bloco e depois o canteiro que vai regar (PRG-030). Teste novo passando na Unity; sem Play Mode.
 
 ### REQ-022 — Menu do ESC e menu de configurações do jogo
 
@@ -525,6 +528,7 @@
   - 2026-10-18 — Correção (segundo relato com capturas: na etapa das paredes derrubaram algumas e passaram a vagar): a parede derrubada vira entulho no lugar e, no chão e nas laterais, fica apoiada, então a segunda camada não encostava em célula livre e saía do campo dos cupins. Agora alcançam a parede através de até 8 células de entulho. Teste novo (sala fechada, com e sem física granular) reproduzia a falha (48 de 92 e depois 3 de 92 sem derrubar) e passa com a correção.
   - 2026-10-18 — Correção (relato do desenvolvedor com captura: cupins foram embora sem derrubar as paredes do setor): o tempo sem progresso que faz o objetivo avançar corria desde o começo do ataque, inclusive no voo e na caminhada até o formigueiro, e só zerava ao destruir algo; cupins que pousavam longe viam os objetivos vencerem no caminho. Agora zera enquanto algum cupim chega, avança, destrói ou luta. Teste novo reproduzia a falha (cupim a ~900 colunas) e passa com a correção.
   - 2026-10-18 — IMPLEMENTED (validação): com o MCP conectado, HUD remontado (6 pincéis, 7 tipos, alerta) e arte dos cupins e do soldado ligada na cena. Suíte EditMode 186/186 na Unity. Play Mode pelo agente em 2026-10-18 (cena AntFarm, HUD remontado e arte ligada): F4 com 20 formigas trouxe 8 cupins voando, alerta com contagem e "CUPINS ATACANDO", pouso e caminhada com a arte nova, todas as formigas lutando; sem alvos, saíram pelas laterais e o fim liberou o pincel Resíduos e o soldado; num segundo ataque dentro do formigueiro, 5 cupins mortos sem baixa, 2 paredes viraram entulho, corpos desmembrados, folhas plantadas nos 3 canteiros e restos empilhados na área de resíduos. O Play Mode achou um bug (o alerta do F4 virava o intervalo do próximo ataque ao chegar a 15 formigas), corrigido com teste novo (RaidTests 7/7). Falta uma pessoa jogar.
+  - 2026-10-19 — Ajuste: "O corpo do cupim ao se decompor, deve virar 3 células de folha, dentro da própria sala, com física. Deve procurar uma célula vazia para trocar por folha, para ser usada." Implementado: o resto de cupim ganhou material próprio (`TermiteRemains`, separado do entulho `Refuse`); ao se decompor (120 s) vira 3 folhas soltas marcadas (`FallenLeaf`) na própria célula e nas vazias mais próximas da área de resíduos, que caem e vão aos canteiros; sem lugar para as 3, espera. Entulho segue só sumindo. todos os RaidTests passaram na Unity, incluindo 2 testes novos; a suíte EditMode tem 7 falhas fora deste código (água, localização `raid.storm`, escolha de planta). Sem Play Mode.
 
 ### REQ-028 — Formigas não morrem por padrão
 
@@ -640,3 +644,5 @@
   - 2026-10-18 — IN_PROGRESS: fase 2 implementada (`PanelAnimator` nos painéis do HUD e menu do ESC, `Pulse` em Nutrientes e Formigas); compila, falta Play Mode.
   - 2026-10-18 — IN_PROGRESS: fases 1 e 2 confirmadas em Play Mode pelo desenvolvedor (PRG-039, PRG-040 VERIFIED); fase 3 implementada (`AntColony.Fx`, `WorldFx`: escavar, despejar, obra, nascimento, cupim); compila, falta Play Mode.
   - 2026-10-18 — IN_PROGRESS: fase 3 confirmada em Play Mode pelo desenvolvedor (PRG-041 VERIFIED, partículas ampliadas a pedido); fase 4 implementada (`FloatingText`: +N de nutrientes, -N de gasto, -1 de formiga ferida); compila, falta Play Mode.
+  - 2026-10-19 — IN_PROGRESS: revisão das fases 0 a 4 pela skill `juice-dopamina`, a pedido do desenvolvedor. Corrigidos: idle de todos os botões juntos (agora um por vez), recusa só sonora (cor de erro no botão e `!` no mundo), "-N" de gasto tirado da diferença do contador (agora fato com quantia), dano sem agregação, números sem a escala do HUD, escala do hover presa ao desligar efeitos, material das partículas sem destruir. Compila e testes de juice passam (harness dotnet); sem Play Mode. PRG-039 volta a IMPLEMENTED até nova conferência.
+  - 2026-10-19 — IN_PROGRESS: o desenvolvedor testou o idle de um botão por vez e achou ruim; pediu todos animados, mais rápido e dessincronizados (ciclo de 1,2 a 2,0 s). Compila; sem Play Mode.

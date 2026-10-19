@@ -8,9 +8,11 @@ namespace Fabula.Incrementant.Colony
     /// <summary>
     /// Área de resíduos (pedido do desenvolvedor em 2026-10-18; design 21, R0): sala pintada, liberada depois do primeiro
     /// ataque de cupins. As formigas levam para lá o entulho das paredes e canteiros que os cupins destruíram e os restos
-    /// dos cupins mortos, e o empilham do chão para cima como <see cref="CellMaterial.Refuse"/>. Cada célula de resíduo se
-    /// decompõe sozinha em <see cref="RaidSettings.WasteDecaySeconds"/> e libera espaço. Sem área (ou cheia, ou sem
-    /// caminho), o entulho vai aos canteiros ou ao despejo como terra, e os restos ao despejo.
+    /// dos cupins mortos, e o empilham do chão para cima (<see cref="CellMaterial.Refuse"/> e <see cref="CellMaterial.TermiteRemains"/>).
+    /// Cada célula de resíduo se decompõe sozinha em <see cref="RaidSettings.WasteDecaySeconds"/>: o entulho some e libera
+    /// espaço; o resto de cupim vira <see cref="RaidSettings.RemainsLeaves"/> folhas soltas dentro da área (pedido do
+    /// desenvolvedor em 2026-10-19), que caem e são levadas aos canteiros. Sem área (ou cheia, ou sem caminho), o entulho
+    /// vai aos canteiros ou ao despejo como terra, e os restos ao despejo.
     /// </summary>
     public sealed partial class AntColony
     {
@@ -31,7 +33,16 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Resíduos (entulho e restos) que as formigas depositaram na área desde o começo do mapa (não vai para o save).</summary>
         public int WasteDeposited { get; private set; }
 
-        /// <summary>Decompõe os resíduos: a célula some quando o tempo dela acaba.</summary>
+        // Até onde (em xadrez) o resto que se decompõe procura células vazias da área para as folhas.
+        const int RemainsLeafReach = 12;
+        // Sem lugar para todas as folhas, o resto espera este tempo e tenta de novo (o espaço abre conforme o resíduo some).
+        const float RemainsRetrySeconds = 1f;
+        readonly List<int> _leafSpots = new List<int>();
+
+        /// <summary>
+        /// Decompõe os resíduos quando o tempo de cada um acaba: o entulho some; o resto de cupim vira folhas soltas na área
+        /// (<see cref="TryRotRemains"/>).
+        /// </summary>
         void TickWaste(float deltaTime)
         {
             int w = _grid.Width;
@@ -41,8 +52,15 @@ namespace Fabula.Incrementant.Colony
                 if (_wasteTimes[i] > 0f)
                     continue;
                 int cell = _wasteCells[i];
-                if (_grid.Get(cell % w, cell / w) == CellMaterial.Refuse)
-                    _grid.Set(cell % w, cell / w, CellMaterial.Empty, 0);
+                int x = cell % w, y = cell / w;
+                CellMaterial material = _grid.Get(x, y);
+                if (material == CellMaterial.TermiteRemains && !TryRotRemains(x, y))
+                {
+                    _wasteTimes[i] = RemainsRetrySeconds;
+                    continue;
+                }
+                if (material == CellMaterial.Refuse)
+                    _grid.Set(x, y, CellMaterial.Empty, 0);
                 int last = _wasteCells.Count - 1;
                 _wasteCells[i] = _wasteCells[last];
                 _wasteTimes[i] = _wasteTimes[last];
@@ -50,6 +68,52 @@ namespace Fabula.Incrementant.Colony
                 _wasteTimes.RemoveAt(last);
             }
         }
+
+        /// <summary>
+        /// O resto de cupim em (<paramref name="x"/>, <paramref name="y"/>) vira <see cref="RaidSettings.RemainsLeaves"/> folhas
+        /// soltas: a própria célula e as vazias mais próximas da área de resíduos (sem água nem formiga). Cada folha é um
+        /// <see cref="CellMaterial.FallenLeaf"/> marcado, que cai como grão e é colhido para os canteiros como a folha do corpo.
+        /// Sem lugar para todas, nada muda e devolve false (tenta de novo depois).
+        /// </summary>
+        bool TryRotRemains(int x, int y)
+        {
+            int leaves = RaidSettings.RemainsLeaves;
+            _leafSpots.Clear();
+            if (leaves > 0)
+                _leafSpots.Add(_grid.ToIndex(x, y));
+            for (int r = 1; r <= RemainsLeafReach && _leafSpots.Count < leaves; r++)
+            for (int dy = r; dy >= -r && _leafSpots.Count < leaves; dy--)
+            for (int dx = -r; dx <= r && _leafSpots.Count < leaves; dx++)
+            {
+                if (Mathf.Max(Mathf.Abs(dx), Mathf.Abs(dy)) != r)
+                    continue;
+                int lx = x + dx, ly = y + dy;
+                if (_grid.InBounds(lx, ly) && IsLeafSpot(lx, ly))
+                    _leafSpots.Add(_grid.ToIndex(lx, ly));
+            }
+            if (_leafSpots.Count < leaves)
+                return false;
+
+            _grid.Set(x, y, CellMaterial.Empty, 0);
+            int w = _grid.Width;
+            foreach (int cell in _leafSpots)
+            {
+                int lx = cell % w, ly = cell / w;
+                // Tom variado e determinístico (como a folha da planta), para a pilha não sair chapada.
+                _grid.Set(lx, ly, CellMaterial.FallenLeaf, (byte)(104 + (cell * 37 & 47)));
+                _grid.SetMarked(lx, ly, true);
+            }
+            RemainsRotted++;
+            return true;
+        }
+
+        /// <summary>Célula vazia da área de resíduos onde uma folha do resto pode surgir (sem água nem formiga em cima).</summary>
+        bool IsLeafSpot(int x, int y) =>
+            _grid.IsWasteRoom(x, y) && _grid.Get(x, y) == CellMaterial.Empty && !_grid.HasWater(x, y) &&
+            !_grid.HasNutrient(x, y) && !AntAt(x, y);
+
+        /// <summary>Restos de cupim que já viraram folhas na área de resíduos desde o começo do mapa (não vai para o save).</summary>
+        public int RemainsRotted { get; private set; }
 
         /// <summary>Volta a decompor os resíduos que vieram do save (o tempo recomeça cheio).</summary>
         void RescanWaste()
@@ -60,7 +124,7 @@ namespace Fabula.Incrementant.Colony
             for (int y = area.yMin; y < area.yMax; y++)
             for (int x = area.xMin; x < area.xMax; x++)
             {
-                if (_grid.Get(x, y) != CellMaterial.Refuse)
+                if (!CellMaterials.IsDepositedWaste(_grid.Get(x, y)))
                     continue;
                 _wasteCells.Add(_grid.ToIndex(x, y));
                 _wasteTimes.Add(RaidSettings.WasteDecaySeconds);
@@ -163,7 +227,9 @@ namespace Fabula.Incrementant.Colony
                 int x = ant.X + AntNavigation.Dx[k], y = ant.Y + AntNavigation.Dy[k];
                 if (!IsWasteSpot(x, y) || AntAt(x, y))
                     continue;
-                _grid.Set(x, y, CellMaterial.Refuse, ant.CarriedShade);
+                // O resto de cupim fica como resto (vira folhas ao se decompor); o entulho vira resíduo comum.
+                CellMaterial deposited = ant.Carried == CellMaterial.TermiteRemains ? CellMaterial.TermiteRemains : CellMaterial.Refuse;
+                _grid.Set(x, y, deposited, ant.CarriedShade);
                 Emit(SfxId.Drop);
                 _wasteCells.Add(_grid.ToIndex(x, y));
                 _wasteTimes.Add(RaidSettings.WasteDecaySeconds);

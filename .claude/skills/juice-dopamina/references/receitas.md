@@ -1,148 +1,87 @@
-# Receitas — curvas, tempos, cores e código
+# Receitas — movimento, cor e técnicas prontas
 
-Padrões prontos para manter o "toque" consistente entre efeitos. Ajuste em Play Mode, mas mude aqui se um valor virar regra do jogo.
+Padrões para manter o "toque" consistente entre efeitos. Ajuste jogando e registre no guia do projeto quando um valor virar regra. Versão com paleta e código do Incrementant: [exemplos/incrementant/receitas.md](exemplos/incrementant/receitas.md).
 
 ## Gramática de movimento
 
 | Intenção | Curva | Duração típica |
 |---|---|---|
-| Entrar, aparecer | `OutBack` (overshoot ~1,1) ou `OutCubic` | 0,15–0,25 s |
-| Sair, sumir | `InQuad` ou `InCubic`, mais curta que a entrada | 0,08–0,15 s |
-| Hover | `OutQuad` | 0,08–0,12 s |
-| Pressionar | `OutQuad`, muito rápida | 0,05–0,07 s |
-| Soltar/retorno | `OutElastic` leve ou `OutBack` | 0,2–0,3 s |
-| Pulso de contador | `OutQuad` subida + `InOutSine` volta | 0,15 s |
-| Respirar (loop) | `InOutSine` | 1,5–2,5 s por ciclo |
-| Queda | gravidade (`InQuad`) + quique pequeno | 0,3–0,5 s |
+| Entrar, aparecer | ease-out com overshoot (~1,1) ou cúbica | 0,15–0,25 s |
+| Sair, sumir | ease-in, mais curta que a entrada | 0,08–0,15 s |
+| Hover | ease-out | 0,08–0,12 s |
+| Pressionar | ease-out, muito rápida | 0,05–0,07 s |
+| Soltar/retorno | elástica leve ou overshoot | 0,2–0,3 s |
+| Pulso de contador | subida ease-out + volta seno | 0,15 s |
+| Respirar (loop) | seno entrada-saída | 1,5–2,5 s por ciclo |
+| Queda | gravidade + quique pequeno | 0,3–0,5 s |
 | Erro/recusa | oscilação amortecida (3 ciclos) | 0,18 s |
+| Golpe de número/placa | nasce pequeno, estoura, assenta como mola, endireita de uma inclinação sorteada | ~0,16 s |
 
-Princípios de animação para sentir "vivo": **antecipação** (recuar antes de avançar), **squash & stretch** preservando volume (x×y ≈ 1), **follow-through** (overshoot e retorno), **escalonar** múltiplos itens (cascata de 10–50 ms) e **sobrepor** efeitos (som + movimento + cor no mesmo quadro).
+Princípios para parecer vivo: **antecipação** (recuar antes de avançar), **squash & stretch** preservando volume (x·y ≈ 1), **follow-through** (overshoot e retorno), **escalonar** vários itens (10–50 ms) e **sobrepor** canais (som + movimento + cor no mesmo quadro).
 
-## Paleta de feedback (usar a do jogo; proposta)
+## Cor como linguagem
 
-| Papel | Cor sugerida | Uso |
-|---|---|---|
-| Ganho / produção | dourado quente `#E8D65C` (mesmo do nutriente `232,214,92`) | nutrientes, brilho de compra |
-| Vida / nascimento | verde-claro `#9BD66B` | brotos, nascimento |
-| Água | azul `#549ADC` (`84,150,220`) | respingos, bolhas |
-| Dano / negado | vermelho-terra `#C8483C` (aproximar do `_termiteHitColor`) | recusa, dano |
-| Neutro/poeira | cor do material do terreno | escavar, despejar |
-| Destaque de UI | branco quente `#FFF3D6` | hover, brilho de borda |
+Defina a paleta de feedback **a partir da arte do jogo**, e mantenha o significado estável:
 
-Confirme com o diretor de arte antes de fixar; evite branco puro (0,0 saturação) e tons neon, que quebram o clima cozy.
+| Papel | Ideia |
+|---|---|
+| Ganho/produção/crédito | dourado quente |
+| Leitura/escudo/kill/marco | ciano ou azul da UI |
+| Vida/reparo/nascimento | verde |
+| Dano/negado/perigo | vermelho (terra em jogo cozy) |
+| Ameaça/chegada de onda | âmbar |
+| Água | azul |
+| Neutro/poeira | cor do material afetado |
+| Destaque de UI | branco quente |
 
-## `Easing` (lógica pura, testável)
+Evite branco puro e neon em jogos calmos. Confirme com a direção de arte antes de fixar.
+
+## Técnicas prontas
+
+**Pausa de impacto (hit stop).** Reduz a escala de tempo a ~0,05 por 0,05–0,2 s medidos em **tempo real**. Regras: só começa com a escala exatamente 1 (pausa, menus e tutoriais nunca são interrompidos); intervalo mínimo ~0,35 s; duração máxima ~0,2 s; se outra tela mexer no tempo durante a pausa, abandona sem devolver o valor; um relógio de segurança que vê 0,05 fora de uma pausa devolve 1; nenhum outro código usa esse valor. Opção própria.
+
+**Câmera lenta.** Escala 0,3 por ~0,7 s e um degrau de 0,65 por ~0,18 s antes de voltar a 1, em tempo real. Espera uma pausa de impacto em curso e só começa em tempo normal. Mesma trava de segurança (reconhece os dois valores fixos soltos).
+
+**Soco de campo de visão.** Subtrai (impacto) ou soma (velocidade) alguns graus de uma vez e volta com queda quadrática. Aplicado **depois** da suavização do FOV e em tempo real, para funcionar durante câmera lenta. Segue a opção de tremor.
+
+**Tremor de câmera.** Força e duração por evento; o mais forte em curso não é cortado por um mais fraco; atenua com a distância; sem teto artificial, mas calibrado em pixels de tela (a câmera distante pode fazer 1 u valer poucos pixels).
+
+**Brilho nas bordas.** Cor pelo tipo do evento, força e duração pela magnitude; pulso contínuo para estados (vida baixa) e flash para eventos.
+
+**Faíscas e cometa.** Partículas ou fita de UI que ligam origem e destino (recompensa → contador, compra → saldo). A fita não guarda histórico: cada ponto é o caminho avaliado `k × passo` atrás, e pontos anteriores à partida ficam de fora; bordas com alfa 0.
+
+**Escala musical na cadeia.** Pentatônica ascendente (0, 2, 4, 7, 9, 12 semitons), fecha na oitava; soa bem em qualquer ordem. Aplique o tom depois do sorteio de variação do tocador.
+
+**Contagem animada.** Interpola do valor antigo ao novo em 0,2–0,6 s com tique de som, soco e clarão; nunca mostra mais que o real.
+
+**Cascata.** Cada filho ativo ganha grupo de opacidade, parte de alfa 0 e ~92% de escala e entra com overshoot, um atrás do outro; não mexe na posição (pertence ao layout); nova cascata restaura antes de recomeçar; restaure ao fechar a tela.
+
+**Janela de recorte.** Para placas que "saem de dentro" de um painel, use uma máscara de retângulo cujo topo coincide com a borda do painel.
+
+**Idle com sorteio.** Um diretor escolhe um botão por vez para respirar/brilhar, em vez de todos juntos.
+
+## Trechos de referência (C#/Unity; adapte a outras engines)
 
 ```csharp
-namespace Fabula.Incrementant.Juice
+public delegate float EaseFn(float t);
+public static class Easing
 {
-    public static class Easing
+    public static float OutQuad(float t) => 1f - (1f - t) * (1f - t);
+    public static float InQuad(float t) => t * t;
+    public static float OutCubic(float t) { float u = 1f - t; return 1f - u * u * u; }
+    public static float InOutSine(float t) => -(Mathf.Cos(Mathf.PI * t) - 1f) * 0.5f;
+    public static float OutBack(float t, float s = 1.70158f) { float u = t - 1f; return 1f + u * u * ((s + 1f) * u + s); }
+    public static float OutElastic(float t)
     {
-        public static float OutQuad(float t) => 1f - (1f - t) * (1f - t);
-        public static float InQuad(float t) => t * t;
-        public static float OutCubic(float t) { float u = 1f - t; return 1f - u * u * u; }
-        public static float InOutSine(float t) => -(Mathf.Cos(Mathf.PI * t) - 1f) * 0.5f;
-        public static float OutBack(float t, float s = 1.70158f)
-        {
-            float u = t - 1f;
-            return 1f + u * u * ((s + 1f) * u + s);
-        }
-        public static float OutElastic(float t)
-        {
-            if (t <= 0f) return 0f;
-            if (t >= 1f) return 1f;
-            const float c = 2f * Mathf.PI / 3f;
-            return Mathf.Pow(2f, -10f * t) * Mathf.Sin((t * 10f - 0.75f) * c) + 1f;
-        }
+        if (t <= 0f) return 0f; if (t >= 1f) return 1f;
+        const float c = 2f * Mathf.PI / 3f;
+        return Mathf.Pow(2f, -10f * t) * Mathf.Sin((t * 10f - 0.75f) * c) + 1f;
     }
 }
 ```
 
-Teste: cada curva dá 0 em t=0 e 1 em t=1 (tolerância); `OutBack` passa de 1 no meio; nenhuma devolve NaN em [0,1].
+Teste das curvas: 0 em t=0, 1 em t=1, `OutBack` passa de 1 no meio, nenhuma devolve NaN em [0,1].
 
-## Esqueleto de `ButtonJuice` (hover/pressionar/soltar/negado)
+Botão com hover/pressionar/soltar (esqueleto): componente em cada `Selectable` que guarda a escala de repouso, anima por `unscaledDeltaTime` a partir do **valor atual**, volta ao repouso em `OnDisable` e se anexa a todos os botões por uma chamada estática sobre a raiz da UI. Veja o esqueleto completo em [exemplos/incrementant/receitas.md](exemplos/incrementant/receitas.md).
 
-```csharp
-[DisallowMultipleComponent]
-[RequireComponent(typeof(Selectable))]
-public sealed class ButtonJuice : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler,
-                                  IPointerDownHandler, IPointerUpHandler
-{
-    [SerializeField] RectTransform _target;        // nulo = o próprio
-    [SerializeField, Min(1f)] float _hoverScale = 1.06f;
-
-    Selectable _selectable;
-    Vector3 _rest = Vector3.one;
-    float _from, _to, _t = 1f, _duration = 0.1f;   // escala escalar atual
-    Easing.Fn _curve = Easing.OutQuad;
-
-    void Awake() { _selectable = GetComponent<Selectable>(); if (_target == null) _target = (RectTransform)transform; _rest = _target.localScale; }
-    void OnDisable() { _target.localScale = _rest; _t = 1f; }   // nunca deixar preso
-
-    public void OnPointerEnter(PointerEventData e) { if (CanReact) Go(_hoverScale, 0.10f, Easing.OutQuad); }
-    public void OnPointerExit(PointerEventData e)  { Go(1f, 0.12f, Easing.OutQuad); }
-    public void OnPointerDown(PointerEventData e)  { if (CanReact) Go(0.94f, 0.06f, Easing.OutQuad); }
-    public void OnPointerUp(PointerEventData e)    { Go(_hoverScale, 0.22f, Easing.OutBack); }
-
-    bool CanReact => Vfx.Motion && _selectable.IsInteractable();
-
-    void Go(float to, float seconds, Easing.Fn curve) { _from = Current; _to = to; _duration = seconds; _t = 0f; _curve = curve; }
-
-    float Current => _target.localScale.x / _rest.x;
-
-    void Update()
-    {
-        if (_t >= 1f) return;
-        _t = Mathf.Min(1f, _t + Time.unscaledDeltaTime / _duration);
-        _target.localScale = _rest * Mathf.LerpUnclamped(_from, _to, _curve(_t));
-    }
-
-    public static void AttachAll(Transform root)
-    {
-        foreach (Selectable s in root.GetComponentsInChildren<Selectable>(true))
-            if (s is Button || s is Toggle)             // sliders têm interação própria: não escalar
-                if (s.GetComponent<ButtonJuice>() == null) s.gameObject.AddComponent<ButtonJuice>();
-    }
-}
-```
-
-(Esboço de referência; defina `Easing.Fn` como `delegate float Fn(float t)`. Ao implementar de verdade, trate Squash em dois eixos, negado e ordem com `ButtonSfx`.)
-
-Chamar `ButtonJuice.AttachAll(transform.root)` ao lado de `ButtonSfx.AttachAll(transform.root)` em `AntFarmHud.Awake` e `MainMenu.Awake`, e nas telas que se criam depois.
-
-## Pulso de contador
-
-```csharp
-// Pulse.Play(rect, 1.12f, 0.15f): sobe e volta; nunca acumula (reinicia do valor atual) e termina em 1 exato.
-```
-
-Chame a partir da leitura do `AntFarmHud` quando o valor muda (compare com o último mostrado), com limite de um pulso por 0,25 s.
-
-## Disparo de partículas sem alocar
-
-```csharp
-// WorldFx: um ParticleSystem pré-criado por FxId.
-public void Burst(FxId id, Vector2Int cell, Color32 tint)
-{
-    if (!Vfx.Motion || !InView(cell)) return;
-    int n = Vfx.Scale(_counts[(int)id]);
-    if (n == 0 || !_cooldown.Ready(id, cell)) return;       // teto por tempo real
-    var ps = _systems[(int)id];
-    var emit = new ParticleSystem.EmitParams { position = CellToWorld(cell), startColor = tint };
-    ps.Emit(emit, n);
-}
-```
-
-Configure o `ParticleSystem` por script de Editor idempotente (módulos: Main — espaço Mundo, `maxParticles` = teto; Emission desligada; Shape ponto; Renderer — sprite 1x1 Point, ordem de ordenação acima do terreno e abaixo do HUD).
-
-## Checklist de revisão de um efeito
-
-- [ ] Ligado a um fato real da simulação (e a recusa tem resposta diferente do sucesso)?
-- [ ] Os três `VfxLevel` foram tratados (e Desligado ainda mostra a informação)?
-- [ ] Sem alocação por disparo; tetos e cadência definidos; testado a 8x?
-- [ ] Termina em estado exato (escala 1, alfa 1, posição de repouso) e se limpa em `OnDisable`?
-- [ ] Usa tempo não escalado na UI?
-- [ ] Legível sobre o terreno e perto de muitas formigas?
-- [ ] Pixel art preservada (Point, sem blur, texto em múltiplos de 8)?
-- [ ] Par sonoro existente conferido (`SfxId`); texto novo em `LocalizationCatalog`?
-- [ ] Documentação (mapa, guia) e `Production/` atualizados; teste EditMode para a parte pura?
+Disparo de partículas sem alocar: um sistema pré-criado por tipo; `Emit(params, n)` na posição, com a quantidade passando pela fachada das opções e pelo teto/cooldown por tipo; nada de `Instantiate`.
