@@ -345,14 +345,22 @@ namespace Fabula.Incrementant.Tests
             }
             Assert.IsTrue(colony.DewActive, "Sala com as duas etapas feitas fica pronta.");
             int start = elapsed;
-            // Intervalo padrão de 4 s: em 22 s caem 5 gotas.
-            for (int i = 0; i < 60 * 22; i++)
+            // Intervalo padrão de 4 s: cada um dos 8 pontos de queda (uma por coluna) solta a sua gota a cada intervalo.
+            for (int i = 0; i < 60 * 4.5f; i++)
             {
                 colony.Tick(Dt);
                 granular.Step(grid);
                 water.Step(grid, Dt);
             }
-            Assert.AreEqual(5, colony.DewDrops, $"Cinco gotas em 22 s com intervalo de 4 s (começou no passo {start}).");
+            int slots = RoomX1 - RoomX0 + 1;
+            Assert.AreEqual(slots, colony.DewDrops, $"Uma gota por ponto de queda no primeiro intervalo (começou no passo {start}).");
+            for (int i = 0; i < 60 * 18; i++)
+            {
+                colony.Tick(Dt);
+                granular.Step(grid);
+                water.Step(grid, Dt);
+            }
+            Assert.AreEqual(slots * 5, colony.DewDrops, "Cinco intervalos em 22 s, uma gota por ponto de queda em cada.");
             for (int x = RoomX0; x <= RoomX1; x++)
             for (int y = 1; y <= RoomY1; y++)
             {
@@ -504,8 +512,11 @@ namespace Fabula.Incrementant.Tests
             Assert.IsTrue(colony.DewActive, "A sala pronta solta gotas.");
 
             // O jogador aumenta a sala para baixo: altura 7, faixa de 3 linhas (y 5..7), e a folha de y 5 fica dentro dela.
+            // A água das gotas é levada embora antes: ela ocuparia o ponto da folha nova.
             for (int x = RoomX0; x <= RoomX1; x++)
             {
+                for (int y = 1; y <= RoomY1; y++)
+                    grid.SetWater(x, y, false);
                 grid.SetDewRoom(x, 1, true);
                 grid.SetDewRoom(x, 2, true);
             }

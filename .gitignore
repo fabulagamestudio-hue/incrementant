@@ -107,3 +107,7 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# Originais .wav do pacote de música (até 156 MB, acima do limite do GitHub); o jogo usa os .ogg
+/Assets/Tribal Jungle Music Free Pack/*.wav
+/Assets/Tribal Jungle Music Free Pack/*.wav.meta

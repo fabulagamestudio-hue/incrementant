@@ -29,11 +29,20 @@ namespace Fabula.Incrementant.World
         [Tooltip("Laguinhos na superfície a cada 1000 colunas do mundo. 0 desliga.")]
         [SerializeField, Min(0f)] float _lakesPer1000Columns = 4f;
         [Tooltip("Largura do laguinho, em células (mín, máx).")]
-        [SerializeField] Vector2Int _lakeWidth = new Vector2Int(16, 34);
+        [SerializeField] Vector2Int _lakeWidth = new Vector2Int(22, 44);
         [Tooltip("Profundidade do laguinho no centro, em células (mín, máx).")]
-        [SerializeField] Vector2Int _lakeDepth = new Vector2Int(3, 7);
+        [SerializeField] Vector2Int _lakeDepth = new Vector2Int(8, 16);
         [Tooltip("Distância mínima, em células, entre um laguinho e a entrada (somada à faixa de despejo).")]
         [SerializeField, Min(0)] int _lakeClearance = 12;
+        [Header("Bolsões de água subterrâneos")]
+        [Tooltip("Bolsões de água fechados no subterrâneo a cada 1000 colunas do mundo. 0 desliga. Cada um é uma elipse cheia de água, forrada de pedra (que não absorve); a água só sai se a colônia cavar até ela.")]
+        [SerializeField, Min(0f)] float _waterPocketsPer1000Columns = 14f;
+        [Tooltip("Largura do bolsão de água, em células (mín, máx).")]
+        [SerializeField] Vector2Int _waterPocketWidth = new Vector2Int(8, 18);
+        [Tooltip("Altura do bolsão de água, em células (mín, máx).")]
+        [SerializeField] Vector2Int _waterPocketHeight = new Vector2Int(4, 8);
+        [Tooltip("Profundidade mínima do topo do bolsão abaixo do solo, em células.")]
+        [SerializeField, Min(4)] int _waterPocketMinDepth = 16;
         [Header("Mundo expansível")]
         [Tooltip("Largura máxima do mundo, em células. O mapa cresce para os lados até aqui; a área inicial (Width) fica no centro.")]
         [SerializeField, Min(32)] int _maxWidth = 1920;
@@ -63,6 +72,10 @@ namespace Fabula.Incrementant.World
         public Vector2Int LakeWidth => _lakeWidth;
         public Vector2Int LakeDepth => _lakeDepth;
         public int LakeClearance => _lakeClearance;
+        public float WaterPocketsPer1000Columns => _waterPocketsPer1000Columns;
+        public Vector2Int WaterPocketWidth => _waterPocketWidth;
+        public Vector2Int WaterPocketHeight => _waterPocketHeight;
+        public int WaterPocketMinDepth => _waterPocketMinDepth;
         public int WorldWidth => Mathf.Max(_maxWidth, _width);
         public int SkyHeadroom => _skyHeadroom;
         public int WorldHeight => Mathf.Max(_maxHeight, _height) + _skyHeadroom;
@@ -121,6 +134,12 @@ namespace Fabula.Incrementant.World
         readonly int _entranceX;
         readonly int _chamberY;
         readonly RectInt _sandFreeZone;
+        // Bolsões de água subterrâneos: índice (y * largura + x) -> PocketShell ou PocketWater. _pocketColumn evita a
+        // consulta no dicionário nas colunas sem bolsão (Fill passa por todas as células).
+        const byte PocketShell = 1;
+        const byte PocketWater = 2;
+        readonly System.Collections.Generic.Dictionary<int, byte> _pockets = new System.Collections.Generic.Dictionary<int, byte>();
+        readonly bool[] _pocketColumn;
 
         public int WorldWidth { get; }
         public int WorldHeight { get; }
@@ -169,7 +188,80 @@ namespace Fabula.Incrementant.World
             // Sem areia em volta do ninho inicial, senão ele desaba nos primeiros segundos.
             int zoneMinY = _chamberY - ry - safe;
             _sandFreeZone = new RectInt(_entranceX - rx - safe, zoneMinY, 2 * (rx + safe) + 1, top - zoneMinY + 1);
+
+            _pocketColumn = new bool[worldWidth];
+            CarveWaterPockets(seed);
         }
+
+        /// <summary>
+        /// Sorteia bolsões de água fechados no subterrâneo (gerador próprio, para não mudar o resto do mapa da mesma
+        /// seed). Cada um é uma elipse cheia de água cercada por uma casca de pedra de 1 célula: pedra não absorve nem
+        /// erode, então a água fica parada até a colônia cavar até ela. Ficam longe do ninho inicial, afastados entre si
+        /// e a <see cref="TerrainSettings.WaterPocketMinDepth"/> células abaixo do solo.
+        /// </summary>
+        void CarveWaterPockets(int seed)
+        {
+            int count = Mathf.RoundToInt(WorldWidth * 0.001f * _settings.WaterPocketsPer1000Columns);
+            if (count <= 0)
+                return;
+
+            var rng = new System.Random(seed ^ 0x5EA7B);
+            int minW = Mathf.Max(3, Mathf.Min(_settings.WaterPocketWidth.x, _settings.WaterPocketWidth.y));
+            int maxW = Mathf.Max(minW, _settings.WaterPocketWidth.y);
+            int minH = Mathf.Max(3, Mathf.Min(_settings.WaterPocketHeight.x, _settings.WaterPocketHeight.y));
+            int maxH = Mathf.Max(minH, _settings.WaterPocketHeight.y);
+            var avoid = new RectInt(_sandFreeZone.xMin - 4, _sandFreeZone.yMin - 4, _sandFreeZone.width + 8, _sandFreeZone.height + 8);
+            var placedRects = new System.Collections.Generic.List<RectInt>();
+
+            for (int placed = 0, attempt = 0; placed < count && attempt < count * 20; attempt++)
+            {
+                int width = rng.Next(minW, maxW + 1);
+                int height = rng.Next(minH, maxH + 1);
+                int rx = width / 2, ry = height / 2;
+                int cx = rng.Next(rx + 4, Mathf.Max(rx + 5, WorldWidth - rx - 4));
+                int lowestSurface = int.MaxValue;
+                for (int x = cx - rx - 1; x <= cx + rx + 1; x++)
+                    lowestSurface = Mathf.Min(lowestSurface, _surface[Mathf.Clamp(x, 0, WorldWidth - 1)]);
+                int cyMax = lowestSurface - _settings.WaterPocketMinDepth - ry;
+                int cyMin = ry + 4;
+                if (cyMax < cyMin || cx + rx + 2 >= WorldWidth)
+                    continue;
+                int cy = rng.Next(cyMin, cyMax + 1);
+
+                // Casca incluída (+2) e folga de 2 células entre bolsões e do ninho.
+                var rect = new RectInt(cx - rx - 2, cy - ry - 2, 2 * rx + 5, 2 * ry + 5);
+                bool blocked = rect.Overlaps(avoid);
+                for (int i = 0; i < placedRects.Count && !blocked; i++)
+                {
+                    RectInt o = placedRects[i];
+                    blocked = rect.Overlaps(new RectInt(o.xMin - 2, o.yMin - 2, o.width + 4, o.height + 4));
+                }
+                if (blocked)
+                    continue;
+
+                float rxIn = rx + 0.5f, ryIn = ry + 0.5f, rxOut = rx + 1.5f, ryOut = ry + 1.5f;
+                for (int y = cy - ry - 1; y <= cy + ry + 1; y++)
+                for (int x = cx - rx - 1; x <= cx + rx + 1; x++)
+                {
+                    float dx = x - cx, dy = y - cy;
+                    int index = y * WorldWidth + x;
+                    if ((dx * dx) / (rxIn * rxIn) + (dy * dy) / (ryIn * ryIn) <= 1f)
+                    {
+                        _pockets[index] = PocketWater;
+                        _pocketColumn[x] = true;
+                    }
+                    else if ((dx * dx) / (rxOut * rxOut) + (dy * dy) / (ryOut * ryOut) <= 1f)
+                    {
+                        _pockets[index] = PocketShell;
+                        _pocketColumn[x] = true;
+                    }
+                }
+                placedRects.Add(rect);
+                placed++;
+            }
+        }
+
+        byte PocketAt(int x, int y) => _pocketColumn[x] && _pockets.TryGetValue(y * WorldWidth + x, out byte kind) ? kind : (byte)0;
 
         /// <summary>
         /// Sorteia os laguinhos (gerador próprio, para não mudar o resto do mapa da mesma seed) longe da entrada, das
@@ -278,7 +370,7 @@ namespace Fabula.Incrementant.World
             {
                 CellMaterial material = CellAt(x, y, out byte shade);
                 grid.Set(x, y, material, shade);
-                if (material == CellMaterial.Empty && y > _surface[x] && y <= _lakeLevel[x])
+                if (material == CellMaterial.Empty && ((y > _surface[x] && y <= _lakeLevel[x]) || PocketAt(x, y) == PocketWater))
                     grid.SetWater(x, y, true);
             }
         }
@@ -302,6 +394,13 @@ namespace Fabula.Incrementant.World
                 return CellMaterial.Empty;
             }
 
+            byte pocket = PocketAt(x, y);
+            if (pocket == PocketWater)
+            {
+                shade = 0;
+                return CellMaterial.Empty;
+            }
+
             float scale = _settings.PocketScale;
             int depth = surface - y;
             // Fundo de laguinho: areia compactada, que não absorve a água (WaterSimulation.IsPorous).
@@ -312,7 +411,7 @@ namespace Fabula.Incrementant.World
                 material = _sandFreeZone.Contains(new Vector2Int(x, y)) ? CellMaterial.Dirt : CellMaterial.Sand;
 
             shade = TerrainMapCodec.ShadeAt(x, y, surface);
-            return material;
+            return pocket == PocketShell ? CellMaterial.Rock : material;
         }
 
         Vector2Int CarveStarterNest(PixelGrid grid)

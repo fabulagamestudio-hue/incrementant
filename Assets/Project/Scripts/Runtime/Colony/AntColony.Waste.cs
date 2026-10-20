@@ -238,7 +238,7 @@ namespace Fabula.Incrementant.Colony
                 // O resto de cupim fica como resto (vira folhas ao se decompor); o entulho vira resíduo comum.
                 CellMaterial deposited = ant.Carried == CellMaterial.TermiteRemains ? CellMaterial.TermiteRemains : CellMaterial.Refuse;
                 _grid.SetStored(x, y, StoredItems.Of(deposited), ant.CarriedShade);
-                Emit(SfxId.Drop);
+                Emit(SfxId.Drop, x, y);
                 _wasteCells.Add(_grid.ToIndex(x, y));
                 _wasteTimes.Add(RaidSettings.WasteDecaySeconds * Effects.WasteTime);
                 WasteDeposited++;

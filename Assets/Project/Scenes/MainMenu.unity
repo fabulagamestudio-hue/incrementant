@@ -10041,8 +10041,8 @@ MonoBehaviour:
     _nestSafeRadius: 22
     _entranceMound: {x: 4, y: 8}
     _lakesPer1000Columns: 4
-    _lakeWidth: {x: 16, y: 34}
-    _lakeDepth: {x: 3, y: 7}
+    _lakeWidth: {x: 22, y: 44}
+    _lakeDepth: {x: 8, y: 16}
     _lakeClearance: 12
     _maxWidth: 1920
     _maxHeight: 1040
@@ -10053,7 +10053,7 @@ MonoBehaviour:
   _randomizeSeed: 0
   _colonySettings:
     _initialAnts: 6
-    _maxAnts: 400
+    _maxAnts: 4000
     _antSpeed: 20
     _digTimeMultiplier: 1
     _dropSeconds: 0.1

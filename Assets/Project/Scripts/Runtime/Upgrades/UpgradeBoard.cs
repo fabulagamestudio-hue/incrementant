@@ -27,11 +27,11 @@ namespace Fabula.Incrementant.Upgrades
         static readonly HashSet<string> LiveNodes = new HashSet<string> 
         {
             // Câmaras. B0 só destrava a fila (o berçário já é pintável desde o início, então não muda o jogo).
-            "C1", "C3", "B0", "B1", "B2", "B3", "R1", "G1", "T1", "T2", "X0", "M0", "N3", "Q3",
+            "C1", "C3", "B0", "B1", "B2", "B3", "R1", "G1", "T1", "T2", "X0", "M0", "M2", "N3", "Q3",
             // Galerias. Fora: D+1, D+2 (depósito guarda 1 item por célula, sem estragar), T+1 (pintar não custa nada),
             // X+3 (as formigas já acham qualquer planta alcançável) e M+1 (os cupins não quebram paredes).
             "H+1", "C+1", "C+2", "C+3", "B+1", "B+2", "G+1", "G+2", "T+2", "X+1", "X+2", "M+2", "Q+1", "Q+2", "Q+3",
-            "O+1", "O+2", "O+3", "L+1", "L+2", "F+1", "E+1", "E+2", "E+3", "J+1", "J+2", "N+1", "N+2", "S+1", "S+2", "S+3",
+            "O+1", "O+2", "O+3", "L+1", "L+2", "L+3", "F+1", "E+1", "E+2", "E+3", "J+1", "J+2", "N+1", "N+2", "S+1", "S+2", "S+3", "S+4",
         };
 
         QueenTree _tree;

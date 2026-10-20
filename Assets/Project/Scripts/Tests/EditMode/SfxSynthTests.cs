@@ -69,9 +69,15 @@ namespace Fabula.Incrementant.Tests
 
             var colony2 = new AntColony(grid, new ColonySettings(), layout, seed: 3);
             var heard = new System.Collections.Generic.List<SfxId>();
-            colony2.Sfx += heard.Add;
+            bool warningHasCell = false;
+            colony2.Sfx += (id, cell) =>
+            {
+                heard.Add(id);
+                warningHasCell |= id == SfxId.RaidWarning && cell.HasValue;
+            };
             colony2.ForceRaid();
             CollectionAssert.Contains(heard, SfxId.RaidWarning);
+            Assert.IsFalse(warningHasCell, "O aviso de ataque é da colônia inteira: sai sem célula, no mesmo volume em todo o mapa.");
             CollectionAssert.DoesNotContain(heard, SfxId.Buy);
         }
     }

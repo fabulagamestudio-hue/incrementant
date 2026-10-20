@@ -2262,6 +2262,43 @@ MonoBehaviour:
     m_Localized: "Soldados feridos come\xE7am a se curar 5% mais cedo por n\xEDvel"
     m_Metadata:
       m_Items: []
+  - m_Id: 631342899523584
+    m_Localized: Postos de guarda
+    m_Metadata:
+      m_Items: []
+  - m_Id: 631342945660928
+    m_Localized: "No ataque, soldados guardam as entradas at\xE9 um cupim chegar"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 631342945660929
+    m_Localized: Corrida com carga
+    m_Metadata:
+      m_Items: []
+  - m_Id: 631342945660930
+    m_Localized: "Carregadoras com carga na m\xE3o andam 4% mais r\xE1pido por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 631342945660931
+    m_Localized: "F\xFAria de batalha"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 631342945660932
+    m_Localized: "Soldados andam 5% mais r\xE1pido enquanto est\xE3o em batalha,
+      por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 688793124466688
+    m_Localized: TEM O REQUISITO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 688793124466689
+    m_Localized: FALTA O REQUISITO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 688793124466690
+    m_Localized: O QUE ELA LIBERA
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

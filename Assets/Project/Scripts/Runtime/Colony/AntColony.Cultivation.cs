@@ -580,7 +580,7 @@ namespace Fabula.Incrementant.Colony
                     continue;
                 _grid.Set(x, y, CellMaterial.Spoil, ant.CarriedShade);
                 _grid.SetBed(x, y, BedStage.Soil);
-                Emit(SfxId.Drop);
+                Emit(SfxId.Drop, x, y);
                 ant.DropTop();
                 ant.Cooldown = _settings.DropSeconds;
                 if (x != ant.X)
@@ -744,7 +744,7 @@ namespace Fabula.Incrementant.Colony
                 else
                     _plantsInFlight = Mathf.Max(0, _plantsInFlight - 1);
                 HarvestedPixels++;
-                Emit(SfxId.Plant);
+                Emit(SfxId.Plant, x, y);
                 ant.DropTop();
                 if (x != ant.X)
                     ant.FacingX = x > ant.X ? 1 : -1;

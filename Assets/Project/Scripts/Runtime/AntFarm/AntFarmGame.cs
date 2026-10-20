@@ -1,6 +1,7 @@
 using Fabula.Incrementant.Texts;
 using System.Diagnostics;
 using System;
+using System.Collections.Generic;
 using Fabula.Incrementant.Audio;
 using Fabula.Incrementant.Colony;
 using Fabula.Incrementant.Diagnostics;
@@ -81,6 +82,17 @@ namespace Fabula.Incrementant.AntFarm
         [Tooltip("Quanto a câmera sobe acima do topo do mundo, em células (além da folga): espaço de céu para elementos grandes do cenário.")]
         [SerializeField, Min(0f)] float _cameraSkyHeadroom = 120f;
         [SerializeField] MapCamera _cameraControl = new MapCamera();
+        [Header("Som espacial da colônia")]
+        [Tooltip("Até onde o som da colônia é ouvido, em meias-telas a partir do centro da câmera (1 = borda da vista). O alcance acompanha o zoom.")]
+        [SerializeField, Min(0.5f)] float _sfxHearingRange = 1.5f;
+        [Tooltip("Parte da meia-tela, a partir do centro da câmera, em que o som toca no volume cheio.")]
+        [SerializeField, Range(0f, 1f)] float _sfxFullVolumeRadius = 0.3f;
+        [Tooltip("Meia altura da vista (células) até a qual o som não perde volume pelo zoom; mais afastada, cai na mesma proporção (o dobro da vista, metade do volume).")]
+        [SerializeField, Min(1f)] float _sfxNearHalfHeight = 60f;
+        [Tooltip("Volume mínimo dos sons com a câmera toda afastada.")]
+        [SerializeField, Range(0f, 1f)] float _sfxFarZoomVolume = 0.1f;
+        [Tooltip("Quanto o lado da tela desloca o som entre os alto-falantes (0 = sem estéreo).")]
+        [SerializeField, Range(0f, 1f)] float _sfxPanAmount = 0.6f;
         [Header("Vitrine do menu principal")]
         [Tooltip("Cena do menu principal: o formigueiro já vem escavado e a colônia trabalha sozinha, sem input, cronômetro nem HUD. Desligado na cena da partida.")]
         [SerializeField] bool _showcase;
@@ -147,7 +159,35 @@ namespace Fabula.Incrementant.AntFarm
             GameAudio.SetLoop(SfxId.Rain, 0f);
         }
 
-        static void PlayColonySfx(SfxId id) => GameAudio.Play(id);
+        /// <summary>Som da colônia: o que tem célula soa pela distância ao centro da câmera e pelo zoom; o resto, igual em todo o mapa.</summary>
+        void PlayColonySfx(SfxId id, Vector2Int? cell)
+        {
+            if (cell == null || _camera == null)
+            {
+                GameAudio.Play(id);
+                return;
+            }
+            float volume = SpatialSfxVolume(cell.Value, out float pan);
+            GameAudio.Play(id, volume, pan);
+        }
+
+        /// <summary>
+        /// Volume (0 a 1) e lado de um som na célula, pela vista atual. A distância é medida em meias-telas (elipse da vista),
+        /// então aproximar o zoom encolhe o alcance em células; o zoom afastado ainda abaixa tudo, para a colônia inteira
+        /// à vista não virar um ruído só.
+        /// </summary>
+        float SpatialSfxVolume(Vector2Int cell, out float pan)
+        {
+            float halfHeight = Mathf.Max(0.01f, _camera.orthographicSize);
+            float halfWidth = halfHeight * Mathf.Max(0.01f, _camera.aspect);
+            Vector3 offset = CellToWorld(cell) - _camera.transform.position;
+            float dx = offset.x / halfWidth, dy = offset.y / halfHeight;
+            pan = Mathf.Clamp(dx, -1f, 1f) * _sfxPanAmount;
+            float distance = Mathf.Sqrt(dx * dx + dy * dy);
+            float reach = 1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(_sfxFullVolumeRadius, _sfxHearingRange, distance));
+            float zoom = Mathf.Clamp(_sfxNearHalfHeight / halfHeight, _sfxFarZoomVolume, 1f);
+            return reach * zoom;
+        }
 
         WorldFx _worldFx;
 
@@ -189,6 +229,11 @@ namespace Fabula.Incrementant.AntFarm
         const float StatsPanelWidth = 430f;
         const float StatsPanelHeight = 650f;
         readonly MatchTimer _matchTimer = new MatchTimer();
+        bool _gameOverRecorded;
+        // Barras de progresso do que é produzido (KI-026); criado ao iniciar, sem referência na cena.
+        ProgressBarsView _progressBars;
+        // Abaixo disto (pixels da tela por célula; o zoom inicial é 16) as barras somem: de longe viram riscos ilegíveis.
+        const float BarsMinPixelsPerCell = 10f;
         string _saveStatus;
         float _saveStatusUntil;
 
@@ -335,6 +380,12 @@ namespace Fabula.Incrementant.AntFarm
                 cultivation.transform.SetParent(transform, false);
                 _cultivationView = cultivation.AddComponent<CultivationView>();
             }
+            if (!_showcase)
+            {
+                var bars = new GameObject("ProgressBars");
+                bars.transform.SetParent(transform, false);
+                _progressBars = bars.AddComponent<ProgressBarsView>();
+            }
             // Continuar (menu principal): o save é lido antes de gerar o mundo, para não gerar o mapa duas vezes.
             GameSnapshot continued = _showcase ? null : ReadSaveRequestedByMenu();
             StartedFromSave = continued != null;
@@ -397,6 +448,10 @@ namespace Fabula.Incrementant.AntFarm
         /// </summary>
         void Regenerate(GameSnapshot snapshot = null)
         {
+            // A colônia que sai de cena entra no histórico de durações (KI-040); a que acabou já entrou em Update.
+            if (!_showcase && _colony != null && !_gameOverRecorded)
+                ColonyHistory.Record(_seed, _matchTimer.Seconds, _colony.GameOver);
+            _gameOverRecorded = false;
             if (snapshot != null)
                 _seed = snapshot.Seed;
             else if (_randomizeSeed)
@@ -620,6 +675,11 @@ namespace Fabula.Incrementant.AntFarm
         {
             if (!_showcase && (_colony == null || !_colony.GameOver))
                 _matchTimer.Advance(Time.unscaledDeltaTime);
+            if (!_showcase && !_gameOverRecorded && _colony != null && _colony.GameOver)
+            {
+                _gameOverRecorded = true;
+                ColonyHistory.Record(_seed, _matchTimer.Seconds, true);
+            }
             // O deslocamento automático (tutorial) anda mesmo com o input travado e toma o lugar do input do jogador.
             bool cameraAutomatic = _cameraControl.StepTransition(_camera, Time.unscaledDeltaTime);
             if (!InputLocked && !cameraAutomatic && !_showcase)
@@ -711,6 +771,7 @@ namespace Fabula.Incrementant.AntFarm
             if (_broodView != null && _broodView.HasFrames)
                 _broodView.Render(_colony.Brood.Brood, _colony.NurserySpots, _view.transform.position);
             _cultivationView.Render(_grid, _colony.NutrientCureSeconds, _view.transform.position, Time.time);
+            RenderProgressBars(_view.transform.position);
             profiler.Add(ProfileStage.RenderBrood, renderStart);
             renderStart = SimProfiler.Now();
             if (_scenery != null)
@@ -902,6 +963,52 @@ namespace Fabula.Incrementant.AntFarm
                     GameAudio.Play(SfxId.Unmark);
                 PaintMarks(false);
             }
+        }
+
+        /// <summary>
+        /// Barras de progresso (KI-026) do que a colônia produz: canteiros brotando, crias no berçário e a gota da sala de orvalho.
+        /// A da rainha é desenhada pela <see cref="AntSwarmView"/>.
+        /// </summary>
+        void RenderProgressBars(Vector3 origin)
+        {
+            if (_progressBars == null)
+                return;
+            _progressBars.Begin();
+            if (_camera.pixelHeight / (2f * _camera.orthographicSize) < BarsMinPixelsPerCell)
+            {
+                _progressBars.End(); // câmera afastada: nenhuma barra pedida, todas escondidas
+                return;
+            }
+            float growSeconds = _colony.NutrientCureSeconds;
+            for (int k = 0; k < _grid.BedCount; k++)
+            {
+                if (!_grid.TryGetBed(k, out int x, out int y))
+                    break;
+                if (_grid.GetBedStage(x, y) != BedStage.Growing || growSeconds <= 0f)
+                    continue;
+                _progressBars.Add(origin + new Vector3(x + 0.5f, y + 5f, 0f), 4f, 1f - _grid.GetBedGrow(x, y) / growSeconds);
+            }
+            IReadOnlyList<BroodRecord> brood = _colony.Brood.Brood;
+            IReadOnlyList<Vector2Int> spots = _colony.NurserySpots;
+            for (int i = 0; i < brood.Count; i++)
+            {
+                BroodRecord b = brood[i];
+                if (b.Phase != EggPhase.Placed || b.Slot < 0 || spots.Count == 0)
+                    continue;
+                Vector2Int cell = spots[b.Slot % spots.Count];
+                _progressBars.Add(origin + new Vector3(cell.x + 0.5f, cell.y + 3.5f, 0f), 3f, _colony.Brood.StageProgress(b));
+            }
+            float dew = _colony.DewProgress;
+            if (dew >= 0f)
+            {
+                // Uma barra por ponto de queda, do tamanho de uma coluna (cada ponto solta a sua gota).
+                for (int k = 0; k < _colony.DewDropCellCount; k++)
+                {
+                    Vector2Int dewCell = _colony.DewDropCell(k);
+                    _progressBars.Add(origin + new Vector3(dewCell.x + 0.5f, dewCell.y + 3f, 0f), 1f, dew, _colony.DewBlocked);
+                }
+            }
+            _progressBars.End();
         }
 
         /// <summary>Recomeça a partida num mapa novo (botão da tela de game over e tecla R).</summary>

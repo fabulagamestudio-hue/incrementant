@@ -1,7 +1,7 @@
 # Solicitações do desenvolvedor
 
 **Projeto:** Incrementant
-**Última atualização:** 2026-10-19
+**Última atualização:** 2026-10-20
 
 ## Índice
 
@@ -37,13 +37,16 @@
 | REQ-029 | 2026-10-18 | Ataques de cupins, formigas de ataque (soldado) e área de resíduos | PROGRAMMING, GAME_DESIGN, ART | UNDEFINED | IMPLEMENTED |
 | REQ-030 | 2026-10-18 | Tutorial da primeira abertura do jogo | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
 | REQ-031 | 2026-10-18 | Menu principal com fundo de colônia trabalhando e sem splash da Unity | PROGRAMMING, ART | UNDEFINED | IMPLEMENTED |
-| REQ-032 | 2026-10-18 | Sala Gotas de Orvalho | PROGRAMMING | UNDEFINED | IMPLEMENTED |
+| REQ-032 | 2026-10-18 | Sala Gotas de Orvalho | PROGRAMMING | UNDEFINED | VERIFIED |
 | REQ-033 | 2026-10-18 | Arte do pulgão menor que a formiga | ART | UNDEFINED | IMPLEMENTED |
 | REQ-034 | 2026-10-18 | Efeitos de dopamina (juice): botões animados, partículas e animações de feedback | PROGRAMMING, ART | UNDEFINED | IN_PROGRESS |
 | REQ-035 | 2026-10-19 | Janela de estatísticas e configurações da colônia | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
 | REQ-036 | 2026-10-19 | Depósitos de alimentos, construção e água; resíduos sem obstruir | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
 | REQ-038 | 2026-10-19 | Liberação de blocos de água por vizinhança e troca de alvo entre formigas | PROGRAMMING | UNDEFINED | IMPLEMENTED |
 | REQ-039 | 2026-10-19 | Melhorias incrementais com nutrientes e formigueiro de dependências | GAME_DESIGN, PROGRAMMING | UNDEFINED | IMPLEMENTED |
+| REQ-040 | 2026-10-20 | Combate e cupins: postos de guarda, distribuição das soldadas e velocidade por situação | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
+| REQ-041 | 2026-10-20 | Áudio espacial: SFX pela posição da câmera e pelo zoom | AUDIO, PROGRAMMING | UNDEFINED | DONE |
+| REQ-042 | 2026-10-20 | Água no mapa: lagos mais fundos e bolsões de água no subterrâneo | PROGRAMMING | UNDEFINED | DONE |
 
 ## Registros
 
@@ -601,7 +604,7 @@
 ### REQ-032 — Sala Gotas de Orvalho
 
 - **Data de registro:** 2026-10-18
-- **Estado:** IMPLEMENTED
+- **Estado:** VERIFIED
 - **Prioridade:** UNDEFINED
 - **Setores:** PROGRAMMING
 - **Descrição:** "Crie a sala Gotas de orvalhos, que as formigas operárias e jardineiras podem trabalhar. A lógica delas é as formigas colocarem terra fofa em 30% da parte de cima da sala, depois vão colocar folha. Após isso, a cada X segundos vai cair uma gota de água dela. Se a gota cair dentro da sala, ela não é absorvida pelas paredes."
@@ -613,6 +616,8 @@
 - **Histórico:**
   - 2026-10-18 — PLANNED: pedido registrado.
   - 2026-10-18 — IMPLEMENTED: sala, pincel, etapas, gota e água não absorvida; suíte EditMode 217/217 na Unity (8 testes novos).
+  - 2026-10-20 — Relato do desenvolvedor: a sala parava de produzir água. Causa: teto de água só pela altura (KI-049); agora conta a largura e a gota segue com o depósito de água cheio, até a sala encher ("a água tem que continuar saindo mesmo com o depósito cheio, até o limite da própria sala"). Transbordo para os túneis fica aberto (KI-050).
+  - 2026-10-20 — VERIFIED: sala construída pelo desenvolvedor numa partida (save) e replay no editor enchendo a sala; DewRoomTests 16/16 na Unity. Desenvolvedor marcou como pronta.
 
 ### REQ-033 — Arte do pulgão menor que a formiga
 
@@ -731,3 +736,54 @@
   - 2026-10-19 — IMPLEMENTED: documento 39 (64 câmaras, 36 galerias, regras de custo, profundidade, marcos e mapa de dependências) e planilha com fórmulas recalculadas sem erro no LibreOffice; nada construído no jogo.
   - 2026-10-19 — Decidido pelo desenvolvedor: a seção 28 passa a permitir níveis repetíveis e os valores sugeridos da planilha são os iniciais; próximo passo sugerido por ele: montar a UI.
   - 2026-10-19 — Ajuste pedido: começar a implementação pela UI, com placeholders; "arrastar e zoom: o formigueiro fica maior que a tela, centrado na câmara central, e os anéis fechados aparecem como terra escura". Feito: PRG-050 (catálogo, layout, janela com arrastar e zoom, anéis, portais, detalhe com ×1/×10/MÁX); testes EditMode novos passando na Unity e Play Mode pelo agente. Câmaras novas e galerias continuam sem sistema (EM BREVE, KI-024).
+
+### REQ-040 — Combate e cupins: postos de guarda, distribuição das soldadas e velocidade por situação
+
+- **Data de registro:** 2026-10-20
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, GAME_DESIGN
+- **Descrição:** Três pedidos do desenvolvedor de 2026-10-20 (KnownIssues KI-030, KI-038 e KI-041), resolvidos juntos: (1) novo upgrade para as soldadas se dividirem em grupos nas entradas do formigueiro enquanto aguardam os cupins chegarem, e só então saírem para caçar; (2) upgrades de velocidade por situação, um para as carregadoras enquanto carregam e outro para as soldadas em batalha; (3) a IA das soldadas se espalha mais: cada cupim informa quantas soldadas o atacam e as demais escolhem outros alvos.
+- **Critérios de aceitação:** UNDEFINED
+- **Dependências:** REQ-029 (ataques de cupins), REQ-039 (melhorias incrementais)
+- **Itens relacionados:** PRG-052, GD-008
+- **Referências:** [RaidGuide.md](../Assets/Project/Scripts/Runtime/Colony/RaidGuide.md); [UpgradesGuide.md](../Assets/Project/Scripts/Runtime/Upgrades/UpgradesGuide.md); [KnownIssues.md](../Assets/Project/Scripts/KnownIssues.md) (KI-030, KI-038, KI-041)
+- **Decisões pendentes:** onde os três upgrades novos ficam definitivamente na árvore e seus custos/valores (escolhas do agente: M2 câmara na Defesa do Formigueiro, L+3 e S+4 galerias de 10 níveis); teto de atacantes por cupim (3) e distância de liberação dos postos (30 células), sem balanceamento.
+- **Histórico:**
+  - 2026-10-20 — registrado.
+  - 2026-10-20 — IMPLEMENTED: M2 (postos de guarda), L+3 (corrida com carga), S+4 (fúria de batalha) e teto de atacantes por cupim. 8 testes novos (`CombatSpreadTests`) passando; suíte EditMode 320/327 na Unity (as 7 falhas já existiam no HEAD). Não visto em Play Mode por uma pessoa.
+
+### REQ-041 — Áudio espacial: SFX pela posição da câmera e pelo zoom
+
+- **Data de registro:** 2026-10-20
+- **Estado:** DONE
+- **Prioridade:** UNDEFINED
+- **Setores:** AUDIO, PROGRAMMING
+- **Descrição:** Pedido do desenvolvedor de 2026-10-20 (KnownIssues KI-027): os SFX devem ser 3D, considerando a posição da câmera e o zoom na emissão, para que só os sons próximos da vista soem altos (volume cai com a distância ao centro da câmera; o zoom define o alcance audível).
+- **Critérios de aceitação:** aprovação do desenvolvedor ouvindo no jogo (definido por ele em 2026-10-20 ao marcar como finalizado)
+- **Dependências:** REQ-023 (SFX)
+- **Itens relacionados:** AUD-002
+- **Referências:** [AudioGuide.md](../Assets/Project/Scripts/Runtime/Audio/AudioGuide.md); [KnownIssues.md](../Assets/Project/Scripts/KnownIssues.md) (KI-027)
+- **Decisões pendentes:** alcance (1,5 tela), volume cheio até 0,3 tela, queda com o zoom afastado (proporcional, até 10%) e estéreo (60%) são escolhas do agente; quais sons ficam sem posição (hoje: compra, aviso, início e fim de ataque, game over).
+- **Histórico:**
+  - 2026-10-20 — registrado.
+  - 2026-10-20 — IMPLEMENTED: `AntColony.Sfx` leva a célula; `AntFarmGame` dá volume pela distância ao centro da câmera em meias-telas e pelo zoom, e lado no estéreo. Curva conferida no editor; suíte EditMode 320/327 na Unity (as 7 falhas são as de KI-022). Não ouvido por uma pessoa.
+  - 2026-10-20 — Ajuste pedido: "tem que diminuir mais com o zoom out". A queda pelo zoom passou de raiz (mínimo 35%) a proporcional (mínimo 10%).
+  - 2026-10-20 — DONE: aprovado pelo desenvolvedor ("Excelente, pode marcar como finalizado").
+
+### REQ-042 — Água no mapa: lagos mais fundos e bolsões de água no subterrâneo
+
+- **Data de registro:** 2026-10-20
+- **Estado:** DONE
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING
+- **Descrição:** Pedido do desenvolvedor de 2026-10-20 (KnownIssues KI-028): os lagos precisam ser mais fundos e a geração do mundo deve criar também bolsões de água no subterrâneo.
+- **Critérios de aceitação:** aprovação do desenvolvedor (definido por ele em 2026-10-20 ao marcar como pronto)
+- **Dependências:** REQ-006 (água), REQ-027 (rega dos canteiros)
+- **Itens relacionados:** PRG-053, PRG-014
+- **Referências:** [AntFarmGuide.md](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md); [KnownIssues.md](../Assets/Project/Scripts/KnownIssues.md) (KI-028)
+- **Decisões pendentes:** profundidade (8 a 16), largura (22 a 44), quantidade (14 bolsões por 1000 colunas), tamanho (8 a 18 por 4 a 8) e profundidade mínima (16) dos bolsões são escolhas do agente; o desenvolvedor não pediu ajuste depois de ver o mapa gerado.
+- **Histórico:**
+  - 2026-10-20 — registrado.
+  - 2026-10-20 — IMPLEMENTED: laguinhos fundos e `CarveWaterPockets`; 2 testes novos em `WaterSimulationTests` passando na Unity (os 5 que falham são os de KI-022). Mapa gerado renderizado à parte (8 laguinhos, ~27 bolsões); não visto em Play Mode pelo agente.
+  - 2026-10-20 — DONE: aprovado pelo desenvolvedor ("excelente, pode marcar como pronto").

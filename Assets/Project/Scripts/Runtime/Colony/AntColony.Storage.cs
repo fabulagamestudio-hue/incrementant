@@ -353,7 +353,7 @@ namespace Fabula.Incrementant.Colony
                 byte item = kind == StorageKind.Water ? StoredItems.Water
                     : StoredItems.Of(kind == StorageKind.Blocks ? CellMaterial.Spoil : ant.Carried);
                 _grid.SetStored(x, y, item, kind == StorageKind.Water ? (byte)128 : ant.CarriedShade);
-                Emit(SfxId.Drop);
+                Emit(SfxId.Drop, x, y);
                 StoredItemsTotal++;
                 if (x != ant.X)
                     ant.FacingX = x > ant.X ? 1 : -1;
@@ -483,7 +483,7 @@ namespace Fabula.Incrementant.Colony
                     continue;
                 byte shade = _grid.GetStoredShade(x, y);
                 _grid.SetStored(x, y, StoredItems.None);
-                Emit(SfxId.Dig);
+                Emit(SfxId.Dig, x, y);
                 if (x != ant.X)
                     ant.FacingX = x > ant.X ? 1 : -1;
                 ant.Cooldown = _settings.DropSeconds;

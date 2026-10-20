@@ -7,7 +7,7 @@
 - **Engine:** Unity 6000.3.11f1, URP 17.3.0
 - **Plataformas-alvo:** Pendente de definição
 - **Marco atual:** Pendente de definição
-- **Última avaliação:** 2026-10-19
+- **Última avaliação:** 2026-10-20
 
 ## Resumo executivo
 
@@ -35,9 +35,11 @@ Formigas sem trabalho do papel fazem o da operária comum (PRG-048, REQ-037): so
 
 Depósitos implementados (PRG-047, REQ-036): Ambientes → DEPÓSITO abre os pincéis dos depósitos de alimentos, construção e água. Planta cortada, terra cavada e água do mapa vão primeiro para eles, guardadas sem bloquear a passagem, e canteiros, sala de orvalho e obra consomem só de lá (sem o depósito, como antes); a área de resíduos também deixou de obstruir o caminho. Testes EditMode novos e Play Mode pelo agente; a pilha de fora, inclusive a despejada antes do depósito, enche o depósito de construção sempre que ele tem vaga (decidido em 2026-10-19); falta uma pessoa jogar.
 
-Sala Gotas de Orvalho implementada (PRG-037, REQ-032): pincel novo; operárias e jardineiras cobrem de terra fofa os 30% de cima da sala, depois penduram folhas, e a sala pronta solta uma gota a cada 8 s que as paredes não absorvem. Suíte EditMode 217/217 na Unity (8 testes novos); falta remontar o HUD para o botão aparecer e uma pessoa jogar.
+Sala Gotas de Orvalho implementada (PRG-037, REQ-032): pincel novo; operárias e jardineiras cobrem de terra fofa os 30% de cima da sala, depois penduram folhas, e a sala pronta solta uma gota a cada 8 s que as paredes não absorvem. VERIFIED em 2026-10-20: o desenvolvedor construiu a sala numa partida e a marcou como pronta; o teto de água agora conta a largura (KI-049) e a sala cheia transborda para os túneis (KI-050, aceito por ora).
 
 Busca de água por vizinhança (PRG-049, REQ-038): o bloco de água reservado libera os vizinhos ainda obstruídos para outras formigas; quem chega antes pega o bloco do meio e passa o seu à outra, e a formiga que acha a água escorrida pega um bloco a um passo em vez de parar. Testes EditMode novos passando fora da Unity; falta a Unity e Play Mode.
+
+Água no mapa (PRG-053, REQ-042): laguinhos de profundidade 8 a 16 e bolsões de água lacrados, forrados de pedra, no subterrâneo; a água só sai quando a colônia cava até ela. Testes novos passando na Unity e aprovado pelo desenvolvedor em 2026-10-20.
 
 Melhorias incrementais documentadas (GD-008, REQ-039): o [documento 39](../Docs/01_Design/39_Melhorias_incrementais_e_formigueiro_de_dependencias.md) e a [planilha de valores](../Docs/04_Data/39_Melhorias_incrementais_valores.xlsx) propõem câmaras de compra única, galerias com nível (teto nos atributos físicos, infinitas na economia) e marcos, em anéis de profundidade com dependências cruzadas entre as abas Formigueiro e Rainha. Níveis repetíveis e valores aprovados pelo desenvolvedor em 2026-10-19. A tela Evolução já segue o padrão formigueiro (PRG-050): arrastar e zoom, anéis fechados escuros, portais entre abas e galerias com selo de nível; só os nós da rainha que já existiam têm compra, o resto aparece como EM BREVE (KI-024). Testes EditMode novos e Play Mode pelo agente; falta uma pessoa usar.
 
@@ -48,7 +50,7 @@ Melhorias incrementais documentadas (GD-008, REQ-039): o [documento 39](../Docs/
 | Arte | Só arte provisória (formigas e cenário da superfície) | [ART.md](ART.md) |
 | Programação | Protótipo do formigário implementado; núcleo verificado | [PROGRAMMING.md](PROGRAMMING.md) |
 | Game design | Referência revisada organizada em 38 Markdown (GD-006); melhorias incrementais documentadas (GD-008); loop do protótipo a validar | [GAME_DESIGN.md](GAME_DESIGN.md) |
-| Áudio | Sem conteúdo; SFX planejado (AUD-001, REQ-023) | [AUDIO.md](AUDIO.md) |
+| Áudio | SFX sintetizados em código (AUD-001) e som espacial da colônia (AUD-002, REQ-041, DONE); SFX IMPLEMENTED | [AUDIO.md](AUDIO.md) |
 | Release | Sem conteúdo | [RELEASE.md](RELEASE.md) |
 
 ### Arte
@@ -83,8 +85,8 @@ Melhorias incrementais documentadas (GD-008, REQ-039): o [documento 39](../Docs/
 
 ### Áudio
 
-- **Entregas verificadas:** Nenhuma
-- **Pendências:** AUD-001 Efeitos sonoros (planejado, REQ-023)
+- **Entregas verificadas:** AUD-002 Som espacial da colônia (DONE, aprovado pelo desenvolvedor em 2026-10-20)
+- **Pendências:** AUD-001 sem aprovação registrada (IMPLEMENTED); REQ-023 ainda PLANNED no registro embora os SFX existam
 - **Bloqueios:** Nenhum
 - **Riscos:** Nenhum
 
@@ -123,11 +125,13 @@ Melhorias incrementais documentadas (GD-008, REQ-039): o [documento 39](../Docs/
 | Formigas andam pelo meio da arte do cenário, das obras e dos blocos de terra de fora | IMPLEMENTED | PRG-029 |
 | Menu do ESC e tela de configurações | IMPLEMENTED | PRG-031 |
 | Ataques de cupins, combate, área de resíduos e soldado | IMPLEMENTED | PRG-034 |
-| Sala Gotas de Orvalho (terra fofa, folha, gota que as paredes não absorvem) | IMPLEMENTED | PRG-037 |
+| Postos de guarda, distribuição das soldadas e velocidade por situação | IMPLEMENTED | PRG-052 |
+| Sala Gotas de Orvalho (terra fofa, folha, gota que as paredes não absorvem) | VERIFIED | PRG-037 |
 | Painel da colônia: estatísticas, seções de trabalho e rainha coletora | IMPLEMENTED | PRG-046 |
 | Depósitos de alimentos, construção e água; resíduos sem obstruir | IMPLEMENTED | PRG-047 |
 | Formiga sem trabalho do papel faz o trabalho da operária comum | IMPLEMENTED | PRG-048 |
 | Liberação de blocos de água por vizinhança e troca de alvo | IMPLEMENTED | PRG-049 |
+| Água no mapa: laguinhos fundos e bolsões de água subterrâneos | VERIFIED | PRG-053 |
 | Experimento: terreno em tiles 16x16 e mapa dobrado (branch `experimento/pixel-16x16`) | IMPLEMENTED | PRG-032, ART-008 |
 
 ## Problemas e riscos
@@ -166,13 +170,16 @@ Melhorias incrementais documentadas (GD-008, REQ-039): o [documento 39](../Docs/
 | REQ-029 | Ataques de cupins, formigas de ataque (soldado) e área de resíduos | IMPLEMENTED | UNDEFINED |
 | REQ-030 | Tutorial da primeira abertura do jogo | IMPLEMENTED | UNDEFINED |
 | REQ-031 | Menu principal com fundo de colônia trabalhando e sem splash da Unity | IMPLEMENTED | UNDEFINED |
-| REQ-032 | Sala Gotas de Orvalho | IMPLEMENTED | UNDEFINED |
+| REQ-032 | Sala Gotas de Orvalho | VERIFIED | UNDEFINED |
 | REQ-034 | Efeitos de dopamina (juice): botões animados, partículas e animações de feedback | IN_PROGRESS | UNDEFINED |
 | REQ-035 | Janela de estatísticas e configurações da colônia | IMPLEMENTED | UNDEFINED |
 | REQ-036 | Depósitos de alimentos, construção e água; resíduos sem obstruir | IMPLEMENTED | UNDEFINED |
 | REQ-037 | Formigas sem trabalho se comportam como operárias | IMPLEMENTED | UNDEFINED |
 | REQ-038 | Liberação de blocos de água por vizinhança e troca de alvo entre formigas | IMPLEMENTED | UNDEFINED |
 | REQ-039 | Melhorias incrementais com nutrientes e formigueiro de dependências | IMPLEMENTED | UNDEFINED |
+| REQ-040 | Combate e cupins: postos de guarda, distribuição das soldadas e velocidade por situação | IMPLEMENTED | UNDEFINED |
+| REQ-041 | Áudio espacial: SFX pela posição da câmera e pelo zoom | DONE | UNDEFINED |
+| REQ-042 | Água no mapa: lagos mais fundos e bolsões de água no subterrâneo | DONE | UNDEFINED |
 
 Registro completo: [REQUESTS.md](REQUESTS.md)
 

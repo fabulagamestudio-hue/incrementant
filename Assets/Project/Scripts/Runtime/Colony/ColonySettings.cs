@@ -7,7 +7,7 @@ namespace Fabula.Incrementant.Colony
     public sealed class ColonySettings
     {
         [SerializeField, Min(0)] int _initialAnts = 6;
-        [SerializeField, Min(1)] int _maxAnts = 400;
+        [SerializeField, Min(1)] int _maxAnts = 4000;
         [Tooltip("Células por segundo.")]
         [SerializeField, Min(0.1f)] float _antSpeed = 20f;
         [Tooltip("Multiplica o tempo de escavação de cada material.")]
@@ -58,8 +58,8 @@ namespace Fabula.Incrementant.Colony
         [SerializeField, Range(0.05f, 0.9f)] float _dewSoilShare = 0.3f;
         [Tooltip("Altura mínima (células pintadas na coluna) para a coluna receber terra fofa e folha: abaixo disso a coluna fecharia a passagem.")]
         [SerializeField, Min(2)] int _dewMinColumnHeight = 4;
-        [Tooltip("Água máxima (células) acumulada dentro da sala: cheia, as gotas esperam as formigas levarem a água.")]
-        [SerializeField, Min(1)] int _dewMaxRoomWater = 24;
+        [Tooltip("Água máxima (células) acumulada dentro da sala por célula de altura da sala (a coluna mais alta), por ponto de queda (coluna): cheia, as gotas esperam as formigas levarem a água.")]
+        [SerializeField, Min(1)] int _dewWaterPerHeight = 3;
         [Tooltip("Quanto o cuidado acelera a queda das gotas com todos os pontos de queda cobertos (1 = +100% ao ritmo); cobrindo só parte, soma a parte proporcional.")]
         [SerializeField, Min(0f)] float _dewTendBoost = 1f;
         [Tooltip("Pontos de queda vizinhos que uma jardineira cuida (um bloco da sala de orvalho); a sala chama uma jardineira por bloco.")]
@@ -91,7 +91,7 @@ namespace Fabula.Incrementant.Colony
         public float DewDropSeconds => _dewDropSeconds;
         public float DewSoilShare => _dewSoilShare;
         public int DewMinColumnHeight => _dewMinColumnHeight;
-        public int DewMaxRoomWater => _dewMaxRoomWater;
+        public int DewWaterPerHeight => _dewWaterPerHeight;
         public float DewTendBoost => _dewTendBoost;
         public int DewPointsPerTender => _dewPointsPerTender;
     }

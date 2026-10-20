@@ -59,9 +59,11 @@ namespace Fabula.Incrementant.EditorTools.UI
             for (int i = 0; i < defs.Count; i++)
                 index[defs[i].Id] = i;
 
-            // --- túneis (embaixo de tudo)
-            var links = new List<(Image image, int parent, int child)>();
-            Sprite linkLocked = LoadKit("Connections/link_locked");
+            // --- terreno escavado de cada ramo (KI-046), embaixo dos túneis
+            CaveMap caves = BuildCaves(content, defs, positions, tab);
+
+            // --- ligações de dependência, pelos túneis (sobre a caverna)
+            var links = new List<(TunnelPathGraphic path, int parent, int child)>();
             Transform linkLayer = Layer(content, "Tuneis");
             Transform labelLayer = null;
             for (int i = 0; i < defs.Count; i++)
@@ -73,15 +75,15 @@ namespace Fabula.Incrementant.EditorTools.UI
                     if (target.Tab != tab)
                         continue;
                     int parent = target.IsCenter ? -1 : index[target.Id];
-                    Vector2 from = positions[target.Id];
-                    links.Add((BuildContentLink(linkLayer, from, positions[def.Id], linkLocked), parent, i));
+                    Vector2[] route = caves.Route(target, positions[target.Id], def, positions[def.Id]);
+                    links.Add((BuildPathLink(linkLayer, route), parent, i));
                     if (r.Level > 0)
                     {
                         labelLayer ??= Layer(content, "NiveisDosTuneis");
                         Text level = BuildText(labelLayer, "Nv" + r, "", TextSmall, Cream, TextAnchor.MiddleCenter);
                         level.text = "Nv " + r.Level;
                         level.gameObject.AddComponent<Shadow>().effectDistance = new Vector2(2, -2);
-                        PlaceInContent(level.rectTransform, (from + positions[def.Id]) * 0.5f, new Vector2(80, 26));
+                        PlaceInContent(level.rectTransform, Halfway(route), new Vector2(80, 26));
                     }
                 }
             }
@@ -170,6 +172,172 @@ namespace Fabula.Incrementant.EditorTools.UI
             }
         }
 
+        // Terra escavada: parede clara (cópia engordada por baixo) e vão escuro, com um tom por ramo para demarcar as áreas.
+        static readonly Color CaveWallColor = new Color(0.52f, 0.38f, 0.25f, 1f);
+        static readonly Color CaveBaseColor = new Color(0.075f, 0.05f, 0.038f, 1f);
+        static readonly Color[] CaveTints =
+        {
+            new Color(0.35f, 0.75f, 0.35f), new Color(0.80f, 0.55f, 0.25f), new Color(0.35f, 0.60f, 0.85f), new Color(0.85f, 0.35f, 0.35f),
+            new Color(0.70f, 0.45f, 0.85f), new Color(0.85f, 0.80f, 0.30f), new Color(0.35f, 0.80f, 0.75f), new Color(0.85f, 0.50f, 0.65f),
+        };
+        // Salão de um grupo de nós: folga em volta dos nós (câmara/galeria), folga até o piso, proporção mínima largura/altura.
+        const float CavePadChamber = 72f, CavePadGallery = 56f, CaveFloorGap = 48f, CaveMinAspect = 1.3f;
+        const float CaveTunnelWidth = 34f, CaveWall = 13f;
+        // Câmara da rainha: meia largura e meia altura.
+        static readonly Vector2 CaveHallSize = new Vector2(150f, 112f);
+
+        /// <summary>
+        /// Cada ramo vira um trecho de formigueiro em corte: um salão por grupo de nós (os do mesmo anel, que o
+        /// <see cref="UpgradeLayout"/> já junta em grade), mais largo que alto e de piso plano, e um túnel fino e sinuoso da
+        /// câmara da rainha ao primeiro salão e de cada salão ao do anel seguinte. Tudo do ramo vai numa malha só, com o tom dele
+        /// (<see cref="CaveGraphic"/>). Cada ramo desenha a parede e depois o vão, então o que passa por cima de outro ramo mostra
+        /// a borda; a câmara central fica por último. Os anéis fechados cobrem tudo com terra escura.
+        /// </summary>
+        static CaveMap BuildCaves(Transform content, List<UpgradeDef> defs, Dictionary<string, Vector2> positions, UpgradeTab tab)
+        {
+            var map = new CaveMap();
+            // Caixa dos nós de cada grupo (ramo, anel): mínimo, máximo e a maior folga dos nós dele.
+            var boxes = new SortedDictionary<int, (Vector2 min, Vector2 max, float pad)>();
+            foreach (UpgradeDef def in defs)
+            {
+                if (def.IsCenter)
+                    continue;
+                Vector2 p = positions[def.Id];
+                float pad = def.Kind == UpgradeKind.Gallery ? CavePadGallery : CavePadChamber;
+                int key = def.Branch * 10 + def.Ring;
+                boxes[key] = boxes.TryGetValue(key, out var box)
+                    ? (Vector2.Min(box.min, p), Vector2.Max(box.max, p), Mathf.Max(box.pad, pad))
+                    : (p, p, pad);
+            }
+
+            var chambers = new List<Vector4>[UpgradeLayout.BranchCount];
+            var tunnels = new List<Vector4>[UpgradeLayout.BranchCount];
+            var previous = new Vector2[UpgradeLayout.BranchCount];
+            for (int b = 0; b < UpgradeLayout.BranchCount; b++)
+            {
+                chambers[b] = new List<Vector4>();
+                tunnels[b] = new List<Vector4>();
+            }
+            foreach (KeyValuePair<int, (Vector2 min, Vector2 max, float pad)> pair in boxes) // anéis em ordem crescente
+            {
+                int b = pair.Key / 10;
+                (Vector2 min, Vector2 max, float pad) = pair.Value;
+                // O piso fica uma folga abaixo do nó mais baixo e o teto uma folga acima do mais alto; o centro do salão sobe para
+                // o piso cortado (CaveGraphic.FloorFraction da meia altura) cair nessa linha.
+                float height = (max.y + pad) - (min.y - CaveFloorGap);
+                float halfHeight = height / 1.82f;
+                float halfWidth = Mathf.Max((max.x - min.x) * 0.5f + pad, halfHeight * CaveMinAspect);
+                var center = new Vector2((min.x + max.x) * 0.5f, max.y + pad - halfHeight);
+                map.Chamber[pair.Key] = chambers[b].Count;
+                chambers[b].Add(new Vector4(center.x, center.y, halfWidth, halfHeight));
+                tunnels[b].Add(new Vector4(previous[b].x, previous[b].y, center.x, center.y));
+                previous[b] = center;
+            }
+
+            Transform layer = Layer(content, "Cavernas");
+            for (int b = 0; b < UpgradeLayout.BranchCount; b++)
+            {
+                BuildCave(layer, "Parede" + b, chambers[b], tunnels[b], CaveWallColor, CaveWall);
+                BuildCave(layer, "Ramo" + b, chambers[b], tunnels[b], Color.Lerp(CaveBaseColor, CaveTints[b] * 0.5f, 0.6f), 0f);
+            }
+            var hall = new List<Vector4> { new Vector4(0f, 0f, CaveHallSize.x, CaveHallSize.y) };
+            BuildCave(layer, "ParedeCentro", hall, new List<Vector4>(), CaveWallColor, CaveWall);
+            BuildCave(layer, "Centro", hall, new List<Vector4>(), CaveBaseColor, 0f);
+            map.Tunnels = tunnels;
+            return map;
+        }
+
+        /// <summary>
+        /// Salões e túneis montados por <see cref="BuildCaves"/>, para traçar as ligações por dentro deles. O túnel k de um ramo
+        /// liga o salão k − 1 (ou a câmara da rainha, para k = 0) ao salão k.
+        /// </summary>
+        sealed class CaveMap
+        {
+            public readonly Dictionary<int, int> Chamber = new Dictionary<int, int>(); // ramo × 10 + anel → salão no ramo
+            public List<Vector4>[] Tunnels;
+
+            /// <summary>
+            /// Caminho de <paramref name="from"/> até <paramref name="to"/>: do nó ao centro do salão dele, pelos túneis do
+            /// ramo (subindo até a câmara da rainha quando os ramos são outros) até o salão do destino e então ao nó.
+            /// </summary>
+            public Vector2[] Route(UpgradeDef from, Vector2 fromPos, UpgradeDef to, Vector2 toPos)
+            {
+                var points = new List<Vector2> { fromPos };
+                int toChamber = Chamber[to.Branch * 10 + to.Ring];
+                if (from.IsCenter)
+                    Walk(points, to.Branch, -1, toChamber);
+                else
+                {
+                    int fromChamber = Chamber[from.Branch * 10 + from.Ring];
+                    if (from.Branch == to.Branch)
+                        Walk(points, to.Branch, fromChamber, toChamber);
+                    else
+                    {
+                        Walk(points, from.Branch, fromChamber, -1);
+                        Walk(points, to.Branch, -1, toChamber);
+                    }
+                }
+                Add(points, toPos);
+                return points.ToArray();
+            }
+
+            // Do salão "from" ao salão "to" do mesmo ramo (-1 = câmara da rainha), pelo eixo dos túneis do meio.
+            void Walk(List<Vector2> points, int branch, int from, int to)
+            {
+                List<Vector4> tunnels = Tunnels[branch];
+                for (int k = from + 1; k <= to; k++)
+                    AddTunnel(points, tunnels[k], false);
+                for (int k = from; k > to; k--)
+                    AddTunnel(points, tunnels[k], true);
+            }
+
+            static void AddTunnel(List<Vector2> points, Vector4 tunnel, bool backwards)
+            {
+                int pieces = CaveGraphic.TunnelPieces(new Vector2(tunnel.z - tunnel.x, tunnel.w - tunnel.y).magnitude);
+                for (int i = 0; i <= pieces; i++)
+                {
+                    float u = i / (float)pieces;
+                    Add(points, CaveGraphic.TunnelPoint(tunnel, backwards ? 1f - u : u));
+                }
+            }
+
+            static void Add(List<Vector2> points, Vector2 p)
+            {
+                if ((points[points.Count - 1] - p).sqrMagnitude > 0.25f)
+                    points.Add(p);
+            }
+        }
+
+        /// <summary>Ponto no meio do comprimento do caminho (onde vai o "Nv N" da ligação).</summary>
+        static Vector2 Halfway(Vector2[] route)
+        {
+            float total = 0f;
+            for (int i = 0; i + 1 < route.Length; i++)
+                total += (route[i + 1] - route[i]).magnitude;
+            float left = total * 0.5f;
+            for (int i = 0; i + 1 < route.Length; i++)
+            {
+                float length = (route[i + 1] - route[i]).magnitude;
+                if (left <= length && length > 0f)
+                    return Vector2.Lerp(route[i], route[i + 1], left / length);
+                left -= length;
+            }
+            return route[route.Length - 1];
+        }
+
+        static void BuildCave(Transform parent, string name, List<Vector4> chambers, List<Vector4> tunnels, Color color, float grow)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(CaveGraphic));
+            go.layer = LayerMask.NameToLayer("UI");
+            go.transform.SetParent(parent, false);
+            var rect = (RectTransform)go.transform;
+            Stretch(rect);
+            var graphic = go.GetComponent<CaveGraphic>();
+            graphic.color = color;
+            graphic.raycastTarget = false;
+            graphic.Set(chambers.ToArray(), tunnels.ToArray(), CaveTunnelWidth, grow);
+        }
+
         /// <summary>Ícone do nó: os do kit quando existem (C, B, D, R antigos); senão, o ícone geral do ramo.</summary>
         static (string icon, string locked, bool kit) UpgradeIcon(UpgradeDef def)
         {
@@ -224,22 +392,17 @@ namespace Fabula.Incrementant.EditorTools.UI
             rect.localScale = new Vector3(scale, scale, 1f);
         }
 
-        /// <summary>Túnel entre dois pontos do conteúdo (y para cima): o sprite de 20x6 repetido, em escala 2.</summary>
-        static Image BuildContentLink(Transform parent, Vector2 from, Vector2 to, Sprite sprite)
+        /// <summary>Ligação de dependência pelo caminho dos túneis (coordenadas do conteúdo, y para cima).</summary>
+        static TunnelPathGraphic BuildPathLink(Transform parent, Vector2[] route)
         {
-            var go = new GameObject("Tunel", typeof(RectTransform), typeof(Image));
+            var go = new GameObject("Ligacao", typeof(RectTransform), typeof(TunnelPathGraphic));
             go.layer = LayerMask.NameToLayer("UI");
             go.transform.SetParent(parent, false);
-            var rect = (RectTransform)go.transform;
-            Vector2 delta = to - from;
-            PlaceInContent(rect, (from + to) * 0.5f, new Vector2(delta.magnitude, 6 * PixelScale));
-            rect.localRotation = Quaternion.Euler(0, 0, Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg);
-            var image = go.GetComponent<Image>();
-            image.sprite = sprite;
-            image.type = Image.Type.Tiled;
-            image.pixelsPerUnitMultiplier = 1f / PixelScale;
-            image.raycastTarget = false;
-            return image;
+            Stretch((RectTransform)go.transform);
+            var path = go.GetComponent<TunnelPathGraphic>();
+            path.raycastTarget = false;
+            path.SetPoints(route);
+            return path;
         }
     }
 }

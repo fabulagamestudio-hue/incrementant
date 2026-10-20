@@ -315,6 +315,9 @@ namespace Fabula.Incrementant.EditorTools.Localization
             Add(l, "tree.available", "DISPONÍVEL", "AVAILABLE");
             Add(l, "tree.selected", "SELECIONADO", "SELECTED");
             Add(l, "tree.locked", "BLOQUEADO", "LOCKED");
+            Add(l, "tree.legend.met", "TEM O REQUISITO", "REQUIREMENT MET");
+            Add(l, "tree.legend.missing", "FALTA O REQUISITO", "REQUIREMENT MISSING");
+            Add(l, "tree.legend.unlocks", "O QUE ELA LIBERA", "WHAT IT UNLOCKS");
             Add(l, "tree.soon", "EM BREVE", "COMING SOON");
             Add(l, "tree.requires", "REQUISITO: {0}", "REQUIREMENT: {0}");
             Add(l, "tree.requires.cost", "REQUISITO: {0}  ·  CUSTO: {1} N", "REQUIREMENT: {0}  ·  COST: {1} N");
@@ -504,6 +507,7 @@ namespace Fabula.Incrementant.EditorTools.Localization
             ("X1", "Jardim cultivado", "Plantas cortadas perto da entrada voltam a crescer no mesmo lugar", "Tended garden", "Plants cut near the entrance grow back in the same spot"),
             ("M0", "Entradas vigiadas", "O aviso de ataque chega 4 s mais cedo (8 → 12 s)", "Guarded entrances", "The attack warning comes 4 s earlier (8 → 12 s)"),
             ("M1", "Câmara de refúgio", "Libera o pincel de refúgio: no aviso de ataque, crias e cuidadoras vão para lá", "Refuge chamber", "Unlocks the refuge brush: on the attack warning, brood and nurses go there"),
+            ("M2", "Postos de guarda", "No ataque, soldados guardam as entradas até um cupim chegar", "Guard posts", "On attack, soldiers guard the entrances until a termite arrives"),
             ("Q3", "Postura em campo", "A rainha também põe ovos quando está coletando ou na sala de nutrientes", "Field laying", "The queen also lays eggs while foraging or in the nutrient room"),
             ("O4", "Operária versátil", "Sem especialista por perto, a operária faz a tarefa dela com metade do bônus", "Versatile worker", "With no specialist nearby, a worker does its task with half the bonus"),
             ("L4", "Comboio", "Grupos de carregadoras levam peças grandes inteiras direto ao depósito", "Convoy", "Groups of carriers bring big pieces whole straight to storage"),
@@ -537,6 +541,7 @@ namespace Fabula.Incrementant.EditorTools.Localization
             ("O+3", "Mandíbula de trabalho", "Operárias cortam plantas 3% mais rápido por nível", "Work mandible", "Workers cut plants 3% faster per level"),
             ("L+1", "Costas largas", "Carregadoras levam +1 pedaço de planta por nível", "Broad back", "Carriers carry +1 plant piece per level"),
             ("L+2", "Passo de carga", "Carregadoras andam 4% mais rápido por nível", "Hauling stride", "Carriers walk 4% faster per level"),
+            ("L+3", "Corrida com carga", "Carregadoras com carga na mão andam 4% mais rápido por nível", "Loaded sprint", "Carriers walk 4% faster while carrying a load, per level"),
             ("F+1", "Serrilha", "Cortadeiras cortam 4% mais rápido por nível", "Serration", "Cutters cut 4% faster per level"),
             ("E+1", "Mandíbulas de pá", "Escavadoras cavam 4% mais rápido por nível", "Shovel mandibles", "Diggers dig 4% faster per level"),
             ("E+2", "Carga de terra", "Escavadoras levam +1 de terra por viagem por nível", "Soil load", "Diggers carry +1 soil per trip per level"),
@@ -548,6 +553,7 @@ namespace Fabula.Incrementant.EditorTools.Localization
             ("S+1", "Mandíbulas afiadas", "Soldados causam 8% mais dano por nível", "Sharp mandibles", "Soldiers deal 8% more damage per level"),
             ("S+2", "Carapaça grossa", "Soldados têm 8% mais vida por nível", "Thick carapace", "Soldiers have 8% more health per level"),
             ("S+3", "Recuperação", "Soldados feridos começam a se curar 5% mais cedo por nível", "Recovery", "Wounded soldiers start healing 5% sooner per level"),
+            ("S+4", "Fúria de batalha", "Soldados andam 5% mais rápido enquanto estão em batalha, por nível", "Battle fury", "Soldiers walk 5% faster while in battle, per level"),
         };
 
         static void AddUpgradeNodes(List<Entry> l)

@@ -161,6 +161,8 @@ Câmara central: **câmara real** (P0 Postura e T0 Túnel comum, iniciais). Oito
 
 Câmara central: **a rainha** (Q0, inicial). Oito ramos, os mesmos de hoje.
 
+Nó que depende direto da câmara central fica no anel A1, perto dela, para a linha de dependência não atravessar os salões do próprio ramo (decisão de 2026-10-20: O3, O+2, Q+2 e Q+3 vieram de A2/A3 para A1; os requisitos não mudaram).
+
 ### Câmaras
 
 | Id | Nome | Anel | Requisitos | Efeito | Situação |
@@ -172,7 +174,7 @@ Câmara central: **a rainha** (Q0, inicial). Oito ramos, os mesmos de hoje.
 | O0 | Comum | Centro | — | Seção 23 | Inicial |
 | O1 | Carga | A1 | O0 | Seção 23 | Implementado |
 | O2 | Velocidade | A1 | O0 | Seção 23 | Implementado |
-| O3 | Resgate | A2 | O0 | Seção 23 | EM BREVE |
+| O3 | Resgate | A1 | O0 | Seção 23 | EM BREVE |
 | **O4** | Operária versátil | A4 | O+1 Nv 10, O+3 Nv 10 e 50 adultas | Sem especialista da tarefa por perto, a comum a faz com metade do bônus da classe | Novo |
 | L0 | Carregadora | A1 | O0 | Seção 24 | Implementado |
 | L1 | Carga | A2 | L0 | Seção 24 | Implementado |
@@ -207,10 +209,10 @@ Câmara central: **a rainha** (Q0, inicial). Oito ramos, os mesmos de hoje.
 | Id | Nome | Anel | Requisitos | Atributo (base no jogo) | Por nível | Tipo e teto | Marco Nv 25 |
 |---|---|---|---|---|---|---|---|
 | Q+1 | Fertilidade | A2 | Q1 | Intervalo de postura (18 s; 12 s com Q1) | −3% | Físico, 10 | — |
-| Q+2 | Geleia real | A2 | Q0 e B0 | Custo alimentar da cria | −2% | Físico, 15 | — |
-| Q+3 | Vigor real | A3 | Q0 e primeiro ataque | Vida da rainha (60) | +10% | Físico, 10 | — |
+| Q+2 | Geleia real | A1 | Q0 e B0 | Custo alimentar da cria | −2% | Físico, 15 | — |
+| Q+3 | Vigor real | A1 | Q0 e primeiro ataque | Vida da rainha (60) | +10% | Físico, 10 | — |
 | O+1 | Passo firme | A2 | O2 | Velocidade das comuns | +4% | Físico, 10 | — |
-| O+2 | Longevidade | A2 | O0 e B1 | Vida de todas as adultas (600 s) | +10% | Físico, 10 | — |
+| O+2 | Longevidade | A1 | O0 e B1 | Vida de todas as adultas (600 s) | +10% | Físico, 10 | — |
 | O+3 | Mandíbula de trabalho | A2 | O1 | Tempo de corte das comuns | −3% | Físico, 10 | — |
 | L+1 | Costas largas | A2 | L1 | Carga da carregadora (6 UM) | +1 UM | Físico, 4 | — |
 | L+2 | Passo de carga | A2 | L3 | Velocidade das carregadoras | +4% | Físico, 10 | — |

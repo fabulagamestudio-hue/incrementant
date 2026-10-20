@@ -2244,6 +2244,42 @@ MonoBehaviour:
     m_Localized: Wounded soldiers start healing 5% sooner per level
     m_Metadata:
       m_Items: []
+  - m_Id: 631342899523584
+    m_Localized: Guard posts
+    m_Metadata:
+      m_Items: []
+  - m_Id: 631342945660928
+    m_Localized: On attack, soldiers guard the entrances until a termite arrives
+    m_Metadata:
+      m_Items: []
+  - m_Id: 631342945660929
+    m_Localized: Loaded sprint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 631342945660930
+    m_Localized: Carriers walk 4% faster while carrying a load, per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 631342945660931
+    m_Localized: Battle fury
+    m_Metadata:
+      m_Items: []
+  - m_Id: 631342945660932
+    m_Localized: Soldiers walk 5% faster while in battle, per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 688793124466688
+    m_Localized: REQUIREMENT MET
+    m_Metadata:
+      m_Items: []
+  - m_Id: 688793124466689
+    m_Localized: REQUIREMENT MISSING
+    m_Metadata:
+      m_Items: []
+  - m_Id: 688793124466690
+    m_Localized: WHAT IT UNLOCKS
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

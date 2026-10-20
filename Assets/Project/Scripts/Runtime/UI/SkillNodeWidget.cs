@@ -1,3 +1,4 @@
+using Fabula.Incrementant.Juice;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -36,6 +37,12 @@ namespace Fabula.Incrementant.UI
 
         static readonly Color Dim = new Color(0.55f, 0.55f, 0.55f, 0.85f);
         const float BuriedAlpha = 0.45f;
+        // Nó selecionado pulsa de tamanho entre estes fatores da escala montada, para se destacar dos vizinhos.
+        const float SelectedScaleMin = 1.15f, SelectedScaleMax = 1.4f, SelectedPulseSpeed = 5f;
+
+        Vector3 _baseScale;
+        bool _hasBaseScale;
+        bool _wasSelected;
 
         public Button Button => _button;
 
@@ -70,6 +77,27 @@ namespace Fabula.Incrementant.UI
             _icon.color = dim && _iconLocked == null ? Dim : Color.white;
             _lock.enabled = dim;
             _ring.enabled = selected;
+            PulseSelection(selected);
+        }
+
+        void PulseSelection(bool selected)
+        {
+            if (!_hasBaseScale)
+            {
+                _baseScale = transform.localScale;
+                _hasBaseScale = true;
+            }
+            if (selected && !_wasSelected)
+                transform.SetAsLastSibling(); // aumentado, fica por cima dos vizinhos
+            _wasSelected = selected;
+            float factor = 1f;
+            if (selected)
+            {
+                // Sem movimento (efeitos desligados), fica parado no meio do pulso.
+                float pulse = Vfx.Motion ? 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * SelectedPulseSpeed) : 0.5f;
+                factor = Mathf.Lerp(SelectedScaleMin, SelectedScaleMax, pulse);
+            }
+            transform.localScale = _baseScale * factor;
         }
     }
 }

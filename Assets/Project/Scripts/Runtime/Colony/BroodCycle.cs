@@ -143,6 +143,15 @@ namespace Fabula.Incrementant.Colony
         public float LayProgress => Mathf.Clamp01(1f - _layTimer / Mathf.Max(0.01f, LayInterval));
 
         public int Count => _brood.Count;
+
+        /// <summary>Quanto da etapa atual da cria já passou (0 a 1), para a barra de progresso.</summary>
+        public float StageProgress(in BroodRecord b)
+        {
+            float total = b.Stage == BroodStage.Egg ? _settings.EggSeconds
+                : b.Stage == BroodStage.Larva ? _settings.LarvaSeconds * LarvaTimeFactor
+                : _settings.PupaSeconds * PupaTimeFactor;
+            return Mathf.Clamp01(1f - b.Remaining / Mathf.Max(0.01f, total));
+        }
         public int Eggs => CountOf(BroodStage.Egg);
         public int Larvae => CountOf(BroodStage.Larva);
         public int Pupae => CountOf(BroodStage.Pupa);

@@ -14,6 +14,8 @@ namespace Fabula.Incrementant.Upgrades
 
         // ---- movimento
         public float WorkerSpeedRate, CarrierSpeedRate;
+        /// <summary>L+3: carregadora com carga na mão. S+4: soldado em batalha (KI-038).</summary>
+        public float CarrierLoadedSpeedRate, SoldierBattleSpeedRate;
         /// <summary>Fora do formigueiro (X0, X+2) e nos túneis batidos (T2).</summary>
         public float OutdoorSpeedRate, TrailSpeedRate;
 
@@ -48,6 +50,9 @@ namespace Fabula.Incrementant.Upgrades
         /// <summary>Q3: a rainha põe ovos mesmo fora da sala dela.</summary>
         public bool QueenLaysAnywhere;
 
+        /// <summary>M2: no aviso de ataque os soldados se dividem em grupos nas entradas e só saem quando um cupim chega perto (KI-030).</summary>
+        public bool SoldierPosting;
+
         // ---- defesa
         public float WarningBonusSeconds, WallBreakTime,  SoldierDamageFactor, SoldierHealthFactor, SoldierHealTime;
 
@@ -72,6 +77,8 @@ namespace Fabula.Incrementant.Upgrades
 
             WorkerSpeedRate = M("O+1");
             CarrierSpeedRate = M("L+2");
+            CarrierLoadedSpeedRate = M("L+3");
+            SoldierBattleSpeedRate = M("S+4");
             OutdoorSpeedRate = (x0 ? 1.1f : 1f) * M("X+2");
             TrailSpeedRate = t2 ? 1.1f : 1f;
 
@@ -117,6 +124,7 @@ namespace Fabula.Incrementant.Upgrades
             SoldierDamageFactor = M("S+1");
             SoldierHealthFactor = M("S+2");
             SoldierHealTime = M("S+3");
+            SoldierPosting = Owns("M2");
         }
     }
 }

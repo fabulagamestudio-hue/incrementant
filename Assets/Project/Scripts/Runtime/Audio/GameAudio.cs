@@ -82,19 +82,27 @@ namespace Fabula.Incrementant.Audio
         /// <summary>Toca um efeito curto. Ignorado com efeitos ou volume geral zerados e dentro do intervalo mínimo do som.</summary>
         public static void Play(SfxId id) => Play(id, 1f);
 
-        public static void Play(SfxId id, float volumeScale)
+        public static void Play(SfxId id, float volumeScale) => Play(id, volumeScale, 0f);
+
+        /// <summary>
+        /// Toca um efeito com volume e lado (<paramref name="pan"/>: -1 esquerda, 1 direita). Som abaixo do audível não
+        /// gasta o intervalo mínimo, para um som distante não calar o mesmo som perto da câmera.
+        /// </summary>
+        public static void Play(SfxId id, float volumeScale, float pan)
         {
             if (!Application.isPlaying || id >= SfxId.Count || SfxSynth.IsLoop(id))
                 return;
             if (GameSettings.SfxVolume <= 0.001f || AudioListener.volume <= 0.001f)
                 return;
             Rule rule = Rules[(int)id];
+            if (rule.Volume * volumeScale <= 0.005f)
+                return;
             float now = Time.unscaledTime;
             if (now - LastPlayed[(int)id] < rule.MinInterval)
                 return;
             LastPlayed[(int)id] = now;
             float pitch = 1f + (Random.value * 2f - 1f) * rule.PitchJitter;
-            GetRunner().PlayOneShot(ClipOf(id), rule.Volume * volumeScale, pitch);
+            GetRunner().PlayOneShot(ClipOf(id), rule.Volume * volumeScale, pitch, Mathf.Clamp(pan, -1f, 1f));
         }
 
         /// <summary>
@@ -168,7 +176,7 @@ namespace Fabula.Incrementant.Audio
 
             void OnDisable() => GameSettings.Changed -= ApplyVolumes;
 
-            public void PlayOneShot(AudioClip clip, float volume, float pitch)
+            public void PlayOneShot(AudioClip clip, float volume, float pitch, float pan)
             {
                 int slot = -1;
                 float oldest = -1f;
@@ -190,6 +198,7 @@ namespace Fabula.Incrementant.Audio
                 source.Stop();
                 source.clip = clip;
                 source.pitch = pitch;
+                source.panStereo = pan;
                 _baseVolume[slot] = volume;
                 source.volume = volume * GameSettings.SfxVolume;
                 source.Play();

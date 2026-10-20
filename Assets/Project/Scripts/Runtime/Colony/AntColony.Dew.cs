@@ -39,6 +39,12 @@ namespace Fabula.Incrementant.Colony
         // solto marcado, que as formigas levam ao ponto de folha certo. Enquanto houver sobras, a sala não solta gota.
         readonly List<int> _dewStaleLeaves = new List<int>();
         int _dewStale;
+        // A última gota esperou porque a sala estava cheia (barra de progresso cinza).
+        bool _dewBlocked;
+        // Altura da coluna mais alta da sala (células pintadas) e colunas com ponto de queda (inclusive as já alagadas):
+        // o teto de água da sala vem das duas, então a sala larga guarda mais.
+        int _dewMaxHeight;
+        int _dewDropColumns;
         int _dewSoilPlaced;
         int _dewLeavesPlaced;
         int _dewSoilSpots;
@@ -101,6 +107,8 @@ namespace Fabula.Incrementant.Colony
             _dewStale = 0;
             _dewStaleLeaves.Clear();
             _dewActive = false;
+            _dewMaxHeight = 0;
+            _dewDropColumns = 0;
             if (_grid.DewRoomCount == 0)
             {
                 if (!_dewFieldIdle)
@@ -200,6 +208,7 @@ namespace Fabula.Incrementant.Colony
                     _dewColumn.Add(y);
             }
             int height = _dewColumn.Count;
+            _dewMaxHeight = Mathf.Max(_dewMaxHeight, height);
             if (height < _settings.DewMinColumnHeight)
             {
                 // Coluna curta demais para a sala: o que as formigas puseram nela não serve mais.
@@ -253,7 +262,10 @@ namespace Fabula.Incrementant.Colony
                     _dewLeafSet.Add(i);
                 }
             }
-            if (_grid.IsDewRoom(x, yDrop) && !_grid.IsSolid(x, yDrop) && !_grid.HasWater(x, yDrop))
+            if (!_grid.IsDewRoom(x, yDrop) || _grid.IsSolid(x, yDrop))
+                return covered;
+            _dewDropColumns++;
+            if (!_grid.HasWater(x, yDrop))
                 _dewDropCells.Add(_grid.ToIndex(x, yDrop));
             return covered;
         }
@@ -296,6 +308,21 @@ namespace Fabula.Incrementant.Colony
 
         // ---------------------------------------------------------------- gota
 
+        /// <summary>Quanto falta (0 a 1) para a próxima gota; -1 sem sala pronta. Para a barra de progresso.</summary>
+        public float DewProgress => _dewActive && _dewDropCells.Count > 0 ? Mathf.Clamp01(_dewTimer / Mathf.Max(0.01f, _settings.DewDropSeconds)) : -1f;
+
+        /// <summary>A sala esperava as formigas levarem a água (cheia) na última gota.</summary>
+        public bool DewBlocked => _dewBlocked;
+
+        /// <summary>Pontos de queda da sala (um por coluna): cada um tem a sua barra de progresso.</summary>
+        public int DewDropCellCount => _dewDropCells.Count;
+
+        public Vector2Int DewDropCell(int index)
+        {
+            int i = _dewDropCells[index];
+            return new Vector2Int(i % _grid.Width, i / _grid.Width);
+        }
+
         /// <summary>Conta o tempo da sala pronta e solta uma gota a cada <see cref="ColonySettings.DewDropSeconds"/>.</summary>
         void TickDew(float deltaTime)
         {
@@ -311,20 +338,33 @@ namespace Fabula.Incrementant.Colony
                 return;
             // Cheia ou sem ponto livre, a gota espera o próximo intervalo.
             _dewTimer = 0f;
-            if (CountDewWater() >= _settings.DewMaxRoomWater + Effects.DewRoomWaterBonus || _dewDropCells.Count == 0)
+            // Teto por coluna com ponto de queda (pedido do desenvolvedor em 2026-10-20: antes só a altura contava, e a sala larga
+            // enchia em dois intervalos e parava); acima dele, só as células livres da sala limitam a gota.
+            int room = _settings.DewWaterPerHeight * _dewMaxHeight * _dewDropColumns + Effects.DewRoomWaterBonus -
+                       (_dewDropCells.Count == 0 ? int.MaxValue : CountDewWater());
+            _dewBlocked = room <= 0;
+            if (_dewBlocked)
                 return;
-            // G1 (Folhas coletoras): cada gota rende o dobro, em dois pontos de queda livres.
-            int drops = Mathf.Max(1, Mathf.RoundToInt(Effects.DewYield));
+            // Cada ponto de queda solta a sua gota a cada intervalo (o tamanho da sala conta, como os canteiros da sala de
+            // nutrientes); a partir de uma posição aleatória, para a trava da sala cheia não favorecer sempre o mesmo lado.
+            // G1 (Folhas coletoras): cada ponto rende o dobro (a segunda gota cai na célula livre logo abaixo).
+            int perSlot = Mathf.Max(1, Mathf.RoundToInt(Effects.DewYield));
             int start = _rng.Next(_dewDropCells.Count);
-            for (int k = 0; k < _dewDropCells.Count && drops > 0; k++)
+            for (int k = 0; k < _dewDropCells.Count && room > 0; k++)
             {
                 int i = _dewDropCells[(start + k) % _dewDropCells.Count];
                 int x = i % _grid.Width, y = i / _grid.Width;
-                if (!_grid.IsDewRoom(x, y) || _grid.IsSolid(x, y) || _grid.HasWater(x, y) || !_grid.IsSolid(x, y + 1))
+                if (!_grid.IsSolid(x, y + 1))
                     continue;
-                _grid.SetWater(x, y, true);
-                DewDrops++;
-                drops--;
+                for (int d = 0, yy = y; d < perSlot && room > 0 && _grid.IsDewRoom(x, yy) && !_grid.IsSolid(x, yy); yy--)
+                {
+                    if (_grid.HasWater(x, yy))
+                        continue;
+                    _grid.SetWater(x, yy, true);
+                    DewDrops++;
+                    room--;
+                    d++;
+                }
             }
         }
 
@@ -435,6 +475,10 @@ namespace Fabula.Incrementant.Colony
             ant.Cooldown = _settings.CarePauseSeconds;
         }
 
+        /// <summary>
+        /// Água da sala que as formigas alcançam. A de bolsão fechado (sem caminho de casa) não conta: ninguém a leva, e o jogador
+        /// nem a vê, então ela travava a sala "cheia" com menos água à mostra que o teto (relato de 2026-10-20).
+        /// </summary>
         int CountDewWater()
         {
             int count = 0;
@@ -449,7 +493,7 @@ namespace Fabula.Incrementant.Colony
                 for (int y = y0; y < y1; y++)
                 for (int x = x0; x < x1; x++)
                 {
-                    if (_grid.IsDewRoom(x, y) && _grid.HasWater(x, y))
+                    if (_grid.IsDewRoom(x, y) && _grid.HasWater(x, y) && IsReachableFromHome(x, y))
                         count++;
                 }
             }
@@ -561,7 +605,7 @@ namespace Fabula.Incrementant.Colony
         void PlaceDewSoil(Ant ant, int x, int y)
         {
             _grid.Set(x, y, CellMaterial.Spoil, ant.CarriedShade);
-            Emit(SfxId.Drop);
+            Emit(SfxId.Drop, x, y);
             _dewSoilSet.Remove(_grid.ToIndex(x, y));
             _dewSoilSpots = Mathf.Max(0, _dewSoilSpots - 1);
             _dewDirty = true;
@@ -595,7 +639,7 @@ namespace Fabula.Incrementant.Colony
                 else
                     _plantsInFlight = Mathf.Max(0, _plantsInFlight - 1);
                 HarvestedPixels++;
-                Emit(SfxId.Plant);
+                Emit(SfxId.Plant, x, y);
                 ant.DropTop();
                 if (x != ant.X)
                     ant.FacingX = x > ant.X ? 1 : -1;

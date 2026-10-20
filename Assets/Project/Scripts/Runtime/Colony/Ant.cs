@@ -388,6 +388,14 @@ namespace Fabula.Incrementant.Colony
         public float LastHitTime = float.NegativeInfinity;
         /// <summary>Está mordendo um cupim neste momento (só para o desenho: anima como quem trabalha, virada para DigX/DigY).</summary>
         public bool Biting;
+        /// <summary>Cupim que este soldado/formiga está mordendo (conta em <see cref="Termite.Attackers"/> enquanto <see cref="Biting"/>). Não vai para o save.</summary>
+        public Termite CombatTarget;
+        /// <summary>Grupo de guarda (abertura do formigueiro, índice de <c>DumpSide.Group</c>) do soldado no aviso de ataque; -1 = nenhum. Não vai para o save.</summary>
+        public int GuardGroup = -1;
+        /// <summary>Soldado indo ao posto de guarda ou parado nele (não está em batalha). Não vai para o save.</summary>
+        public bool OnGuard;
+        /// <summary>O grupo do soldado foi liberado (cupim chegou perto): ele caça até não haver cupim no chão. Não vai para o save.</summary>
+        public bool GuardReleased;
         /// <summary>Velocidade fixa em células/s que substitui a do papel (corpo dos cupins); 0 = a do papel.</summary>
         public float SpeedOverride;
 

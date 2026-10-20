@@ -185,6 +185,7 @@ namespace Fabula.Incrementant.Upgrades
             Chamber(H, "X1", Exterior, 3, 800, "X+1:10,J1", isNew: true);
             Chamber(H, "M0", Defesa, 2, 250, "T0", UpgradeCondition.FirstRaid, isNew: true);
             Chamber(H, "M1", Defesa, 3, 900, "M0,B3,N2", UpgradeCondition.FiveRaids, isNew: true);
+            Chamber(H, "M2", Defesa, 2, 300, "M0,S0", isNew: true);
 
             // ---------------- aba Formigueiro: galerias
             Gallery(H, "H+1", Obra, 1, 60, "P0", GalleryType.Physical, 10, 24f, -0.04f);
@@ -213,7 +214,7 @@ namespace Fabula.Incrementant.Upgrades
             Chamber(Q, "Q3", Rainha, 4, 2400, "Q2,B3,Q+1:10", isNew: true);
             Queen("O1", Comum, 1, "O0", Colony.QueenNode.O1);
             Queen("O2", Comum, 1, "O0", Colony.QueenNode.O2);
-            Queen("O3", Comum, 2, "O0", Colony.QueenNode.O3);
+            Queen("O3", Comum, 1, "O0", Colony.QueenNode.O3);
             Chamber(Q, "O4", Comum, 4, 2000, "O+1:10,O+3:10", UpgradeCondition.FiftyAdults, isNew: true);
             Queen("L0", Carregadora, 1, "O0", Colony.QueenNode.L0);
             Queen("L1", Carregadora, 2, "L0", Colony.QueenNode.L1);
@@ -243,13 +244,14 @@ namespace Fabula.Incrementant.Upgrades
 
             // ---------------- aba Rainha e classes: galerias
             Gallery(Q, "Q+1", Rainha, 2, 200, "Q1", GalleryType.Physical, 10, 12f, -0.03f);
-            Gallery(Q, "Q+2", Rainha, 2, 150, "Q0,B0", GalleryType.Physical, 15, 1f, -0.02f);
-            Gallery(Q, "Q+3", Rainha, 3, 250, "Q0", GalleryType.Physical, 10, 60f, 0.10f, condition: UpgradeCondition.FirstRaid);
+            Gallery(Q, "Q+2", Rainha, 1, 150, "Q0,B0", GalleryType.Physical, 15, 1f, -0.02f);
+            Gallery(Q, "Q+3", Rainha, 1, 250, "Q0", GalleryType.Physical, 10, 60f, 0.10f, condition: UpgradeCondition.FirstRaid);
             Gallery(Q, "O+1", Comum, 2, 80, "O2", GalleryType.Physical, 10, 30f, 0.04f);
-            Gallery(Q, "O+2", Comum, 2, 150, "O0,B1", GalleryType.Physical, 10, 1f, 0.10f);
+            Gallery(Q, "O+2", Comum, 1, 150, "O0,B1", GalleryType.Physical, 10, 1f, 0.10f);
             Gallery(Q, "O+3", Comum, 2, 80, "O1", GalleryType.Physical, 10, 1f, -0.03f);
             Gallery(Q, "L+1", Carregadora, 2, 200, "L1", GalleryType.Physical, 4, 6f, 1f, additive: true);
             Gallery(Q, "L+2", Carregadora, 2, 120, "L3", GalleryType.Physical, 10, 35f, 0.04f);
+            Gallery(Q, "L+3", Carregadora, 2, 140, "L3", GalleryType.Physical, 10, 1f, 0.04f);
             Gallery(Q, "F+1", Cortadeira, 2, 120, "F1", GalleryType.Physical, 10, 1f, -0.04f);
             Gallery(Q, "E+1", Escavadora, 2, 120, "E1", GalleryType.Physical, 10, 1f, -0.04f);
             Gallery(Q, "E+2", Escavadora, 2, 150, "E1", GalleryType.Physical, 6, 9f, 1f, additive: true);
@@ -261,6 +263,7 @@ namespace Fabula.Incrementant.Upgrades
             Gallery(Q, "S+1", Soldado, 3, 200, "S1", GalleryType.Combat, 0, 4.5f, 0.08f);
             Gallery(Q, "S+2", Soldado, 3, 200, "S2", GalleryType.Combat, 0, 27f, 0.08f);
             Gallery(Q, "S+3", Soldado, 3, 150, "S0,N0", GalleryType.Physical, 10, 10f, -0.05f);
+            Gallery(Q, "S+4", Soldado, 3, 160, "S0", GalleryType.Physical, 10, 1f, 0.05f);
         }
 
         // ---------------------------------------------------------------- consulta

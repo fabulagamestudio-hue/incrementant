@@ -25,11 +25,14 @@ namespace Fabula.Incrementant.UI
     /// </summary>
     public sealed class SkillTreeScreen : MonoBehaviour
     {
-        /// <summary>Túnel entre dois nós da aba: índices em <see cref="NodesOf"/>; <see cref="Parent"/> -1 = a câmara central.</summary>
+        /// <summary>
+        /// Ligação de dependência entre dois nós da aba, desenhada pelos túneis do formigueiro: índices em <see cref="NodesOf"/>;
+        /// <see cref="Parent"/> -1 = a câmara central.
+        /// </summary>
         [Serializable]
         public struct Link
         {
-            public Image Image;
+            public TunnelPathGraphic Path;
             public int Parent;
             public int Child;
         }
@@ -57,6 +60,8 @@ namespace Fabula.Incrementant.UI
             /// <summary>Terra escura dos anéis 1 a 4 (índice 0 = A1) e o aviso de profundidade de cada um.</summary>
             public RingGraphic[] Rings;
             public Text[] RingLabels;
+            /// <summary>Nó cujas ligações estão na frente (destacadas); -2 = nenhum ainda.</summary>
+            [NonSerialized] public int Highlighted = -2;
         }
 
         [SerializeField] AntFarmGame _game;
@@ -77,9 +82,19 @@ namespace Fabula.Incrementant.UI
         [SerializeField] Sprite _diamondAvailable;
         [SerializeField] Sprite _diamondLocked;
         [SerializeField] Sprite _diamondRoot;
-        [SerializeField] Sprite _linkAcquired;
-        [SerializeField] Sprite _linkAvailable;
-        [SerializeField] Sprite _linkLocked;
+        [Header("Ligações (cores do miolo do traço)")]
+        [SerializeField] Color _linkAcquired = new Color32(0x8a, 0xab, 0x56, 0xff);
+        [SerializeField] Color _linkAvailable = new Color32(0xc1, 0xa1, 0x60, 0xff);
+        [SerializeField] Color _linkLocked = new Color32(0x65, 0x51, 0x3f, 0xff);
+        [Tooltip("Nó selecionado: requisito que o jogador já tem, que ainda falta e o que o nó libera. Pulsam.")]
+        [SerializeField] Color _linkMet = new Color32(0x6c, 0xe0, 0x5a, 0xff);
+        [SerializeField] Color _linkMissing = new Color32(0xf0, 0x4e, 0x3e, 0xff);
+        [SerializeField] Color _linkUnlocks = new Color32(0x5a, 0xb4, 0xff, 0xff);
+        [SerializeField, Min(0f)] float _linkPulseSpeed = 6f;
+        [SerializeField, Min(0f)] float _linkCore = 2f;
+        [SerializeField, Min(0f)] float _linkHighlightCore = 4f;
+        [Tooltip("Amostras da legenda do rodapé, na ordem: tem o requisito, falta o requisito, o que libera.")]
+        [SerializeField] TunnelPathGraphic[] _legendLines = Array.Empty<TunnelPathGraphic>();
         [SerializeField] Color _closedRing = new Color(0.08f, 0.05f, 0.03f, 0.72f);
 
         [Header("Detalhe")]
@@ -340,20 +355,71 @@ namespace Fabula.Incrementant.UI
                 if (def.Kind == UpgradeKind.Gallery)
                     widget.SetLevel(LevelText(def));
             }
-            foreach (Link link in view.Links)
-            {
-                UpgradeDef child = defs[link.Child];
-                bool parentOk = link.Parent < 0 || ParentMet(defs[link.Parent], child);
-                bool childOwned = _board.Owns(child);
-                bool childLive = UpgradeBoard.HasSystem(child);
-                link.Image.sprite = parentOk && childOwned ? _linkAcquired : parentOk && childLive ? _linkAvailable : _linkLocked;
-            }
+            RefreshLinks(view, defs, selected);
+            RefreshLegend();
             for (int ring = 0; ring < view.Rings.Length; ring++)
             {
                 bool closed = !_board.RingOpen(ring + 1);
                 view.Rings[ring].enabled = closed;
                 view.Rings[ring].color = _closedRing;
                 view.RingLabels[ring].text = closed ? Loc.T("tree.ring.closed", UpgradeCatalog.DepthToOpen(ring + 1)) : "";
+            }
+        }
+
+        /// <summary>
+        /// Cor de cada ligação pelo estado; as do nó selecionado pulsam: verde no requisito que o jogador já tem, vermelho no
+        /// que falta e azul no que o nó libera. As destacadas vão para a frente das outras (o mesmo túnel leva várias linhas).
+        /// </summary>
+        void RefreshLinks(TabView view, List<UpgradeDef> defs, int selected)
+        {
+            bool reorder = view.Highlighted != selected;
+            view.Highlighted = selected;
+            foreach (Link link in view.Links)
+            {
+                if (link.Path == null)
+                    continue;
+                UpgradeDef child = defs[link.Child];
+                bool parentOk = link.Parent < 0 || ParentMet(defs[link.Parent], child);
+                Color color;
+                bool highlight = true;
+                if (link.Child == selected)
+                    color = parentOk ? _linkMet : _linkMissing;
+                else if (link.Parent == selected && selected >= 0)
+                    color = _linkUnlocks;
+                else
+                {
+                    highlight = false;
+                    color = parentOk && _board.Owns(child) ? _linkAcquired
+                          : parentOk && UpgradeBoard.HasSystem(child) ? _linkAvailable
+                          : _linkLocked;
+                }
+                color = highlight ? Pulse(color) : color;
+                color.a = 1f;
+                link.Path.color = color;
+                link.Path.Core = highlight ? _linkHighlightCore : _linkCore;
+                if (reorder && highlight)
+                    link.Path.transform.SetAsLastSibling();
+            }
+        }
+
+        /// <summary>Cor pulsante de uma linha destacada (a mesma nas linhas e na legenda).</summary>
+        Color Pulse(Color color)
+        {
+            float pulse = Vfx.Motion ? 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * _linkPulseSpeed) : 1f;
+            Color result = Color.Lerp(color * 0.75f, Color.Lerp(color, Color.white, 0.35f), pulse);
+            result.a = 1f;
+            return result;
+        }
+
+        void RefreshLegend()
+        {
+            Color[] colors = { _linkMet, _linkMissing, _linkUnlocks };
+            for (int i = 0; i < _legendLines.Length && i < colors.Length; i++)
+            {
+                if (_legendLines[i] == null)
+                    continue;
+                _legendLines[i].color = Pulse(colors[i]);
+                _legendLines[i].Core = _linkHighlightCore;
             }
         }
 

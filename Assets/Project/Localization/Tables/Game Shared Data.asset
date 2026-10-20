@@ -2171,6 +2171,42 @@ MonoBehaviour:
     m_Key: upgrade.S+3.effect
     m_Metadata:
       m_Items: []
+  - m_Id: 631342899523584
+    m_Key: upgrade.M2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 631342945660928
+    m_Key: upgrade.M2.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 631342945660929
+    m_Key: upgrade.L+3.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 631342945660930
+    m_Key: upgrade.L+3.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 631342945660931
+    m_Key: upgrade.S+4.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 631342945660932
+    m_Key: upgrade.S+4.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 688793124466688
+    m_Key: tree.legend.met
+    m_Metadata:
+      m_Items: []
+  - m_Id: 688793124466689
+    m_Key: tree.legend.missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 688793124466690
+    m_Key: tree.legend.unlocks
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

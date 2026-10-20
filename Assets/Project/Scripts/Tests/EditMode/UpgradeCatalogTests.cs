@@ -20,8 +20,8 @@ namespace Fabula.Incrementant.Tests
                 else
                     galleries++;
             }
-            Assert.AreEqual(64, chambers);
-            Assert.AreEqual(36, galleries);
+            Assert.AreEqual(65, chambers);
+            Assert.AreEqual(38, galleries);
         }
 
         [Test]

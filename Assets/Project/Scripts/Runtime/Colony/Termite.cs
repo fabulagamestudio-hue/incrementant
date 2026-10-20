@@ -69,6 +69,8 @@ namespace Fabula.Incrementant.Colony
         public bool DiggingPath;
         /// <summary>Formigas desmembrando este corpo neste passo (recontado a cada Tick).</summary>
         public int Workers;
+        /// <summary>Formigas mordendo este cupim (recontado a cada Tick, e +1 na hora em que uma começa): as demais escolhem outro alvo.</summary>
+        public int Attackers;
 
         public bool Alive => Phase != TermitePhase.Dead;
 

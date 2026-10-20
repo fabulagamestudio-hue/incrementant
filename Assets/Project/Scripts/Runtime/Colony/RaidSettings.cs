@@ -57,6 +57,10 @@ namespace Fabula.Incrementant.Colony
         [SerializeField, Range(1, 3)] int _attackReach = 2;
         [Tooltip("Segundos sem levar mordida até a formiga começar a recuperar a vida (1 ponto/s).")]
         [SerializeField, Min(0f)] float _healDelaySeconds = 10f;
+        [Tooltip("Formigas que mordem o mesmo cupim ao mesmo tempo; as demais caçam outro (0 = sem limite). Sem outro cupim livre, o limite é ignorado e elas se dividem entre os que há.")]
+        [SerializeField, Min(0)] int _maxAttackersPerTermite = 3;
+        [Tooltip("Postos de guarda (upgrade M2): distância (células, no eixo X) de uma entrada do formigueiro em que um cupim libera o grupo de soldados dela para caçar.")]
+        [SerializeField, Min(1)] int _guardRange = 30;
 
         [Header("Rainha e dedo")]
         [Tooltip("Vida da rainha: se os cupins a levarem a zero, é game over.")]
@@ -109,6 +113,8 @@ namespace Fabula.Incrementant.Colony
         public float AttackSeconds => _attackSeconds;
         public int AttackReach => _attackReach;
         public float HealDelaySeconds => _healDelaySeconds;
+        public int MaxAttackersPerTermite => _maxAttackersPerTermite;
+        public int GuardRange => _guardRange;
         public float QueenHealth => _queenHealth;
         public float QueenDamageFactor => _queenDamageFactor;
         public bool HuntQueen { get => _huntQueen; set => _huntQueen = value; }

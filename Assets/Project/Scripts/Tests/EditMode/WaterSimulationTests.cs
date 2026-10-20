@@ -284,17 +284,55 @@ namespace Fabula.Incrementant.Tests
             TerrainLayout layout = TerrainGenerator.Generate(grid, settings, 99);
 
             Assert.Greater(grid.WaterCount, 0, "O mapa padrão deveria ter ao menos um laguinho.");
-            HashSet<int> lake = WaterCells(grid);
-            foreach (int i in lake)
+            HashSet<int> all = WaterCells(grid);
+            var lake = new HashSet<int>();
+            int deepest = 0;
+            foreach (int i in all)
             {
                 int x = i % grid.Width, y = i / grid.Width;
-                Assert.Greater(y, grid.GetSurfaceY(x), "A água do laguinho fica acima do fundo (fora do formigueiro).");
+                if (y <= grid.GetSurfaceY(x))
+                    continue; // bolsão subterrâneo, testado à parte
+                lake.Add(i);
+                deepest = Mathf.Max(deepest, y - grid.GetSurfaceY(x));
                 Assert.Greater(Mathf.Abs(x - layout.EntranceX), settings.DumpOffset.y, "Laguinho longe da entrada e do despejo.");
             }
+            Assert.Greater(lake.Count, 0);
+            Assert.GreaterOrEqual(deepest, settings.LakeDepth.x - 1, "Laguinhos fundos (KI-028).");
 
             var water = new WaterSimulation(new WaterSettings(), grid, 99);
             Run(water, grid, 3600, new GranularSimulation()); // 60 s: o laguinho não seca com o tempo
-            CollectionAssert.AreEquivalent(lake, WaterCells(grid), "O laguinho gerado já nasce assentado e contido.");
+            foreach (int i in lake)
+                Assert.IsTrue(grid.HasWater(i % grid.Width, i / grid.Width), "O laguinho gerado já nasce assentado e contido.");
+        }
+
+        [Test]
+        public void Generator_CreatesSealedUndergroundWaterPocketsThatStayPut()
+        {
+            var settings = new TerrainSettings();
+            var grid = new PixelGrid(settings.Width, settings.Height);
+            TerrainGenerator.Generate(grid, settings, 99);
+
+            var pockets = new HashSet<int>();
+            foreach (int i in WaterCells(grid))
+            {
+                int x = i % grid.Width, y = i / grid.Width;
+                if (y > grid.GetSurfaceY(x))
+                    continue;
+                pockets.Add(i);
+                Assert.LessOrEqual(y, grid.GetSurfaceY(x) - settings.WaterPocketMinDepth, "Bolsão fundo, longe do ninho inicial.");
+                for (int k = 0; k < 4; k++)
+                {
+                    int nx = x + (k == 0 ? 1 : k == 1 ? -1 : 0), ny = y + (k == 2 ? 1 : k == 3 ? -1 : 0);
+                    bool wet = grid.HasWater(nx, ny);
+                    Assert.IsTrue(wet || grid.Get(nx, ny) == CellMaterial.Rock, $"Bolsão de ({x},{y}) vaza para ({nx},{ny}).");
+                }
+            }
+            Assert.Greater(pockets.Count, 0, "O mapa padrão deveria ter bolsões de água subterrâneos.");
+
+            var water = new WaterSimulation(new WaterSettings(), grid, 99);
+            Run(water, grid, 1800, new GranularSimulation());
+            foreach (int i in pockets)
+                Assert.IsTrue(grid.HasWater(i % grid.Width, i / grid.Width), "A água do bolsão fechado não some nem escorre.");
             Assert.AreEqual(0, water.ErodedCells);
         }
     }

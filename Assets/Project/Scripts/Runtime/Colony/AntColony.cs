@@ -503,7 +503,7 @@ namespace Fabula.Incrementant.Colony
             Nutrients -= spent;
             EmitSpent(spent);
             if (spent > 0)
-                Emit(SfxId.EggLaid);
+                Emit(SfxId.EggLaid, Queen.X, Queen.Y);
             return spent > 0;
         }
 
@@ -515,11 +515,11 @@ namespace Fabula.Incrementant.Colony
             Nutrients -= spent;
             EmitSpent(spent);
             if (spent > 0)
-                Emit(SfxId.EggLaid);
+                Emit(SfxId.EggLaid, Queen.X, Queen.Y);
             foreach (AntRole born in _born)
             {
                 Ant newborn = Spawn(born);
-                Emit(SfxId.AntBorn);
+                Emit(SfxId.AntBorn, newborn.X, newborn.Y);
                 EmitFx(FxId.Hatch, newborn.X, newborn.Y);
             }
             // Quem nasce libera o ponto do berçário que ocupava.
@@ -632,6 +632,7 @@ namespace Fabula.Incrementant.Colony
                     ant.State == AntState.TendingDew || ant.State == AntState.TakingStored || ant.State == AntState.Rescuing)
                     ant.State = AntState.Idle;
                 ant.DumpSide = -1;
+                ant.GuardGroup = -1;
                 SnapVisual(ant);
                 ant.MoveStart = simulationTime;
                 _ants.Add(ant);
@@ -767,6 +768,8 @@ namespace Fabula.Incrementant.Colony
             Profiler.Add(ProfileStage.TickPrep, stageStart);
             RefreshFields(deltaTime);
             stageStart = SimProfiler.Now();
+            // Os cupins não andam enquanto a rainha e as formigas agem: o índice deles vale até UpdateTermites.
+            IndexTermites();
             UpdateQueen(deltaTime);
             Profiler.Add(ProfileStage.Queen, stageStart);
             stageStart = SimProfiler.Now();
@@ -775,6 +778,7 @@ namespace Fabula.Incrementant.Colony
             stageStart = SimProfiler.Now();
             for (int i = 0; i < _ants.Count; i++)
                 UpdateAnt(_ants[i], deltaTime);
+            _termiteIndex.Invalidate();
             Profiler.Add(ProfileStage.Ants, stageStart);
             stageStart = SimProfiler.Now();
             // Cupins depois das formigas: mordem quem ficou ao alcance, destroem e saem; as formigas mortas em combate saem aqui
@@ -1933,7 +1937,10 @@ namespace Fabula.Incrementant.Colony
 
             // Os índices antigos deixam de valer; as faixas novas começam sem ninguém a caminho.
             foreach (Ant ant in _ants)
+            {
                 ant.DumpSide = -1;
+                ant.GuardGroup = -1; // os grupos de guarda são as aberturas: quem estava num posto escolhe de novo
+            }
             _sidesArea = area;
             _allOpenings.Clear();
             _allOpenings.AddRange(_scannedOpenings);
@@ -2414,8 +2421,9 @@ namespace Fabula.Incrementant.Colony
             // Cupim no chão: o soldado larga o trabalho na hora e vai caçá-lo; as demais seguem trabalhando e só lutam quando um
             // cupim as morde. Com cupim dentro do formigueiro, todas largam o trabalho e vão atrás dele (pedido do desenvolvedor
             // em 2026-10-18).
-            if (_groundTermites > 0 && ant.State != AntState.Fighting &&
-                (ant.Role == AntRole.Soldier || _nestIntruders > 0 || IsUnderAttack(ant)))
+            if (ant.State != AntState.Fighting &&
+                (_groundTermites > 0 && (ant.Role == AntRole.Soldier || _nestIntruders > 0 || IsUnderAttack(ant)) ||
+                 _postingActive && ant.Role == AntRole.Soldier))
                 InterruptForCombat(ant);
 
             ant.Cooldown -= deltaTime;
@@ -3066,7 +3074,7 @@ namespace Fabula.Incrementant.Colony
                 _grid.Set(ant.DigX, ant.DigY, CellMaterials.ToDebris(material), shade);
                 _grid.SetMarked(ant.DigX, ant.DigY, true);
                 VegetationSimulation.DropDisconnected(_grid, ant.DigX, ant.DigY);
-                Emit(SfxId.Dig);
+                Emit(SfxId.Dig, ant.DigX, ant.DigY);
                 EmitFx(FxId.Dig, ant.DigX, ant.DigY, material);
                 return;
             }
@@ -3074,7 +3082,7 @@ namespace Fabula.Incrementant.Colony
             // Pixel solto de planta volta a ser planta na mão e vai para a sala de nutrientes (UpdateStoring).
             ant.PickUp(debris ? CellMaterials.FromDebris(material) : material, _grid.GetShade(ant.DigX, ant.DigY), _grid.ToIndex(ant.DigX, ant.DigY));
             _grid.Set(ant.DigX, ant.DigY, CellMaterial.Empty, 0);
-            Emit(SfxId.Dig);
+            Emit(SfxId.Dig, ant.DigX, ant.DigY);
             EmitFx(FxId.Dig, ant.DigX, ant.DigY, ant.Carried);
             // Mão não cheia e mais um pixel do mesmo tipo ao alcance: continua antes de entregar.
             if (ant.CarriedCount >= LoadCapacity(ant))
@@ -3152,7 +3160,7 @@ namespace Fabula.Incrementant.Colony
             ant.PickUp(_grid.Get(ant.DigX, ant.DigY), _grid.GetShade(ant.DigX, ant.DigY), _grid.ToIndex(ant.DigX, ant.DigY));
             ant.ReturningSoil = false;
             _grid.Set(ant.DigX, ant.DigY, CellMaterial.Empty, 0);
-            Emit(SfxId.Dig);
+            Emit(SfxId.Dig, ant.DigX, ant.DigY);
             EmitFx(FxId.Dig, ant.DigX, ant.DigY, ant.Carried);
             // Mão não cheia e mais terra solta ao alcance: pega mais antes de ir à obra.
             if (ant.CarriedCount < SoilCapacityOf(ant) && TryStartGather(ant, continuing: true))
@@ -3234,7 +3242,7 @@ namespace Fabula.Incrementant.Colony
             _grid.Set(ant.DigX, ant.DigY, CellMaterials.ToPacked(ant.Carried), ant.CarriedShade);
             // Marca como obra: do lado de fora a formiga anda por dentro dela (AntNavigation.IsOutdoorBuilt).
             _grid.SetBuilt(ant.DigX, ant.DigY, true);
-            Emit(SfxId.Build);
+            Emit(SfxId.Build, ant.DigX, ant.DigY);
             EmitFx(FxId.Build, ant.DigX, ant.DigY, ant.Carried);
             ant.DropTop();
             // Sobrou terra na mão: segue para o próximo ponto da obra.
@@ -3344,7 +3352,7 @@ namespace Fabula.Incrementant.Colony
                     continue;
 
                 _grid.Set(x, y, CellMaterials.ToDumped(ant.Carried), ant.CarriedShade);
-                Emit(SfxId.Drop);
+                Emit(SfxId.Drop, x, y);
                 EmitFx(FxId.Drop, x, y, ant.Carried);
                 ant.DropTop();
                 // O pixel solto já conta no monte (DumpLoad): sai dos que estão a caminho.
@@ -3446,6 +3454,7 @@ namespace Fabula.Incrementant.Colony
             : ReferenceEquals(ant, Queen) ? _settings.QueenSpeed
             : _settings.AntSpeed * AntRoles.SpeedFactor(ant.Role) * Tree.SpeedFactor(ant.Role)
               * (ant.Role == AntRole.Worker ? Effects.WorkerSpeedRate : ant.Role == AntRole.Carrier ? Effects.CarrierSpeedRate : 1f)
+              * SituationalSpeedRate(ant)
               * (ant.Y > _grid.GetSurfaceY(ant.X) ? Effects.OutdoorSpeedRate : Effects.TrailSpeedRate);
 
         void PushOutOfSolid(Ant ant)

@@ -18,6 +18,11 @@ namespace Fabula.Incrementant.Colony
     public sealed partial class AntColony
     {
         readonly List<Termite> _termites = new List<Termite>();
+        // Índices espaciais das buscas de alcance (sem eles, cada cupim varria todas as formigas e cada formiga em combate
+        // todos os cupins: ~50 ms por frame com 500 cupins e 1300 formigas, print de 2026-10-20). Valem só enquanto o lado
+        // indexado está parado: os cupins durante a rainha e as formigas, as formigas durante UpdateTermites.
+        readonly PointIndex _termiteIndex = new PointIndex();
+        readonly PointIndex _antIndex = new PointIndex();
         readonly List<int> _raidSources = new List<int>();
         readonly HashSet<int> _raidSourceSeen = new HashSet<int>();
         readonly HashSet<int> _wallTargets = new HashSet<int>();
@@ -39,6 +44,18 @@ namespace Fabula.Incrementant.Colony
         int _nestIntruders;
         int _corpsePieces;
         int _dismemberers;
+        // Cupins vivos no ataque (voando, no chão ou indo embora): os postos de guarda esperam enquanto houver algum.
+        int _liveTermites;
+        // Existe cupim elegível ainda sem o teto de atacantes: os já saturados são ignorados pelas caçadoras (KI-041).
+        bool _freeTermiteExists;
+        // Quais cupins estão no teto de atacantes mudou: o campo do combate precisa de outras origens.
+        int _saturationSignature;
+        // Postos de guarda (M2): os soldados esperam nas entradas em vez de caçar de longe (KI-030).
+        bool _postingActive;
+        readonly List<int> _guardMin = new List<int>();
+        readonly List<int> _guardMax = new List<int>();
+        readonly List<int> _guardCount = new List<int>();
+        readonly List<bool> _guardTriggered = new List<bool>();
 
         /// <summary>Números do ataque e do combate. <see cref="AntFarmGame"/> passa os do Inspector.</summary>
         public RaidSettings RaidSettings { get; set; } = new RaidSettings();
@@ -238,6 +255,126 @@ namespace Fabula.Incrementant.Colony
             if ((intruders > 0) != (_nestIntruders > 0))
                 _raidDirty = true; // o campo do combate muda de alvos (só os de dentro, ou todos)
             _nestIntruders = intruders;
+            _liveTermites = LiveTermites;
+            RecountAttackers();
+            RefreshGuardPosts();
+        }
+
+        bool IsSaturated(Termite t)
+        {
+            int cap = RaidSettings.MaxAttackersPerTermite;
+            return cap > 0 && t.Attackers >= cap;
+        }
+
+        /// <summary>Quem está mordendo cada cupim neste momento (KI-041): as caçadoras escolhem alvos com vaga.</summary>
+        void RecountAttackers()
+        {
+            _freeTermiteExists = false;
+            if (_groundTermites == 0)
+            {
+                _saturationSignature = 0;
+                return;
+            }
+            foreach (Termite t in _termites)
+                t.Attackers = 0;
+            foreach (Ant ant in _ants)
+            {
+                Termite target = ant.CombatTarget;
+                if (ant.State == AntState.Fighting && ant.Biting && target != null && target.OnGround)
+                    target.Attackers++;
+            }
+            int signature = 17;
+            foreach (Termite t in _termites)
+            {
+                if (!t.OnGround || _nestIntruders > 0 && !IsInsideNest(t))
+                    continue;
+                bool saturated = IsSaturated(t);
+                _freeTermiteExists |= !saturated;
+                signature = signature * 31 + (saturated ? 2 : 1);
+            }
+            if (signature != _saturationSignature)
+            {
+                _saturationSignature = signature;
+                _raidDirty = true; // o campo do combate muda de origens (só os cupins com vaga)
+            }
+        }
+
+        /// <summary>
+        /// Postos de guarda (M2, KI-030): os grupos são as aberturas do formigueiro (as faixas de despejo ficam ao lado delas).
+        /// Cada grupo espera até um cupim chegar a <see cref="RaidSettings.GuardRange"/> células da sua abertura.
+        /// </summary>
+        void RefreshGuardPosts()
+        {
+            bool wanted = Effects.SoldierPosting && _nestIntruders == 0 &&
+                          (RaidState == RaidState.Warning || RaidState == RaidState.Active && _liveTermites > 0);
+            _postingActive = false;
+            if (!wanted || _dumpSides.Count == 0)
+                return;
+            int groups = 0;
+            foreach (DumpSide side in _dumpSides)
+                groups = Mathf.Max(groups, side.Group + 1);
+            _guardMin.Clear();
+            _guardMax.Clear();
+            _guardCount.Clear();
+            _guardTriggered.Clear();
+            for (int g = 0; g < groups; g++)
+            {
+                _guardMin.Add(int.MaxValue);
+                _guardMax.Add(int.MinValue);
+                _guardCount.Add(0);
+                _guardTriggered.Add(false);
+            }
+            foreach (DumpSide side in _dumpSides)
+            {
+                _guardMin[side.Group] = Mathf.Min(_guardMin[side.Group], side.MinX);
+                _guardMax[side.Group] = Mathf.Max(_guardMax[side.Group], side.MaxX);
+            }
+            int range = RaidSettings.GuardRange;
+            foreach (Termite t in _termites)
+            {
+                if (!t.OnGround)
+                    continue;
+                for (int g = 0; g < groups; g++)
+                    _guardTriggered[g] |= t.X >= _guardMin[g] - range && t.X <= _guardMax[g] + range;
+            }
+            foreach (Ant ant in _ants)
+            {
+                if (ant.Role == AntRole.Soldier && ant.OnGuard && ant.GuardGroup >= 0 && ant.GuardGroup < groups)
+                    _guardCount[ant.GuardGroup]++;
+            }
+            _postingActive = true;
+        }
+
+        /// <summary>
+        /// Velocidade por situação (KI-038): a carregadora com carga na mão (L+3) e o soldado em batalha (S+4), não a caminho
+        /// do posto de guarda.
+        /// </summary>
+        float SituationalSpeedRate(Ant ant)
+        {
+            if (ant.Role == AntRole.Carrier)
+                return IsLoaded(ant) ? Effects.CarrierLoadedSpeedRate : 1f;
+            if (ant.Role == AntRole.Soldier)
+                return ant.State == AntState.Fighting && !ant.OnGuard ? Effects.SoldierBattleSpeedRate : 1f;
+            return 1f;
+        }
+
+        /// <summary>Leva algo na boca ou na mão: material, água, resíduo, terra de obra, ovo ou cria.</summary>
+        static bool IsLoaded(Ant ant)
+        {
+            if (ant.CarriedCount > 0)
+                return true;
+            switch (ant.State)
+            {
+                case AntState.CarryingWater:
+                case AntState.CarryingWaste:
+                case AntState.CarryingEgg:
+                case AntState.MovingBrood:
+                case AntState.Hauling:
+                case AntState.BringingSoil:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         /// <summary>O cupim está abaixo da superfície: invadiu o formigueiro (quem pousa ou anda por cima não conta).</summary>
@@ -419,6 +556,7 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Movimento, mordidas e destruição dos cupins no chão; tira as formigas mortas em combate. Depois das formigas.</summary>
         void UpdateTermites(float deltaTime)
         {
+            IndexAnts();
             for (int i = _termites.Count - 1; i >= 0; i--)
             {
                 Termite t = _termites[i];
@@ -446,8 +584,27 @@ namespace Fabula.Incrementant.Colony
                         break;
                 }
             }
+            _antIndex.Invalidate();
             UpdateQueenCombat(deltaTime);
             RemoveCasualties();
+        }
+
+        void IndexTermites()
+        {
+            _termiteIndex.Begin(_grid.Width, _grid.Height, _termites.Count);
+            for (int i = 0; i < _termites.Count; i++)
+                _termiteIndex.Set(i, _termites[i].X, _termites[i].Y);
+            _termiteIndex.Finish();
+        }
+
+        void IndexAnts()
+        {
+            if (_groundTermites == 0)
+                return; // sem cupim no chão ninguém procura formiga ao alcance
+            _antIndex.Begin(_grid.Width, _grid.Height, _ants.Count);
+            for (int i = 0; i < _ants.Count; i++)
+                _antIndex.Set(i, _ants[i].X, _ants[i].Y);
+            _antIndex.Finish();
         }
 
         /// <summary>
@@ -524,7 +681,7 @@ namespace Fabula.Incrementant.Colony
                 {
                     t.AttackTimer = RaidSettings.AttackSeconds;
                     victim.Wounds += RaidSettings.TermiteDamage;
-                    Emit(SfxId.AntHurt);
+                    Emit(SfxId.AntHurt, victim.X, victim.Y);
                     EmitFx(FxId.AntHurt, victim.X, victim.Y);
                     victim.LastHitTime = SimulationTime;
                 }
@@ -608,19 +765,41 @@ namespace Fabula.Incrementant.Colony
         Ant AntInReach(int x, int y)
         {
             int reach = RaidSettings.AttackReach;
-            Ant best = null;
-            int bestDistance = int.MaxValue;
-            foreach (Ant ant in _ants)
+            int best = -1, bestDistance = int.MaxValue;
+            if (!_antIndex.Valid)
             {
-                if (ant.Buried)
-                    continue; // presa na terra: fora do alcance das mordidas
-                int distance = Mathf.Max(Mathf.Abs(ant.X - x), Mathf.Abs(ant.Y - y));
-                if (distance > reach || distance >= bestDistance)
-                    continue;
-                best = ant;
-                bestDistance = distance;
+                for (int i = 0; i < _ants.Count; i++)
+                    ConsiderAnt(i, x, y, reach, ref best, ref bestDistance);
+                return best >= 0 ? _ants[best] : null;
             }
-            return best;
+            _antIndex.Outside(out int from, out int to);
+            for (int s = from; s < to; s++)
+                ConsiderAnt(_antIndex.Item(s), x, y, reach, ref best, ref bestDistance);
+            for (int row = y - reach; row <= y + reach; row++)
+            {
+                _antIndex.Row(row, x - reach, x + reach, out from, out to);
+                // Na mesma célula todas estão à mesma distância e a primeira é a de menor índice: basta a primeira que conta.
+                for (int s = from; s < to;)
+                    s = ConsiderAnt(_antIndex.Item(s), x, y, reach, ref best, ref bestDistance) ? _antIndex.NextCell(s, to) : s + 1;
+            }
+            return best >= 0 ? _ants[best] : null;
+        }
+
+        /// <summary>
+        /// A mais perto vence; no empate, a de menor índice (a mesma da varredura em ordem da lista). <c>false</c> = não
+        /// conta (enterrada).
+        /// </summary>
+        bool ConsiderAnt(int i, int x, int y, int reach, ref int best, ref int bestDistance)
+        {
+            Ant ant = _ants[i];
+            if (ant.Buried)
+                return false; // presa na terra: fora do alcance das mordidas
+            int distance = Mathf.Max(Mathf.Abs(ant.X - x), Mathf.Abs(ant.Y - y));
+            if (distance > reach || distance > bestDistance || distance == bestDistance && i > best)
+                return true;
+            best = i;
+            bestDistance = distance;
+            return true;
         }
 
         /// <summary>O cupim vivo no chão mais perto ao alcance da mordida, ou null.</summary>
@@ -628,19 +807,37 @@ namespace Fabula.Incrementant.Colony
 
         Termite TermiteInReach(int x, int y, int reach)
         {
-            Termite best = null;
-            int bestDistance = int.MaxValue;
-            foreach (Termite t in _termites)
+            int best = -1, bestDistance = int.MaxValue;
+            if (!_termiteIndex.Valid)
             {
-                if (!t.OnGround)
-                    continue;
-                int distance = Mathf.Max(Mathf.Abs(t.X - x), Mathf.Abs(t.Y - y));
-                if (distance > reach || distance >= bestDistance)
-                    continue;
-                best = t;
-                bestDistance = distance;
+                for (int i = 0; i < _termites.Count; i++)
+                    ConsiderTermite(i, x, y, reach, ref best, ref bestDistance);
+                return best >= 0 ? _termites[best] : null;
             }
-            return best;
+            _termiteIndex.Outside(out int from, out int to);
+            for (int s = from; s < to; s++)
+                ConsiderTermite(_termiteIndex.Item(s), x, y, reach, ref best, ref bestDistance);
+            for (int row = y - reach; row <= y + reach; row++)
+            {
+                _termiteIndex.Row(row, x - reach, x + reach, out from, out to);
+                for (int s = from; s < to;)
+                    s = ConsiderTermite(_termiteIndex.Item(s), x, y, reach, ref best, ref bestDistance) ? _termiteIndex.NextCell(s, to) : s + 1;
+            }
+            return best >= 0 ? _termites[best] : null;
+        }
+
+        /// <summary>Como <see cref="ConsiderAnt"/>; <c>false</c> = não conta (voando ou morto).</summary>
+        bool ConsiderTermite(int i, int x, int y, int reach, ref int best, ref int bestDistance)
+        {
+            Termite t = _termites[i];
+            if (!t.OnGround)
+                return false;
+            int distance = Mathf.Max(Mathf.Abs(t.X - x), Mathf.Abs(t.Y - y));
+            if (distance > reach || distance > bestDistance || distance == bestDistance && i > best)
+                return true;
+            best = i;
+            bestDistance = distance;
+            return true;
         }
 
         /// <summary>Formigas que passaram da vida do papel morrem (o que levavam se perde, o ovo volta ao chão).</summary>
@@ -658,7 +855,7 @@ namespace Fabula.Incrementant.Colony
                     continue;
                 RemoveAnt(i);
                 AntsKilledInCombat++;
-                Emit(SfxId.AntDie);
+                Emit(SfxId.AntDie, ant.X, ant.Y);
             }
         }
 
@@ -686,11 +883,11 @@ namespace Fabula.Incrementant.Colony
             t.LastHitTime = SimulationTime;
             if (t.Health > 0f)
             {
-                Emit(SfxId.TermiteHit);
+                Emit(SfxId.TermiteHit, t.X, t.Y);
                 EmitFx(FxId.TermiteHit, t.X, t.Y);
                 return;
             }
-            Emit(SfxId.TermiteKilled);
+            Emit(SfxId.TermiteKilled, t.X, t.Y);
             EmitFx(FxId.TermiteKilled, t.X, t.Y);
             KillTermite(t);
         }
@@ -1117,7 +1314,7 @@ namespace Fabula.Incrementant.Colony
         {
             byte shade = _grid.GetShade(x, y);
             _grid.Set(x, y, CellMaterial.Rubble, shade);
-            Emit(SfxId.Crumble);
+            Emit(SfxId.Crumble, x, y);
         }
 
         /// <summary>Célula onde a cria está: no chão onde a rainha a pôs, ou no ponto do berçário. A que está na boca de uma formiga não conta.</summary>
@@ -1394,6 +1591,9 @@ namespace Fabula.Incrementant.Colony
                     // Com invasores dentro do formigueiro, o campo aponta só para eles (todas as formigas os caçam).
                     if (!t.OnGround || _nestIntruders > 0 && !IsInsideNest(t))
                         continue;
+                    // Cupim já no teto de atacantes sai das origens enquanto houver outro com vaga (KI-041).
+                    if (_freeTermiteExists && IsSaturated(t))
+                        continue;
                 }
                 else
                 {
@@ -1447,6 +1647,9 @@ namespace Fabula.Incrementant.Colony
             ant.Interacting = false;
             ant.ReturningSoil = false;
             ant.Biting = false;
+            ant.CombatTarget = null;
+            ant.OnGuard = false;
+            ant.GuardReleased = false;
             ant.State = AntState.Fighting;
             ant.Cooldown = 0f;
         }
@@ -1470,20 +1673,35 @@ namespace Fabula.Incrementant.Colony
             SimulationTime - ant.LastHitTime <= RaidSettings.AttackSeconds + 0.05f && TermiteInReach(ant.X, ant.Y) != null;
 
         /// <summary>
-        /// Morde o cupim ao alcance. O soldado, sem cupim ao alcance, desce o campo do combate até o mais perto; as demais só
-        /// se defendem: sem cupim ao alcance, voltam ao trabalho. Sem cupim no chão, todas voltam.
+        /// Morde o cupim ao alcance. O soldado, sem cupim ao alcance, desce o campo do combate até um com vaga (KI-041); as
+        /// demais só se defendem: sem cupim ao alcance, voltam ao trabalho. Sem cupim no chão, todas voltam. Com os postos
+        /// de guarda (M2), o soldado antes espera na abertura do formigueiro (KI-030).
         /// </summary>
         void UpdateFighting(Ant ant)
         {
+            bool wasBiting = ant.Biting;
             ant.Biting = false;
+            bool hunter = ant.Role == AntRole.Soldier || _nestIntruders > 0;
+            if (ant.Role == AntRole.Soldier && _postingActive && !ant.GuardReleased && UpdateGuarding(ant))
+                return;
             if (_groundTermites == 0)
             {
                 ant.State = AntState.Idle;
+                ant.OnGuard = false;
+                ant.GuardReleased = false;
+                ant.GuardGroup = -1;
+                ant.CombatTarget = null;
                 return;
             }
-            Termite target = TermiteInReach(ant.X, ant.Y);
+            ant.OnGuard = false;
+            Termite target = TermiteToBite(ant, hunter, wasBiting);
             if (target != null)
             {
+                if (!ReferenceEquals(ant.CombatTarget, target) || !wasBiting)
+                {
+                    ant.CombatTarget = target;
+                    target.Attackers++;
+                }
                 ant.Biting = true;
                 ant.DigX = target.X;
                 ant.DigY = target.Y;
@@ -1493,8 +1711,9 @@ namespace Fabula.Incrementant.Colony
                 ant.Cooldown = RaidSettings.AttackSeconds;
                 return;
             }
+            ant.CombatTarget = null;
             // Fora a defesa de quem foi mordido, só o soldado caça cupim na superfície; com invasor dentro, todas caçam.
-            if (ant.Role != AntRole.Soldier && _nestIntruders == 0)
+            if (!hunter)
             {
                 ant.State = AntState.Idle;
                 return;
@@ -1508,6 +1727,145 @@ namespace Fabula.Incrementant.Colony
                 return;
             }
             WanderHome(ant);
+        }
+
+        /// <summary>
+        /// O cupim ao alcance que esta formiga morde (KI-041). Quem já mordia um segue nele; senão vale o de menos atacantes
+        /// (no empate, o mais perto). Uma caçadora não entra num cupim que já está no teto de atacantes enquanto houver outro
+        /// livre no mapa: devolve <c>null</c> e ela segue o campo do combate até ele. Quem só se defende morde o que a atacou.
+        /// </summary>
+        Termite TermiteToBite(Ant ant, bool hunter, bool wasBiting)
+        {
+            int reach = RaidSettings.AttackReach;
+            int best = -1, bestLoad = int.MaxValue, bestDistance = int.MaxValue;
+            if (!_termiteIndex.Valid)
+            {
+                for (int i = 0; i < _termites.Count; i++)
+                {
+                    if (ConsiderBite(i, ant, reach, wasBiting, ref best, ref bestLoad, ref bestDistance))
+                        return _termites[i];
+                }
+            }
+            else
+            {
+                // Aqui cada cupim da célula conta (o critério é o número de atacantes): a faixa é varrida inteira.
+                _termiteIndex.Outside(out int from, out int to);
+                for (int row = ant.Y - reach - 1; row <= ant.Y + reach; row++)
+                {
+                    if (row >= ant.Y - reach)
+                        _termiteIndex.Row(row, ant.X - reach, ant.X + reach, out from, out to);
+                    for (int s = from; s < to; s++)
+                    {
+                        int i = _termiteIndex.Item(s);
+                        if (ConsiderBite(i, ant, reach, wasBiting, ref best, ref bestLoad, ref bestDistance))
+                            return _termites[i];
+                    }
+                }
+            }
+            int cap = RaidSettings.MaxAttackersPerTermite;
+            if (best >= 0 && hunter && cap > 0 && bestLoad >= cap && _freeTermiteExists)
+                return null;
+            return best >= 0 ? _termites[best] : null;
+        }
+
+        /// <summary>
+        /// Candidato de <see cref="TermiteToBite"/>: menos atacantes, depois mais perto, depois menor índice. <c>true</c> =
+        /// é o cupim que ela já mordia e segue ao alcance (vence direto).
+        /// </summary>
+        bool ConsiderBite(int i, Ant ant, int reach, bool wasBiting, ref int best, ref int bestLoad, ref int bestDistance)
+        {
+            Termite t = _termites[i];
+            if (!t.OnGround)
+                return false;
+            int distance = Mathf.Max(Mathf.Abs(t.X - ant.X), Mathf.Abs(t.Y - ant.Y));
+            if (distance > reach)
+                return false;
+            if (wasBiting && ReferenceEquals(ant.CombatTarget, t))
+                return true;
+            if (t.Attackers > bestLoad ||
+                t.Attackers == bestLoad && (distance > bestDistance || distance == bestDistance && i > best))
+                return false;
+            best = i;
+            bestLoad = t.Attackers;
+            bestDistance = distance;
+            return false;
+        }
+
+        /// <summary>
+        /// Soldado nos postos de guarda (M2): vai à faixa ao lado de uma abertura do formigueiro e espera. O grupo é liberado
+        /// quando um cupim chega perto da abertura (ou chega ao alcance do soldado). <c>true</c> = segue de guarda neste passo.
+        /// </summary>
+        bool UpdateGuarding(Ant ant)
+        {
+            if (TermiteInReach(ant.X, ant.Y) != null)
+            {
+                ReleaseGuard(ant);
+                return false;
+            }
+            if (ant.GuardGroup < 0 || ant.GuardGroup >= _guardCount.Count)
+                AssignGuardGroup(ant);
+            else if (_guardTriggered[ant.GuardGroup])
+            {
+                ReleaseGuard(ant);
+                return false;
+            }
+            ant.OnGuard = true;
+
+            FlowField post = null;
+            int postDistance = FlowField.Unreachable;
+            foreach (DumpSide side in _dumpSides)
+            {
+                if (side.Group != ant.GuardGroup)
+                    continue;
+                int d = side.Field.Get(ant.X, ant.Y);
+                if (d != FlowField.Unreachable && (post == null || d < postDistance))
+                {
+                    post = side.Field;
+                    postDistance = d;
+                }
+            }
+            if (post == null)
+            {
+                ant.GuardGroup = -1; // sem caminho até este posto: tenta outro no próximo passo
+                WanderHome(ant);
+                return true;
+            }
+            if (postDistance > 0 && StepDownhill(ant, post))
+                return true;
+            Hold(ant);
+            return true;
+        }
+
+        void ReleaseGuard(Ant ant)
+        {
+            ant.GuardReleased = true;
+            ant.OnGuard = false;
+        }
+
+        /// <summary>Escolhe o posto com menos soldados entre os que a soldado alcança (no empate, o de menor índice).</summary>
+        void AssignGuardGroup(Ant ant)
+        {
+            int bestGroup = -1, bestCount = int.MaxValue;
+            for (int g = 0; g < _guardCount.Count; g++)
+            {
+                if (_guardCount[g] >= bestCount || !GuardGroupReachable(ant, g))
+                    continue;
+                bestGroup = g;
+                bestCount = _guardCount[g];
+            }
+            ant.GuardGroup = bestGroup;
+            if (bestGroup >= 0)
+                _guardCount[bestGroup]++;
+        }
+
+        bool GuardGroupReachable(Ant ant, int group)
+        {
+            foreach (DumpSide side in _dumpSides)
+            {
+                if (side.Group == group && side.Field.Get(ant.X, ant.Y) != FlowField.Unreachable)
+                    return true;
+            }
+            return false;
         }
 
         // ---------------------------------------------------------------- corpos
@@ -1567,14 +1925,40 @@ namespace Fabula.Incrementant.Colony
             Hold(ant);
         }
 
+        /// <summary>O primeiro corpo (na ordem da lista) com parte para tirar encostado na célula, ou null.</summary>
         Termite CorpseNear(int x, int y)
         {
-            foreach (Termite t in _termites)
+            if (!_termiteIndex.Valid)
             {
-                if (CorpsePiecesAvailable(t) > 0 && Mathf.Abs(t.X - x) <= 1 && Mathf.Abs(t.Y - y) <= 1)
-                    return t;
+                foreach (Termite t in _termites)
+                {
+                    if (CorpsePiecesAvailable(t) > 0 && Mathf.Abs(t.X - x) <= 1 && Mathf.Abs(t.Y - y) <= 1)
+                        return t;
+                }
+                return null;
             }
-            return null;
+            int best = int.MaxValue;
+            _termiteIndex.Outside(out int from, out int to);
+            for (int row = y - 2; row <= y + 1; row++)
+            {
+                if (row >= y - 1)
+                    _termiteIndex.Row(row, x - 1, x + 1, out from, out to);
+                for (int s = from; s < to;)
+                {
+                    int i = _termiteIndex.Item(s);
+                    Termite t = _termites[i];
+                    if (CorpsePiecesAvailable(t) > 0 && Mathf.Abs(t.X - x) <= 1 && Mathf.Abs(t.Y - y) <= 1)
+                    {
+                        best = Mathf.Min(best, i);
+                        s = _termiteIndex.NextCell(s, to); // os demais da célula têm índice maior
+                    }
+                    else
+                    {
+                        s++;
+                    }
+                }
+            }
+            return best < int.MaxValue ? _termites[best] : null;
         }
 
         /// <summary>Tira uma parte: a folha se algum canteiro espera planta, senão um resto.</summary>

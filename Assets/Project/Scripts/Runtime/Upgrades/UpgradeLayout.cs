@@ -8,7 +8,8 @@ namespace Fabula.Incrementant.Upgrades
     /// Posição de cada nó no formigueiro radial da tela Evolução (documento 39, "O padrão formigueiro"): a câmara central
     /// na origem, um túnel por ramo (8 direções a 45°, o primeiro logo à direita do topo, em sentido horário) e um anel por
     /// profundidade. Os nós de um mesmo ramo e anel formam uma grade de no máximo duas colunas ao lado do eixo do túnel,
-    /// com as câmaras antes das galerias. Coordenadas em pixels de UI, y para cima, centro da árvore em (0, 0).
+    /// com as câmaras antes das galerias; em cada linha, o nó cujo pai fica mais para um lado ocupa a coluna desse lado, para as
+    /// linhas de dependência cruzarem menos. Coordenadas em pixels de UI, y para cima, centro da árvore em (0, 0).
     /// </summary>
     public static class UpgradeLayout
     {
@@ -49,9 +50,12 @@ namespace Fabula.Incrementant.Upgrades
                     groups[key] = list = new List<UpgradeDef>();
                 list.Add(def);
             }
-            foreach (KeyValuePair<int, List<UpgradeDef>> pair in groups)
+            // Do anel mais raso ao mais fundo: a ordem das colunas olha a posição dos pais, que precisam estar prontos antes.
+            var keys = new List<int>(groups.Keys);
+            keys.Sort((a, b) => a % 10 != b % 10 ? (a % 10).CompareTo(b % 10) : a.CompareTo(b));
+            foreach (int key in keys)
             {
-                List<UpgradeDef> list = pair.Value;
+                List<UpgradeDef> list = groups[key];
                 // Câmaras primeiro (mais perto do centro e do eixo), galerias depois; a ordem da tabela desempata.
                 var ordered = new List<UpgradeDef>(list.Count);
                 foreach (UpgradeDef def in list)
@@ -60,7 +64,7 @@ namespace Fabula.Incrementant.Upgrades
                 foreach (UpgradeDef def in list)
                     if (def.Kind == UpgradeKind.Gallery)
                         ordered.Add(def);
-                Place(ordered, pair.Key / 10, pair.Key % 10, result);
+                Place(ordered, key / 10, key % 10, result);
             }
             return result;
         }
@@ -70,6 +74,10 @@ namespace Fabula.Incrementant.Upgrades
             Vector2 axis = BranchDirection(branch);
             var side = new Vector2(axis.y, -axis.x); // perpendicular, no sentido horário
             int columns = nodes.Count == 1 ? 1 : 2;
+            if (columns == 2)
+                for (int i = 0; i + 1 < nodes.Count; i += 2)
+                    if (ParentSide(nodes[i], side, result) > ParentSide(nodes[i + 1], side, result) + 1f)
+                        (nodes[i], nodes[i + 1]) = (nodes[i + 1], nodes[i]);
             int rows = (nodes.Count + columns - 1) / columns;
             for (int i = 0; i < nodes.Count; i++)
             {
@@ -81,6 +89,20 @@ namespace Fabula.Incrementant.Upgrades
                 float radius = RingRadius(ring) + (row - (rows - 1) * 0.5f) * RowSpacing;
                 result[nodes[i].Id] = axis * radius + side * lateral;
             }
+        }
+
+        /// <summary>Média do deslocamento lateral (no sentido de <paramref name="side"/>) dos pais já posicionados; 0 sem pais.</summary>
+        static float ParentSide(UpgradeDef def, Vector2 side, Dictionary<string, Vector2> placed)
+        {
+            float sum = 0f;
+            int count = 0;
+            foreach (UpgradeRequirement r in def.Requires)
+                if (placed.TryGetValue(r.Id, out Vector2 p))
+                {
+                    sum += Vector2.Dot(p, side);
+                    count++;
+                }
+            return count == 0 ? 0f : sum / count;
         }
 
         /// <summary>Raio que cobre todos os nós da aba mais uma margem: o tamanho do conteúdo arrastável.</summary>

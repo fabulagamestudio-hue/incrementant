@@ -909,15 +909,12 @@ namespace Fabula.Incrementant.EditorTools.UI
             SetArray(so, "_amountButtons", amountButtons);
             SetArray(so, "_amountImages", amountImages);
 
-            BuildLegend(screen);
+            BuildLegend(screen, so);
 
             SetObject(so, "_diamondAcquired", LoadKit("Nodes/diamond_acquired"));
             SetObject(so, "_diamondAvailable", LoadKit("Nodes/diamond_available"));
             SetObject(so, "_diamondLocked", LoadKit("Nodes/diamond_locked"));
             SetObject(so, "_diamondRoot", LoadKit("Nodes/diamond_root"));
-            SetObject(so, "_linkAcquired", LoadKit("Connections/link_acquired"));
-            SetObject(so, "_linkAvailable", LoadKit("Connections/link_available"));
-            SetObject(so, "_linkLocked", LoadKit("Connections/link_locked"));
             so.ApplyModifiedPropertiesWithoutUndo();
             go.SetActive(false);
             return go;
@@ -1011,32 +1008,41 @@ namespace Fabula.Incrementant.EditorTools.UI
             return widget;
         }
 
-        static void WriteLinks(SerializedObject so, string field, System.Collections.Generic.List<(Image image, int parent, int child)> links)
+        static void WriteLinks(SerializedObject so, string field, System.Collections.Generic.List<(TunnelPathGraphic path, int parent, int child)> links)
         {
             SerializedProperty list = so.FindProperty(field);
             list.arraySize = links.Count;
             for (int i = 0; i < links.Count; i++)
             {
                 SerializedProperty element = list.GetArrayElementAtIndex(i);
-                element.FindPropertyRelative("Image").objectReferenceValue = links[i].image;
+                element.FindPropertyRelative("Path").objectReferenceValue = links[i].path;
                 element.FindPropertyRelative("Parent").intValue = links[i].parent;
                 element.FindPropertyRelative("Child").intValue = links[i].child;
             }
         }
 
-        /// <summary>Legenda de estados (rodapé): adquirido, disponível, selecionado e bloqueado.</summary>
-        static void BuildLegend(Transform screen)
+        /// <summary>
+        /// Legenda das linhas do nó selecionado (rodapé): requisito que o jogador tem, que falta e o que o nó libera. As amostras
+        /// são trechos de <see cref="TunnelPathGraphic"/> que a tela pinta e pulsa com as mesmas cores das linhas.
+        /// </summary>
+        static void BuildLegend(Transform screen, SerializedObject so)
         {
-            string[] sprites = { "Nodes/diamond_acquired", "Nodes/diamond_available", "Nodes/diamond_selected", "Nodes/diamond_locked" };
-            string[] labels = { "ADQUIRIDO", "DISPONÍVEL", "SELECIONADO", "BLOQUEADO" };
-            for (int i = 0; i < sprites.Length; i++)
+            string[] keys = { "tree.legend.met", "tree.legend.missing", "tree.legend.unlocks" };
+            var lines = new TunnelPathGraphic[keys.Length];
+            for (int i = 0; i < keys.Length; i++)
             {
-                float x = 80 + i * 260;
-                Image icon = BuildKitImage(screen, "Legenda" + i, sprites[i], new Vector2(0, 1), new Vector2(0, 1), Vector2.zero, 1f);
-                PlaceCentered(icon.rectTransform, new Vector2(x, 1030), new Vector2(40, 40));
-                Text text = BuildText(screen, "LegendaTexto" + i, labels[i], TextSmall, Green, TextAnchor.MiddleLeft);
-                PlaceCentered(text.rectTransform, new Vector2(x + 40 + 90, 1030), new Vector2(180, 30));
+                float x = 90 + i * 400;
+                var go = new GameObject("Legenda" + i, typeof(RectTransform), typeof(TunnelPathGraphic));
+                go.layer = LayerMask.NameToLayer("UI");
+                go.transform.SetParent(screen, false);
+                PlaceCentered((RectTransform)go.transform, new Vector2(x, 1030), new Vector2(56, 20));
+                lines[i] = go.GetComponent<TunnelPathGraphic>();
+                lines[i].raycastTarget = false;
+                lines[i].SetPoints(new[] { new Vector2(-28f, 0f), new Vector2(28f, 0f) });
+                Text text = BuildText(screen, "LegendaTexto" + i, LocalizationCatalog.Pt(keys[i]), TextSmall, Green, TextAnchor.MiddleLeft);
+                PlaceCentered(text.rectTransform, new Vector2(x + 44 + 160, 1030), new Vector2(320, 30));
             }
+            SetArray(so, "_legendLines", lines);
         }
 
         static Transform BuildPage(Transform parent, string name)
