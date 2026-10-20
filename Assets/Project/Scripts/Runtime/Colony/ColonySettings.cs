@@ -28,8 +28,6 @@ namespace Fabula.Incrementant.Colony
         [SerializeField, Min(0f)] float _queenRestSeconds = 1.5f;
         [Tooltip("Aberturas na superfície que ganham faixas de despejo (as mais perto da entrada). Cada uma custa dois campos de navegação.")]
         [SerializeField, Min(1)] int _maxDumpOpenings = 4;
-        [Tooltip("Segundos seguidos debaixo d'água até a formiga se afogar.")]
-        [SerializeField, Min(0.1f)] float _drownSeconds = 5f;
         [Tooltip("Segundos que a escavadora com E2 leva para quebrar uma célula de rocha (design: 4 células/s; o protótipo escava cerca de 4x mais devagar que o design, então 1 s).")]
         [SerializeField, Min(0.05f)] float _rockBreakSeconds = 1f;
         [Tooltip("Segundos que a comum leva para pegar ou largar uma cria no berçário; a cuidadora é 4/3 mais rápida.")]
@@ -38,11 +36,6 @@ namespace Fabula.Incrementant.Colony
         [SerializeField, Min(1)] int _blocksPerTender = 2;
         [Tooltip("Parte das comuns que pode estar cuidando de regiões ao mesmo tempo (o resto continua cavando, construindo e cortando).")]
         [SerializeField, Range(0f, 1f)] float _commonTenderShare = 0.5f;
-        [Header("Vida das formigas")]
-        [Tooltip("Tempo de vida médio de uma formiga adulta, em segundos de jogo. 0 = as formigas não envelhecem.")]
-        [SerializeField, Min(0f)] float _antLifespanSeconds = 600f;
-        [Tooltip("Variação sorteada por formiga em torno do tempo de vida (0,2 = de 80% a 120%), para a colônia não morrer toda de uma vez.")]
-        [SerializeField, Range(0f, 0.9f)] float _antLifespanVariation = 0.2f;
         [Header("Criação (seções 11, 12 e 19 do design)")]
         [Tooltip("Segundos entre uma postura e a seguinte.")]
         [SerializeField, Min(0.1f)] float _layIntervalSeconds = 18f;
@@ -60,13 +53,11 @@ namespace Fabula.Incrementant.Colony
 
         [Header("Sala Gotas de Orvalho")]
         [Tooltip("Segundos (de jogo) entre uma gota e a seguinte, com a sala pronta (terra fofa e folhas postas).")]
-        [SerializeField, Min(0.1f)] float _dewDropSeconds = 8f;
+        [SerializeField, Min(0.1f)] float _dewDropSeconds = 4f;
         [Tooltip("Parte de cima da sala (por coluna) que as formigas cobrem de terra fofa.")]
         [SerializeField, Range(0.05f, 0.9f)] float _dewSoilShare = 0.3f;
         [Tooltip("Altura mínima (células pintadas na coluna) para a coluna receber terra fofa e folha: abaixo disso a coluna fecharia a passagem.")]
         [SerializeField, Min(2)] int _dewMinColumnHeight = 4;
-        [Tooltip("Pontos de terra fofa por formiga trabalhando na sala ao mesmo tempo (pelo menos uma).")]
-        [SerializeField, Min(1)] int _dewSpotsPerWorker = 8;
         [Tooltip("Água máxima (células) acumulada dentro da sala: cheia, as gotas esperam as formigas levarem a água.")]
         [SerializeField, Min(1)] int _dewMaxRoomWater = 24;
         [Tooltip("Quanto o cuidado acelera a queda das gotas com todos os pontos de queda cobertos (1 = +100% ao ritmo); cobrindo só parte, soma a parte proporcional.")]
@@ -86,9 +77,6 @@ namespace Fabula.Incrementant.Colony
         public float QueenRestChance => _queenRestChance;
         public float QueenRestSeconds => _queenRestSeconds;
         public int MaxDumpOpenings => _maxDumpOpenings;
-        public float DrownSeconds => _drownSeconds;
-        public float AntLifespanSeconds => _antLifespanSeconds;
-        public float AntLifespanVariation => _antLifespanVariation;
         public float RockBreakSeconds => _rockBreakSeconds;
         public float CarePauseSeconds => _carePauseSeconds;
         public int BlocksPerTender => _blocksPerTender;
@@ -103,7 +91,6 @@ namespace Fabula.Incrementant.Colony
         public float DewDropSeconds => _dewDropSeconds;
         public float DewSoilShare => _dewSoilShare;
         public int DewMinColumnHeight => _dewMinColumnHeight;
-        public int DewSpotsPerWorker => _dewSpotsPerWorker;
         public int DewMaxRoomWater => _dewMaxRoomWater;
         public float DewTendBoost => _dewTendBoost;
         public int DewPointsPerTender => _dewPointsPerTender;

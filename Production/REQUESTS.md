@@ -40,6 +40,10 @@
 | REQ-032 | 2026-10-18 | Sala Gotas de Orvalho | PROGRAMMING | UNDEFINED | IMPLEMENTED |
 | REQ-033 | 2026-10-18 | Arte do pulgão menor que a formiga | ART | UNDEFINED | IMPLEMENTED |
 | REQ-034 | 2026-10-18 | Efeitos de dopamina (juice): botões animados, partículas e animações de feedback | PROGRAMMING, ART | UNDEFINED | IN_PROGRESS |
+| REQ-035 | 2026-10-19 | Janela de estatísticas e configurações da colônia | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
+| REQ-036 | 2026-10-19 | Depósitos de alimentos, construção e água; resíduos sem obstruir | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
+| REQ-038 | 2026-10-19 | Liberação de blocos de água por vizinhança e troca de alvo entre formigas | PROGRAMMING | UNDEFINED | IMPLEMENTED |
+| REQ-039 | 2026-10-19 | Melhorias incrementais com nutrientes e formigueiro de dependências | GAME_DESIGN, PROGRAMMING | UNDEFINED | IMPLEMENTED |
 
 ## Registros
 
@@ -646,3 +650,84 @@
   - 2026-10-18 — IN_PROGRESS: fase 3 confirmada em Play Mode pelo desenvolvedor (PRG-041 VERIFIED, partículas ampliadas a pedido); fase 4 implementada (`FloatingText`: +N de nutrientes, -N de gasto, -1 de formiga ferida); compila, falta Play Mode.
   - 2026-10-19 — IN_PROGRESS: revisão das fases 0 a 4 pela skill `juice-dopamina`, a pedido do desenvolvedor. Corrigidos: idle de todos os botões juntos (agora um por vez), recusa só sonora (cor de erro no botão e `!` no mundo), "-N" de gasto tirado da diferença do contador (agora fato com quantia), dano sem agregação, números sem a escala do HUD, escala do hover presa ao desligar efeitos, material das partículas sem destruir. Compila e testes de juice passam (harness dotnet); sem Play Mode. PRG-039 volta a IMPLEMENTED até nova conferência.
   - 2026-10-19 — IN_PROGRESS: o desenvolvedor testou o idle de um botão por vez e achou ruim; pediu todos animados, mais rápido e dessincronizados (ciclo de 1,2 a 2,0 s). Compila; sem Play Mode.
+
+### REQ-035 — Janela de estatísticas e configurações da colônia
+
+- **Data de registro:** 2026-10-19
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, GAME_DESIGN
+- **Descrição:** Botão à esquerda do sino que abre o painel de informações da colônia, em 2 abas. A primeira mostra as estatísticas (formigas trabalhando, onde estão, produção por segundo etc.). A segunda é a configuração da colônia: quantidade de formigas em cada seção, se a seção está ativa (para parar um trabalho) e se a rainha coleta recursos (nutriente ou plantas no exterior) ou fica no ninho botando ovos.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-010, REQ-011
+- **Itens relacionados:** PRG-046
+- **Referências:** [HudGuide.md](../Assets/Project/Scripts/Runtime/UI/HudGuide.md) ("Painel da colônia")
+- **Decisões pendentes:** Lista de seções (8, escolhidas pelo agente a partir dos trabalhos existentes); se a coleta parada deve também parar o recolhimento dos pedaços já cortados; se a rainha deve seguir limites; balanceamento da rainha coletora (ela não põe ovos fora da sala).
+- **Histórico:**
+  - 2026-10-19 — IMPLEMENTED: painel, seções com interruptor e limite, rainha coletora e save versão 16. Testes EditMode novos passando e Play Mode pelo agente com as duas abas; falta uso por uma pessoa.
+  - 2026-10-19 — IMPLEMENTED: a pedido do desenvolvedor, novo botão COLETAR NUTRIENTE, que força a rainha a ficar na sala de nutrientes comendo cada nutriente pronto (sem cortar plantas nem pôr ovos). Teste EditMode novo passando e botão conferido em Play Mode pelo agente.
+  - 2026-10-19 — IMPLEMENTED: o desenvolvedor relatou que a rainha nunca parava de coletar nutrientes. Causa: a regra de 2026-10-18 (a rainha ociosa vai comer o nutriente guardado) seguia valendo no modo NINHO. Agora, no ninho, ela não sai para comer (as formigas entregam); só a rainha sem nenhuma adulta ainda vai comer. Teste `BroodTests.InTheNest_TheQueenNoLongerLeavesToEat_OnlyWithTheNutrientJob` passando; sem Play Mode.
+
+### REQ-036 — Depósitos de alimentos, construção e água; resíduos sem obstruir
+
+- **Data de registro:** 2026-10-19
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, GAME_DESIGN
+- **Descrição:** Três salas novas de armazenamento: alimentos (plantas), objetos de construção (blocos cavados) e água. O que é guardado nelas não obstrui a passagem, para tudo ser preenchido sem atrapalhar. A área de resíduos também deixa de obstruir o caminho. O consumo de plantas, água e blocos sai sempre do depósito do tipo; só sem o depósito usa o que está do lado de fora. Os três depósitos ficam num submenu da seção Depósito.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-027 (cultivo), REQ-029 (área de resíduos), REQ-032 (sala Gotas de Orvalho), REQ-016 (obra)
+- **Itens relacionados:** PRG-047, PRG-034
+- **Referências:** [StorageGuide.md](../Assets/Project/Scripts/Runtime/Colony/StorageGuide.md), [RaidGuide.md](../Assets/Project/Scripts/Runtime/Colony/RaidGuide.md) ("Área de resíduos"), [HudGuide.md](../Assets/Project/Scripts/Runtime/UI/HudGuide.md)
+- **Decisões pendentes:** Areia e rocha não entram no depósito de construção. Item guardado se perde se material sólido cair na célula. Ícones dos botões provisórios.
+- **Histórico:**
+  - 2026-10-19 — IMPLEMENTED: camada de itens guardados na grade, três pincéis no submenu Ambientes → DEPÓSITO, consumo pelo depósito com volta ao comportamento antigo sem ele, itens soltos levados ao destino, resíduo como item guardado (antigo vira item ao carregar) e save versão 17. Testes EditMode novos passando; Play Mode pelo agente; falta uma pessoa jogar.
+  - 2026-10-19 — IMPLEMENTED: o desenvolvedor pediu que o depósito de construção também receba os blocos já despejados antes dele (a pilha de fora). As ociosas levam a pilha ao depósito sempre que há vaga, sem depender de obra ou canteiro pedindo terra; resolve a decisão pendente sobre a reposição. Teste novo `PileOutside_DumpedBeforeTheDepot_IsCarriedIntoIt` passando na Unity.
+
+### REQ-037 — Formigas sem trabalho se comportam como operárias
+
+- **Data de registro:** 2026-10-19
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, GAME_DESIGN
+- **Descrição:** Formigas que estão sem trabalho se comportam como operárias: soldados sem combate viram operárias, cortadeiras sem trabalho viram operárias, e assim por diante.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-035 (seções de trabalho do painel continuam valendo)
+- **Itens relacionados:** PRG-048, PRG-019, PRG-034
+- **Referências:** [AntFarmGuide.md](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md) ("Sem trabalho do papel, faz o da comum")
+- **Decisões pendentes:** O agente manteve velocidade, carga, vida e ritmos do papel durante o trabalho emprestado (só as prioridades viram as da comum) e não mudou o papel no painel nem no save; confirmar. A carregadora emprestada num cuidado contínuo (berçário, sala de nutrientes) só sai quando sobra gente, como a comum.
+- **Histórico:**
+  - 2026-10-19 — IMPLEMENTED: segunda passada de decisão com as prioridades da comum quando o papel não tem trabalho; quem está emprestada num cuidado contínuo volta ao papel quando ele tem trabalho. 3 testes EditMode novos e 2 testes antigos ajustados à regra nova; falta Play Mode e uma pessoa jogar.
+
+### REQ-038 — Liberação de blocos de água por vizinhança e troca de alvo entre formigas
+
+- **Data de registro:** 2026-10-19
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING
+- **Descrição:** As formigas só pegavam blocos de superfície parados; ao guardar água, a água que se move fazia elas perderem a referência e ficarem paradas até a água assentar ou outra formiga tirar um bloco parado. O bloco reservado deve avisar os vizinhos de que já está fora do caminho, para outras formigas já virem pegar os próximos; se a formiga do bloco ainda obstruído chegar antes da formiga do bloco disponível, ela pega esse bloco e passa à outra o bloco que ia pegar, mantendo o fluxo.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-027 (cultivo, água dos canteiros), REQ-036 (depósito de água)
+- **Itens relacionados:** PRG-049, PRG-033, PRG-047
+- **Referências:** [AntFarmGuide.md](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md) ("Liberação de blocos de água por vizinhança")
+- **Decisões pendentes:** O agente liberou um nível de vizinhança por bloco exposto (8 vizinhos) e, na chegada sem água ao alcance, a formiga reserva um bloco livre a um passo antes de esperar o campo; confirmar.
+- **Histórico:**
+  - 2026-10-19 — IMPLEMENTED: liberação por vizinhança, troca de alvo e busca a um passo; 2 testes EditMode novos passando no harness dotnet; falta rodar na Unity e ver em Play Mode.
+
+### REQ-039 — Melhorias incrementais com nutrientes e formigueiro de dependências
+
+- **Data de registro:** 2026-10-19
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** GAME_DESIGN, PROGRAMMING
+- **Descrição:** "Vamos trabalhar nos upgrades das formigas e do formigueiro. Hoje temos poucos upgrades de ambos. Gostaria de expandir para transformar o jogo em um incremental com diversos upgrades utilizando o recurso de nutrientes." Só documentar, sem construir. Decidido pelo desenvolvedor em 2026-10-19: níveis mistos (teto nos atributos físicos, infinitos na economia), prestígio só como ideia futura, níveis exibidos dentro dos nós da árvore e "mais elementos com dependência", com os dois tipos de upgrade seguindo um padrão formigueiro com vários elementos em dependência ao redor do jogo.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-017 (árvore da rainha), REQ-009 (design revisado em Docs)
+- **Itens relacionados:** GD-008, PRG-050
+- **Referências:** [39 — Melhorias incrementais e formigueiro de dependências](../Docs/01_Design/39_Melhorias_incrementais_e_formigueiro_de_dependencias.md), [planilha de valores](../Docs/04_Data/39_Melhorias_incrementais_valores.xlsx), [QueenTreeGuide.md](../Assets/Project/Scripts/Runtime/Colony/QueenTreeGuide.md)
+- **Decisões pendentes:** Se a profundidade dá bônus direto; quais condições do mundo entram além de ataques e adultas; requisitos cruzados acrescentados a nós que já existem (Q2, L2, D2, E2, J0, J1, N0); construção não foi pedida.
+- **Histórico:**
+  - 2026-10-19 — registrado.
+  - 2026-10-19 — IMPLEMENTED: documento 39 (64 câmaras, 36 galerias, regras de custo, profundidade, marcos e mapa de dependências) e planilha com fórmulas recalculadas sem erro no LibreOffice; nada construído no jogo.
+  - 2026-10-19 — Decidido pelo desenvolvedor: a seção 28 passa a permitir níveis repetíveis e os valores sugeridos da planilha são os iniciais; próximo passo sugerido por ele: montar a UI.
+  - 2026-10-19 — Ajuste pedido: começar a implementação pela UI, com placeholders; "arrastar e zoom: o formigueiro fica maior que a tela, centrado na câmara central, e os anéis fechados aparecem como terra escura". Feito: PRG-050 (catálogo, layout, janela com arrastar e zoom, anéis, portais, detalhe com ×1/×10/MÁX); testes EditMode novos passando na Unity e Play Mode pelo agente. Câmaras novas e galerias continuam sem sistema (EM BREVE, KI-024).

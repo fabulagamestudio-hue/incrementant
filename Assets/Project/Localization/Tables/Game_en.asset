@@ -153,7 +153,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1349787679
-    m_Localized: Common
+    m_Localized: Worker
     m_Metadata:
       m_Items: []
   - m_Id: 1349787680
@@ -527,7 +527,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353981964
-    m_Localized: COMMON
+    m_Localized: WORKER
     m_Metadata:
       m_Items: []
   - m_Id: 1353981965
@@ -717,7 +717,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982007
-    m_Localized: "No cycles before the nursery \u2192 1 egg every 18 s"
+    m_Localized: With the nursery ready, the queen lays 1 egg every 18 s
     m_Metadata:
       m_Items: []
   - m_Id: 1353982008
@@ -725,7 +725,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982009
-    m_Localized: "18 s per cycle \u2192 12 s per cycle (\u221233%)"
+    m_Localized: The queen lays an egg every 12 s instead of 18 s
     m_Metadata:
       m_Items: []
   - m_Id: 1353982010
@@ -733,16 +733,15 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982011
-    m_Localized: "1 egg per cycle \u2192 up to 3 eggs per cycle; each pays its own
-      cost, partial batch if food or space runs out"
+    m_Localized: Up to 3 eggs per laying, if there is food and nursery space
     m_Metadata:
       m_Items: []
   - m_Id: 1353982012
-    m_Localized: Common worker
+    m_Localized: Worker
     m_Metadata:
       m_Items: []
   - m_Id: 1353982013
-    m_Localized: 'Generalist: keeps up all basic tasks'
+    m_Localized: Does every basic task in the colony
     m_Metadata:
       m_Items: []
   - m_Id: 1353982014
@@ -750,7 +749,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982015
-    m_Localized: "Load of 2 UM or 32 cells \u2192 3 UM or 48 (+50%) for common workers"
+    m_Localized: Workers carry 3 plant pieces instead of 2 and 4 soil instead of
+      3
     m_Metadata:
       m_Items: []
   - m_Id: 1353982016
@@ -758,7 +758,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982017
-    m_Localized: "24 cells/s \u2192 30 cells/s (+25%) for common workers"
+    m_Localized: Workers walk 25% faster
     m_Metadata:
       m_Items: []
   - m_Id: 1353982018
@@ -766,8 +766,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982019
-    m_Localized: "No pulling of adults \u2192 rescues an adult up to 8 cells from
-      the edge"
+    m_Localized: Workers rescue buried nestmates near the tunnel edge
     m_Metadata:
       m_Items: []
   - m_Id: 1353982020
@@ -775,7 +774,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982021
-    m_Localized: 'Unlocks the class: 28 cells/s, load 4 UM'
+    m_Localized: 'New class: carries 4 plant pieces per trip and walks 17% faster
+      than a worker'
     m_Metadata:
       m_Items: []
   - m_Id: 1353982022
@@ -783,7 +783,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982023
-    m_Localized: "4 UM \u2192 6 UM (+50%)"
+    m_Localized: Carriers carry 6 plant pieces instead of 4
     m_Metadata:
       m_Items: []
   - m_Id: 1353982024
@@ -791,7 +791,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982025
-    m_Localized: "Solo \u2192 2 carriers carry a piece of up to 8 UM"
+    m_Localized: Two carriers carry a big piece together
     m_Metadata:
       m_Items: []
   - m_Id: 1353982026
@@ -799,7 +799,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982027
-    m_Localized: "28 cells/s \u2192 35 cells/s (+25%)"
+    m_Localized: Carriers walk 25% faster
     m_Metadata:
       m_Items: []
   - m_Id: 1353982028
@@ -807,7 +807,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982029
-    m_Localized: 'Unlocks the class: cuts 2 UM in 1 s (common takes 2 s)'
+    m_Localized: "New class: cuts plants 2\xD7 faster than a worker"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982030
@@ -815,7 +815,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982031
-    m_Localized: "2 UM in 1 s \u2192 4 UM in 1.5 s"
+    m_Localized: Cutters cut 33% faster
     m_Metadata:
       m_Items: []
   - m_Id: 1353982032
@@ -823,7 +823,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982033
-    m_Localized: 'Unlocks the class: digs 32 cells/s (common does 16)'
+    m_Localized: "New class: digs 2\xD7 faster than a worker and carries 6 soil per
+      trip"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982034
@@ -831,7 +832,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982035
-    m_Localized: "32 cells/s \u2192 48 cells/s (+50%) when digging"
+    m_Localized: Diggers dig 50% faster and carry 9 soil instead of 6
     m_Metadata:
       m_Items: []
   - m_Id: 1353982036
@@ -839,7 +840,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982037
-    m_Localized: "Stone blocks \u2192 breaks 4 rock cells/s"
+    m_Localized: Diggers can break rock
     m_Metadata:
       m_Items: []
   - m_Id: 1353982038
@@ -847,7 +848,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982039
-    m_Localized: 'Unlocks the class: tends the crops (serves 6 B, common 4 B)'
+    m_Localized: 'New class: tends the beds and covers an area 50% larger than a
+      worker'
     m_Metadata:
       m_Items: []
   - m_Id: 1353982040
@@ -855,7 +857,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982041
-    m_Localized: "Growth (nutrient curing) \xD71 \u2192 \xD71.3 in the served area"
+    m_Localized: Beds tended by gardeners are ready 30% faster
     m_Metadata:
       m_Items: []
   - m_Id: 1353982042
@@ -863,7 +865,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982043
-    m_Localized: "Setup of 8 s per B \u2192 4 s per B"
+    m_Localized: Gardeners set up new beds in half the time
     m_Metadata:
       m_Items: []
   - m_Id: 1353982044
@@ -871,7 +873,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982045
-    m_Localized: 'Unlocks the class: tends 4 brood in 3 s'
+    m_Localized: 'New class: tends the brood 33% faster than a worker'
     m_Metadata:
       m_Items: []
   - m_Id: 1353982046
@@ -879,7 +881,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982047
-    m_Localized: "4 brood per trip \u2192 8 brood per trip"
+    m_Localized: Nurses tend 8 brood at once instead of 4
     m_Metadata:
       m_Items: []
   - m_Id: 1353982048
@@ -887,7 +889,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982049
-    m_Localized: "No evacuation \u2192 carries 2 brood per trip, with emergency priority"
+    m_Localized: In danger, nurses carry the brood away, 2 per trip
     m_Metadata:
       m_Items: []
   - m_Id: 1353982050
@@ -895,8 +897,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982051
-    m_Localized: 'Unlocks the class: damage 3/s, health 18 (after the first termite
-      attack)'
+    m_Localized: "New class, after the first termite attack: fights with 3\xD7 a
+      worker's damage and health"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982052
@@ -904,7 +906,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982053
-    m_Localized: "Damage 3/s \u2192 4.5/s (+50%)"
+    m_Localized: Soldiers deal 50% more damage
     m_Metadata:
       m_Items: []
   - m_Id: 1353982054
@@ -912,7 +914,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982055
-    m_Localized: "Health 18 \u2192 27 (+50%)"
+    m_Localized: Soldiers have 50% more health
     m_Metadata:
       m_Items: []
   - m_Id: 1353982056
@@ -920,8 +922,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982057
-    m_Localized: "Combat without knockback \u2192 pushes the invader 4 cells every
-      3 s"
+    m_Localized: Soldiers push termites back every 3 s
     m_Metadata:
       m_Items: []
   - m_Id: 1353982058
@@ -929,7 +930,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982059
-    m_Localized: "No production \u2192 0.25 UM/s per B; 3 N per UM of leaf"
+    m_Localized: Unlocks the nutrient room, where beds turn plants into nutrients
     m_Metadata:
       m_Items: []
   - m_Id: 1353982060
@@ -937,7 +938,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982061
-    m_Localized: "0.25 UM/s per B \u2192 0.325 UM/s per B (+30%)"
+    m_Localized: Beds produce 30% faster
     m_Metadata:
       m_Items: []
   - m_Id: 1353982062
@@ -945,8 +946,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982063
-    m_Localized: "Direct leaves \u2192 prepares 2 UM in 2 s; reserve of 12 UM per
-      B"
+    m_Localized: Unlocks an area where ants chop plants and keep a reserve for the
+      beds
     m_Metadata:
       m_Items: []
   - m_Id: 1353982064
@@ -954,7 +955,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982065
-    m_Localized: "3 N per UM of leaf \u2192 3.6 N (+20%); fruit 6 \u2192 7.2 N"
+    m_Localized: Each plant yields 20% more nutrients
     m_Metadata:
       m_Items: []
   - m_Id: 1353982066
@@ -962,8 +963,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982067
-    m_Localized: Redistributes the prepared reserve among crops; target of 6 UM per
-      B
+    m_Localized: Ants bring the prepared reserve to beds that are running low
     m_Metadata:
       m_Items: []
   - m_Id: 1353982068
@@ -971,7 +971,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982069
-    m_Localized: "No new brood \u2192 2 brood slots per B"
+    m_Localized: 'Unlocks the nursery: without it, the queen lays no eggs'
     m_Metadata:
       m_Items: []
   - m_Id: 1353982070
@@ -979,7 +979,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982071
-    m_Localized: "Larva 14 s \u2192 10.5 s (\u221225%)"
+    m_Localized: Larvae grow 25% faster
     m_Metadata:
       m_Items: []
   - m_Id: 1353982072
@@ -987,7 +987,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982073
-    m_Localized: "Pupa 12 s \u2192 9 s (\u221225%)"
+    m_Localized: Pupae become adults 25% faster
     m_Metadata:
       m_Items: []
   - m_Id: 1353982074
@@ -995,7 +995,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982075
-    m_Localized: "2 slots per B \u2192 3 slots per B (+50%)"
+    m_Localized: The nursery holds 50% more brood in the same space
     m_Metadata:
       m_Items: []
   - m_Id: 1353982076
@@ -1003,7 +1003,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982077
-    m_Localized: "6 UM per B in cultivation \u2192 20 UM per B in storage"
+    m_Localized: Unlocks the food storage to keep plants
     m_Metadata:
       m_Items: []
   - m_Id: 1353982078
@@ -1011,7 +1011,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982079
-    m_Localized: "20 UM per B \u2192 30 UM per B (+50%)"
+    m_Localized: Storages hold 50% more in the same space
     m_Metadata:
       m_Items: []
   - m_Id: 1353982080
@@ -1019,8 +1019,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982081
-    m_Localized: "Loose loads of up to 4 UM \u2192 stores whole pieces of up to 8
-      UM"
+    m_Localized: Storages keep big pieces whole
     m_Metadata:
       m_Items: []
   - m_Id: 1353982082
@@ -1028,8 +1027,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982083
-    m_Localized: "Waste takes up its source \u2192 12 UR per B; decomposition of
-      120 s per UR"
+    m_Localized: Unlocks the waste area, where scraps and bodies go
     m_Metadata:
       m_Items: []
   - m_Id: 1353982084
@@ -1037,7 +1035,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982085
-    m_Localized: "120 s per UR \u2192 60 s per UR (\u221250%)"
+    m_Localized: "Waste disappears 2\xD7 faster"
     m_Metadata:
       m_Items: []
   - m_Id: 23881588736
@@ -1070,8 +1068,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 22553245786112
-    m_Localized: Anthill rooms. Paint where the queen, the farm, the brood, the waste
-      and the dew go.
+    m_Localized: Anthill rooms. Paint where the queen, the farm, the brood, the waste,
+      the dew and the storage go.
     m_Metadata:
       m_Items: []
   - m_Id: 22553245786113
@@ -1162,7 +1160,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 22553245786132
-    m_Localized: 'Common: does a bit of everything and cuts plants when it has no
+    m_Localized: 'Worker: does a bit of everything and cuts plants when it has no
       other task.'
     m_Metadata:
       m_Items: []
@@ -1283,8 +1281,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 22553245786160
-    m_Localized: 'Missing: free space. Dig the area, with free floor to leave waste
-      on.'
+    m_Localized: 'Missing: free space. Dig the area; any empty cell holds one piece
+      of waste.'
     m_Metadata:
       m_Items: []
   - m_Id: 22553245786161
@@ -1353,6 +1351,897 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 37542220275712
     m_Localized: 'Back to work: ants resume their tasks.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986930204672
+    m_Localized: TERMITE ATTACK INCOMING! WAITING OUT THE RAIN
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370496
+    m_Localized: 'Colony panel: ant and production statistics, and which jobs stay
+      active.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370497
+    m_Localized: COLONY PANEL
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370498
+    m_Localized: STATISTICS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370499
+    m_Localized: WORK SECTION
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370500
+    m_Localized: NOW
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370501
+    m_Localized: ANT LIMIT
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370502
+    m_Localized: QUEEN'S JOB
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370503
+    m_Localized: 'NEST: LAY EGGS'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370504
+    m_Localized: GATHER RESOURCES
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370505
+    m_Localized: ALL ACTIVE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370506
+    m_Localized: ANTS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370507
+    m_Localized: Adults
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370508
+    m_Localized: Brood
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370509
+    m_Localized: Without a job
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370510
+    m_Localized: Fighting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564800
+    m_Localized: BY TYPE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564801
+    m_Localized: WORKING ON
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564802
+    m_Localized: QUEEN
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564803
+    m_Localized: 'Bell rung: called back'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564804
+    m_Localized: WHERE THEY ARE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564805
+    m_Localized: PRODUCTION PER SECOND
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564806
+    m_Localized: Digging
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564807
+    m_Localized: Building
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564808
+    m_Localized: Plant gathering
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564809
+    m_Localized: Feeding the queen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564810
+    m_Localized: Nursery
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564811
+    m_Localized: Nutrient room
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564812
+    m_Localized: Dew drops
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564813
+    m_Localized: Waste
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564814
+    m_Localized: Outdoors
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564815
+    m_Localized: Tunnels
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564816
+    m_Localized: Queen's room
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564817
+    m_Localized: Nursery
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564818
+    m_Localized: Nutrient room
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564819
+    m_Localized: Dew drops
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564820
+    m_Localized: Waste
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564821
+    m_Localized: Nutrient to queen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564822
+    m_Localized: Nutrient sprouted
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564823
+    m_Localized: Plant harvested
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564824
+    m_Localized: Soil dug out
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564825
+    m_Localized: STOPPED
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564826
+    m_Localized: NOW {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564827
+    m_Localized: NO LIMIT
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564828
+    m_Localized: MAX {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564829
+    m_Localized: In the nest, laying eggs
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564830
+    m_Localized: Gathering resources
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564831
+    m_Localized: 'The queen stays in her room laying eggs. Now: {0}.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564832
+    m_Localized: 'The queen gathers and lays no eggs outside her room. Now: {0}.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564833
+    m_Localized: Click to turn on or stop. Stopped, no new ant joins; those in it
+      finish what they carry.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564834
+    m_Localized: Lowers the ant limit for this section.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564835
+    m_Localized: Raises the limit; above the total number of ants, there is no limit.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564836
+    m_Localized: Turns every section on and removes every limit.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564837
+    m_Localized: The queen stays in her room and lays eggs.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564838
+    m_Localized: 'The queen goes out to gather: she eats stored nutrient and cuts
+      and carries plants from outside. Meanwhile, she lays no eggs.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564839
+    m_Localized: 'Digging: dig the marked soil and carry it outside.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564840
+    m_Localized: 'Building: fetch soil from the outside pile and raise the structures.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564841
+    m_Localized: 'Plant gathering: cut outside plants and carry the pieces to the
+      beds.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564842
+    m_Localized: 'Feeding the queen: carry stored nutrient to her.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564843
+    m_Localized: 'Nursery: carry the eggs and tend the brood.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564844
+    m_Localized: 'Nutrient room: build beds, water them and tend what sprouts.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564845
+    m_Localized: 'Dew drops: loose soil on the ceiling and care of the drops.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564846
+    m_Localized: 'Waste: dismember dead termites and carry the remains away.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 320654177964032
+    m_Localized: GATHER NUTRIENT
+    m_Metadata:
+      m_Items: []
+  - m_Id: 320654177964033
+    m_Localized: Gathering nutrient
+    m_Metadata:
+      m_Items: []
+  - m_Id: 320654177964034
+    m_Localized: 'In the nutrient room, eating each ready nutrient (no eggs). Now:
+      {0}.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 320654177964035
+    m_Localized: The queen goes to the nutrient room, stays there and eats each nutrient
+      as soon as it is ready, without cutting plants. Meanwhile, she lays no eggs.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726718664704
+    m_Localized: Food storage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859008
+    m_Localized: Building storage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859009
+    m_Localized: Water storage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859010
+    m_Localized: STORAGE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859011
+    m_Localized: Food, building and water storage. What the ants bring from outside
+      is kept there, without blocking the way, and is used from there first.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859012
+    m_Localized: 'Food storage: keeps the cut plant pieces. With it, the beds and
+      the dew room only get plants from here.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859013
+    m_Localized: 'Building storage: keeps the dug soil. With it, builds, beds and
+      the dew room only use the soil from here.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859014
+    m_Localized: 'Water storage: keeps the water taken from the map. With it, the
+      beds are only watered with the water from here.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859015
+    m_Localized: 'Missing: paint the storage (Environments > Storage).'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859016
+    m_Localized: 'Missing: free space. Dig the storage; any empty cell holds one
+      item.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859017
+    m_Localized: 'Working: {0} stored, {1} free slots.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332730325766144
+    m_Localized: FOOD STORAGE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332730858442752
+    m_Localized: BUILDING STORAGE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332731399507968
+    m_Localized: WATER STORAGE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 350737034874880
+    m_Localized: Drag to pick the limit; at the end of the track, there is no limit.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 381798674567168
+    m_Localized: Filling water depot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707392
+    m_Localized: DEW
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707393
+    m_Localized: WORKS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707394
+    m_Localized: OUTSIDE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707395
+    m_Localized: DEFENSE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707396
+    m_Localized: ROYAL CHAMBER
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707397
+    m_Localized: "DRAG TO MOVE  \xB7  MOUSE WHEEL TO ZOOM"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707398
+    m_Localized: MAX
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707399
+    m_Localized: DEPTH {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707400
+    m_Localized: "UNDUG SOIL \xB7 OPENS AT DEPTH {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707401
+    m_Localized: CHAMBER
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707402
+    m_Localized: GALLERY
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707403
+    m_Localized: LV {0}/{1}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707404
+    m_Localized: LV {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707405
+    m_Localized: "TOTAL {0} \u2192 {1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707406
+    m_Localized: TOTAL {0} (COMPLETE)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707407
+    m_Localized: MILESTONE AT LV {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707408
+    m_Localized: 'COST: {0} N'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707409
+    m_Localized: '+{0} LV: {1} N'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707410
+    m_Localized: 5 ATTACKS SURVIVED
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707411
+    m_Localized: 50 ADULTS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901696
+    m_Localized: Queen's garden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901697
+    m_Localized: Ready nutrients near the queen go straight to the balance, with
+      no carrying
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901698
+    m_Localized: Twin brood
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901699
+    m_Localized: 10% of eggs become two larvae for the price of one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901700
+    m_Localized: Building storage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901701
+    m_Localized: Unlocks the building storage brush
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901702
+    m_Localized: Water storage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901703
+    m_Localized: Unlocks the water storage brush
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901704
+    m_Localized: Integrated logistics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901705
+    m_Localized: Idle ants move items to the storage closest to whoever will use
+      them
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901706
+    m_Localized: Dew drop room
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901707
+    m_Localized: Unlocks the dew room brush
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901708
+    m_Localized: Collecting leaves
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901709
+    m_Localized: Each dew drop yields twice the water
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901710
+    m_Localized: Dawn mist
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901711
+    m_Localized: Drops also water the beds next to the room
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901712
+    m_Localized: Organized dump
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901713
+    m_Localized: "2 more exits to dump soil (4 \u2192 6)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901714
+    m_Localized: Beaten paths
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901715
+    m_Localized: 'Busy tunnels become trails: +10% speed inside the anthill'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901716
+    m_Localized: Foraging trail
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901717
+    m_Localized: Ants walk 10% faster outside the anthill
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901718
+    m_Localized: Tended garden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901719
+    m_Localized: Plants cut near the entrance grow back in the same spot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901720
+    m_Localized: Guarded entrances
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901721
+    m_Localized: "The attack warning comes 4 s earlier (8 \u2192 12 s)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901722
+    m_Localized: Refuge chamber
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901723
+    m_Localized: 'Unlocks the refuge brush: on the attack warning, brood and nurses
+      go there'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901724
+    m_Localized: Field laying
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901725
+    m_Localized: The queen also lays eggs while foraging or in the nutrient room
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901726
+    m_Localized: Versatile worker
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901727
+    m_Localized: With no specialist nearby, a worker does its task with half the
+      bonus
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901728
+    m_Localized: Convoy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901729
+    m_Localized: Groups of carriers bring big pieces whole straight to storage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901730
+    m_Localized: Selective pruning
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901731
+    m_Localized: Plants cut by cutters grow back 50% faster
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901732
+    m_Localized: Wide front
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901733
+    m_Localized: Diggers dig 2 neighboring cells at a time
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901734
+    m_Localized: Symbiosis
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901735
+    m_Localized: Beds tended by gardeners leave no old fungus waste
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901736
+    m_Localized: Wet nurse
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901737
+    m_Localized: Each brood costs 10% less food (with Royal jelly, at most 40% less)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901738
+    m_Localized: Royal guard
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901739
+    m_Localized: On the attack warning, up to 4 soldiers surround the queen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901740
+    m_Localized: Enlarged royal chamber
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901741
+    m_Localized: 'Each adult takes 4% less space per level: more ants fit'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901742
+    m_Localized: Vigorous fungus
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901743
+    m_Localized: Beds are ready 8% faster per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901744
+    m_Localized: Nutritious harvest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901745
+    m_Localized: Each nutrient delivery is worth 5% more per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901746
+    m_Localized: Quick curing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901747
+    m_Localized: Nutrients are ready to carry 4% faster per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901748
+    m_Localized: Warm beds
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901749
+    m_Localized: Larvae and pupae grow 3% faster per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901750
+    m_Localized: Extra slots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901751
+    m_Localized: Each brood takes 5% less nursery space per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901752
+    m_Localized: Stacking
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901753
+    m_Localized: Storages hold 25% more per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901754
+    m_Localized: Preservation
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901755
+    m_Localized: Food spoils 5% slower in storage per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901756
+    m_Localized: Plentiful dew
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901757
+    m_Localized: Dew drops fall 5% faster per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901758
+    m_Localized: Reservoir
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901759
+    m_Localized: The dew room holds +4 water per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901760
+    m_Localized: Cheap works
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901761
+    m_Localized: Painting rooms costs 3% less per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901762
+    m_Localized: Work fronts
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901763
+    m_Localized: Every ant digs 3% faster per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901764
+    m_Localized: Sprouting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901765
+    m_Localized: Outdoor plants grow 6% faster per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901766
+    m_Localized: Trail pheromone
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901767
+    m_Localized: Ants walk 3% faster outside the anthill per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901768
+    m_Localized: Scent
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901769
+    m_Localized: Ants find plants 5% farther away per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901770
+    m_Localized: Reinforced walls
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901771
+    m_Localized: Termites take 10% longer to break walls per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901772
+    m_Localized: Lookouts
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901773
+    m_Localized: The attack warning comes 1 s earlier per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901774
+    m_Localized: Fertility
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901775
+    m_Localized: The queen lays eggs 3% faster per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901776
+    m_Localized: Royal jelly
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901777
+    m_Localized: Each brood costs 2% less food per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901778
+    m_Localized: Royal vigor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901779
+    m_Localized: The queen has 10% more health per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901780
+    m_Localized: Steady stride
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901781
+    m_Localized: Workers walk 4% faster per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901782
+    m_Localized: Vitality
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901783
+    m_Localized: Every adult has 10% more health in combat per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901784
+    m_Localized: Work mandible
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901785
+    m_Localized: Workers cut plants 3% faster per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901786
+    m_Localized: Broad back
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901787
+    m_Localized: Carriers carry +1 plant piece per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901788
+    m_Localized: Hauling stride
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901789
+    m_Localized: Carriers walk 4% faster per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901790
+    m_Localized: Serration
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901791
+    m_Localized: Cutters cut 4% faster per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901792
+    m_Localized: Shovel mandibles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901793
+    m_Localized: Diggers dig 4% faster per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901794
+    m_Localized: Soil load
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901795
+    m_Localized: Diggers carry +1 soil per trip per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901796
+    m_Localized: Crusher
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901797
+    m_Localized: Diggers break rock 6% faster per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901798
+    m_Localized: Green thumb
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901799
+    m_Localized: Gardeners make beds 5% faster per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901800
+    m_Localized: Dew keeper
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901801
+    m_Localized: Gardeners make dew drops fall 10% faster per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901802
+    m_Localized: Attentive care
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901803
+    m_Localized: Nurses pause 5% less between tasks per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901804
+    m_Localized: Double shift
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901805
+    m_Localized: Each nurse covers +1 nursery section per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901806
+    m_Localized: Sharp mandibles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901807
+    m_Localized: Soldiers deal 8% more damage per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901808
+    m_Localized: Thick carapace
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901809
+    m_Localized: Soldiers have 8% more health per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901810
+    m_Localized: Recovery
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901811
+    m_Localized: Wounded soldiers start healing 5% sooner per level
     m_Metadata:
       m_Items: []
   references:

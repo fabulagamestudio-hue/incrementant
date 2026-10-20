@@ -175,40 +175,50 @@ namespace Fabula.Incrementant.EditorTools.UI
             // --- submenus de pincéis (ao lado do menu; escondidos até clicar em Pintar ou Ambientes). Os botões ficam num
             // vetor único na ordem de AntFarmGame.BrushLabels; cada grupo só decide em qual painel o botão mora.
             int brushCount = AntFarmGame.BrushCount;
-            string[] brushIcons = { "icons/shovel", "icons/crate", "icons/crown", "icons/mushroom", "icons/egg", "icons/close", "icons/hand_index_up", "icons/leaf" };
+            string[] brushIcons =
+            {
+                "icons/shovel", "icons/crate", "icons/crown", "icons/mushroom", "icons/egg", "icons/close", "icons/hand_index_up", "icons/leaf",
+                "icons/leaf", "icons/crate", "icons/arrow_down",
+            };
             int[] paintBrushes = { 0, 1, 6 };       // Cavar, Construir, Dedo
             int[] environmentBrushes = { 2, 3, 4, 5, 7 }; // Sala da rainha, Sala de nutrientes, Berçário, Resíduos, Gotas de orvalho
+            int[] depotBrushes = { 8, 9, 10 };      // Depósitos de alimentos, de construção e de água (submenu DEPÓSITO)
             var brushButtons = new Button[brushCount];
             var brushImages = new Image[brushCount];
             Image paint = BuildBrushPanel(root, "SubmenuFerramenta", "FERRAMENTA", paintBrushes, brushIcons, brushButtons, brushImages);
-            Image environment = BuildBrushPanel(root, "SubmenuAmbientes", "AMBIENTES", environmentBrushes, brushIcons, brushButtons, brushImages);
+            Image environment = BuildBrushPanel(root, "SubmenuAmbientes", "AMBIENTES", environmentBrushes, brushIcons, brushButtons, brushImages,
+                                                extraRows: 1);
+            // Última linha do Ambientes: DEPÓSITO abre o submenu dos depósitos, à direita do painel.
+            Button depotButton = BuildButton(environment.transform, "Deposito", new Vector2(0.5f, 1),
+                                             new Vector2(0, -56 - environmentBrushes.Length * 50), new Vector2(368, 42), "icons/crate",
+                                             "DEPÓSITO", interactable: true, out Image depotImage);
+            // Mais largo: "DEPÓSITO DE CONSTRUÇÃO" tem 22 letras de 16 px.
+            Image depot = BuildBrushPanel(root, "SubmenuDeposito", "DEPÓSITO", depotBrushes, brushIcons, brushButtons, brushImages,
+                                          width: 456);
+            depot.rectTransform.anchoredPosition = new Vector2(696, -214 - environmentBrushes.Length * 50);
             SetObject(refs, "_paintPanel", paint.gameObject);
             SetObject(refs, "_environmentPanel", environment.gameObject);
+            SetObject(refs, "_depotButton", depotButton);
+            SetObject(refs, "_depotButtonImage", depotImage);
+            SetObject(refs, "_depotPanel", depot.gameObject);
             SetArray(refs, "_brushButtons", brushButtons);
             SetArray(refs, "_brushImages", brushImages);
 
             BuildQueenPanel(root, refs);
             BuildRaidAlert(root, refs);
 
-            // --- velocidade (canto inferior esquerdo)
-            Image speedPanel = BuildSprite(root, "Velocidade", "panels/hud_card", new Vector2(0, 0), new Vector2(0, 0),
-                                           new Vector2(16, 16), new Vector2(284, 76));
+            // --- canto inferior esquerdo, em linha: pausa, painel da colônia (estatísticas) e sino (recolhe as formigas ao
+            // formigueiro / manda de volta ao trabalho). Sem botões de acelerar o tempo (as teclas 1/2/3 seguem valendo).
+            Image pausePanel = BuildSprite(root, "Pausa", "panels/hud_card", new Vector2(0, 0), new Vector2(0, 0),
+                                           new Vector2(16, 16), new Vector2(84, 76));
             Sprite iconIdle = Load("buttons/icon_button");
-            Button pause = BuildIconButton(speedPanel.transform, "Pausa", 0, "icons/pause", null, out Image pauseImage);
-            int speedCount = AntFarmGame.SpeedCount;
-            var speedButtons = new Button[speedCount];
-            var speedImages = new Image[speedCount];
-            for (int i = 0; i < speedCount; i++)
-                speedButtons[i] = BuildIconButton(speedPanel.transform, "Velocidade" + i, i + 1, null,
-                                                  AntFarmGame.SpeedMultiplier(i) + "X", out speedImages[i]);
+            Button pause = BuildIconButton(pausePanel.transform, "Pausa", 0, "icons/pause", null, out Image pauseImage);
             SetObject(refs, "_pauseButton", pause);
             SetObject(refs, "_pauseImage", pauseImage);
-            SetArray(refs, "_speedButtons", speedButtons);
-            SetArray(refs, "_speedImages", speedImages);
 
-            // --- sino (acima da velocidade): recolhe as formigas ao formigueiro / manda de volta ao trabalho
+            BuildColonyButton(root, refs);
             Image recallPanel = BuildSprite(root, "Sino", "panels/hud_card", new Vector2(0, 0), new Vector2(0, 0),
-                                            new Vector2(16, 100), new Vector2(84, 76));
+                                            new Vector2(200, 16), new Vector2(84, 76));
             Button recall = BuildIconButton(recallPanel.transform, "SinoBotao", 0, "icons/bell", null, out Image recallImage);
             SetObject(refs, "_recallButton", recall);
             SetObject(refs, "_recallImage", recallImage);
@@ -224,6 +234,8 @@ namespace Fabula.Incrementant.EditorTools.UI
             hint.gameObject.AddComponent<Shadow>().effectDistance = new Vector2(1, -1);
             SetText(refs, "_hint", hint);
 
+            // O painel da colônia fica sob a tela de evolução, o tutorial e o menu do ESC.
+            SetObject(refs, "_colonyPanel", BuildColonyPanel(root, game));
             // A tela de evolução vai por último: cobre o resto do HUD e fica escondida até o botão EVOLUÇÃO.
             SetObject(refs, "_treePanel", BuildTreeScreen(root, game));
             // O tutorial fica acima da tela de evolução (ele a explica) e abaixo do menu do ESC.
@@ -270,15 +282,17 @@ namespace Fabula.Incrementant.EditorTools.UI
         }
 
         /// <summary>Painel de pincéis ao lado do menu Colônia, com um botão por índice de <paramref name="brushes"/>; começa escondido.</summary>
-        static Image BuildBrushPanel(Transform root, string name, string title, int[] brushes, string[] icons, Button[] buttons, Image[] images)
+        /// <param name="extraRows">Linhas a mais no fim do painel para botões que não são pincel (quem chama os põe).</param>
+        static Image BuildBrushPanel(Transform root, string name, string title, int[] brushes, string[] icons, Button[] buttons, Image[] images,
+                                     int extraRows = 0, int width = 400)
         {
             Image panel = BuildPanelWithHeader(root, name, new Vector2(0, 1), new Vector2(286, -214),
-                                               new Vector2(400, 62 + brushes.Length * 50 + 12), title);
+                                               new Vector2(width, 62 + (brushes.Length + extraRows) * 50 + 12), title);
             for (int row = 0; row < brushes.Length; row++)
             {
                 int brush = brushes[row];
                 buttons[brush] = BuildButton(panel.transform, "Pincel" + brush, new Vector2(0.5f, 1), new Vector2(0, -56 - row * 50),
-                                             new Vector2(368, 42), icons[brush % icons.Length],
+                                             new Vector2(width - 32, 42), icons[brush % icons.Length],
                                              AntFarmGame.BrushLabel(brush).ToUpperInvariant(), interactable: true, out images[brush]);
             }
             panel.gameObject.SetActive(false);
@@ -628,14 +642,34 @@ namespace Fabula.Incrementant.EditorTools.UI
         /// <summary>Slider de 0 a 1 em escala 2 (trilho, preenchimento e alça do kit) e o valor em % à direita.</summary>
         static void BuildSliderRow(Transform panel, int row, SerializedObject so, string sliderField, string valueField)
         {
-            const float scale = 2f, width = 330f;
-            var go = new GameObject("Slider" + row, typeof(RectTransform), typeof(Slider));
+            const float width = 330f;
+            Slider slider = BuildSlider(panel, "Slider" + row, new Vector2(SettingsControlX, RowCenter(row)), width);
+            slider.minValue = 0f;
+            slider.maxValue = 1f;
+            slider.wholeNumbers = false;
+            slider.value = 1f;
+
+            Text value = BuildText(panel, "Valor" + row, "100%", TextSmall, Ink, TextAnchor.MiddleRight);
+            float valueX = SettingsControlX + width + 8;
+            Place(value.rectTransform, new Vector2(valueX, -RowTop(row)), new Vector2(SettingsWidth - 40 - valueX, SettingsRow));
+            SetObject(so, sliderField, slider);
+            SetText(so, valueField, value);
+        }
+
+        /// <summary>
+        /// Slider do kit em escala 2 (trilho, preenchimento e alça), 56 px de altura; <paramref name="leftCenter"/> é a borda
+        /// esquerda e o centro vertical a partir do canto superior esquerdo do pai (y para baixo). Faixa e valor ficam com quem chama.
+        /// </summary>
+        static Slider BuildSlider(Transform parent, string name, Vector2 leftCenter, float width)
+        {
+            const float scale = 2f, halfHandle = 9f * scale;
+            var go = new GameObject(name, typeof(RectTransform), typeof(Slider));
             go.layer = LayerMask.NameToLayer("UI");
-            go.transform.SetParent(panel, false);
+            go.transform.SetParent(parent, false);
             var rect = (RectTransform)go.transform;
             rect.anchorMin = rect.anchorMax = new Vector2(0, 1);
             rect.pivot = new Vector2(0, 0.5f);
-            rect.anchoredPosition = new Vector2(SettingsControlX, -RowCenter(row));
+            rect.anchoredPosition = new Vector2(leftCenter.x, -leftCenter.y);
             rect.sizeDelta = new Vector2(width, 56);
 
             Image track = BuildScaledSprite(go.transform, "Trilho", "sliders/slider_track", scale);
@@ -651,9 +685,14 @@ namespace Fabula.Incrementant.EditorTools.UI
             var fillAreaRect = (RectTransform)fillArea.transform;
             fillAreaRect.anchorMin = new Vector2(0, 0.5f);
             fillAreaRect.anchorMax = new Vector2(1, 0.5f);
-            fillAreaRect.sizeDelta = new Vector2(0, 12 * scale);
+            // A alça percorre só [halfHandle, width - halfHandle]. A área do preenchimento tem o mesmo curso
+            // (encolhida uma alça à direita) e o preenchimento passa meia alça além da âncora: assim ele começa
+            // no início do trilho e termina sempre no centro da alça.
+            fillAreaRect.offsetMin = new Vector2(0, -6 * scale);
+            fillAreaRect.offsetMax = new Vector2(-2 * halfHandle, 6 * scale);
             Image fill = BuildScaledSprite(fillArea.transform, "Preenchimento", "sliders/slider_fill", scale);
             Stretch(fill.rectTransform);
+            fill.rectTransform.offsetMax = new Vector2(halfHandle, 0); // o Slider só mexe nas âncoras do preenchimento
 
             var handleArea = new GameObject("AreaAlca", typeof(RectTransform));
             handleArea.layer = go.layer;
@@ -661,13 +700,13 @@ namespace Fabula.Incrementant.EditorTools.UI
             var handleAreaRect = (RectTransform)handleArea.transform;
             handleAreaRect.anchorMin = Vector2.zero;
             handleAreaRect.anchorMax = Vector2.one;
-            handleAreaRect.offsetMin = new Vector2(18, 0); // meia alça de folga: ela não sai do trilho nos extremos
-            handleAreaRect.offsetMax = new Vector2(-18, 0);
+            handleAreaRect.offsetMin = new Vector2(halfHandle, 0); // meia alça de folga: ela não sai do trilho nos extremos
+            handleAreaRect.offsetMax = new Vector2(-halfHandle, 0);
             Image handle = BuildScaledSprite(handleArea.transform, "Alca", "sliders/slider_handle", scale);
             handle.type = Image.Type.Simple;
             handle.raycastTarget = true;
             // O Slider estica a alça na altura da área (56 = 28 px do sprite em escala 2): só a largura vai no sizeDelta.
-            handle.rectTransform.sizeDelta = new Vector2(18 * scale, 0);
+            handle.rectTransform.sizeDelta = new Vector2(2 * halfHandle, 0);
 
             var slider = go.GetComponent<Slider>();
             slider.fillRect = fill.rectTransform;
@@ -675,16 +714,7 @@ namespace Fabula.Incrementant.EditorTools.UI
             slider.targetGraphic = handle;
             slider.transition = Selectable.Transition.None;
             slider.direction = Slider.Direction.LeftToRight;
-            slider.minValue = 0f;
-            slider.maxValue = 1f;
-            slider.wholeNumbers = false;
-            slider.value = 1f;
-
-            Text value = BuildText(panel, "Valor" + row, "100%", TextSmall, Ink, TextAnchor.MiddleRight);
-            float valueX = SettingsControlX + width + 8;
-            Place(value.rectTransform, new Vector2(valueX, -RowTop(row)), new Vector2(SettingsWidth - 40 - valueX, SettingsRow));
-            SetObject(so, sliderField, slider);
-            SetText(so, valueField, value);
+            return slider;
         }
 
         /// <summary>Seletor com duas setas e o valor escolhido no meio.</summary>
@@ -801,6 +831,11 @@ namespace Fabula.Incrementant.EditorTools.UI
             Text nutrients = BuildText(screen, "Nutrientes", "", TextLarge, Cream, TextAnchor.MiddleLeft);
             PlaceTop(nutrients.rectTransform, new Vector2(1224, 40), new Vector2(280, 48));
             SetText(so, "_nutrients", nutrients);
+            Text depth = BuildText(screen, "Profundidade", "", TextMedium, Green, TextAnchor.MiddleLeft);
+            PlaceTop(depth.rectTransform, new Vector2(900, 136), new Vector2(560, 36));
+            SetText(so, "_depth", depth);
+            Text controls = BuildText(screen, "Controles", "ARRASTE PARA MOVER  ·  RODA DO MOUSE PARA ZOOM", TextSmall, Muted, TextAnchor.MiddleLeft);
+            PlaceTop(controls.rectTransform, new Vector2(900, 174), new Vector2(900, 26));
             Button back = BuildKitButton(screen, "Voltar", "Buttons/button_back", new Vector2(1920 - 70 - 270, 34), new Vector2(270, 64),
                                          "[ESC] VOLTAR", Ink, TextSmall, out _);
             SetObject(so, "_backButton", back);
@@ -812,20 +847,20 @@ namespace Fabula.Incrementant.EditorTools.UI
                                             "FORMIGUEIRO", Ink, TextMedium, out Image hiveTabImage);
             Button queenTab = BuildKitButton(screen, "AbaRainha", "Tabs/tab_active", new Vector2(430, 140), new Vector2(440, 60),
                                              "RAINHA E CLASSES", Ink, TextMedium, out Image queenTabImage);
-            SetObject(so, "_hiveTab", hiveTab);
-            SetObject(so, "_hiveTabImage", hiveTabImage);
-            SetObject(so, "_queenTab", queenTab);
-            SetObject(so, "_queenTabImage", queenTabImage);
+            SetObject(so, "_hive.Tab", hiveTab);
+            SetObject(so, "_hive.TabImage", hiveTabImage);
+            SetObject(so, "_queen.Tab", queenTab);
+            SetObject(so, "_queen.TabImage", queenTabImage);
             SetObject(so, "_tabActive", LoadKit("Tabs/tab_active"));
             SetObject(so, "_tabInactive", LoadKit("Tabs/tab_inactive"));
 
             // --- páginas
             Transform hivePage = BuildPage(screen, "PaginaFormigueiro");
             Transform queenPage = BuildPage(screen, "PaginaRainha");
-            SetObject(so, "_hivePage", hivePage.gameObject);
-            SetObject(so, "_queenPage", queenPage.gameObject);
-            BuildQueenPage(queenPage, so);
-            BuildHivePage(hivePage, so);
+            SetObject(so, "_hive.Page", hivePage.gameObject);
+            SetObject(so, "_queen.Page", queenPage.gameObject);
+            BuildUpgradePage(queenPage, Fabula.Incrementant.Upgrades.UpgradeTab.Queen, so, "_queen");
+            BuildUpgradePage(hivePage, Fabula.Incrementant.Upgrades.UpgradeTab.Hive, so, "_hive");
 
             // --- detalhe do nó escolhido (canto inferior direito)
             Image detail = BuildKitImage(screen, "Detalhe", "Panels/skill_details_panel", new Vector2(1, 0), new Vector2(1, 0),
@@ -833,7 +868,7 @@ namespace Fabula.Incrementant.EditorTools.UI
             detail.type = Image.Type.Sliced;
             detail.pixelsPerUnitMultiplier = 1f / PixelScale;
             detail.rectTransform.pivot = new Vector2(1, 0);
-            detail.rectTransform.sizeDelta = new Vector2(640, 310);
+            detail.rectTransform.sizeDelta = new Vector2(640, 420);
             Text nodeTitle = BuildText(detail.transform, "NoTitulo", "", TextMedium, Cream, TextAnchor.UpperLeft);
             nodeTitle.horizontalOverflow = HorizontalWrapMode.Wrap; // nomes longos quebram em duas linhas
             nodeTitle.lineSpacing = 1.4f; // a fonte tem altura de linha igual ao corpo: sem folga as linhas se tocam
@@ -845,7 +880,7 @@ namespace Fabula.Incrementant.EditorTools.UI
             Text info = BuildText(detail.transform, "NoInfo", "", TextSmall, Muted, TextAnchor.UpperLeft);
             info.horizontalOverflow = HorizontalWrapMode.Wrap;
             info.lineSpacing = 1.5f;
-            Place(info.rectTransform, new Vector2(24, -162), new Vector2(592, 44));
+            Place(info.rectTransform, new Vector2(24, -162), new Vector2(592, 120));
             Button buy = BuildKitButton(detail.transform, "Comprar", "Buttons/button_unlock", new Vector2(0, 0), new Vector2(592, 60),
                                         "DESBLOQUEAR", Cream, TextMedium, out Image buyImage);
             var buyRect = (RectTransform)buy.transform;
@@ -858,6 +893,21 @@ namespace Fabula.Incrementant.EditorTools.UI
             SetObject(so, "_buyButton", buy);
             SetObject(so, "_buyImage", buyImage);
             SetText(so, "_buyLabel", buy.transform.Find("Texto").GetComponent<Text>());
+
+            // Seletor ×1 / ×10 / MÁX das galerias, logo acima do botão.
+            var amountRoot = new GameObject("Quantidade", typeof(RectTransform));
+            amountRoot.layer = LayerMask.NameToLayer("UI");
+            amountRoot.transform.SetParent(detail.transform, false);
+            Place((RectTransform)amountRoot.transform, new Vector2(24, -292), new Vector2(592, 40));
+            string[] amountLabels = { "×1", "×10", "MÁX" };
+            var amountButtons = new Button[amountLabels.Length];
+            var amountImages = new Image[amountLabels.Length];
+            for (int i = 0; i < amountLabels.Length; i++)
+                amountButtons[i] = BuildKitButton(amountRoot.transform, "Quantidade" + i, "Buttons/button_unlock", new Vector2(i * 200, 0),
+                                                  new Vector2(192, 40), amountLabels[i], Cream, TextSmall, out amountImages[i]);
+            SetObject(so, "_amountRoot", amountRoot);
+            SetArray(so, "_amountButtons", amountButtons);
+            SetArray(so, "_amountImages", amountImages);
 
             BuildLegend(screen);
 
@@ -873,35 +923,7 @@ namespace Fabula.Incrementant.EditorTools.UI
             return go;
         }
 
-        // ---------------------------------------------------------------- árvore da rainha
-
-        // Colunas (uma por ramo) e linhas (profundidade na compra) da árvore da rainha, em coordenadas da tela 1920x1080.
-        const float QueenColumn0 = 155f, QueenColumnStep = 230f;
-        static readonly float[] QueenRows = { 400f, 525f, 650f };
-        const float QueenRootY = 245f, QueenTrunkY = 320f;
-
-        /// <summary>Posição de cada nó da rainha: (coluna do ramo, profundidade, deslocamento horizontal).</summary>
-        static (int depth, float dx) QueenSlot(QueenNode node)
-        {
-            switch (node)
-            {
-                case QueenNode.Q1: case QueenNode.O2: case QueenNode.F1: case QueenNode.E1: case QueenNode.J1: case QueenNode.N1: return (1, 0);
-                case QueenNode.Q2: case QueenNode.E2: case QueenNode.J2: case QueenNode.N2: case QueenNode.S3: return (2, 0);
-                case QueenNode.O1: return (1, -78);
-                case QueenNode.O3: return (1, 78);
-                case QueenNode.L1: case QueenNode.S1: return (1, -45);
-                case QueenNode.L3: case QueenNode.S2: return (1, 45);
-                case QueenNode.L2: return (2, -45);
-                default: return (0, 0);
-            }
-        }
-
-        static Vector2 QueenPosition(QueenNode node)
-        {
-            QueenNodeDef def = QueenTree.Def(node);
-            (int depth, float dx) = QueenSlot(node);
-            return new Vector2(QueenColumn0 + QueenColumnStep * (int)def.Branch + dx, QueenRows[depth]);
-        }
+        // ---------------------------------------------------------------- ícones da rainha
 
         static string QueenIcon(QueenBranch branch)
         {
@@ -916,83 +938,6 @@ namespace Fabula.Incrementant.EditorTools.UI
                 case QueenBranch.Nurse: return "icons/larva";
                 default: return "icons/warning";
             }
-        }
-
-        static void BuildQueenPage(Transform page, SerializedObject screen)
-        {
-            var links = new System.Collections.Generic.List<(Image image, int parent, int child)>();
-            Sprite linkLocked = LoadKit("Connections/link_locked");
-
-            // Tronco: da raiz desce ao tronco horizontal e sobe um toco até o primeiro nó de cada ramo. Os ramos mais
-            // distantes são desenhados antes, para o trecho dos mais perto ficar por cima na própria cor.
-            var rootPos = new Vector2(960, QueenRootY);
-            links.Add((BuildLink(page, rootPos, new Vector2(960, QueenTrunkY), linkLocked), -1, (int)QueenNode.Q0));
-            var order = new System.Collections.Generic.List<int>();
-            for (int b = 0; b < QueenTree.BranchCount; b++)
-                order.Add(b);
-            order.Sort((x, y) => Mathf.Abs(QueenColumn0 + QueenColumnStep * y - 960f).CompareTo(Mathf.Abs(QueenColumn0 + QueenColumnStep * x - 960f)));
-            foreach (int b in order)
-            {
-                QueenNodeDef first = QueenTree.NodesOf((QueenBranch)b)[0];
-                float x = QueenColumn0 + QueenColumnStep * b;
-                links.Add((BuildLink(page, new Vector2(960, QueenTrunkY), new Vector2(x, QueenTrunkY), linkLocked), -1, (int)first.Node));
-                links.Add((BuildLink(page, new Vector2(x, QueenTrunkY), QueenPosition(first.Node), linkLocked), -1, (int)first.Node));
-            }
-            foreach (QueenNodeDef def in QueenTree.All)
-            {
-                foreach (QueenNode parent in def.Requires)
-                    links.Add((BuildLink(page, QueenPosition(parent), QueenPosition(def.Node), linkLocked), (int)parent, (int)def.Node));
-            }
-
-            for (int b = 0; b < QueenTree.BranchCount; b++)
-            {
-                Text label = BuildText(page, "Ramo" + b, QueenTree.BranchLabel((QueenBranch)b), TextSmall, Green, TextAnchor.MiddleCenter);
-                PlaceCentered(label.rectTransform, new Vector2(QueenColumn0 + QueenColumnStep * b, QueenTrunkY - 26), new Vector2(228, 24));
-            }
-
-            // Raiz (a rainha) e os 26 nós, na ordem do enum.
-            BuildNode(page, "Raiz", "RAINHA", rootPos, "icons/crown", null, 40, true, out _);
-            var widgets = new SkillNodeWidget[QueenTree.All.Count];
-            foreach (QueenNodeDef def in QueenTree.All)
-                widgets[(int)def.Node] = BuildNode(page, def.Id, def.Id, QueenPosition(def.Node), QueenIcon(def.Branch), null, 40, false, out _);
-            SetArray(screen, "_queenNodes", widgets);
-            WriteLinks(screen, "_queenLinks", links);
-        }
-
-        // ---------------------------------------------------------------- árvore do formigueiro (só exibição)
-
-        static void BuildHivePage(Transform page, SerializedObject screen)
-        {
-            var links = new System.Collections.Generic.List<(Image image, int parent, int child)>();
-            Sprite linkLocked = LoadKit("Connections/link_locked");
-            var hub = new Vector2(960, 590);
-            for (int i = 0; i < HiveTreeInfo.All.Count; i++)
-            {
-                HiveTreeInfo.Node node = HiveTreeInfo.All[i];
-                foreach (int parent in node.Parents)
-                {
-                    Vector2 from = parent < 0 ? hub : new Vector2(HiveTreeInfo.All[parent].X, HiveTreeInfo.All[parent].Y);
-                    links.Add((BuildLink(page, from, new Vector2(node.X, node.Y), linkLocked), parent, i));
-                }
-            }
-            foreach ((string label, float x, float y) in HiveTreeInfo.Branches)
-            {
-                Text text = BuildText(page, "Ramo" + label, label, TextMedium, Green, TextAnchor.MiddleCenter);
-                PlaceCentered(text.rectTransform, new Vector2(x, y), new Vector2(240, 38));
-            }
-            Text hubLabel = BuildText(page, "RotuloColonia", "COLÔNIA", TextMedium, Muted, TextAnchor.MiddleCenter);
-            PlaceCentered(hubLabel.rectTransform, new Vector2(960, 590 + 100), new Vector2(240, 32));
-
-            BuildNode(page, "Centro", null, hub, "Icons/skill_HUB_large", null, 64, true, out _, kitIcon: true);
-            var widgets = new SkillNodeWidget[HiveTreeInfo.All.Count];
-            for (int i = 0; i < widgets.Length; i++)
-            {
-                HiveTreeInfo.Node node = HiveTreeInfo.All[i];
-                widgets[i] = BuildNode(page, node.Id, node.Id, new Vector2(node.X, node.Y), $"Icons/skill_{node.Id}",
-                                       $"IconsLocked/skill_{node.Id}_locked", 48, false, out _, kitIcon: true);
-            }
-            SetArray(screen, "_hiveNodes", widgets);
-            WriteLinks(screen, "_hiveLinks", links);
         }
 
         // ---------------------------------------------------------------- peças
@@ -1064,28 +1009,6 @@ namespace Fabula.Incrementant.EditorTools.UI
             so.FindProperty("_root").boolValue = isRoot;
             so.ApplyModifiedPropertiesWithoutUndo();
             return widget;
-        }
-
-        /// <summary>Segmento entre dois pontos da tela (centro a centro): o sprite de 20x6 repetido, em escala 2.</summary>
-        static Image BuildLink(Transform parent, Vector2 from, Vector2 to, Sprite sprite)
-        {
-            var go = new GameObject("Ligacao", typeof(RectTransform), typeof(Image));
-            go.layer = LayerMask.NameToLayer("UI");
-            go.transform.SetParent(parent, false);
-            var rect = (RectTransform)go.transform;
-            rect.anchorMin = rect.anchorMax = new Vector2(0, 1);
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            Vector2 mid = (from + to) * 0.5f;
-            rect.anchoredPosition = new Vector2(mid.x, -mid.y);
-            Vector2 delta = new Vector2(to.x - from.x, -(to.y - from.y));
-            rect.sizeDelta = new Vector2(delta.magnitude, 6 * PixelScale);
-            rect.localRotation = Quaternion.Euler(0, 0, Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg);
-            var image = go.GetComponent<Image>();
-            image.sprite = sprite;
-            image.type = Image.Type.Tiled;
-            image.pixelsPerUnitMultiplier = 1f / PixelScale;
-            image.raycastTarget = false;
-            return image;
         }
 
         static void WriteLinks(SerializedObject so, string field, System.Collections.Generic.List<(Image image, int parent, int child)> links)

@@ -19,7 +19,6 @@ namespace Fabula.Incrementant.Audio
         EggLaid,
         AntBorn,
         AntDie,
-        Drowned,
         // Ataques de cupins
         RaidWarning,
         RaidStart,

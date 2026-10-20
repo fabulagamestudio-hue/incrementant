@@ -284,6 +284,44 @@ namespace Fabula.Incrementant.Tests
                 Assert.AreNotEqual(FlowField.Unreachable, field.Get(x, 1), $"A sala ficou fechada em x = {x}.");
         }
 
+        /// <summary>
+        /// Relato de 2026-10-19: a terra fofa do teto ia de uma em uma formiga. Como na escavação, cada formiga com terra reserva
+        /// um ponto livre e as outras vão a outro: várias trabalham ao mesmo tempo e nunca duas no mesmo ponto.
+        /// </summary>
+        [Test]
+        public void SoilCarriers_ReserveOneSpotEach_AndWorkTheCeilingInParallel()
+        {
+            PixelGrid grid = MakeWorld(withPile: false);
+            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 4) { RaidsEnabled = false };
+            for (int i = 0; i < 6; i++)
+                colony.SpawnAt(AntRole.Worker, 24 + i, 1);
+            colony.Tick(Dt);
+            Assert.AreEqual(RoomX1 - RoomX0 + 1, colony.DewSoilSpots, "Um ponto de terra por coluna da sala.");
+            foreach (Ant ant in colony.Ants)
+            {
+                ant.PickUp(CellMaterial.Dirt, 128);
+                ant.DewJob = true;
+                ant.State = AntState.BringingSoil;
+            }
+
+            int mostReserved = 0;
+            for (int i = 0; i < 60 * 30 && DewSoilPlaced(grid) < 6; i++)
+            {
+                colony.Tick(Dt);
+                var reserved = new System.Collections.Generic.HashSet<int>();
+                foreach (Ant ant in colony.Ants)
+                {
+                    if (ant.State != AntState.BringingSoil || !ant.DewJob || ant.SeekTarget < 0)
+                        continue;
+                    Assert.IsTrue(reserved.Add(ant.SeekTarget), $"Duas formigas reservaram o mesmo ponto no passo {i}.");
+                }
+                mostReserved = Mathf.Max(mostReserved, reserved.Count);
+            }
+
+            Assert.GreaterOrEqual(mostReserved, 4, "Várias formigas levam terra ao teto ao mesmo tempo.");
+            Assert.AreEqual(6, DewSoilPlaced(grid), "Cada formiga pôs a terra dela.");
+        }
+
         [Test]
         public void DropInterval_ComesFromTheSettings_AndWaitsWhenTheRoomIsFull()
         {
@@ -307,14 +345,14 @@ namespace Fabula.Incrementant.Tests
             }
             Assert.IsTrue(colony.DewActive, "Sala com as duas etapas feitas fica pronta.");
             int start = elapsed;
-            // Intervalo padrão de 8 s: em 20 s caem 2 gotas.
-            for (int i = 0; i < 60 * 20; i++)
+            // Intervalo padrão de 4 s: em 22 s caem 5 gotas.
+            for (int i = 0; i < 60 * 22; i++)
             {
                 colony.Tick(Dt);
                 granular.Step(grid);
                 water.Step(grid, Dt);
             }
-            Assert.AreEqual(2, colony.DewDrops, $"Duas gotas em 20 s com intervalo de 8 s (começou no passo {start}).");
+            Assert.AreEqual(5, colony.DewDrops, $"Cinco gotas em 22 s com intervalo de 4 s (começou no passo {start}).");
             for (int x = RoomX0; x <= RoomX1; x++)
             for (int y = 1; y <= RoomY1; y++)
             {

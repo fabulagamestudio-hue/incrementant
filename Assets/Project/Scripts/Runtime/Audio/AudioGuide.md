@@ -17,7 +17,7 @@ Como os SFX funcionam e como ligar um som novo. Onde estão os arquivos: [Runtim
 | Som | Origem |
 |---|---|
 | `Dig`, `Drop`, `Build`, `Plant` | escavar/pegar, despejar (também canteiro, orvalho, resíduo), obra, plantar (`AntColony*.cs`) |
-| `EggLaid`, `AntBorn`, `AntDie`, `Drowned` | postura (relógio e clique na rainha), nascimento, velhice/combate, afogamento |
+| `EggLaid`, `AntBorn`, `AntDie` | postura (relógio e clique na rainha), nascimento, combate |
 | `RaidWarning`, `RaidStart`, `RaidEnd`, `TermiteHit`, `TermiteKilled`, `AntHurt`, `Crumble`, `GameOver` | `AntColony.Raids.cs` |
 | `Buy` | `AntColony.TryBuy`; `UiDeny` quando a compra é recusada (`SkillTreeScreen`) |
 | `Mark`/`Unmark` | início do traço do pincel (`AntFarmGame.HandleInput`) |

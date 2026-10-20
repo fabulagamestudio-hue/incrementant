@@ -27,6 +27,9 @@ namespace Fabula.Incrementant.Colony
 
         public bool IsWalkableAt(int index) => _walkable[index];
 
+        /// <summary>O cache inteiro (índice = y * Width + x), só para leitura: os laços quentes dos campos evitam a chamada por célula.</summary>
+        internal bool[] WalkableCells => _walkable;
+
         public bool IsWalkable(int x, int y) =>
             (uint)x < (uint)Grid.Width && (uint)y < (uint)Grid.Height && _walkable[y * Grid.Width + x];
 

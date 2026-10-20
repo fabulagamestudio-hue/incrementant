@@ -45,6 +45,12 @@ namespace Fabula.Incrementant.Colony
         int _dewLeafSpots;
         int _dewCarriers;
         bool _dewActive;
+        // Pontos de terra fofa que uma formiga levando terra reservou (Ant.SeekTarget), recontados a cada Tick: saem do campo
+        // da terra para as outras irem a outro ponto, como as reservas da escavação (pedido do desenvolvedor em 2026-10-19).
+        readonly HashSet<int> _dewSoilClaims = new HashSet<int>();
+        readonly List<int> _dewSoilFieldSources = new List<int>();
+        long _dewClaimHash;
+        long _builtDewClaimHash;
         // Pôs terra ou folha: os pontos e as etapas da sala pedem outra rodada (nem toda peça muda a caminhabilidade).
         bool _dewDirty;
         float _dewTimer;
@@ -64,8 +70,14 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Demanda de pixels de planta: canteiros esperando e pontos de folha da sala Gotas de Orvalho.</summary>
         int PlantDemand => _bedsAwaitingPlant + _dewLeafSpots;
 
-        /// <summary>Quantas formigas levando terra a sala chama: uma a cada <see cref="ColonySettings.DewSpotsPerWorker"/> pontos, pelo menos uma.</summary>
-        int WantedDewCarriers => Mathf.Max(1, (_dewSoilSpots + _settings.DewSpotsPerWorker - 1) / _settings.DewSpotsPerWorker);
+        /// <summary>
+        /// Quantas formigas levando terra a sala chama: uma por ponto livre, como a escavação chama uma por pixel marcado. Cada
+        /// uma reserva o ponto dela ao chegar com a terra (<see cref="UpdateBringingDewSoil"/>).
+        /// </summary>
+        int WantedDewCarriers => _dewSoilSpots;
+
+        /// <summary>As reservas de ponto de terra mudaram desde a última rodada: o campo da terra precisa tirar ou devolver pontos.</summary>
+        bool DewClaimsChanged => _dewClaimHash != _builtDewClaimHash;
 
         // ---------------------------------------------------------------- etapas
 
@@ -76,6 +88,7 @@ namespace Fabula.Incrementant.Colony
         void BuildDewSpots(List<int> storeSources)
         {
             _dewDirty = false;
+            _builtDewClaimHash = _dewClaimHash;
             _dewSoilCells.Clear();
             _dewSoilSet.Clear();
             _dewLeafCells.Clear();
@@ -139,7 +152,14 @@ namespace Fabula.Incrementant.Colony
                 AddStandCells(_dewLeafCells[k] % _grid.Width, _dewLeafCells[k] / _grid.Width, storeSources);
             ReleaseStaleDewLeaves();
             _dewActive = _dewSoilSpots == 0 && _dewLeafSpots == 0 && _dewStale == 0 && coveredCells > 0;
-            UpdateField(_dewSoilField, _dewSoilCells);
+            // Ponto reservado continua em _dewSoilSet (a dona ainda o enche), mas sai do campo: as outras descem para outro.
+            _dewSoilFieldSources.Clear();
+            foreach (int i in _dewSoilCells)
+            {
+                if (!_dewSoilClaims.Contains(i))
+                    _dewSoilFieldSources.Add(i);
+            }
+            UpdateField(_dewSoilField, _dewSoilFieldSources);
             UpdateField(_dewTendField, _dewActive ? _dewDropCells : _dewNoCells);
         }
 
@@ -286,15 +306,17 @@ namespace Fabula.Incrementant.Colony
             }
             // Os pontos de queda com jardineira ao lado somam DewTendBoost ao ritmo, na proporção da sala coberta (a gota cai mais cedo).
             float covered = _dewDropCells.Count > 0 ? Mathf.Min(1f, _dewTendedPoints / (float)_dewDropCells.Count) : 0f;
-            _dewTimer += deltaTime * (1f + covered * _settings.DewTendBoost);
+            _dewTimer += deltaTime * (1f + covered * _settings.DewTendBoost * Effects.GardenerDewRate) / Effects.DewDropTime;
             if (_dewTimer < _settings.DewDropSeconds)
                 return;
             // Cheia ou sem ponto livre, a gota espera o próximo intervalo.
             _dewTimer = 0f;
-            if (CountDewWater() >= _settings.DewMaxRoomWater || _dewDropCells.Count == 0)
+            if (CountDewWater() >= _settings.DewMaxRoomWater + Effects.DewRoomWaterBonus || _dewDropCells.Count == 0)
                 return;
+            // G1 (Folhas coletoras): cada gota rende o dobro, em dois pontos de queda livres.
+            int drops = Mathf.Max(1, Mathf.RoundToInt(Effects.DewYield));
             int start = _rng.Next(_dewDropCells.Count);
-            for (int k = 0; k < _dewDropCells.Count; k++)
+            for (int k = 0; k < _dewDropCells.Count && drops > 0; k++)
             {
                 int i = _dewDropCells[(start + k) % _dewDropCells.Count];
                 int x = i % _grid.Width, y = i / _grid.Width;
@@ -302,7 +324,7 @@ namespace Fabula.Incrementant.Colony
                     continue;
                 _grid.SetWater(x, y, true);
                 DewDrops++;
-                return;
+                drops--;
             }
         }
 
@@ -348,7 +370,7 @@ namespace Fabula.Incrementant.Colony
         /// </summary>
         bool TryStartDewCare(Ant ant)
         {
-            if (!_dewActive || _dewDropCells.Count == 0 || _dewTendCount >= DewBlockCount ||
+            if (!SectionAllows(WorkSection.Dew, ant) || !_dewActive || _dewDropCells.Count == 0 || _dewTendCount >= DewBlockCount ||
                 _dewTendField == null || _dewTendField.Get(ant.X, ant.Y) == FlowField.Unreachable ||
                 !PickDewBlock(ant, out int block))
                 return false;
@@ -360,6 +382,13 @@ namespace Fabula.Incrementant.Colony
             UpdateTendingDew(ant);
             return true;
         }
+
+        /// <summary>
+        /// A sala de nutrientes quer esta jardineira e a seção Jardim tem vaga para ela. Sem a vaga, sair do orvalho só a
+        /// deixava parada: o cuidado da sala de nutrientes a recusava e ela voltava ao orvalho no passo seguinte (relato de
+        /// 2026-10-19, seção Jardim cheia no painel).
+        /// </summary>
+        bool GardenCanTake(Ant ant) => WantsTender(ant, _garden) && SectionAllows(WorkSection.Garden, ant);
 
         void LeaveDewCare(Ant ant)
         {
@@ -373,7 +402,7 @@ namespace Fabula.Incrementant.Colony
         void UpdateTendingDew(Ant ant)
         {
             if (!_dewActive || _dewDropCells.Count == 0 || _dewTendField == null ||
-                _dewTendField.Get(ant.X, ant.Y) == FlowField.Unreachable || WantsTender(ant, _garden))
+                _dewTendField.Get(ant.X, ant.Y) == FlowField.Unreachable || GardenCanTake(ant))
             {
                 LeaveDewCare(ant);
                 return;
@@ -429,32 +458,123 @@ namespace Fabula.Incrementant.Colony
 
         // ---------------------------------------------------------------- terra fofa e folha
 
-        /// <summary>Larga a terra fofa que leva num ponto vizinho da sala; sobrando terra, entrega o resto.</summary>
-        bool TryPlaceDewSoil(Ant ant)
+        /// <summary>Trava o ponto de terra fofa para as outras formigas; o campo da terra o tira na próxima rodada.</summary>
+        void ClaimDewSoil(int index)
         {
-            for (int k = 0; k < 8; k++)
+            if (_dewSoilClaims.Add(index))
+                _dewClaimHash += index * 2654435761L;
+        }
+
+        /// <summary>O ponto ainda pede terra fofa e nenhuma outra formiga o reservou.</summary>
+        bool IsFreeDewSoilSpot(Ant ant, int index)
+        {
+            int x = index % _grid.Width, y = index / _grid.Width;
+            return _dewSoilSet.Contains(index) && (index == ant.SeekTarget || !_dewSoilClaims.Contains(index)) && IsDewSoilSpot(x, y);
+        }
+
+        /// <summary>
+        /// Levando terra fofa para o teto da sala Gotas de Orvalho, com reserva (mesma ideia da escavação, <see cref="SeekWork"/>):
+        /// traça o caminho pelo campo da terra até um ponto livre, reserva o ponto (<see cref="Ant.SeekTarget"/>) e segue o caminho
+        /// guardado; encostada nele, põe a terra. O ponto reservado sai do campo na próxima rodada, então as outras vão a outro
+        /// em vez de fazerem fila no mesmo (relato de 2026-10-19: a sala era coberta de uma em uma formiga). Sem ponto livre
+        /// alcançável, a terra vai ao despejo.
+        /// </summary>
+        void UpdateBringingDewSoil(Ant ant)
+        {
+            if (_dewSoilSpots == 0 || _dewSoilField == null)
             {
-                int x = ant.X + AntNavigation.Dx[k], y = ant.Y + AntNavigation.Dy[k];
-                int i = _grid.ToIndex(x, y);
-                if (!_dewSoilSet.Contains(i) || !IsDewSoilSpot(x, y) || AntAt(x, y))
-                    continue;
-                _grid.Set(x, y, CellMaterial.Spoil, ant.CarriedShade);
-                Emit(SfxId.Drop);
-                _dewSoilSet.Remove(i);
-                _dewSoilSpots = Mathf.Max(0, _dewSoilSpots - 1);
-                _dewDirty = true;
-                ant.DropTop();
-                ant.DewJob = false;
-                ant.Cooldown = _settings.DropSeconds;
-                if (x != ant.X)
-                    ant.FacingX = x > ant.X ? 1 : -1;
-                if (ant.CarriedCount > 0)
-                    StartDelivery(ant);
-                else
-                    ant.State = AntState.Idle;
-                return true;
+                ant.ClearSeek();
+                SendSoilToDump(ant);
+                return;
             }
-            return false;
+            if (ant.SeekTarget >= 0 && !IsFreeDewSoilSpot(ant, ant.SeekTarget))
+                ant.ClearSeek();
+            if (ant.SeekTarget < 0 && !PlanDewSoil(ant))
+                return;
+
+            int w = _grid.Width;
+            int tx = ant.SeekTarget % w, ty = ant.SeekTarget / w;
+            if (tx == ant.X && ty == ant.Y)
+            {
+                // Em cima do ponto (a terra não cai na própria formiga): sai para o lado e larga dali.
+                Wander(ant);
+                return;
+            }
+            if (Mathf.Abs(tx - ant.X) <= 1 && Mathf.Abs(ty - ant.Y) <= 1)
+            {
+                if (!AntAt(tx, ty))
+                    PlaceDewSoil(ant, tx, ty);
+                else
+                    Hold(ant); // outra formiga passando por cima do ponto: espera ela sair
+                return;
+            }
+            if (StepPath(ant) > 0)
+                return;
+            // Caminho cortado (caiu, a célula fechou) ou terminou longe do ponto: traça de novo no próximo passo.
+            ant.ClearSeek();
+            Hold(ant);
+        }
+
+        /// <summary>
+        /// Traça o caminho até o ponto livre mais perto pelo campo da terra e o reserva. Se o ponto do fim já foi reservado por
+        /// outra neste passo (o campo ainda não foi refeito), pega um ponto livre vizinho; sem nenhum, espera a próxima rodada.
+        /// <c>false</c> = a formiga já agiu (despejo ou espera).
+        /// </summary>
+        bool PlanDewSoil(Ant ant)
+        {
+            if (_dewSoilField.Get(ant.X, ant.Y) == FlowField.Unreachable)
+            {
+                SendSoilToDump(ant);
+                return false;
+            }
+            if (!TracePath(ant, _dewSoilField, out int x, out int y, out bool tooFar))
+            {
+                if (!(tooFar && StepDownhill(ant, _dewSoilField)))
+                    Hold(ant);
+                return false;
+            }
+            int target = _grid.ToIndex(x, y);
+            if (!IsFreeDewSoilSpot(ant, target))
+            {
+                target = -1;
+                int seen = 0;
+                for (int k = 0; k < 8; k++)
+                {
+                    int nx = x + AntNavigation.Dx[k], ny = y + AntNavigation.Dy[k];
+                    if (_grid.InBounds(nx, ny) && IsFreeDewSoilSpot(ant, _grid.ToIndex(nx, ny)) && _rng.Next(++seen) == 0)
+                        target = _grid.ToIndex(nx, ny);
+                }
+                if (target < 0)
+                {
+                    ant.ClearSeek();
+                    Hold(ant);
+                    return false;
+                }
+            }
+            ant.SeekTarget = target;
+            ant.SeekRock = false;
+            ClaimDewSoil(target);
+            return true;
+        }
+
+        /// <summary>Põe a terra fofa que leva no ponto (<paramref name="x"/>, <paramref name="y"/>); sobrando terra, entrega o resto.</summary>
+        void PlaceDewSoil(Ant ant, int x, int y)
+        {
+            _grid.Set(x, y, CellMaterial.Spoil, ant.CarriedShade);
+            Emit(SfxId.Drop);
+            _dewSoilSet.Remove(_grid.ToIndex(x, y));
+            _dewSoilSpots = Mathf.Max(0, _dewSoilSpots - 1);
+            _dewDirty = true;
+            ant.ClearSeek();
+            ant.DropTop();
+            ant.DewJob = false;
+            ant.Cooldown = _settings.DropSeconds;
+            if (x != ant.X)
+                ant.FacingX = x > ant.X ? 1 : -1;
+            if (ant.CarriedCount > 0)
+                StartDelivery(ant);
+            else
+                ant.State = AntState.Idle;
         }
 
         /// <summary>Pendura a folha que leva num ponto vizinho da sala (depois da terra fofa). Falso se não há ponto encostado.</summary>
@@ -470,7 +590,10 @@ namespace Fabula.Incrementant.Colony
                 _dewLeafSet.Remove(i);
                 _dewLeafSpots = Mathf.Max(0, _dewLeafSpots - 1);
                 _dewDirty = true;
-                _plantsInFlight = Mathf.Max(0, _plantsInFlight - 1);
+                if (ant.FromStore)
+                    _plantsToBeds = Mathf.Max(0, _plantsToBeds - 1);
+                else
+                    _plantsInFlight = Mathf.Max(0, _plantsInFlight - 1);
                 HarvestedPixels++;
                 Emit(SfxId.Plant);
                 ant.DropTop();

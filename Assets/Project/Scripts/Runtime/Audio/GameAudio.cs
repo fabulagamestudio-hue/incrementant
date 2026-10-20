@@ -54,7 +54,6 @@ namespace Fabula.Incrementant.Audio
             r[(int)SfxId.EggLaid] = new Rule(0.5f, 0.1f, 0.04f);
             r[(int)SfxId.AntBorn] = new Rule(0.5f, 0.1f, 0.04f);
             r[(int)SfxId.AntDie] = new Rule(0.5f, 0.1f, 0.08f);
-            r[(int)SfxId.Drowned] = new Rule(0.5f, 0.2f, 0.05f);
             r[(int)SfxId.RaidWarning] = new Rule(0.7f, 2f);
             r[(int)SfxId.RaidStart] = new Rule(0.8f, 2f);
             r[(int)SfxId.RaidEnd] = new Rule(0.6f, 1f);

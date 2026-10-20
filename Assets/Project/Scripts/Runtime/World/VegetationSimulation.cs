@@ -513,9 +513,12 @@ namespace Fabula.Incrementant.World
             _populatedArea = default; // o próximo Populate confere a área ativa de novo
         }
 
+        /// <summary>Multiplica o ritmo do crescimento (galeria X+1, Brotação); 1 = o das configurações.</summary>
+        public float GrowthRate { get; set; } = 1f;
+
         public void Step(PixelGrid grid, float deltaTime)
         {
-            _time += deltaTime;
+            _time += deltaTime * GrowthRate;
             _checkTimer -= deltaTime;
             if (_checkTimer > 0f)
                 return;

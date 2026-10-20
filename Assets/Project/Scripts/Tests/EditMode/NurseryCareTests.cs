@@ -53,8 +53,7 @@ namespace Fabula.Incrementant.Tests
         public void TheBrood_DoesNotAdvance_WithoutAnAntTendingTheNursery()
         {
             AntColony colony = MakeColony();
-            foreach (Ant ant in colony.Ants)
-                ant.Role = AntRole.Digger; // escavadoras não cuidam
+            colony.Work.SetEnabled(WorkSection.Nursery, false); // berçário parado: ninguém vai cuidar
             colony.RestoreBrood(new[] { Larva(10f) }, 0f);
 
             Tick(colony, 40f);
@@ -156,6 +155,28 @@ namespace Fabula.Incrementant.Tests
                 }
             }
             Assert.GreaterOrEqual(seen.Count, 3, "As formigas mexem em crias variadas.");
+        }
+
+        [Test]
+        public void NurserySpots_SkipHolesInTheWall_EvenWhenTheWallIsPainted()
+        {
+            PixelGrid grid = MakeWorld();
+            // Chão do berçário mais alto, com buracos de um pixel nele; a pintura cobre a parede e os buracos.
+            for (int x = 10; x < 31; x++)
+                grid.Set(x, 1, CellMaterial.Dirt);
+            grid.Set(15, 1, CellMaterial.Empty);
+            grid.Set(24, 1, CellMaterial.Empty);
+            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 1);
+            Tick(colony, 1f);
+
+            Assert.Greater(colony.NurserySpots.Count, 0, "O vão aberto do berçário continua com pontos.");
+            foreach (Vector2Int spot in colony.NurserySpots)
+            {
+                for (int dy = 0; dy < AntColony.NurserySpotHeight; dy++)
+                for (int dx = -1; dx <= 1; dx++)
+                    Assert.IsFalse(grid.IsSolid(spot.x + dx, spot.y + dy),
+                        $"O ponto {spot} encosta o sprite da cria na parede em ({spot.x + dx}, {spot.y + dy}).");
+            }
         }
 
         [Test]

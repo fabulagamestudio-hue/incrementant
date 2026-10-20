@@ -153,7 +153,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1349787679
-    m_Localized: Comum
+    m_Localized: "Oper\xE1ria"
     m_Metadata:
       m_Items: []
   - m_Id: 1349787680
@@ -527,7 +527,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353981964
-    m_Localized: COMUM
+    m_Localized: "OPER\xC1RIA"
     m_Metadata:
       m_Items: []
   - m_Id: 1353981965
@@ -721,7 +721,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982007
-    m_Localized: "Sem ciclos antes do ber\xE7\xE1rio \u2192 1 ovo a cada 18 s"
+    m_Localized: "Com o ber\xE7\xE1rio pronto, a rainha p\xF5e 1 ovo a cada 18 s"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982008
@@ -729,7 +729,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982009
-    m_Localized: "18 s por ciclo \u2192 12 s por ciclo (\u221233%)"
+    m_Localized: "A rainha p\xF5e um ovo a cada 12 s em vez de 18 s"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982010
@@ -737,16 +737,15 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982011
-    m_Localized: "1 ovo por ciclo \u2192 at\xE9 3 ovos por ciclo; cada um paga seu
-      custo, lote parcial se faltar alimento ou vaga"
+    m_Localized: "At\xE9 3 ovos por postura, se houver alimento e vaga no ber\xE7\xE1rio"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982012
-    m_Localized: "Oper\xE1ria comum"
+    m_Localized: "Oper\xE1ria"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982013
-    m_Localized: "Generalista: mant\xE9m todas as tarefas b\xE1sicas"
+    m_Localized: "Faz todas as tarefas b\xE1sicas da col\xF4nia"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982014
@@ -754,7 +753,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982015
-    m_Localized: "Carga de 2 UM ou 32 c\xE9lulas \u2192 3 UM ou 48 (+50%) nas comuns"
+    m_Localized: "Oper\xE1rias levam 3 peda\xE7os de planta em vez de 2 e 4 de terra
+      em vez de 3"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982016
@@ -762,7 +762,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982017
-    m_Localized: "24 c\xE9lulas/s \u2192 30 c\xE9lulas/s (+25%) nas comuns"
+    m_Localized: "Oper\xE1rias andam 25% mais r\xE1pido"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982018
@@ -770,8 +770,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982019
-    m_Localized: "Sem puxar adultas \u2192 resgata adulta a at\xE9 8 c\xE9lulas da
-      borda"
+    m_Localized: "Oper\xE1rias resgatam companheiras soterradas perto da borda do
+      t\xFAnel"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982020
@@ -779,7 +779,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982021
-    m_Localized: "Libera a classe: 28 c\xE9lulas/s, carga 4 UM"
+    m_Localized: "Nova classe: leva 4 peda\xE7os de planta por viagem e anda 17%
+      mais r\xE1pido que a oper\xE1ria"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982022
@@ -787,7 +788,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982023
-    m_Localized: "4 UM \u2192 6 UM (+50%)"
+    m_Localized: "Carregadoras levam 6 peda\xE7os de planta em vez de 4"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982024
@@ -795,7 +796,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982025
-    m_Localized: "Individual \u2192 2 carregadoras levam pe\xE7a de at\xE9 8 UM"
+    m_Localized: "Duas carregadoras levam juntas uma pe\xE7a grande"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982026
@@ -803,7 +804,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982027
-    m_Localized: "28 c\xE9lulas/s \u2192 35 c\xE9lulas/s (+25%)"
+    m_Localized: "Carregadoras andam 25% mais r\xE1pido"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982028
@@ -811,7 +812,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982029
-    m_Localized: 'Libera a classe: corta 2 UM em 1 s (a comum leva 2 s)'
+    m_Localized: "Nova classe: corta plantas 2\xD7 mais r\xE1pido que a oper\xE1ria"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982030
@@ -819,7 +820,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982031
-    m_Localized: "2 UM em 1 s \u2192 4 UM em 1,5 s"
+    m_Localized: "Cortadeiras cortam 33% mais r\xE1pido"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982032
@@ -827,7 +828,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982033
-    m_Localized: "Libera a classe: escava 32 c\xE9lulas/s (a comum faz 16)"
+    m_Localized: "Nova classe: cava 2\xD7 mais r\xE1pido que a oper\xE1ria e leva
+      6 de terra por viagem"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982034
@@ -835,7 +837,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982035
-    m_Localized: "32 c\xE9lulas/s \u2192 48 c\xE9lulas/s (+50%) ao escavar"
+    m_Localized: "Escavadoras cavam 50% mais r\xE1pido e levam 9 de terra em vez
+      de 6"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982036
@@ -843,7 +846,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982037
-    m_Localized: "Pedra bloqueia \u2192 quebra 4 c\xE9lulas de rocha/s"
+    m_Localized: Escavadoras conseguem quebrar rocha
     m_Metadata:
       m_Items: []
   - m_Id: 1353982038
@@ -851,7 +854,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982039
-    m_Localized: 'Libera a classe: cuida do cultivo (atende 6 B, a comum 4 B)'
+    m_Localized: "Nova classe: cuida dos canteiros e atende uma \xE1rea 50% maior
+      que a oper\xE1ria"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982040
@@ -859,8 +863,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982041
-    m_Localized: "Crescimento (cura dos nutrientes) \xD71 \u2192 \xD71,3 na \xE1rea
-      atendida"
+    m_Localized: "Canteiros cuidados por jardineiras ficam prontos 30% mais r\xE1pido"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982042
@@ -868,7 +871,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982043
-    m_Localized: "Instala\xE7\xE3o de 8 s por B \u2192 4 s por B"
+    m_Localized: Jardineiras preparam canteiros novos na metade do tempo
     m_Metadata:
       m_Items: []
   - m_Id: 1353982044
@@ -876,7 +879,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982045
-    m_Localized: 'Libera a classe: atende 4 crias em 3 s'
+    m_Localized: "Nova classe: cuida das crias 33% mais r\xE1pido que a oper\xE1ria"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982046
@@ -884,7 +887,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982047
-    m_Localized: "4 crias por viagem \u2192 8 crias por viagem"
+    m_Localized: Cuidadoras atendem 8 crias de uma vez em vez de 4
     m_Metadata:
       m_Items: []
   - m_Id: 1353982048
@@ -892,8 +895,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982049
-    m_Localized: "Sem evacua\xE7\xE3o \u2192 transporta 2 crias por viagem, com prioridade
-      de emerg\xEAncia"
+    m_Localized: Em perigo, cuidadoras levam as crias para longe, 2 por viagem
     m_Metadata:
       m_Items: []
   - m_Id: 1353982050
@@ -901,8 +903,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982051
-    m_Localized: 'Libera a classe: dano 3/s, vida 18 (depois do primeiro ataque de
-      cupins)'
+    m_Localized: "Nova classe, depois do primeiro ataque de cupins: luta com 3\xD7
+      o dano e a vida de uma oper\xE1ria"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982052
@@ -910,7 +912,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982053
-    m_Localized: "Dano 3/s \u2192 4,5/s (+50%)"
+    m_Localized: Soldados causam 50% mais dano
     m_Metadata:
       m_Items: []
   - m_Id: 1353982054
@@ -918,7 +920,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982055
-    m_Localized: "Vida 18 \u2192 27 (+50%)"
+    m_Localized: "Soldados t\xEAm 50% mais vida"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982056
@@ -926,8 +928,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982057
-    m_Localized: "Combate sem empurr\xE3o \u2192 empurra a invasora 4 c\xE9lulas
-      a cada 3 s"
+    m_Localized: "Soldados empurram os cupins para tr\xE1s a cada 3 s"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982058
@@ -935,7 +936,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982059
-    m_Localized: "Sem produ\xE7\xE3o \u2192 0,25 UM/s por B; 3 N por UM de folha"
+    m_Localized: Libera a sala de nutrientes, onde os canteiros transformam plantas
+      em nutrientes
     m_Metadata:
       m_Items: []
   - m_Id: 1353982060
@@ -943,7 +945,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982061
-    m_Localized: "0,25 UM/s por B \u2192 0,325 UM/s por B (+30%)"
+    m_Localized: "Canteiros produzem 30% mais r\xE1pido"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982062
@@ -951,8 +953,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982063
-    m_Localized: "Folhas diretas \u2192 prepara 2 UM em 2 s; reserva de 12 UM por
-      B"
+    m_Localized: "Libera uma \xE1rea onde as formigas picam plantas e guardam uma
+      reserva para os canteiros"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982064
@@ -960,7 +962,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982065
-    m_Localized: "3 N por UM de folha \u2192 3,6 N (+20%); fruto 6 \u2192 7,2 N"
+    m_Localized: Cada planta rende 20% mais nutrientes
     m_Metadata:
       m_Items: []
   - m_Id: 1353982066
@@ -968,8 +970,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982067
-    m_Localized: Redistribui a reserva preparada entre cultivos; alvo de 6 UM por
-      B
+    m_Localized: "As formigas levam a reserva preparada aos canteiros que est\xE3o
+      com pouca"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982068
@@ -977,7 +979,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982069
-    m_Localized: "Sem novas crias \u2192 2 vagas de cria por B"
+    m_Localized: "Libera o ber\xE7\xE1rio: sem ele, a rainha n\xE3o p\xF5e ovos"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982070
@@ -985,7 +987,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982071
-    m_Localized: "Larva de 14 s \u2192 10,5 s (\u221225%)"
+    m_Localized: "Larvas crescem 25% mais r\xE1pido"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982072
@@ -993,7 +995,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982073
-    m_Localized: "Pupa de 12 s \u2192 9 s (\u221225%)"
+    m_Localized: "Pupas viram adultas 25% mais r\xE1pido"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982074
@@ -1001,7 +1003,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982075
-    m_Localized: "2 vagas por B \u2192 3 vagas por B (+50%)"
+    m_Localized: "O ber\xE7\xE1rio comporta 50% mais crias no mesmo espa\xE7o"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982076
@@ -1009,7 +1011,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982077
-    m_Localized: "6 UM por B no cultivo \u2192 20 UM por B no dep\xF3sito"
+    m_Localized: "Libera o dep\xF3sito de alimentos para guardar plantas"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982078
@@ -1017,7 +1019,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982079
-    m_Localized: "20 UM por B \u2192 30 UM por B (+50%)"
+    m_Localized: "Dep\xF3sitos guardam 50% mais no mesmo espa\xE7o"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982080
@@ -1025,8 +1027,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982081
-    m_Localized: "Cargas soltas de at\xE9 4 UM \u2192 guarda pe\xE7as inteiras de
-      at\xE9 8 UM"
+    m_Localized: "Dep\xF3sitos guardam pe\xE7as grandes inteiras"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982082
@@ -1034,8 +1035,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982083
-    m_Localized: "Res\xEDduos ocupam a origem \u2192 12 UR por B; decomposi\xE7\xE3o
-      de 120 s por UR"
+    m_Localized: "Libera a \xE1rea de res\xEDduos, para onde v\xE3o restos e corpos"
     m_Metadata:
       m_Items: []
   - m_Id: 1353982084
@@ -1043,7 +1043,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1353982085
-    m_Localized: "120 s por UR \u2192 60 s por UR (\u221250%)"
+    m_Localized: "Res\xEDduos somem 2\xD7 mais r\xE1pido"
     m_Metadata:
       m_Items: []
   - m_Id: 23881588736
@@ -1076,8 +1076,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 22553245786112
-    m_Localized: Salas do formigueiro. Pinte onde ficam a rainha, o cultivo, as crias,
-      o lixo e o orvalho.
+    m_Localized: "Salas do formigueiro. Pinte onde ficam a rainha, o cultivo, as
+      crias, o lixo, o orvalho e os dep\xF3sitos."
     m_Metadata:
       m_Items: []
   - m_Id: 22553245786113
@@ -1169,8 +1169,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 22553245786132
-    m_Localized: "Comum: faz de tudo um pouco e corta plantas quando est\xE1 sem
-      outra tarefa."
+    m_Localized: "Oper\xE1ria: faz de tudo um pouco e corta plantas quando est\xE1
+      sem outra tarefa."
     m_Metadata:
       m_Items: []
   - m_Id: 22553245786133
@@ -1291,8 +1291,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 22553245786160
-    m_Localized: "Falta: espa\xE7o livre. Cave a \xE1rea, com ch\xE3o livre para
-      deixar res\xEDduos."
+    m_Localized: "Falta: espa\xE7o livre. Cave a \xE1rea; qualquer c\xE9lula vazia
+      guarda um res\xEDduo."
     m_Metadata:
       m_Items: []
   - m_Id: 22553245786161
@@ -1363,6 +1363,903 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 37542220275712
     m_Localized: 'Volte ao trabalho: as formigas retomam as tarefas.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986930204672
+    m_Localized: ATAQUE DE CUPINS IMINENTE! ESPERANDO A CHUVA PASSAR
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370496
+    m_Localized: "Painel da col\xF4nia: estat\xEDsticas das formigas e da produ\xE7\xE3o,
+      e quais trabalhos ficam ativos."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370497
+    m_Localized: "PAINEL DA COL\xD4NIA"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370498
+    m_Localized: "ESTAT\xCDSTICAS"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370499
+    m_Localized: "SE\xC7\xC3O DE TRABALHO"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370500
+    m_Localized: AGORA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370501
+    m_Localized: LIMITE DE FORMIGAS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370502
+    m_Localized: TRABALHO DA RAINHA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370503
+    m_Localized: "NINHO: P\xD4R OVOS"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370504
+    m_Localized: COLETAR RECURSOS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370505
+    m_Localized: TUDO ATIVO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370506
+    m_Localized: FORMIGAS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370507
+    m_Localized: Adultas
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370508
+    m_Localized: Crias
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370509
+    m_Localized: Sem trabalho
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370510
+    m_Localized: Lutando
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564800
+    m_Localized: POR TIPO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564801
+    m_Localized: TRABALHANDO EM
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564802
+    m_Localized: RAINHA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564803
+    m_Localized: 'Sino tocado: recolhidas'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564804
+    m_Localized: "ONDE EST\xC3O"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564805
+    m_Localized: "PRODU\xC7\xC3O POR SEGUNDO"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564806
+    m_Localized: "Escava\xE7\xE3o"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564807
+    m_Localized: "Constru\xE7\xE3o"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564808
+    m_Localized: Coleta de plantas
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564809
+    m_Localized: Alimentar a rainha
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564810
+    m_Localized: "Ber\xE7\xE1rio"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564811
+    m_Localized: Sala de nutrientes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564812
+    m_Localized: Gotas de orvalho
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564813
+    m_Localized: "Res\xEDduos"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564814
+    m_Localized: Exterior
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564815
+    m_Localized: "T\xFAneis"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564816
+    m_Localized: Sala da rainha
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564817
+    m_Localized: "Ber\xE7\xE1rio"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564818
+    m_Localized: Sala de nutrientes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564819
+    m_Localized: Gotas de orvalho
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564820
+    m_Localized: "Res\xEDduos"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564821
+    m_Localized: "Nutriente \xE0 rainha"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564822
+    m_Localized: Nutriente brotado
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564823
+    m_Localized: Planta colhida
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564824
+    m_Localized: Terra escavada
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564825
+    m_Localized: PARADA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564826
+    m_Localized: AGORA {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564827
+    m_Localized: SEM LIMITE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564828
+    m_Localized: "M\xC1X {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564829
+    m_Localized: No ninho, pondo ovos
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564830
+    m_Localized: Coletando recursos
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564831
+    m_Localized: 'A rainha fica na sala dela pondo ovos. Agora: {0}.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564832
+    m_Localized: "A rainha coleta e n\xE3o p\xF5e ovos fora da sala. Agora: {0}."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564833
+    m_Localized: "Clique para ligar ou parar. Parada, nenhuma formiga nova entra;
+      quem est\xE1 nela termina o que carrega."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564834
+    m_Localized: "Diminui o limite de formigas nesta se\xE7\xE3o."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564835
+    m_Localized: Aumenta o limite; acima do total de formigas, fica sem limite.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564836
+    m_Localized: "Liga todas as se\xE7\xF5es e tira todos os limites."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564837
+    m_Localized: "A rainha fica na sala dela e p\xF5e ovos."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564838
+    m_Localized: "A rainha sai para coletar: come o nutriente guardado e corta e
+      carrega plantas de fora. Enquanto isso, n\xE3o p\xF5e ovos."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564839
+    m_Localized: "Escava\xE7\xE3o: cavar a terra marcada e lev\xE1-la para fora."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564840
+    m_Localized: "Constru\xE7\xE3o: buscar terra na pilha de fora e montar as obras."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564841
+    m_Localized: "Coleta de plantas: cortar plantas de fora e levar os peda\xE7os
+      aos canteiros."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564842
+    m_Localized: "Alimentar a rainha: levar o nutriente guardado at\xE9 ela."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564843
+    m_Localized: "Ber\xE7\xE1rio: levar os ovos e cuidar das crias."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564844
+    m_Localized: 'Sala de nutrientes: montar canteiros, regar e cuidar do que brota.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564845
+    m_Localized: 'Gotas de orvalho: terra fofa no teto e cuidado das gotas.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564846
+    m_Localized: "Res\xEDduos: desmembrar cupins mortos e levar os restos."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 320654177964032
+    m_Localized: COLETAR NUTRIENTE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 320654177964033
+    m_Localized: Coletando nutriente
+    m_Metadata:
+      m_Items: []
+  - m_Id: 320654177964034
+    m_Localized: 'Na sala de nutrientes, comendo cada nutriente pronto (sem ovos).
+      Agora: {0}.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 320654177964035
+    m_Localized: "A rainha vai \xE0 sala de nutrientes, fica l\xE1 e come cada nutriente
+      assim que fica pronto, sem cortar plantas. Enquanto isso, n\xE3o p\xF5e ovos."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726718664704
+    m_Localized: "Dep\xF3sito de alimentos"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859008
+    m_Localized: "Dep\xF3sito de constru\xE7\xE3o"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859009
+    m_Localized: "Dep\xF3sito de \xE1gua"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859010
+    m_Localized: "DEP\xD3SITO"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859011
+    m_Localized: "Dep\xF3sitos de alimentos, de constru\xE7\xE3o e de \xE1gua. O
+      que as formigas trazem de fora fica guardado ali, sem fechar a passagem, e
+      \xE9 usado de l\xE1 primeiro."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859012
+    m_Localized: "Dep\xF3sito de alimentos: guarda os peda\xE7os de planta cortados.
+      Com ele, os canteiros e a sala de orvalho s\xF3 recebem planta daqui."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859013
+    m_Localized: "Dep\xF3sito de constru\xE7\xE3o: guarda a terra cavada. Com ele,
+      obras, canteiros e a sala de orvalho s\xF3 usam a terra daqui."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859014
+    m_Localized: "Dep\xF3sito de \xE1gua: guarda a \xE1gua tirada do mapa. Com ele,
+      os canteiros s\xF3 s\xE3o regados com a \xE1gua daqui."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859015
+    m_Localized: "Falta: pintar o dep\xF3sito (Ambientes > Dep\xF3sito)."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859016
+    m_Localized: "Falta: espa\xE7o livre. Cave o dep\xF3sito; qualquer c\xE9lula
+      vazia guarda um item."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859017
+    m_Localized: 'Funcionando: {0} guardados, {1} vagas livres.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332730325766144
+    m_Localized: "DEP\xD3SITO DE ALIMENTOS"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332730858442752
+    m_Localized: "DEP\xD3SITO DE CONSTRU\xC7\xC3O"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332731399507968
+    m_Localized: "DEP\xD3SITO DE \xC1GUA"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 350737034874880
+    m_Localized: Arraste para escolher o limite; no fim do trilho, fica sem limite.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 381798674567168
+    m_Localized: "Enchendo dep. \xE1gua"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707392
+    m_Localized: ORVALHO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707393
+    m_Localized: OBRA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707394
+    m_Localized: EXTERIOR
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707395
+    m_Localized: DEFESA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707396
+    m_Localized: "C\xC2MARA REAL"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707397
+    m_Localized: "ARRASTE PARA MOVER  \xB7  RODA DO MOUSE PARA ZOOM"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707398
+    m_Localized: "M\xC1X"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707399
+    m_Localized: PROFUNDIDADE {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707400
+    m_Localized: "TERRA N\xC3O ESCAVADA \xB7 ABRE COM PROFUNDIDADE {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707401
+    m_Localized: "C\xC2MARA"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707402
+    m_Localized: GALERIA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707403
+    m_Localized: NV {0}/{1}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707404
+    m_Localized: NV {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707405
+    m_Localized: "TOTAL {0} \u2192 {1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707406
+    m_Localized: TOTAL {0} (COMPLETA)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707407
+    m_Localized: MARCO NO NV {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707408
+    m_Localized: 'CUSTO: {0} N'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707409
+    m_Localized: '+{0} NV: {1} N'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707410
+    m_Localized: 5 ATAQUES VENCIDOS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707411
+    m_Localized: 50 ADULTAS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901696
+    m_Localized: Jardim da rainha
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901697
+    m_Localized: Nutrientes prontos perto da rainha entram direto no saldo, sem transporte
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901698
+    m_Localized: "Ninhada g\xEAmea"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901699
+    m_Localized: "10% dos ovos viram duas larvas pelo pre\xE7o de uma"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901700
+    m_Localized: "Dep\xF3sito de constru\xE7\xE3o"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901701
+    m_Localized: "Libera o pincel do dep\xF3sito de constru\xE7\xE3o"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901702
+    m_Localized: "Dep\xF3sito de \xE1gua"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901703
+    m_Localized: "Libera o pincel do dep\xF3sito de \xE1gua"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901704
+    m_Localized: "Log\xEDstica integrada"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901705
+    m_Localized: "Formigas sem tarefa levam os itens para o dep\xF3sito mais perto
+      de quem vai usar"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901706
+    m_Localized: Sala Gotas de orvalho
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901707
+    m_Localized: Libera o pincel da sala de orvalho
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901708
+    m_Localized: Folhas coletoras
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901709
+    m_Localized: "Cada gota de orvalho rende o dobro de \xE1gua"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901710
+    m_Localized: Neblina do amanhecer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901711
+    m_Localized: "As gotas tamb\xE9m regam os canteiros vizinhos da sala"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901712
+    m_Localized: Despejo organizado
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901713
+    m_Localized: "Mais 2 sa\xEDdas para despejar terra (4 \u2192 6)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901714
+    m_Localized: Rotas batidas
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901715
+    m_Localized: "T\xFAneis muito usados viram trilhas: +10% de velocidade dentro
+      do formigueiro"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901716
+    m_Localized: Trilha de forrageio
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901717
+    m_Localized: "Formigas andam 10% mais r\xE1pido fora do formigueiro"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901718
+    m_Localized: Jardim cultivado
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901719
+    m_Localized: Plantas cortadas perto da entrada voltam a crescer no mesmo lugar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901720
+    m_Localized: Entradas vigiadas
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901721
+    m_Localized: "O aviso de ataque chega 4 s mais cedo (8 \u2192 12 s)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901722
+    m_Localized: "C\xE2mara de ref\xFAgio"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901723
+    m_Localized: "Libera o pincel de ref\xFAgio: no aviso de ataque, crias e cuidadoras
+      v\xE3o para l\xE1"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901724
+    m_Localized: Postura em campo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901725
+    m_Localized: "A rainha tamb\xE9m p\xF5e ovos quando est\xE1 coletando ou na sala
+      de nutrientes"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901726
+    m_Localized: "Oper\xE1ria vers\xE1til"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901727
+    m_Localized: "Sem especialista por perto, a oper\xE1ria faz a tarefa dela com
+      metade do b\xF4nus"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901728
+    m_Localized: Comboio
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901729
+    m_Localized: "Grupos de carregadoras levam pe\xE7as grandes inteiras direto ao
+      dep\xF3sito"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901730
+    m_Localized: Poda seletiva
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901731
+    m_Localized: "Plantas cortadas por cortadeiras voltam a crescer 50% mais r\xE1pido"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901732
+    m_Localized: Frente larga
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901733
+    m_Localized: "Escavadoras cavam 2 c\xE9lulas vizinhas de cada vez"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901734
+    m_Localized: Simbiose
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901735
+    m_Localized: "Canteiros cuidados por jardineiras n\xE3o deixam res\xEDduo de
+      fungo velho"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901736
+    m_Localized: Ama de leite
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901737
+    m_Localized: "Cada cria custa 10% menos alimento (com Geleia real, no m\xE1ximo
+      40% menos)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901738
+    m_Localized: Guarda real
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901739
+    m_Localized: "No aviso de ataque, at\xE9 4 soldados cercam a rainha"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901740
+    m_Localized: "C\xE2mara real ampliada"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901741
+    m_Localized: "Cada adulta ocupa 4% menos espa\xE7o por n\xEDvel: cabem mais formigas"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901742
+    m_Localized: Fungo vigoroso
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901743
+    m_Localized: "Canteiros ficam prontos 8% mais r\xE1pido por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901744
+    m_Localized: Colheita nutritiva
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901745
+    m_Localized: "Cada entrega de nutriente vale 5% mais por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901746
+    m_Localized: "Cura r\xE1pida"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901747
+    m_Localized: "Nutrientes ficam prontos para levar 4% mais r\xE1pido por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901748
+    m_Localized: Leitos aquecidos
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901749
+    m_Localized: "Larvas e pupas crescem 3% mais r\xE1pido por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901750
+    m_Localized: Vagas extras
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901751
+    m_Localized: "Cada cria ocupa 5% menos espa\xE7o no ber\xE7\xE1rio por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901752
+    m_Localized: Empilhamento
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901753
+    m_Localized: "Dep\xF3sitos guardam 25% mais por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901754
+    m_Localized: "Conserva\xE7\xE3o"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901755
+    m_Localized: "Alimentos estragam 5% mais devagar no dep\xF3sito por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901756
+    m_Localized: Orvalho farto
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901757
+    m_Localized: "Gotas de orvalho caem 5% mais r\xE1pido por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901758
+    m_Localized: "Reservat\xF3rio"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901759
+    m_Localized: "A sala de orvalho guarda +4 de \xE1gua por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901760
+    m_Localized: Obra barata
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901761
+    m_Localized: "Pintar ambientes custa 3% menos por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901762
+    m_Localized: Frentes de obra
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901763
+    m_Localized: "Todas as formigas cavam 3% mais r\xE1pido por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901764
+    m_Localized: "Brota\xE7\xE3o"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901765
+    m_Localized: "Plantas de fora crescem 6% mais r\xE1pido por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901766
+    m_Localized: "Ferom\xF4nio de trilha"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901767
+    m_Localized: "Formigas andam 3% mais r\xE1pido fora do formigueiro por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901768
+    m_Localized: Faro
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901769
+    m_Localized: "Formigas acham plantas 5% mais longe por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901770
+    m_Localized: "Paredes refor\xE7adas"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901771
+    m_Localized: "Cupins levam 10% mais tempo para quebrar paredes por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901772
+    m_Localized: Vigias
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901773
+    m_Localized: "O aviso de ataque chega 1 s mais cedo por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901774
+    m_Localized: Fertilidade
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901775
+    m_Localized: "A rainha p\xF5e ovos 3% mais r\xE1pido por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901776
+    m_Localized: Geleia real
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901777
+    m_Localized: "Cada cria custa 2% menos alimento por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901778
+    m_Localized: Vigor real
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901779
+    m_Localized: "A rainha tem 10% mais vida por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901780
+    m_Localized: Passo firme
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901781
+    m_Localized: "Oper\xE1rias andam 4% mais r\xE1pido por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901782
+    m_Localized: Vitalidade
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901783
+    m_Localized: "Todas as adultas t\xEAm 10% mais vida em combate por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901784
+    m_Localized: "Mand\xEDbula de trabalho"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901785
+    m_Localized: "Oper\xE1rias cortam plantas 3% mais r\xE1pido por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901786
+    m_Localized: Costas largas
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901787
+    m_Localized: "Carregadoras levam +1 peda\xE7o de planta por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901788
+    m_Localized: Passo de carga
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901789
+    m_Localized: "Carregadoras andam 4% mais r\xE1pido por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901790
+    m_Localized: Serrilha
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901791
+    m_Localized: "Cortadeiras cortam 4% mais r\xE1pido por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901792
+    m_Localized: "Mand\xEDbulas de p\xE1"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901793
+    m_Localized: "Escavadoras cavam 4% mais r\xE1pido por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901794
+    m_Localized: Carga de terra
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901795
+    m_Localized: "Escavadoras levam +1 de terra por viagem por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901796
+    m_Localized: Britador
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901797
+    m_Localized: "Escavadoras quebram rocha 6% mais r\xE1pido por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901798
+    m_Localized: "M\xE3os verdes"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901799
+    m_Localized: "Jardineiras deixam os canteiros 5% mais r\xE1pidos por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901800
+    m_Localized: Orvalheira
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901801
+    m_Localized: "Jardineiras fazem as gotas de orvalho cair 10% mais r\xE1pido por
+      n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901802
+    m_Localized: Ninhada atenta
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901803
+    m_Localized: "Cuidadoras param 5% menos entre um cuidado e outro por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901804
+    m_Localized: Turno dobrado
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901805
+    m_Localized: "Cada cuidadora atende +1 parte do ber\xE7\xE1rio por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901806
+    m_Localized: "Mand\xEDbulas afiadas"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901807
+    m_Localized: "Soldados causam 8% mais dano por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901808
+    m_Localized: "Carapa\xE7a grossa"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901809
+    m_Localized: "Soldados t\xEAm 8% mais vida por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901810
+    m_Localized: "Recupera\xE7\xE3o"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901811
+    m_Localized: "Soldados feridos come\xE7am a se curar 5% mais cedo por n\xEDvel"
     m_Metadata:
       m_Items: []
   references:

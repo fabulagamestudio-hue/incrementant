@@ -29,7 +29,17 @@ Tutorial da primeira abertura implementado (REQ-030, PRG-035): câmera guiada, d
 
 Menu principal implementado (REQ-031, PRG-036): cena `MainMenu` com a colônia trabalhando ao fundo, Continuar/Iniciar/Configurações/Sobre/Sair, splash da Unity desligado e Menu principal no menu de pausa; verificado só em Play Mode pelo agente, falta uma pessoa usar. Logo da Fábula aplicado; splash da Fábula pendente.
 
+Painel da colônia implementado (PRG-046, REQ-035): botão à esquerda do sino abre a janela com Estatísticas (formigas por seção, tipo e lugar; produção por segundo) e Configurações (ligar, parar e limitar cada uma das 8 seções de trabalho; rainha no ninho, coletando recursos ou só nutriente). Testes EditMode novos e Play Mode pelo agente; falta uma pessoa usar.
+
+Formigas sem trabalho do papel fazem o da operária comum (PRG-048, REQ-037): soldado fora do combate, cortadeira sem corte, cuidadora sem cria etc. cavam, carregam e cuidam como a comum e voltam ao papel quando ele tem trabalho. Testes EditMode novos; sem Play Mode.
+
+Depósitos implementados (PRG-047, REQ-036): Ambientes → DEPÓSITO abre os pincéis dos depósitos de alimentos, construção e água. Planta cortada, terra cavada e água do mapa vão primeiro para eles, guardadas sem bloquear a passagem, e canteiros, sala de orvalho e obra consomem só de lá (sem o depósito, como antes); a área de resíduos também deixou de obstruir o caminho. Testes EditMode novos e Play Mode pelo agente; a pilha de fora, inclusive a despejada antes do depósito, enche o depósito de construção sempre que ele tem vaga (decidido em 2026-10-19); falta uma pessoa jogar.
+
 Sala Gotas de Orvalho implementada (PRG-037, REQ-032): pincel novo; operárias e jardineiras cobrem de terra fofa os 30% de cima da sala, depois penduram folhas, e a sala pronta solta uma gota a cada 8 s que as paredes não absorvem. Suíte EditMode 217/217 na Unity (8 testes novos); falta remontar o HUD para o botão aparecer e uma pessoa jogar.
+
+Busca de água por vizinhança (PRG-049, REQ-038): o bloco de água reservado libera os vizinhos ainda obstruídos para outras formigas; quem chega antes pega o bloco do meio e passa o seu à outra, e a formiga que acha a água escorrida pega um bloco a um passo em vez de parar. Testes EditMode novos passando fora da Unity; falta a Unity e Play Mode.
+
+Melhorias incrementais documentadas (GD-008, REQ-039): o [documento 39](../Docs/01_Design/39_Melhorias_incrementais_e_formigueiro_de_dependencias.md) e a [planilha de valores](../Docs/04_Data/39_Melhorias_incrementais_valores.xlsx) propõem câmaras de compra única, galerias com nível (teto nos atributos físicos, infinitas na economia) e marcos, em anéis de profundidade com dependências cruzadas entre as abas Formigueiro e Rainha. Níveis repetíveis e valores aprovados pelo desenvolvedor em 2026-10-19. A tela Evolução já segue o padrão formigueiro (PRG-050): arrastar e zoom, anéis fechados escuros, portais entre abas e galerias com selo de nível; só os nós da rainha que já existiam têm compra, o resto aparece como EM BREVE (KI-024). Testes EditMode novos e Play Mode pelo agente; falta uma pessoa usar.
 
 ## Estado por setor
 
@@ -37,7 +47,7 @@ Sala Gotas de Orvalho implementada (PRG-037, REQ-032): pincel novo; operárias e
 |---|---|---|
 | Arte | Só arte provisória (formigas e cenário da superfície) | [ART.md](ART.md) |
 | Programação | Protótipo do formigário implementado; núcleo verificado | [PROGRAMMING.md](PROGRAMMING.md) |
-| Game design | Referência revisada organizada em 38 Markdown (GD-006); loop do protótipo a validar | [GAME_DESIGN.md](GAME_DESIGN.md) |
+| Game design | Referência revisada organizada em 38 Markdown (GD-006); melhorias incrementais documentadas (GD-008); loop do protótipo a validar | [GAME_DESIGN.md](GAME_DESIGN.md) |
 | Áudio | Sem conteúdo; SFX planejado (AUD-001, REQ-023) | [AUDIO.md](AUDIO.md) |
 | Release | Sem conteúdo | [RELEASE.md](RELEASE.md) |
 
@@ -60,14 +70,14 @@ Sala Gotas de Orvalho implementada (PRG-037, REQ-032): pincel novo; operárias e
 ### Programação
 
 - **Entregas verificadas:** PRG-001 Grade e física granular; PRG-002 Formigas; PRG-004 Cena por setup; PRG-005 Modo do mapa; PRG-006 Formigas em sprite; PRG-007 Agarre em paredes; PRG-008 Andar no fundo do formigueiro; PRG-009 Cenário da superfície em camadas; PRG-010 Mundo expansível; PRG-012 Simulação por blocos (8x no mesmo FPS); PRG-013 Chuva leve e forte; PRG-014 Água; PRG-015 Rainha e sala da rainha; PRG-016 Plantas, sala de nutrientes e nutrientes
-- **Pendências:** PRG-003 Render, input e HUD; PRG-017 HUD uGUI e PRG-018 Política da rainha e PRG-019 Tipos de formiga e PRG-025 Corte de plantas corrigido e PRG-026 Carga, rocha e prioridades e PRG-027 Cuidado do berçário e PRG-028 Cuidado da sala de nutrientes e PRG-020 Ciclo de criação, PRG-021 Cria desenhada no berçário e PRG-022 Transporte do ovo e cheat F1 e PRG-023 Construção de fora (sem Play Mode) e PRG-024 Árvore da rainha (tela Evolução) e PRG-029 Andar livre do lado de fora e PRG-030 Reserva do pixel marcado e PRG-031 Menu do ESC e configurações (faltam uso com mouse; só Pintar e Rainha funcionam; cria vista só em captura do agente); PRG-011 Câmera, limitador e paralaxe (falta uso real por mouse/teclado); PRG-034 Ataques de cupins e área de resíduos (Play Mode só pelo agente); PRG-038 a PRG-045 Efeitos de dopamina em oito fases (planejado, REQ-034)
+- **Pendências:** PRG-003 Render, input e HUD; PRG-017 HUD uGUI e PRG-018 Política da rainha e PRG-019 Tipos de formiga e PRG-025 Corte de plantas corrigido e PRG-026 Carga, rocha e prioridades e PRG-027 Cuidado do berçário e PRG-028 Cuidado da sala de nutrientes e PRG-020 Ciclo de criação, PRG-021 Cria desenhada no berçário e PRG-022 Transporte do ovo e cheat F1 e PRG-023 Construção de fora (sem Play Mode) e PRG-024 Árvore da rainha (tela Evolução) e PRG-029 Andar livre do lado de fora e PRG-030 Reserva do pixel marcado e PRG-031 Menu do ESC e configurações (faltam uso com mouse; só Pintar e Rainha funcionam; cria vista só em captura do agente); PRG-011 Câmera, limitador e paralaxe (falta uso real por mouse/teclado); PRG-034 Ataques de cupins e área de resíduos (Play Mode só pelo agente); PRG-038 a PRG-045 Efeitos de dopamina em oito fases (planejado, REQ-034); PRG-046 Painel da colônia (falta uso por uma pessoa); PRG-047 Depósitos e resíduos sem obstruir (falta uso por uma pessoa)
 - **Bloqueios:** Nenhum
 - **Riscos:** Render passou a ser o maior custo por frame (KI-001); soluço único ao montar o cache de navegação de áreas grandes (KI-004)
 
 ### Game design
 
 - **Entregas verificadas:** GD-006 Documento revisado convertido e conferido contra o DOCX (38 seções e 28 tabelas); [índice](../Docs/README.md)
-- **Pendências:** GD-001 Conceito (alinhamento do protótipo à referência revisada e validação do loop); GD-002 Regras da chuva (interpretações a confirmar); GD-003 Regras da água (valores de X/Y e interpretações a confirmar); GD-004 Regras da rainha (interpretações a confirmar); GD-005 Regras das plantas e nutrientes (interpretações a confirmar)
+- **Pendências:** GD-001 Conceito (alinhamento do protótipo à referência revisada e validação do loop); GD-002 Regras da chuva (interpretações a confirmar); GD-003 Regras da água (valores de X/Y e interpretações a confirmar); GD-004 Regras da rainha (interpretações a confirmar); GD-005 Regras das plantas e nutrientes (interpretações a confirmar); GD-008 Melhorias incrementais (proposta sem balanceamento, construção não pedida)
 - **Bloqueios:** Nenhum
 - **Riscos:** Nenhum
 
@@ -114,10 +124,15 @@ Sala Gotas de Orvalho implementada (PRG-037, REQ-032): pincel novo; operárias e
 | Menu do ESC e tela de configurações | IMPLEMENTED | PRG-031 |
 | Ataques de cupins, combate, área de resíduos e soldado | IMPLEMENTED | PRG-034 |
 | Sala Gotas de Orvalho (terra fofa, folha, gota que as paredes não absorvem) | IMPLEMENTED | PRG-037 |
+| Painel da colônia: estatísticas, seções de trabalho e rainha coletora | IMPLEMENTED | PRG-046 |
+| Depósitos de alimentos, construção e água; resíduos sem obstruir | IMPLEMENTED | PRG-047 |
+| Formiga sem trabalho do papel faz o trabalho da operária comum | IMPLEMENTED | PRG-048 |
+| Liberação de blocos de água por vizinhança e troca de alvo | IMPLEMENTED | PRG-049 |
 | Experimento: terreno em tiles 16x16 e mapa dobrado (branch `experimento/pixel-16x16`) | IMPLEMENTED | PRG-032, ART-008 |
 
 ## Problemas e riscos
 
+- Seis testes EditMode já falham no código commitado (5 de água e 1 da planta-alvo; KI-022), sem investigação.
 - As quatro falhas antigas de teste foram corrigidas em 2026-10-18 (KI-015, resolvido): eram bugs latentes da ordem da obra e da mudança de cria, e a planta larga parava pela morte por velhice. Suíte EditMode 173/173.
 - O render da textura do terreno (~4,3 ms por frame no editor) é agora o maior custo; a simulação no 8x caiu para ~2 ms com o mundo inteiro (KI-002 resolvido). Montar o cache de navegação de uma área grande de uma vez custa ~14 ms (KI-004). Ver [KnownIssues.md](../Assets/Project/Scripts/KnownIssues.md).
 
@@ -153,6 +168,11 @@ Sala Gotas de Orvalho implementada (PRG-037, REQ-032): pincel novo; operárias e
 | REQ-031 | Menu principal com fundo de colônia trabalhando e sem splash da Unity | IMPLEMENTED | UNDEFINED |
 | REQ-032 | Sala Gotas de Orvalho | IMPLEMENTED | UNDEFINED |
 | REQ-034 | Efeitos de dopamina (juice): botões animados, partículas e animações de feedback | IN_PROGRESS | UNDEFINED |
+| REQ-035 | Janela de estatísticas e configurações da colônia | IMPLEMENTED | UNDEFINED |
+| REQ-036 | Depósitos de alimentos, construção e água; resíduos sem obstruir | IMPLEMENTED | UNDEFINED |
+| REQ-037 | Formigas sem trabalho se comportam como operárias | IMPLEMENTED | UNDEFINED |
+| REQ-038 | Liberação de blocos de água por vizinhança e troca de alvo entre formigas | IMPLEMENTED | UNDEFINED |
+| REQ-039 | Melhorias incrementais com nutrientes e formigueiro de dependências | IMPLEMENTED | UNDEFINED |
 
 Registro completo: [REQUESTS.md](REQUESTS.md)
 
@@ -189,8 +209,11 @@ Registro completo: [REQUESTS.md](REQUESTS.md)
 - O loop do protótipo (marcar pixels para cavar; jardineiras colhem plantas sozinhas; nutrientes compram formigas) é o desejado? (GD-001)
 - Se o experimento 16x16 e o mapa dobrado vão para a `main` e se formigas e cenário serão redesenhados a 16 px por célula (REQ-024). O mapa dobrado custa ~415 MB a mais e ~1,6x no tempo da colônia com 200 formigas cavando (KI-016); a arte 16x16 não pesa na simulação.
 - Opções da tela de configurações e pausa ao abrir o menu (REQ-022); eventos, origem dos arquivos e música para SFX e VFX (REQ-023).
+- Depósitos: areia e rocha ficam fora do depósito de construção? (REQ-036, KI-021)
+- Formiga emprestada ao trabalho da comum mantém velocidade, carga, vida e ritmos do próprio papel e continua contada no papel dela no painel; confirmar (REQ-037).
 - Juice (REQ-034): paleta de feedback e aprovação visual, opção separada para tremor de câmera, quais marcos ganham momento próprio e como REQ-023 e REQ-034 se dividem (a parte de VFX de REQ-023 é coberta por REQ-034).
 - Ataques de cupins: balanceamento, crescimento do teto de cupins por ataque (hoje +5 pontos, até 100%), se a rainha pode ser atacada e se a área de resíduos vira compra (R0) (REQ-029, GD-007, KI-018).
+- Melhorias incrementais (GD-008, REQ-039): níveis repetíveis e valores aprovados em 2026-10-19; falta decidir se a profundidade dá bônus direto, os requisitos cruzados novos em nós que já existem e como a tela Evolução comporta ~100 nós (arrastar/zoom).
 - Descrição, plataformas-alvo e marco atual do jogo.
 - Substituir a cena de template `Assets/Scenes/SampleScene.unity` e mover `Assets/Settings` para `Assets/Project`? (não feito: quebraria referências; fica como tarefa separada).
 

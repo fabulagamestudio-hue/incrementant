@@ -26,7 +26,7 @@ namespace Fabula.Incrementant.World
     /// (<see cref="Active"/>, já gerada) existe para o jogo. Fora dela é tratado como <see cref="CellMaterial.Bedrock"/>.
     /// A área ativa só cresce (<see cref="ExpandActive"/>), conforme o mapa procedural é revelado.
     /// </summary>
-    public sealed class PixelGrid
+    public sealed partial class PixelGrid
     {
         readonly CellMaterial[] _cells;
         readonly byte[] _shades;
@@ -70,6 +70,14 @@ namespace Fabula.Incrementant.World
         readonly bool[] _rowAwake;
         readonly bool[] _rowAwakeNext;
         readonly int[] _chunkVersion;
+        // Versão visual do bloco: muda quando qualquer coisa que o render do terreno desenha numa célula dele muda.
+        readonly int[] _chunkRender;
+        int _renderCounter;
+        // Registro circular das células cuja aparência mudou sem mudar a forma do terreno (água, umidade, marcas, salas,
+        // depósitos, nutriente, troca de material sólido por sólido): cada view lê a partir do ponto em que parou.
+        readonly int[] _renderLog = new int[RenderLogCapacity];
+        long _renderLogCount;
+        public const int RenderLogCapacity = 1 << 16;
         readonly int[] _chunkMarked;
         readonly int[] _chunkBuildMarked;
         readonly int[] _chunkQueenRoom;
@@ -187,6 +195,7 @@ namespace Fabula.Incrementant.World
             _rowAwake = new bool[ChunkRows];
             _rowAwakeNext = new bool[ChunkRows];
             _chunkVersion = new int[chunks];
+            _chunkRender = new int[chunks];
             _chunkMarked = new int[chunks];
             _chunkBuildMarked = new int[chunks];
             _chunkQueenRoom = new int[chunks];
@@ -199,6 +208,7 @@ namespace Fabula.Incrementant.World
             _rowWater = new int[ChunkRows];
             _waterAwake = new bool[chunks];
             _waterAwakeNext = new bool[chunks];
+            InitStorage(width * height, chunks);
             TouchAll();
         }
 
@@ -237,10 +247,10 @@ namespace Fabula.Incrementant.World
             if (minX == _minX && minY == _minY && maxX == _maxX && maxY == _maxY)
                 return false;
             // As faixas novas deixam de valer Bedrock (InBounds): toca cada uma, com a borda antiga junto.
-            TouchRect(minX, minY, _minX, maxY);
-            TouchRect(_maxX, minY, maxX, maxY);
-            TouchRect(_minX, minY, _maxX, _minY);
-            TouchRect(_minX, _maxY, _maxX, maxY);
+            TouchRect(minX, minY, _minX, maxY, true);
+            TouchRect(_maxX, minY, maxX, maxY, true);
+            TouchRect(_minX, minY, _maxX, _minY, true);
+            TouchRect(_minX, _maxY, _maxX, maxY, true);
             _minX = minX;
             _minY = minY;
             _maxX = maxX;
@@ -310,6 +320,7 @@ namespace Fabula.Incrementant.World
             if (old == 0) WetCount++;
             else if (wetness == 0) WetCount--;
             _wetness[index] = wetness;
+            DirtyRender(index);
         }
 
         /// <summary>Tira 1 de umidade de toda célula molhada da área ativa (secagem).</summary>
@@ -460,6 +471,8 @@ namespace Fabula.Incrementant.World
             // Material sólido por cima de um nutriente o destrói (terra caindo, obra).
             if (_nutrient[i] && material != CellMaterial.Empty)
                 SetNutrientAt(i, false);
+            if (material != CellMaterial.Empty)
+                LoseStoredAt(i);
             // O canteiro é a terra fofa: cavada ou trocada por outro material, ele se desfaz (planta e água junto).
             if (_bedStage[i] != BedStage.None && material != CellMaterial.Spoil)
                 RemoveBedAt(i);
@@ -477,6 +490,11 @@ namespace Fabula.Incrementant.World
             if (wasSolid != (material != CellMaterial.Empty) || wasBuilt)
                 StructureVersion++;
             Touch(x, y);
+            // Só abrir ou fechar a célula muda a névoa (blocos em volta); trocar sólido por sólido só muda a cor dela.
+            if (wasSolid != (material != CellMaterial.Empty))
+                DirtyShape(i);
+            else
+                NoteRender(i);
         }
 
         /// <summary>
@@ -495,6 +513,7 @@ namespace Fabula.Incrementant.World
                 return false;
 
             _marked[i] = marked;
+            DirtyRender(i);
             MarkedCount += marked ? 1 : -1;
             _chunkMarked[ChunkOf(i)] += marked ? 1 : -1;
             MarkVersion++;
@@ -519,6 +538,7 @@ namespace Fabula.Incrementant.World
                 return false;
 
             _buildMarked[i] = marked;
+            DirtyRender(i);
             BuildMarkedCount += marked ? 1 : -1;
             _chunkBuildMarked[ChunkOf(i)] += marked ? 1 : -1;
             MarkVersion++;
@@ -537,10 +557,11 @@ namespace Fabula.Incrementant.World
             int i = y * Width + x;
             if (_queenRoom[i] == room)
                 return false;
-            if (room && (y > GetSurfaceY(x) || _nutrientRoom[i] || _nurseryRoom[i] || _wasteRoom[i] || _dewRoom[i]))
+            if (room && (y > GetSurfaceY(x) || _nutrientRoom[i] || _nurseryRoom[i] || _wasteRoom[i] || _dewRoom[i] || IsStorageAt(i)))
                 return false;
 
             _queenRoom[i] = room;
+            DirtyRender(i);
             QueenRoomCount += room ? 1 : -1;
             _chunkQueenRoom[ChunkOf(i)] += room ? 1 : -1;
             MarkVersion++;
@@ -559,10 +580,11 @@ namespace Fabula.Incrementant.World
             int i = y * Width + x;
             if (_nurseryRoom[i] == room)
                 return false;
-            if (room && (y > GetSurfaceY(x) || _queenRoom[i] || _nutrientRoom[i] || _wasteRoom[i] || _dewRoom[i]))
+            if (room && (y > GetSurfaceY(x) || _queenRoom[i] || _nutrientRoom[i] || _wasteRoom[i] || _dewRoom[i] || IsStorageAt(i)))
                 return false;
 
             _nurseryRoom[i] = room;
+            DirtyRender(i);
             NurseryRoomCount += room ? 1 : -1;
             _chunkNurseryRoom[ChunkOf(i)] += room ? 1 : -1;
             MarkVersion++;
@@ -581,10 +603,11 @@ namespace Fabula.Incrementant.World
             int i = y * Width + x;
             if (_wasteRoom[i] == room)
                 return false;
-            if (room && (y > GetSurfaceY(x) || _queenRoom[i] || _nutrientRoom[i] || _nurseryRoom[i] || _dewRoom[i]))
+            if (room && (y > GetSurfaceY(x) || _queenRoom[i] || _nutrientRoom[i] || _nurseryRoom[i] || _dewRoom[i] || IsStorageAt(i)))
                 return false;
 
             _wasteRoom[i] = room;
+            DirtyRender(i);
             WasteRoomCount += room ? 1 : -1;
             _chunkWasteRoom[ChunkOf(i)] += room ? 1 : -1;
             MarkVersion++;
@@ -604,10 +627,11 @@ namespace Fabula.Incrementant.World
             int i = y * Width + x;
             if (_dewRoom[i] == room)
                 return false;
-            if (room && (y > GetSurfaceY(x) || _queenRoom[i] || _nutrientRoom[i] || _nurseryRoom[i] || _wasteRoom[i]))
+            if (room && (y > GetSurfaceY(x) || _queenRoom[i] || _nutrientRoom[i] || _nurseryRoom[i] || _wasteRoom[i] || IsStorageAt(i)))
                 return false;
 
             _dewRoom[i] = room;
+            DirtyRender(i);
             DewRoomCount += room ? 1 : -1;
             _chunkDewRoom[ChunkOf(i)] += room ? 1 : -1;
             MarkVersion++;
@@ -629,10 +653,11 @@ namespace Fabula.Incrementant.World
             int i = y * Width + x;
             if (_nutrientRoom[i] == room)
                 return false;
-            if (room && (y > GetSurfaceY(x) || _queenRoom[i] || _nurseryRoom[i] || _wasteRoom[i] || _dewRoom[i]))
+            if (room && (y > GetSurfaceY(x) || _queenRoom[i] || _nurseryRoom[i] || _wasteRoom[i] || _dewRoom[i] || IsStorageAt(i)))
                 return false;
 
             _nutrientRoom[i] = room;
+            DirtyRender(i);
             NutrientRoomCount += room ? 1 : -1;
             _chunkNutrientRoom[ChunkOf(i)] += room ? 1 : -1;
             NutrientVersion++;
@@ -656,7 +681,7 @@ namespace Fabula.Incrementant.World
             if (!InBounds(x, y))
                 return false;
             int i = y * Width + x;
-            if (_nutrient[i] == nutrient || (nutrient && _cells[i] != CellMaterial.Empty))
+            if (_nutrient[i] == nutrient || (nutrient && (_cells[i] != CellMaterial.Empty || _stored[i] != StoredItems.None)))
                 return false;
             SetNutrientAt(i, nutrient);
             return true;
@@ -664,6 +689,7 @@ namespace Fabula.Incrementant.World
 
         void SetNutrientAt(int index, bool nutrient)
         {
+            DirtyRender(index);
             _nutrient[index] = nutrient;
             NutrientCount += nutrient ? 1 : -1;
             _chunkNutrient[ChunkOf(index)] += nutrient ? 1 : -1;
@@ -759,7 +785,8 @@ namespace Fabula.Incrementant.World
             for (int k = 0; k < 4; k++)
             {
                 int nx = x + SideDx[k], ny = y + SideDy[k];
-                if (InBounds(nx, ny) && _cells[ny * Width + nx] == CellMaterial.Empty && !_nutrient[ny * Width + nx])
+                if (InBounds(nx, ny) && _cells[ny * Width + nx] == CellMaterial.Empty && !_nutrient[ny * Width + nx] &&
+                    _stored[ny * Width + nx] == StoredItems.None)
                     free++;
             }
             return free;
@@ -779,7 +806,7 @@ namespace Fabula.Incrementant.World
                 if (!InBounds(nx, ny))
                     continue;
                 int n = ny * Width + nx;
-                if (_cells[n] != CellMaterial.Empty || _nutrient[n])
+                if (_cells[n] != CellMaterial.Empty || _nutrient[n] || _stored[n] != StoredItems.None)
                     continue;
                 SetNutrientAt(n, true);
                 born++;
@@ -831,6 +858,7 @@ namespace Fabula.Incrementant.World
                 ClearBuildMarkAt(to);
             if (_nutrient[to])
                 SetNutrientAt(to, false);
+            LoseStoredAt(to);
             // A física não move canteiro (GranularSimulation); se algo mover a terra, o canteiro não vai junto.
             if (_bedStage[from] != BedStage.None)
                 RemoveBedAt(from);
@@ -844,6 +872,8 @@ namespace Fabula.Incrementant.World
             StructureVersion++;
             Touch(from % Width, from / Width);
             Touch(to % Width, to / Width);
+            DirtyShape(from);
+            DirtyShape(to);
         }
 
         // ---------------------------------------------------------------- água
@@ -886,6 +916,7 @@ namespace Fabula.Incrementant.World
             if (_water[index] == water)
                 return;
             _water[index] = water;
+            DirtyRender(index);
             WaterVersion++;
             int delta = water ? 1 : -1;
             WaterCount += delta;
@@ -955,6 +986,36 @@ namespace Fabula.Incrementant.World
         /// <summary>Muda sempre que alguma célula do bloco (ou encostada nele) muda. Para caches por bloco.</summary>
         public int GetChunkVersion(int cx, int cy) => _chunkVersion[cy * ChunkColumns + cx];
 
+        /// <summary>
+        /// Versão visual do bloco (só cresce): muda quando o material, o tom, a umidade, as marcas, as salas, os depósitos,
+        /// o nutriente ou a água de uma célula dele mudam. O render do terreno redesenha só os blocos que mudaram.
+        /// </summary>
+        public int GetChunkRenderVersion(int cx, int cy) => _chunkRender[cy * ChunkColumns + cx];
+
+        /// <summary>Marca o bloco da célula como mudado para o render, sem acordar a simulação (para o que só se desenha).</summary>
+        public void DirtyRender(int x, int y)
+        {
+            if ((uint)x < (uint)Width && (uint)y < (uint)Height)
+                NoteRender(y * Width + x);
+        }
+
+        /// <summary>Quantas mudanças de aparência de uma célula já foram registradas (só cresce).</summary>
+        public long RenderLogCount => _renderLogCount;
+
+        /// <summary>Índice da célula da mudança de número <paramref name="sequence"/>; só vale se menos de <see cref="RenderLogCapacity"/> mudanças vieram depois dela.</summary>
+        public int GetRenderLogCell(long sequence) => _renderLog[(int)(sequence & (RenderLogCapacity - 1))];
+
+        void DirtyRender(int index) => NoteRender(index);
+
+        void NoteRender(int index)
+        {
+            _renderLog[(int)(_renderLogCount & (RenderLogCapacity - 1))] = index;
+            _renderLogCount++;
+        }
+
+        /// <summary>A forma do terreno mudou na célula (aberta/fechada): o render refaz o bloco, a névoa depende dos vizinhos.</summary>
+        void DirtyShape(int index) => _chunkRender[ChunkOf(index)] = ++_renderCounter;
+
         /// <summary>Quantas células marcadas há no bloco.</summary>
         public int GetChunkMarkedCount(int cx, int cy) => _chunkMarked[cy * ChunkColumns + cx];
 
@@ -983,7 +1044,7 @@ namespace Fabula.Incrementant.World
         void Touch(int x, int y) => TouchRect(x, y, x + 1, y + 1);
 
         /// <summary>Toca os blocos de [xMin, xMax) x [yMin, yMax), com 1 célula de folga em volta.</summary>
-        void TouchRect(int xMin, int yMin, int xMax, int yMax)
+        void TouchRect(int xMin, int yMin, int xMax, int yMax, bool shape = false)
         {
             if (xMax <= xMin || yMax <= yMin)
                 return;
@@ -992,6 +1053,7 @@ namespace Fabula.Incrementant.World
             int cx1 = Math.Min(ChunkColumns - 1, xMax >> ChunkShift);
             int cy1 = Math.Min(ChunkRows - 1, yMax >> ChunkShift);
             int version = ++_touchCounter;
+            int render = shape ? ++_renderCounter : 0;
             for (int cy = cy0; cy <= cy1; cy++)
             {
                 _rowAwake[cy] = true;
@@ -1006,10 +1068,12 @@ namespace Fabula.Incrementant.World
                 _waterAwake[c] = true;
                 _waterAwakeNext[c] = true;
                 _chunkVersion[c] = version;
+                if (shape)
+                    _chunkRender[c] = render;
             }
         }
 
-        void TouchAll() => TouchRect(0, 0, Width, Height);
+        void TouchAll() => TouchRect(0, 0, Width, Height, true);
 
         /// <summary>
         /// Altura do solo original na coluna; acima dela o vazio é céu, abaixo é túnel.
@@ -1022,7 +1086,7 @@ namespace Fabula.Incrementant.World
             if ((uint)x < (uint)Width && _surfaceY[x] != y)
             {
                 _surfaceY[x] = y;
-                TouchRect(x, 0, x + 1, Height);
+                TouchRect(x, 0, x + 1, Height, true);
             }
         }
 
@@ -1038,6 +1102,7 @@ namespace Fabula.Incrementant.World
         void ClearMarkAt(int index)
         {
             _marked[index] = false;
+            DirtyRender(index);
             MarkedCount--;
             _chunkMarked[ChunkOf(index)]--;
             MarkVersion++;
@@ -1049,6 +1114,7 @@ namespace Fabula.Incrementant.World
         void ClearBuildMarkAt(int index)
         {
             _buildMarked[index] = false;
+            DirtyRender(index);
             BuildMarkedCount--;
             _chunkBuildMarked[ChunkOf(index)]--;
             MarkVersion++;

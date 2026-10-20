@@ -1,0 +1,188 @@
+namespace Fabula.Incrementant.World
+{
+    /// <summary>
+    /// Depósito pintado pelo jogador (pedido do desenvolvedor em 2026-10-19). Valor gravado no save: não renumerar.
+    /// <see cref="Waste"/> não é pintado por esta camada (a área de resíduos tem a dela); só classifica o item guardado.
+    /// </summary>
+    public enum StorageKind : byte
+    {
+        None = 0,
+        /// <summary>Alimentos: pedaços de planta cortados.</summary>
+        Food = 1,
+        /// <summary>Construção: blocos de terra cavados.</summary>
+        Blocks = 2,
+        /// <summary>Água: blocos de água tirados do mapa.</summary>
+        Water = 3,
+        /// <summary>Resíduo depositado na área de resíduos (entulho e resto de cupim).</summary>
+        Waste = 4,
+    }
+
+    /// <summary>Item guardado numa célula (<see cref="PixelGrid.GetStored"/>): o valor do material, ou <see cref="Water"/>.</summary>
+    public static class StoredItems
+    {
+        public const byte None = 0;
+        /// <summary>Bloco de água guardado (não é material da grade).</summary>
+        public const byte Water = 255;
+
+        public static byte Of(CellMaterial material) => (byte)material;
+
+        public static CellMaterial MaterialOf(byte item) => item == Water ? CellMaterial.Empty : (CellMaterial)item;
+
+        /// <summary>A que depósito o item pertence.</summary>
+        public static StorageKind KindOf(byte item)
+        {
+            if (item == None)
+                return StorageKind.None;
+            if (item == Water)
+                return StorageKind.Water;
+            CellMaterial m = (CellMaterial)item;
+            if (CellMaterials.IsPlant(m))
+                return StorageKind.Food;
+            return CellMaterials.IsDepositedWaste(m) ? StorageKind.Waste : StorageKind.Blocks;
+        }
+    }
+
+    /// <summary>
+    /// Depósitos e itens guardados. O item é uma camada à parte, como o nutriente: fica numa célula sem material, não
+    /// bloqueia a passagem e não muda a estrutura. Material sólido entrando na célula (grão caindo, obra) destrói o item.
+    /// </summary>
+    public sealed partial class PixelGrid
+    {
+        const int StorageKinds = 5;
+        byte[] _storageRoom;
+        byte[] _stored;
+        byte[] _storedShade;
+        readonly int[] _storageRoomCount = new int[StorageKinds];
+        readonly int[] _storedCount = new int[StorageKinds];
+        int[] _chunkStorageRoom;
+        int[] _chunkStored;
+
+        void InitStorage(int cells, int chunks)
+        {
+            _storageRoom = new byte[cells];
+            _stored = new byte[cells];
+            _storedShade = new byte[cells];
+            _chunkStorageRoom = new int[chunks];
+            _chunkStored = new int[chunks];
+        }
+
+        /// <summary>Muda quando um depósito é pintado/apagado ou um item é guardado, retirado ou perdido.</summary>
+        public int StoreVersion { get; private set; }
+
+        /// <summary>Depósito pintado na célula (<see cref="StorageKind.None"/> = nenhum).</summary>
+        public StorageKind GetStorageRoom(int x, int y) => InBounds(x, y) ? (StorageKind)_storageRoom[y * Width + x] : StorageKind.None;
+
+        /// <summary>Células pintadas como depósito do tipo dado.</summary>
+        public int StorageRoomCount(StorageKind kind) => _storageRoomCount[(int)kind];
+
+        /// <summary>Células pintadas como algum depósito no bloco.</summary>
+        public int GetChunkStorageRoomCount(int cx, int cy) => _chunkStorageRoom[cy * ChunkColumns + cx];
+
+        /// <summary>Itens guardados (em qualquer lugar) do tipo dado.</summary>
+        public int StoredCount(StorageKind kind) => _storedCount[(int)kind];
+
+        /// <summary>Itens guardados no bloco.</summary>
+        public int GetChunkStoredCount(int cx, int cy) => _chunkStored[cy * ChunkColumns + cx];
+
+        /// <summary>Item guardado na célula (<see cref="StoredItems.None"/> = nenhum).</summary>
+        public byte GetStored(int x, int y) => InBounds(x, y) ? _stored[y * Width + x] : StoredItems.None;
+
+        public byte GetStoredShade(int x, int y) => InBounds(x, y) ? _storedShade[y * Width + x] : (byte)0;
+
+        internal bool HasStoredAt(int index) => _stored[index] != StoredItems.None;
+
+        /// <summary>
+        /// Pinta/apaga um depósito. Como as outras salas: só células do formigueiro (no solo original ou abaixo), sólidas ou
+        /// não, e nunca por cima de outra sala ou de outro depósito. Apagar não tira o que está guardado: o item fica solto e
+        /// as formigas o levam a um depósito do tipo dele (ou ao destino de sempre). Devolve false se nada mudou.
+        /// </summary>
+        public bool SetStorageRoom(int x, int y, StorageKind kind, bool room)
+        {
+            if (!InBounds(x, y) || kind == StorageKind.None || kind == StorageKind.Waste)
+                return false;
+            int i = y * Width + x;
+            byte current = _storageRoom[i];
+            if (!room)
+            {
+                if (current != (byte)kind)
+                    return false;
+                ChangeStorageRoom(i, StorageKind.None);
+                return true;
+            }
+            if (current != 0 || y > GetSurfaceY(x) || _queenRoom[i] || _nutrientRoom[i] || _nurseryRoom[i] || _wasteRoom[i] || _dewRoom[i])
+                return false;
+            ChangeStorageRoom(i, kind);
+            return true;
+        }
+
+        void ChangeStorageRoom(int index, StorageKind kind)
+        {
+            StorageKind old = (StorageKind)_storageRoom[index];
+            if (old != StorageKind.None)
+            {
+                _storageRoomCount[(int)old]--;
+                _chunkStorageRoom[ChunkOf(index)]--;
+            }
+            _storageRoom[index] = (byte)kind;
+            DirtyRender(index);
+            if (kind != StorageKind.None)
+            {
+                _storageRoomCount[(int)kind]++;
+                _chunkStorageRoom[ChunkOf(index)]++;
+            }
+            MarkVersion++;
+            StoreVersion++;
+        }
+
+        /// <summary>A célula já é de algum depósito (as outras salas não pintam por cima).</summary>
+        bool IsStorageAt(int index) => _storageRoom[index] != 0;
+
+        /// <summary>
+        /// Guarda (ou tira, com <see cref="StoredItems.None"/>) um item. Só célula sem material, sem nutriente e sem outro item
+        /// aceita guardar. Devolve false se não aceitou.
+        /// </summary>
+        public bool SetStored(int x, int y, byte item, byte shade = 128)
+        {
+            if (!InBounds(x, y))
+                return false;
+            int i = y * Width + x;
+            if (item == StoredItems.None)
+            {
+                if (_stored[i] == StoredItems.None)
+                    return false;
+                SetStoredAt(i, StoredItems.None, 0);
+                return true;
+            }
+            if (_stored[i] != StoredItems.None || _cells[i] != CellMaterial.Empty || _nutrient[i])
+                return false;
+            SetStoredAt(i, item, shade);
+            return true;
+        }
+
+        void SetStoredAt(int index, byte item, byte shade)
+        {
+            byte old = _stored[index];
+            if (old != StoredItems.None)
+            {
+                _storedCount[(int)StoredItems.KindOf(old)]--;
+                _chunkStored[ChunkOf(index)]--;
+            }
+            _stored[index] = item;
+            DirtyRender(index);
+            _storedShade[index] = item == StoredItems.None ? (byte)0 : shade;
+            if (item != StoredItems.None)
+            {
+                _storedCount[(int)StoredItems.KindOf(item)]++;
+                _chunkStored[ChunkOf(index)]++;
+            }
+            StoreVersion++;
+        }
+
+        /// <summary>Material sólido entrou na célula: o item guardado ali se perde.</summary>
+        void LoseStoredAt(int index)
+        {
+            if (_stored[index] != StoredItems.None)
+                SetStoredAt(index, StoredItems.None, 0);
+        }
+    }
+}

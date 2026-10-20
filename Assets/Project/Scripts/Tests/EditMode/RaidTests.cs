@@ -56,7 +56,7 @@ namespace Fabula.Incrementant.Tests
 
         static AntColony MakeColony(PixelGrid grid, bool raids = true)
         {
-            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 3) { DeathEnabled = false, RaidsEnabled = raids };
+            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 3) { RaidsEnabled = raids };
             // Os testes antigos não tratam da caça à rainha (ela mora longe e morreria no meio da ordem dos objetivos).
             colony.RaidSettings.HuntQueen = false;
             // A rainha mora na sala dela, longe do caminho dos cupins (no corredor eles a morderiam e ela morreria no meio).
@@ -91,6 +91,17 @@ namespace Fabula.Incrementant.Tests
             Assert.AreEqual(0, colony.Ants.Count);
         }
 
+        /// <summary>Itens guardados do material dado (resíduos e folhas da área de resíduos, desde 2026-10-19).</summary>
+        static int CountStored(PixelGrid grid, CellMaterial material)
+        {
+            int n = 0;
+            RectInt area = grid.Active;
+            for (int y = area.yMin; y < area.yMax; y++)
+            for (int x = area.xMin; x < area.xMax; x++)
+                n += grid.GetStored(x, y) == StoredItems.Of(material) ? 1 : 0;
+            return n;
+        }
+
         static int CountMaterial(PixelGrid grid, CellMaterial material)
         {
             int n = 0;
@@ -113,12 +124,12 @@ namespace Fabula.Incrementant.Tests
                 colony.Spawn(AntRole.Worker);
             colony.Tick(Dt);
             Assert.IsTrue(colony.RaidsUnlocked, "15 formigas liberam os ataques.");
-            Assert.That(colony.SecondsToNextRaid, Is.InRange(59f, 300f), "O próximo vem entre 1 e 5 minutos.");
+            Assert.That(colony.SecondsToNextRaid, Is.InRange(119f, 600f), "O próximo vem entre 2 e 10 minutos.");
 
-            Assert.IsTrue(TickUntil(colony, () => colony.RaidState == RaidState.Warning, 305f), "Primeiro vem o alerta.");
+            Assert.IsTrue(TickUntil(colony, () => colony.RaidState == RaidState.Warning, 605f), "Primeiro vem o alerta.");
             Assert.AreEqual(0, colony.Termites.Count, "Durante o alerta ainda não há cupins.");
             Assert.IsTrue(TickUntil(colony, () => colony.RaidState == RaidState.Active, 10f));
-            Assert.AreEqual(6, colony.Termites.Count, "40% de 15 formigas.");
+            Assert.AreEqual(3, colony.Termites.Count, "20% de 15 formigas.");
             foreach (Termite t in colony.Termites)
                 Assert.AreEqual(TermitePhase.Flying, t.Phase, "Chegam voando.");
 
@@ -298,24 +309,24 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
-        public void TheTermiteShare_StartsAt40Percent_AndItsCeilingGrowsSlowlyTo100Percent()
+        public void TheTermiteShare_StartsAt20Percent_AndItsCeilingGrowsSlowlyTo50Percent()
         {
             AntColony colony = MakeColony(MakeWorld());
-            Assert.AreEqual(0.4f, colony.TermiteCap, 1e-4f, "O primeiro ataque vem com 40%.");
+            Assert.AreEqual(0.2f, colony.TermiteCap, 1e-4f, "O primeiro ataque vem com 20%.");
             colony.RestoreRaids(true, 3, 10000f);
-            Assert.AreEqual(0.55f, colony.TermiteCap, 1e-4f, "+5 pontos por ataque.");
+            Assert.AreEqual(0.275f, colony.TermiteCap, 1e-4f, "+2,5 pontos por ataque.");
             colony.RestoreRaids(true, 12, 10000f);
-            Assert.AreEqual(1.0f, colony.TermiteCap, 1e-4f);
+            Assert.AreEqual(0.5f, colony.TermiteCap, 1e-4f);
             colony.RestoreRaids(true, 30, 10000f);
-            Assert.AreEqual(1.0f, colony.TermiteCap, 1e-4f, "Nunca passa de 100%.");
+            Assert.AreEqual(0.5f, colony.TermiteCap, 1e-4f, "Nunca passa de 50%.");
 
             colony.RestoreRaids(true, 5, 10000f);
             for (int i = 0; i < 14; i++)
                 colony.Spawn(AntRole.Worker);
             int ants = colony.Ants.Count;
             colony.ForceRaid(skipWarning: true);
-            Assert.That(colony.LastRaidShare, Is.InRange(0.4f, 0.65f), "Sorteado entre o mínimo e o teto do momento.");
-            Assert.That(colony.Termites.Count, Is.InRange(Mathf.CeilToInt(ants * 0.4f), Mathf.CeilToInt(ants * 0.65f)));
+            Assert.That(colony.LastRaidShare, Is.InRange(0.2f, 0.325f), "Sorteado entre o mínimo e o teto do momento.");
+            Assert.That(colony.Termites.Count, Is.InRange(Mathf.CeilToInt(ants * 0.2f), Mathf.CeilToInt(ants * 0.325f)));
         }
 
         [Test]
@@ -402,16 +413,20 @@ namespace Fabula.Incrementant.Tests
             Assert.IsTrue(TickUntil(colony, () => colony.Termites.Count == 0, 120f), "O corpo é desmembrado até o fim.");
             Assert.IsTrue(TickUntil(colony, () => colony.HarvestedPixels >= 2 && colony.WasteDeposited >= 1, 120f),
                           $"As 2 folhas vão aos canteiros (plantadas {colony.HarvestedPixels}) e o resto à área de resíduos ({colony.WasteDeposited}).");
-            Assert.AreEqual(1, CountMaterial(grid, CellMaterial.TermiteRemains), "O resto fica na área como resto de cupim.");
+            Assert.AreEqual(1, CountStored(grid, CellMaterial.TermiteRemains), "O resto fica guardado na área como resto de cupim.");
+            Assert.AreEqual(0, CountMaterial(grid, CellMaterial.TermiteRemains), "Guardado, ele não é parede.");
             foreach (Ant ant in colony.Ants)
                 Assert.AreNotEqual(AntState.Fighting, ant.State, "Sem cupim, voltam ao trabalho.");
 
-            Assert.IsTrue(TickUntil(colony, () => CountMaterial(grid, CellMaterial.TermiteRemains) == 0, 130f),
+            Assert.IsTrue(TickUntil(colony, () => CountStored(grid, CellMaterial.TermiteRemains) == 0, 130f),
                           "O resto se decompõe sozinho (120 s).");
             Assert.AreEqual(1, colony.RemainsRotted, "E vira folhas na área de resíduos.");
         }
 
-        /// <summary>Coloca resíduos na área (x 10..16, y 1..3) e recomeça a decomposição, como ao carregar um save, sem formigas.</summary>
+        /// <summary>
+        /// Coloca resíduos na área (x 10..16, y 1..3) como material, como num save antigo, e recomeça a decomposição sem
+        /// formigas: RescanWaste os troca por itens guardados.
+        /// </summary>
         static AntColony MakeColonyWithWaste(PixelGrid grid, params (int x, int y, CellMaterial material)[] waste)
         {
             AntColony colony = MakeColony(grid);
@@ -422,37 +437,46 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
-        public void TermiteRemains_RotIntoThreeMarkedLeaves_InsideTheWasteRoom_ThatFall_WhileRubbleJustDisappears()
+        public void WasteFromOldSaves_BecomesStoredItems_ThatDoNotBlockThePassage()
+        {
+            PixelGrid grid = MakeWorld();
+            MakeColonyWithWaste(grid, (12, 1, CellMaterial.TermiteRemains), (15, 2, CellMaterial.Refuse));
+
+            Assert.AreEqual(CellMaterial.Empty, grid.Get(12, 1), "O resto deixa de ser parede.");
+            Assert.AreEqual(CellMaterial.Empty, grid.Get(15, 2));
+            Assert.AreEqual(StoredItems.Of(CellMaterial.TermiteRemains), grid.GetStored(12, 1));
+            Assert.AreEqual(StoredItems.Of(CellMaterial.Refuse), grid.GetStored(15, 2));
+            Assert.IsTrue(AntNavigation.IsWalkable(grid, 12, 1), "A formiga passa por cima do resíduo guardado.");
+        }
+
+        [Test]
+        public void TermiteRemains_RotIntoThreeStoredLeaves_InsideTheWasteRoom_WhileRubbleJustDisappears()
         {
             PixelGrid grid = MakeWorld();
             AntColony colony = MakeColonyWithWaste(grid, (12, 1, CellMaterial.TermiteRemains), (12, 2, CellMaterial.TermiteRemains),
                                                    (15, 1, CellMaterial.Refuse));
 
             Tick(colony, 119f);
-            Assert.AreEqual(2, CountMaterial(grid, CellMaterial.TermiteRemains), "Antes de 120 s nada se decompõe.");
-            Assert.AreEqual(0, CountMaterial(grid, CellMaterial.FallenLeaf));
+            Assert.AreEqual(2, CountStored(grid, CellMaterial.TermiteRemains), "Antes de 120 s nada se decompõe.");
+            Assert.AreEqual(0, CountStored(grid, CellMaterial.PlantLeaf));
 
             Tick(colony, 2f);
-            Assert.AreEqual(0, CountMaterial(grid, CellMaterial.TermiteRemains));
-            Assert.AreEqual(0, CountMaterial(grid, CellMaterial.Refuse), "O entulho só some.");
+            Assert.AreEqual(0, CountStored(grid, CellMaterial.TermiteRemains));
+            Assert.AreEqual(0, CountStored(grid, CellMaterial.Refuse), "O entulho só some.");
             Assert.AreEqual(2, colony.RemainsRotted);
 
-            // A colônia não roda a física dos grãos; o jogo a roda a cada passo.
-            var granular = new GranularSimulation();
-            for (int i = 0; i < 30; i++)
-                granular.Step(grid);
             int leaves = 0;
             for (int x = 0; x < grid.Width; x++)
             for (int y = 1; y < grid.Height; y++)
             {
-                if (grid.Get(x, y) != CellMaterial.FallenLeaf)
+                if (grid.GetStored(x, y) != StoredItems.Of(CellMaterial.PlantLeaf))
                     continue;
                 leaves++;
-                Assert.IsTrue(grid.IsMarked(x, y), $"A folha ({x}, {y}) nasce marcada, para as formigas a levarem aos canteiros.");
-                Assert.That(x, Is.InRange(9, 17), "As folhas surgem dentro da área de resíduos.");
-                Assert.IsTrue(grid.IsSolid(x, y - 1), $"A folha ({x}, {y}) cai até apoiar em algo.");
+                Assert.IsTrue(grid.IsWasteRoom(x, y), $"A folha ({x}, {y}) fica guardada dentro da área de resíduos.");
+                Assert.AreEqual(CellMaterial.Empty, grid.Get(x, y), "Sem virar parede.");
             }
             Assert.AreEqual(6, leaves, "3 folhas por resto de cupim.");
+            Assert.AreEqual(0, CountMaterial(grid, CellMaterial.FallenLeaf), "Nenhuma folha solta caindo pela área.");
         }
 
         [Test]
@@ -467,14 +491,14 @@ namespace Fabula.Incrementant.Tests
                     grid.Set(x, y, CellMaterial.Rock);
 
             Tick(colony, 125f);
-            Assert.AreEqual(1, CountMaterial(grid, CellMaterial.TermiteRemains), "Sem lugar, o resto espera.");
+            Assert.AreEqual(1, CountStored(grid, CellMaterial.TermiteRemains), "Sem lugar, o resto espera.");
             Assert.AreEqual(0, colony.RemainsRotted);
 
             grid.Set(13, 1, CellMaterial.Empty);
             grid.Set(12, 2, CellMaterial.Empty);
             Tick(colony, 1.5f);
-            Assert.AreEqual(0, CountMaterial(grid, CellMaterial.TermiteRemains), "Com lugar, vira folhas.");
-            Assert.AreEqual(3, CountMaterial(grid, CellMaterial.FallenLeaf));
+            Assert.AreEqual(0, CountStored(grid, CellMaterial.TermiteRemains), "Com lugar, vira folhas.");
+            Assert.AreEqual(3, CountStored(grid, CellMaterial.PlantLeaf));
         }
 
         [Test]
@@ -623,7 +647,6 @@ namespace Fabula.Incrementant.Tests
         public void AnAntCanDieInCombat_EvenWithDeathDisabled()
         {
             AntColony colony = MakeColony(MakeWorld());
-            Assert.IsFalse(colony.DeathEnabled);
             int before = colony.Ants.Count;
             for (int i = 0; i < 8; i++)
                 colony.SpawnTermite(colony.Ants[0].X, colony.Ants[0].Y);

@@ -50,6 +50,10 @@ namespace Fabula.Incrementant.UI
         [SerializeField] Button _environmentButton;
         [SerializeField] Image _environmentButtonImage;
         [SerializeField] GameObject _environmentPanel;
+        [Tooltip("Botão DEPÓSITO (última linha do Ambientes) e o submenu dos depósitos, aberto ao lado dele.")]
+        [SerializeField] Button _depotButton;
+        [SerializeField] Image _depotButtonImage;
+        [SerializeField] GameObject _depotPanel;
 
         [Header("Menu Rainha (política: modo e tipo da próxima formiga)")]
         [SerializeField] Button _queenButton;
@@ -79,14 +83,16 @@ namespace Fabula.Incrementant.UI
         [Header("Tutorial (opcional: cenas antigas não têm)")]
         [SerializeField] TutorialDirector _tutorial;
 
-        [Header("Velocidade")]
+        [Header("Canto inferior esquerdo")]
         [SerializeField] Button _pauseButton;
         [SerializeField] Image _pauseImage;
-        [SerializeField] Button[] _speedButtons;
-        [SerializeField] Image[] _speedImages;
-        [Tooltip("Sino acima da velocidade: recolhe as formigas ao formigueiro e as manda de volta ao trabalho (opcional: cenas antigas não têm).")]
+        [Tooltip("Sino: recolhe as formigas ao formigueiro e as manda de volta ao trabalho (opcional: cenas antigas não têm).")]
         [SerializeField] Button _recallButton;
         [SerializeField] Image _recallImage;
+        [Tooltip("Botão ao lado da pausa: abre o painel da colônia (estatísticas e configurações). Opcional: cenas antigas não têm.")]
+        [SerializeField] Button _colonyButton;
+        [SerializeField] Image _colonyImage;
+        [SerializeField] ColonyPanel _colonyPanel;
 
         [Header("Sprites de estado")]
         [SerializeField] Sprite _buttonIdle;
@@ -125,7 +131,7 @@ namespace Fabula.Incrementant.UI
         public static string ModeKey(QueenMode mode) =>
             mode == QueenMode.Automatic ? "queen.mode.auto" : mode == QueenMode.Specific ? "queen.mode.specific" : "queen.mode.paused";
 
-        enum Menu { None, Paint, Environment, Queen, Tree }
+        enum Menu { None, Paint, Environment, Queen, Tree, Colony }
 
         /// <summary>Peças do HUD que o tutorial destaca.</summary>
         public enum Spot { PaintMenu, EnvironmentMenu, EvolutionMenu, NutrientsCard, AntsCard }
@@ -137,6 +143,7 @@ namespace Fabula.Incrementant.UI
         public bool EnvironmentMenuOpen => _menu == Menu.Environment;
         public bool TreeOpen => _treePanel != null && _treePanel.activeSelf;
         public SkillTreeScreen Tree => _treePanel != null ? _treePanel.GetComponent<SkillTreeScreen>() : null;
+        public bool ColonyPanelOpen => _colonyPanel != null && _colonyPanel.gameObject.activeSelf;
 
         public RectTransform SpotRect(Spot spot)
         {
@@ -154,7 +161,6 @@ namespace Fabula.Incrementant.UI
         public RectTransform BrushRect(int index) => (RectTransform)_brushButtons[index].transform;
 
         UnityAction[] _brushHandlers;
-        UnityAction[] _speedHandlers;
         UnityAction[] _modeHandlers;
         UnityAction[] _stanceHandlers;
         UnityAction[] _typeHandlers;
@@ -168,8 +174,8 @@ namespace Fabula.Incrementant.UI
         {
             if (_game == null || _paintButton == null || _paintPanel == null || _pauseButton == null ||
                 _brushButtons == null || _brushButtons.Length != AntFarmGame.BrushCount ||
-                _speedButtons == null || _speedButtons.Length != AntFarmGame.SpeedCount ||
                 _queenButton == null || _queenPanel == null || _environmentButton == null || _environmentPanel == null ||
+                _depotButton == null || _depotButtonImage == null || _depotPanel == null ||
                 _modeButtons == null || _modeButtons.Length != 3 ||
                 _stanceButtons == null || _stanceButtons.Length != 2 || _stanceImages == null || _stanceImages.Length != 2 ||
                 _typeButtons == null || _typeButtons.Length != CreatableRoles.Length || _typeLabels == null ||
@@ -189,12 +195,6 @@ namespace Fabula.Incrementant.UI
                     _game.SetBrush(index);
                     BrushChosen?.Invoke(index);
                 };
-            }
-            _speedHandlers = new UnityAction[_speedButtons.Length];
-            for (int i = 0; i < _speedHandlers.Length; i++)
-            {
-                int index = i;
-                _speedHandlers[i] = () => _game.SetSpeed(index);
             }
             _modeHandlers = new UnityAction[_modeButtons.Length];
             for (int i = 0; i < _modeHandlers.Length; i++)
@@ -216,13 +216,20 @@ namespace Fabula.Incrementant.UI
             }
             _paintPanel.SetActive(false);
             _environmentPanel.SetActive(false);
+            _depotPanel.SetActive(false);
             _queenPanel.SetActive(false);
             _treePanel.SetActive(false);
             _pauseMenu.gameObject.SetActive(false);
             _raidAlert.SetActive(false);
+            if (_colonyPanel != null)
+            {
+                _colonyPanel.gameObject.SetActive(false);
+                PanelAnimator.Attach(_colonyPanel.gameObject, PanelAnimator.PanelStyle.Pop);
+            }
             // Entrada dos painéis: submenus e alerta com pop; telas cheias só com fade (têm fundo que não pode se mover).
             PanelAnimator.Attach(_paintPanel, PanelAnimator.PanelStyle.Pop);
             PanelAnimator.Attach(_environmentPanel, PanelAnimator.PanelStyle.Pop);
+            PanelAnimator.Attach(_depotPanel, PanelAnimator.PanelStyle.Pop);
             PanelAnimator.Attach(_queenPanel, PanelAnimator.PanelStyle.Pop);
             PanelAnimator.Attach(_raidAlert, PanelAnimator.PanelStyle.Pop);
             PanelAnimator.Attach(_treePanel, PanelAnimator.PanelStyle.Fade);
@@ -233,6 +240,8 @@ namespace Fabula.Incrementant.UI
             _tooltips = new HudTooltips(_raidAlertText.font);
             _floatingText = FloatingText.Create(_raidAlertText.font, _game.WorldCamera, GetComponentInParent<CanvasScaler>());
             AttachTooltips();
+            if (_colonyPanel != null)
+                _colonyPanel.AttachTooltips(_tooltips);
         }
 
         void OnDestroy()
@@ -278,16 +287,14 @@ namespace Fabula.Incrementant.UI
         {
             _tooltips.Attach(_paintButton, () => Loc.T("tip.menu.paint"));
             _tooltips.Attach(_environmentButton, () => Loc.T("tip.menu.environments"));
+            _tooltips.Attach(_depotButton, () => Loc.T("tip.menu.depots"));
             _tooltips.Attach(_queenButton, () => Loc.T("tip.menu.queen"));
             _tooltips.Attach(_treeButton, () => Loc.T("tip.menu.evolution"));
             _tooltips.Attach(_pauseButton, () => Loc.T("tip.pause"));
             if (_recallButton != null)
                 _tooltips.Attach(_recallButton, () => Loc.T(_game.Colony != null && _game.Colony.Recalled ? "tip.recall.off" : "tip.recall.on"));
-            for (int i = 0; i < _speedButtons.Length; i++)
-            {
-                int index = i;
-                _tooltips.Attach(_speedButtons[i], () => Loc.T("tip.speed", AntFarmGame.SpeedMultiplier(index), index + 1));
-            }
+            if (_colonyButton != null)
+                _tooltips.Attach(_colonyButton, () => Loc.T("tip.menu.colony"));
             for (int i = 0; i < _brushButtons.Length; i++)
             {
                 int index = i;
@@ -332,7 +339,10 @@ namespace Fabula.Incrementant.UI
             _pauseButton.onClick.AddListener(TogglePause);
             if (_recallButton != null)
                 _recallButton.onClick.AddListener(ToggleRecall);
+            if (_colonyButton != null && _colonyPanel != null)
+                _colonyButton.onClick.AddListener(ToggleColony);
             _environmentButton.onClick.AddListener(ToggleEnvironment);
+            _depotButton.onClick.AddListener(ToggleDepot);
             _queenButton.onClick.AddListener(ToggleQueen);
             _treeButton.onClick.AddListener(ToggleTree);
             for (int i = 0; i < _modeButtons.Length; i++)
@@ -343,8 +353,6 @@ namespace Fabula.Incrementant.UI
                 _typeButtons[i].onClick.AddListener(_typeHandlers[i]);
             for (int i = 0; i < _brushButtons.Length; i++)
                 _brushButtons[i].onClick.AddListener(_brushHandlers[i]);
-            for (int i = 0; i < _speedButtons.Length; i++)
-                _speedButtons[i].onClick.AddListener(_speedHandlers[i]);
         }
 
         void OnDisable()
@@ -357,7 +365,10 @@ namespace Fabula.Incrementant.UI
             _pauseButton.onClick.RemoveListener(TogglePause);
             if (_recallButton != null)
                 _recallButton.onClick.RemoveListener(ToggleRecall);
+            if (_colonyButton != null && _colonyPanel != null)
+                _colonyButton.onClick.RemoveListener(ToggleColony);
             _environmentButton.onClick.RemoveListener(ToggleEnvironment);
+            _depotButton.onClick.RemoveListener(ToggleDepot);
             _queenButton.onClick.RemoveListener(ToggleQueen);
             _treeButton.onClick.RemoveListener(ToggleTree);
             for (int i = 0; i < _modeButtons.Length; i++)
@@ -368,8 +379,6 @@ namespace Fabula.Incrementant.UI
                 _typeButtons[i].onClick.RemoveListener(_typeHandlers[i]);
             for (int i = 0; i < _brushButtons.Length; i++)
                 _brushButtons[i].onClick.RemoveListener(_brushHandlers[i]);
-            for (int i = 0; i < _speedButtons.Length; i++)
-                _speedButtons[i].onClick.RemoveListener(_speedHandlers[i]);
         }
 
         void TogglePaint() => OpenMenu(_menu == Menu.Paint ? Menu.None : Menu.Paint);
@@ -378,7 +387,22 @@ namespace Fabula.Incrementant.UI
 
         void ToggleQueen() => OpenMenu(_menu == Menu.Queen ? Menu.None : Menu.Queen);
 
+        /// <summary>DEPÓSITO, dentro do Ambientes: abre ou fecha o submenu dos três depósitos ao lado.</summary>
+        void ToggleDepot()
+        {
+            _depotOpen = !_depotOpen;
+            _depotPanel.SetActive(_menu == Menu.Environment && _depotOpen);
+        }
+
+        // Submenu DEPÓSITO aberto dentro do Ambientes. Ao abrir o Ambientes, volta aberto se o pincel atual é um depósito.
+        bool _depotOpen;
+
+        /// <summary>O submenu dos depósitos está aberto (para o tutorial e as dicas).</summary>
+        public bool DepotMenuOpen => _menu == Menu.Environment && _depotOpen;
+
         void ToggleTree() => OpenMenu(_menu == Menu.Tree ? Menu.None : Menu.Tree);
+
+        void ToggleColony() => OpenMenu(_menu == Menu.Colony ? Menu.None : Menu.Colony);
 
         /// <summary>Um submenu por vez, ao lado do menu Colônia (a árvore abre no centro da tela).</summary>
         void OpenMenu(Menu menu)
@@ -386,8 +410,13 @@ namespace Fabula.Incrementant.UI
             _menu = menu;
             _paintPanel.SetActive(menu == Menu.Paint);
             _environmentPanel.SetActive(menu == Menu.Environment);
+            if (menu == Menu.Environment)
+                _depotOpen = AntFarmGame.IsDepotBrush(_game.BrushIndex);
+            _depotPanel.SetActive(menu == Menu.Environment && _depotOpen);
             _queenPanel.SetActive(menu == Menu.Queen);
             _treePanel.SetActive(menu == Menu.Tree);
+            if (_colonyPanel != null)
+                _colonyPanel.gameObject.SetActive(menu == Menu.Colony);
             _nextTextRefresh = 0f;
         }
 
@@ -434,7 +463,7 @@ namespace Fabula.Incrementant.UI
                 return; // o pop-up central do tutorial é modal
             if (_pauseMenu.IsOpen)
                 _pauseMenu.Back();
-            else if (_menu != Menu.None || _treePanel.activeSelf)
+            else if (_menu != Menu.None || _treePanel.activeSelf || ColonyPanelOpen)
                 OpenMenu(Menu.None);
             else
                 _pauseMenu.Open();
@@ -478,6 +507,9 @@ namespace Fabula.Incrementant.UI
             // A tela de evolução se fecha sozinha (ESC ou VOLTAR): o menu volta a ficar sem submenu aberto.
             if (_menu == Menu.Tree && !_treePanel.activeSelf)
                 _menu = Menu.None;
+            // O painel da colônia também fecha sozinho (botão X).
+            if (_menu == Menu.Colony && !ColonyPanelOpen)
+                _menu = Menu.None;
             RefreshStates();
             if (Time.unscaledTime < _nextTextRefresh)
                 return;
@@ -495,6 +527,7 @@ namespace Fabula.Incrementant.UI
         {
             _paintButtonImage.sprite = _menu == Menu.Paint ? _buttonActive : _buttonIdle;
             _environmentButtonImage.sprite = _menu == Menu.Environment ? _buttonActive : _buttonIdle;
+            _depotButtonImage.sprite = DepotMenuOpen || AntFarmGame.IsDepotBrush(_game.BrushIndex) ? _buttonActive : _buttonIdle;
             _queenButtonImage.sprite = _menu == Menu.Queen ? _buttonActive : _buttonIdle;
             _treeButtonImage.sprite = _menu == Menu.Tree ? _buttonActive : _buttonIdle;
             AntColony colony = _game.Colony;
@@ -522,8 +555,8 @@ namespace Fabula.Incrementant.UI
             _pauseImage.sprite = _game.Paused ? _iconButtonActive : _iconButtonIdle;
             if (_recallImage != null)
                 _recallImage.sprite = colony.Recalled ? _iconButtonActive : _iconButtonIdle;
-            for (int i = 0; i < _speedImages.Length; i++)
-                _speedImages[i].sprite = !_game.Paused && i == _game.SpeedIndex ? _iconButtonActive : _iconButtonIdle;
+            if (_colonyImage != null)
+                _colonyImage.sprite = _menu == Menu.Colony ? _iconButtonActive : _iconButtonIdle;
         }
 
         static readonly Color BlockedTint = new Color(0.62f, 0.62f, 0.62f);

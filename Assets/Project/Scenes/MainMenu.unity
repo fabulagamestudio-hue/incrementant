@@ -1428,8 +1428,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 24}
+  m_AnchoredPosition: {x: -18, y: 0}
+  m_SizeDelta: {x: -36, y: 24}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &504413411
 GameObject:
@@ -3504,8 +3504,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 9, y: 0}
+  m_SizeDelta: {x: 18, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &845892538
 MonoBehaviour:
@@ -3816,8 +3816,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 24}
+  m_AnchoredPosition: {x: -18, y: 0}
+  m_SizeDelta: {x: -36, y: 24}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &939833101
 GameObject:
@@ -9375,8 +9375,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 9, y: 0}
+  m_SizeDelta: {x: 18, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1936627170
 MonoBehaviour:
@@ -9450,8 +9450,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 9, y: 0}
+  m_SizeDelta: {x: 18, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1945432071
 MonoBehaviour:
@@ -10059,6 +10059,7 @@ MonoBehaviour:
     _dropSeconds: 0.1
     _nutrientCureSeconds: 30
     _fieldRebuildInterval: 0.1
+    _waterFieldRefreshSeconds: 1
     _queenSpeed: 4
     _queenRestChance: 0.15
     _queenRestSeconds: 1.5
@@ -10077,21 +10078,23 @@ MonoBehaviour:
     _minNutrientReserve: 30
     _cellsPerAdultSlot: 24
     _cellsPerNurserySlot: 16
-    _dewDropSeconds: 8
+    _dewDropSeconds: 4
     _dewSoilShare: 0.3
     _dewMinColumnHeight: 4
     _dewSpotsPerWorker: 8
     _dewMaxRoomWater: 24
+    _dewTendBoost: 1
+    _dewPointsPerTender: 4
   _antDeath: 0
   _termiteRaids: 0
   _raidSettings:
     _minAnts: 15
-    _minIntervalMinutes: 1
-    _maxIntervalMinutes: 5
+    _minIntervalMinutes: 2
+    _maxIntervalMinutes: 10
     _warningSeconds: 8
-    _termitesPerAnt: 0.4
-    _maxTermitesPerAnt: 1
-    _termitesPerAntGrowth: 0.05
+    _termitesPerAnt: 0.2
+    _maxTermitesPerAnt: 0.5
+    _termitesPerAntGrowth: 0.025
     _flightHeight: 40
     _flightSeconds: 3
     _landingSeconds: 1.2
@@ -10114,8 +10117,10 @@ MonoBehaviour:
     _corpseRemains: 1
     _dismemberSeconds: 1
     _wasteDecaySeconds: 120
+    _remainsLeaves: 3
   _ticksPerSecond: 60
   _maxTicksPerFrame: 12
+  _maxSimMsPerFrame: 25
   _brushRadius: 4
   _weather: 0
   _rainSettings:
@@ -10127,11 +10132,17 @@ MonoBehaviour:
     HeavySoakDepth: 2
     HeavyWaterChance: 0.1
     DrySeconds: 1.5
+    AutomaticStorms: 1
+    StormMinIntervalMinutes: 2
+    StormMaxIntervalMinutes: 20
+    StormChance: 0.5
+    StormDurationMinutes: 1
   _waterSettings:
     HorizontalReach: 64
     FlowSpeed: 2
     ErosionSeconds: 6
     CheckInterval: 0.25
+    EvaporationSeconds: 40
   _vegetationSettings:
     _slotWidth: 100
     _density: 0.85
@@ -10752,8 +10763,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 24}
+  m_AnchoredPosition: {x: -18, y: 0}
+  m_SizeDelta: {x: -36, y: 24}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &2125308017
 GameObject:

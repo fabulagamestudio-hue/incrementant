@@ -1,6 +1,6 @@
 # Mapa principal — consulta dos agentes
 
-Entrada rápida para os 38 arquivos de design derivados do documento revisado. Este mapa indica **onde procurar**; regras, números e decisões ficam nos documentos apontados. O [README](README.md) reúne a origem, as convenções e a conferência da conversão.
+Entrada rápida para os 38 arquivos de design derivados do documento revisado e para os documentos do projeto criados depois (39 em diante). Este mapa indica **onde procurar**; regras, números e decisões ficam nos documentos apontados. O [README](README.md) reúne a origem, as convenções e a conferência da conversão.
 
 ## Como consultar
 
@@ -22,6 +22,7 @@ Entrada rápida para os 38 arquivos de design derivados do documento revisado. E
 | Classes, atributos e distribuição de tarefas | [14 — Tipos de formiga e divisão do trabalho](01_Design/14_Tipos_de_formiga_e_divisao_do_trabalho.md) | [15 — Valores base de cada formiga](04_Data/15_Valores_base_de_cada_formiga.md), [16 — Fluxos de tarefas e emergências](01_Design/16_Fluxos_de_tarefas_e_emergencias.md), [22 — Mapa da árvore da rainha](01_Design/22_Mapa_da_arvore_da_rainha.md) |
 | Desbloqueios e melhorias de salas | [17 — Mapa da árvore do formigueiro](01_Design/17_Mapa_da_arvore_do_formigueiro.md) | [18 — Cultivo habilidades e balanceamento](01_Design/18_Cultivo_habilidades_e_balanceamento.md), [19 — Berçário habilidades e balanceamento](01_Design/19_Bercario_habilidades_e_balanceamento.md), [20 — Depósito habilidades e balanceamento](01_Design/20_Deposito_habilidades_e_balanceamento.md), [21 — Resíduos habilidades e balanceamento](01_Design/21_Residuos_habilidades_e_balanceamento.md), [28 — Custos totais e regras de aplicação de melhorias](04_Data/28_Custos_totais_e_regras_de_aplicacao_de_melhorias.md) |
 | Desbloqueios e melhorias das formigas | [22 — Mapa da árvore da rainha](01_Design/22_Mapa_da_arvore_da_rainha.md) | [23 — Rainha e operária habilidades e números](01_Design/23_Rainha_e_operaria_habilidades_e_numeros.md), [24 — Carregadora e cortadeira habilidades e números](01_Design/24_Carregadora_e_cortadeira_habilidades_e_numeros.md), [25 — Escavadora habilidades e números](01_Design/25_Escavadora_habilidades_e_numeros.md), [26 — Jardineira e cuidadora habilidades e números](01_Design/26_Jardineira_e_cuidadora_habilidades_e_numeros.md), [27 — Soldado habilidades e números](01_Design/27_Soldado_habilidades_e_numeros.md), [28 — Custos totais e regras de aplicação de melhorias](04_Data/28_Custos_totais_e_regras_de_aplicacao_de_melhorias.md) |
+| Upgrades incrementais, níveis, marcos e dependências entre árvores | [39 — Melhorias incrementais e formigueiro de dependências](01_Design/39_Melhorias_incrementais_e_formigueiro_de_dependencias.md) | [Planilha de valores das melhorias](04_Data/39_Melhorias_incrementais_valores.xlsx), [17 — Mapa da árvore do formigueiro](01_Design/17_Mapa_da_arvore_do_formigueiro.md), [22 — Mapa da árvore da rainha](01_Design/22_Mapa_da_arvore_da_rainha.md), [28 — Custos totais e regras de aplicação de melhorias](04_Data/28_Custos_totais_e_regras_de_aplicacao_de_melhorias.md) |
 | Chuva, água ou recursos da superfície | [30 — Chuva água e perigos ambientais](02_World_Art_UI/30_Chuva_agua_e_perigos_ambientais.md) | [31 — Jardim frutas folhas e visitantes](02_World_Art_UI/31_Jardim_frutas_folhas_e_visitantes.md), [05 — Terreno escavação e navegação](01_Design/05_Terreno_escavacao_e_navegacao.md) |
 | Invasão e combate | [32 — Invasoras combate e consequências](01_Design/32_Invasoras_combate_e_consequencias.md) | [27 — Soldado habilidades e números](01_Design/27_Soldado_habilidades_e_numeros.md), [13 — Capacidade superlotação e morte da rainha](01_Design/13_Capacidade_superlotacao_e_morte_da_rainha.md) |
 | Menus, HUD ou configurações | [33 — Menus fluxo de telas e configurações](02_World_Art_UI/33_Menus_fluxo_de_telas_e_configuracoes.md) | [34 — Interface durante a partida](02_World_Art_UI/34_Interface_durante_a_partida.md), [37 — Continuidade pausa e game over](01_Design/37_Continuidade_pausa_e_game_over.md) |
@@ -64,6 +65,7 @@ Os caminhos dos links são relativos a `Docs/`. Cada arquivo aparece uma vez no 
 | [27_Soldado_habilidades_e_numeros.md](01_Design/27_Soldado_habilidades_e_numeros.md) | Habilidades de soldado; combate, defesa e contenção. |
 | [32_Invasoras_combate_e_consequencias.md](01_Design/32_Invasoras_combate_e_consequencias.md) | Invasoras; percurso da invasão; combate, consequências e exposição da rainha. |
 | [37_Continuidade_pausa_e_game_over.md](01_Design/37_Continuidade_pausa_e_game_over.md) | Save e continuar; pontos de retorno; pausa; game over; reinício; estados preservados e ausência de progresso offline definido. |
+| [39_Melhorias_incrementais_e_formigueiro_de_dependencias.md](01_Design/39_Melhorias_incrementais_e_formigueiro_de_dependencias.md) | Proposta de 2026-10-19 (projeto, não transcrição): câmaras, galerias com nível, marcos, profundidade e túneis de dependência nas duas abas da tela Evolução. |
 
 ### 02_World_Art_UI/ — Mundo, arte, interface e áudio
 
@@ -90,6 +92,7 @@ Os caminhos dos links são relativos a `Docs/`. Cada arquivo aparece uma vez no 
 | [15_Valores_base_de_cada_formiga.md](04_Data/15_Valores_base_de_cada_formiga.md) | Atributos base por classe: vida, velocidade, carga, dano e alimento por cria; taxas por tarefa. |
 | [28_Custos_totais_e_regras_de_aplicacao_de_melhorias.md](04_Data/28_Custos_totais_e_regras_de_aplicacao_de_melhorias.md) | Custos totais das árvores; aplicação das compras e continuidade dos efeitos das melhorias. |
 | [29_Consistencia_economica_e_cenarios_de_teste.md](04_Data/29_Consistencia_economica_e_cenarios_de_teste.md) | Cenários de balanceamento: produção, gargalos, escavação com transporte, reprodução, mortalidade e orçamento. |
+| [39_Melhorias_incrementais_valores.xlsx](04_Data/39_Melhorias_incrementais_valores.xlsx) | Custos, crescimento por tipo, efeito por nível, tetos, curvas de custo e resumo das melhorias do documento 39. |
 
 ### 05_Narrative/ — Referências da ambientação
 

@@ -29,10 +29,29 @@ namespace Fabula.Incrementant.UI
         [SerializeField] Sprite _iconLocked;
         [Tooltip("O nó central da árvore usa o losango da raiz e não muda de estado.")]
         [SerializeField] bool _root;
+        [Tooltip("Selo de nível das galerias (\"NV 3/10\"); vazio nas câmaras.")]
+        [SerializeField] Text _level;
+        [Tooltip("Apaga o nó inteiro quando ele está num anel ainda fechado.")]
+        [SerializeField] CanvasGroup _group;
 
         static readonly Color Dim = new Color(0.55f, 0.55f, 0.55f, 0.85f);
+        const float BuriedAlpha = 0.45f;
 
         public Button Button => _button;
+
+        /// <summary>Texto do selo de nível (só galerias).</summary>
+        public void SetLevel(string text)
+        {
+            if (_level != null)
+                _level.text = text;
+        }
+
+        /// <summary>Nó dentro de um anel fechado (terra ainda não escavada) fica apagado, mas continua clicável.</summary>
+        public void SetBuried(bool buried)
+        {
+            if (_group != null)
+                _group.alpha = buried ? BuriedAlpha : 1f;
+        }
 
         public void Apply(SkillNodeState state, bool selected, Sprite acquired, Sprite available, Sprite locked, Sprite root)
         {

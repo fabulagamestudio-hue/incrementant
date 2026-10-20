@@ -48,6 +48,13 @@ namespace Fabula.Incrementant.Colony
         CarryingWaste,
         /// <summary>Jardineira cuidando da sala Gotas de Orvalho: vai até a queda das gotas e fica ao lado, acelerando-as. Valor novo: não renumerar.</summary>
         TendingDew,
+        /// <summary>
+        /// Indo pegar um item guardado (<see cref="Ant.StoreUse"/>): de um depósito para quem consome, ou um item solto para o
+        /// destino dele. Valor novo: não renumerar.
+        /// </summary>
+        TakingStored,
+        /// <summary>Indo tirar uma companheira soterrada (<see cref="Ant.RescueTarget"/>) ou já cavando por ela. Valor novo: não renumerar; não vai para o save.</summary>
+        Rescuing,
     }
 
     /// <summary>
@@ -198,7 +205,7 @@ namespace Fabula.Incrementant.Colony
                 case AntRole.Gardener: return "Jardineira";
                 case AntRole.Nurse: return "Cuidadora";
                 case AntRole.Soldier: return "Soldado";
-                default: return "Comum";
+                default: return "Operária";
             }
         }
     }
@@ -228,9 +235,18 @@ namespace Fabula.Incrementant.Colony
     public sealed class Ant
     {
         public AntRole Role;
+        /// <summary>
+        /// Sem trabalho do próprio papel, a formiga faz o da comum (pedido do desenvolvedor em 2026-10-19). Vale até ela ficar
+        /// ociosa de novo, quando volta a olhar primeiro o trabalho do papel. Não vai para o save.
+        /// </summary>
+        public bool ActingAsWorker;
+        /// <summary>Papel cujas regras de tarefa a formiga segue agora. Velocidade, carga, vida e ritmos seguem sempre <see cref="Role"/>.</summary>
+        public AntRole TaskRole => ActingAsWorker ? AntRole.Worker : Role;
         public int X;
         public int Y;
         public int FacingX = 1;
+        /// <summary>Direção (índice de <see cref="AntNavigation"/>) do último passo; -1 = nenhum. Desempata a descida pelo campo.</summary>
+        public int LastMove = -1;
         public AntState State;
         public float Cooldown;
         public int DigX;
@@ -326,6 +342,11 @@ namespace Fabula.Incrementant.Colony
         public AntErrand Errand;
         /// <summary>A reserva em <see cref="SeekTarget"/> é de rocha (campo da escavadora), não de terra/planta solta.</summary>
         public bool SeekRock;
+        /// <summary>
+        /// Bloco de água reservado por outra formiga que fica entre esta e o bloco dela (<see cref="SeekTarget"/>, ainda
+        /// obstruído): ela vai até ele e, quando ele sai, entra no lugar e pega o seu. -1 = alvo direto. Não vai para o save.
+        /// </summary>
+        public int WaterVia = -1;
 
         // Caminho até a célula de onde se pega o pixel reservado (índices de célula, sem a posição de partida).
         int[] _seekPath;
@@ -344,6 +365,7 @@ namespace Fabula.Incrementant.Colony
         public void BeginSeekPath()
         {
             SeekTarget = -1;
+            WaterVia = -1;
             _seekLength = 0;
             _seekStep = 0;
         }
@@ -372,11 +394,31 @@ namespace Fabula.Incrementant.Colony
         /// <summary>A terra fofa que a formiga leva (<see cref="AntState.BringingSoil"/>) é para a sala Gotas de Orvalho, não para um canteiro. Não vai para o save.</summary>
         public bool DewJob;
 
-        /// <summary>Segundos seguidos com a célula da formiga debaixo d'água (zera ao sair). No limite, ela se afoga.</summary>
+        /// <summary>
+        /// Depósito para onde a formiga leva o que tem na mão (<see cref="AntState.Carrying"/>, <see cref="AntState.CarryingWater"/>)
+        /// ou o que foi buscar (<see cref="AntState.FetchingWater"/>, <see cref="AntState.FetchingSoil"/>); None = o destino de sempre.
+        /// Não vai para o save.
+        /// </summary>
+        public StorageKind StoreTarget;
+        /// <summary>Para que a formiga foi pegar um item guardado em <see cref="AntState.TakingStored"/>. Não vai para o save.</summary>
+        public StoreUse StoreUse;
+        /// <summary>A planta na mão saiu do depósito de alimentos: vai aos canteiros, não volta ao depósito. Não vai para o save.</summary>
+        public bool FromStore;
+
+        /// <summary>Presa na terra (KI-025): sem colisão, parada e fora de combate até abrir espaço ou ser resgatada. Não vai para o save (volta a ser detectada ao carregar).</summary>
+        public bool Buried;
+        /// <summary>Quem está indo tirar esta formiga da terra (null = ninguém). Não vai para o save.</summary>
+        public Ant RescuedBy;
+        /// <summary>A soterrada que esta formiga está indo tirar (<see cref="AntState.Rescuing"/>). Não vai para o save.</summary>
+        public Ant RescueTarget;
+        /// <summary>Células (índices da grade) do caminho até a borda perto de <see cref="RescueTarget"/>. Não vai para o save.</summary>
+        public System.Collections.Generic.List<int> RescuePath;
+
+        /// <summary>Obsoleto: o afogamento foi removido (KI-025). Só existe para manter o formato do save; fica sempre em 0.</summary>
         public float UnderwaterSeconds;
-        /// <summary>Segundos de jogo desde que a formiga nasceu. Ao chegar em <see cref="Lifespan"/>, ela morre de velhice.</summary>
+        /// <summary>Obsoleto: a morte por idade foi removida (KI-025). Só existe para manter o formato do save; fica sempre em 0.</summary>
         public float Age;
-        /// <summary>Tempo de vida desta formiga em segundos (0 = não envelhece). Sorteado ao nascer em torno de <see cref="ColonySettings.AntLifespanSeconds"/>.</summary>
+        /// <summary>Obsoleto, como <see cref="Age"/>: formato do save.</summary>
         public float Lifespan;
 
         // Último passo, para a visualização interpolar entre células (não afeta a simulação).

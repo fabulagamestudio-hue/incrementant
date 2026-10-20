@@ -346,5 +346,69 @@ namespace Fabula.Incrementant.Tests
             foreach (int x in beds)
                 Assert.AreNotEqual(BedStage.Planted, grid.GetBedStage(x, 1), $"O canteiro em x = {x} foi regado.");
         }
+
+        /// <summary>
+        /// Relato de 2026-10-19: com vaga para um só pedaço de planta, todas as ociosas desciam o campo de escavação atrás das
+        /// folhas caídas marcadas e as que perdiam a disputa ficavam paradas esperando. A reserva do pedaço solto ocupa a
+        /// vaga, então só vai quem cabe, e as outras seguem andando.
+        /// </summary>
+        [Test]
+        public void FallenLeaves_OnlyAsManyAsFitAreReserved_AndTheOtherAntsKeepMoving()
+        {
+            PixelGrid grid = MakeWorld();
+            AddBed(grid, 34);
+            for (int x = 60; x <= 69; x++)
+            {
+                grid.Set(x, 1, CellMaterial.FallenLeaf);
+                Assert.IsTrue(grid.SetMarked(x, 1, true));
+            }
+            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 6) { RaidsEnabled = false };
+            for (int i = 0; i < 12; i++)
+                colony.Spawn(AntRole.Worker);
+
+            var lastCell = new System.Collections.Generic.Dictionary<Ant, int>();
+            var stillSince = new System.Collections.Generic.Dictionary<Ant, float>();
+            float longestStill = 0f;
+            float t = 0f;
+            for (int i = 0; i < 60 * 60; i++)
+            {
+                colony.Tick(Dt);
+                t += Dt;
+                int leafClaims = 0;
+                foreach (Ant ant in colony.Ants)
+                {
+                    bool seeksLeaf = ant.State == AntState.Idle && ant.SeekTarget >= 0 &&
+                                     grid.Get(ant.SeekTarget % grid.Width, ant.SeekTarget / grid.Width) == CellMaterial.FallenLeaf;
+                    bool digsLeaf = ant.State == AntState.Digging && grid.Get(ant.DigX, ant.DigY) == CellMaterial.FallenLeaf;
+                    if (seeksLeaf || digsLeaf)
+                        leafClaims++;
+
+                    int cell = grid.ToIndex(ant.X, ant.Y);
+                    if (ant.State != AntState.Idle || ant.CarriedCount > 0 || !lastCell.TryGetValue(ant, out int previous) || previous != cell)
+                    {
+                        lastCell[ant] = cell;
+                        stillSince[ant] = t;
+                        continue;
+                    }
+                    if (i > 60 * 5)
+                        longestStill = Mathf.Max(longestStill, t - stillSince[ant]);
+                }
+                Assert.LessOrEqual(leafClaims, 1, $"Só cabe um pedaço de planta, mas {leafClaims} formigas foram atrás de folhas em t = {t:0.00} s.");
+            }
+
+            Assert.AreNotEqual(BedStage.Soil, grid.GetBedStage(34, 1), "O canteiro recebeu a folha.");
+            Assert.AreEqual(9, CountLeaves(grid), "Só uma folha saiu do chão: não havia lugar para as outras.");
+            Assert.Less(longestStill, 1.5f, "Nenhuma ociosa de mão vazia fica parada no lugar esperando a folha de outra.");
+        }
+
+        static int CountLeaves(PixelGrid grid)
+        {
+            int count = 0;
+            for (int x = 0; x < grid.Width; x++)
+            for (int y = 0; y < grid.Height; y++)
+                if (grid.Get(x, y) == CellMaterial.FallenLeaf)
+                    count++;
+            return count;
+        }
     }
 }

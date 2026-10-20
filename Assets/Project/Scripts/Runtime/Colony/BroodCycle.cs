@@ -121,6 +121,10 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Ovos por ciclo (a árvore da rainha, Q2): lote parcial se faltar alimento, vaga ou capacidade.</summary>
         public int EggsPerLay { get; set; } = 1;
 
+        /// <summary>Multiplicam o tempo de larva e de pupa (galerias B+1 e câmaras B1, B2).</summary>
+        public float LarvaTimeFactor { get; set; } = 1f;
+        public float PupaTimeFactor { get; set; } = 1f;
+
         float LayInterval => _settings.LayIntervalSeconds * LayIntervalFactor;
 
         public BroodCycle(ColonySettings settings)
@@ -484,7 +488,7 @@ namespace Fabula.Incrementant.Colony
                     else
                     {
                         b.Stage = b.Stage == BroodStage.Egg ? BroodStage.Larva : BroodStage.Pupa;
-                        b.Remaining = b.Stage == BroodStage.Larva ? _settings.LarvaSeconds : _settings.PupaSeconds;
+                        b.Remaining = b.Stage == BroodStage.Larva ? _settings.LarvaSeconds * LarvaTimeFactor : _settings.PupaSeconds * PupaTimeFactor;
                     }
                 }
                 _brood[i] = b;

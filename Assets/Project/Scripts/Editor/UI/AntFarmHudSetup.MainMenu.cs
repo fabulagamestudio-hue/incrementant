@@ -58,7 +58,6 @@ namespace Fabula.Incrementant.EditorTools.UI
             so.FindProperty("_randomizeSeed").boolValue = false;
             so.FindProperty("_seed").intValue = MenuSeed;
             so.FindProperty("_termiteRaids").boolValue = false;
-            so.FindProperty("_antDeath").boolValue = false;
             so.FindProperty("_showDebugHud").boolValue = false;
             so.FindProperty("_showcaseHalfHeight").floatValue = 76f;
             so.FindProperty("_showcaseNestOnScreen").vector2Value = new Vector2(0.70f, 0.45f);

@@ -56,8 +56,6 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField] bool _randomizeSeed = true;
         [Header("Simulação")]
         [SerializeField] ColonySettings _colonySettings = new ColonySettings();
-        [Tooltip("Formigas morrem de velhice e afogadas. Desligado (padrão desde 2026-10-18, pedido do desenvolvedor), a idade e o tempo debaixo d'água ficam parados. No Play, troque com F3 ou pelo HUD de depuração (F2).")]
-        [SerializeField] bool _antDeath;
         [Tooltip("Ataques de cupins (a partir de Min Ants formigas, a cada 1 a 5 minutos). Desligado, nunca vêm.")]
         [SerializeField] bool _termiteRaids = true;
         [SerializeField] RaidSettings _raidSettings = new RaidSettings();
@@ -97,9 +95,13 @@ namespace Fabula.Incrementant.AntFarm
         /// a rainha pode ficar ou a sala onde os nutrientes são guardados. Plantas não se marcam: as jardineiras escolhem
         /// sozinhas o que colher. A ordem casa com <see cref="BrushTint"/>.
         /// </summary>
-        enum BrushMode { Dig, Build, QueenRoom, NutrientRoom, NurseryRoom, WasteRoom, Finger, DewRoom }
+        enum BrushMode { Dig, Build, QueenRoom, NutrientRoom, NurseryRoom, WasteRoom, Finger, DewRoom, FoodStore, BlockStore, WaterStore }
 
-        static readonly string[] BrushLabels = { "Cavar", "Construir", "Sala da rainha", "Sala de nutrientes", "Berçário", "Resíduos", "Dedo", "Gotas de orvalho" };
+        static readonly string[] BrushLabels =
+        {
+            "Cavar", "Construir", "Sala da rainha", "Sala de nutrientes", "Berçário", "Resíduos", "Dedo", "Gotas de orvalho",
+            "Depósito de alimentos", "Depósito de construção", "Depósito de água",
+        };
         static readonly string[] WeatherLabels = { "Seco", "Chuva leve", "Chuva forte" };
 
         PixelGrid _grid;
@@ -285,6 +287,9 @@ namespace Fabula.Incrementant.AntFarm
 
         public static int BrushCount => BrushLabels.Length;
         public static string BrushLabel(int index) => BrushLabels[index];
+
+        /// <summary>O pincel pinta um dos depósitos (alimentos, construção, água): mora no submenu DEPÓSITO do HUD.</summary>
+        public static bool IsDepotBrush(int index) => index >= (int)BrushMode.FoodStore && index <= (int)BrushMode.WaterStore;
         public int BrushIndex => (int)_brushMode;
 
         /// <summary>O pincel atual é o dedo (o HUD troca o cursor do sistema enquanto ele estiver ativo).</summary>
@@ -439,7 +444,7 @@ namespace Fabula.Incrementant.AntFarm
             }
             _colony = new AntColony(_grid, _colonySettings, _layout, _seed)
             {
-                DeathEnabled = _antDeath, RaidSettings = _raidSettings, RaidsEnabled = _termiteRaids,
+                RaidSettings = _raidSettings, RaidsEnabled = _termiteRaids,
             };
             _colony.AttachVegetation(_vegetation);
             snapshot?.ApplyTo(_colony);
@@ -656,6 +661,7 @@ namespace Fabula.Incrementant.AntFarm
                 _water.Step(_grid, tickDuration);
                 profiler.Add(ProfileStage.Water, stageStart);
                 stageStart = SimProfiler.Now();
+                _vegetation.GrowthRate = _colony.Effects.OutdoorGrowthRate;
                 _vegetation.Step(_grid, tickDuration);
                 profiler.Add(ProfileStage.Vegetation, stageStart);
                 stageStart = SimProfiler.Now();
@@ -818,14 +824,6 @@ namespace Fabula.Incrementant.AntFarm
             Debug.Log($"[AntFarmGame] Cheat F4: ataque de cupins em {_raidSettings.WarningSeconds:0} s.");
         }
 
-        /// <summary>Liga ou desliga a morte das formigas (velhice e afogamento); vale também para os próximos mapas.</summary>
-        public void SetAntDeath(bool enabled)
-        {
-            _antDeath = enabled;
-            if (_colony != null)
-                _colony.DeathEnabled = enabled;
-        }
-
         void HandleInput()
         {
             Keyboard keyboard = Keyboard.current;
@@ -837,7 +835,6 @@ namespace Fabula.Incrementant.AntFarm
                 if (keyboard.pKey.wasPressedThisFrame) SetPaused(!_paused);
                 if (keyboard.f1Key.wasPressedThisFrame) SpawnCheatAnts();
                 if (keyboard.f2Key.wasPressedThisFrame) _showDebugHud = !_showDebugHud;
-                if (keyboard.f3Key.wasPressedThisFrame) SetAntDeath(!_antDeath);
                 if (keyboard.f4Key.wasPressedThisFrame) ForceTermiteRaid();
                 if (keyboard.f11Key.wasPressedThisFrame)
                 {
@@ -962,6 +959,15 @@ namespace Fabula.Incrementant.AntFarm
                     case BrushMode.DewRoom:
                         _grid.SetDewRoom(x, y, marked);
                         break;
+                    case BrushMode.FoodStore:
+                        _grid.SetStorageRoom(x, y, StorageKind.Food, marked);
+                        break;
+                    case BrushMode.BlockStore:
+                        _grid.SetStorageRoom(x, y, StorageKind.Blocks, marked);
+                        break;
+                    case BrushMode.WaterStore:
+                        _grid.SetStorageRoom(x, y, StorageKind.Water, marked);
+                        break;
                     default:
                         // Cavar não marca plantas: quem as colhe é a jardineira, por conta própria.
                         if (!CellMaterials.IsAnyPlant(_grid.Get(x, y)))
@@ -987,15 +993,14 @@ namespace Fabula.Incrementant.AntFarm
             GUILayout.BeginArea(_hudRect, GUI.skin.box);
             GUILayout.Label("<b>Formigário — protótipo</b>", RichLabel());
             GUILayout.Label($"Tempo de partida: {MatchTimer.Format(_matchTimer.Seconds)}");
-            GUILayout.Label($"Formigas: {_colony.Ants.Count}   (afogadas: {_colony.DrownedAnts} · velhice: {_colony.AgedAnts})");
-            bool antDeath = GUILayout.Toggle(_antDeath, " Morte das formigas  [F3]");
-            if (antDeath != _antDeath)
-                SetAntDeath(antDeath);
+            GUILayout.Label($"Formigas: {_colony.Ants.Count}");
             GUILayout.Label($"<b>Nutrientes: {_colony.Nutrients}</b>   (consumidos pela rainha: {_colony.TotalNutrients})", RichLabel());
             GUILayout.Label($"Sala de nutrientes: {NutrientRoomStatus()}");
             GUILayout.Label($"Gotas de orvalho: {DewRoomStatus()}");
             GUILayout.Label($"Plantas: {_vegetation.PlantCount} · colhidos: {_colony.HarvestedPixels} px · cresceram: {_vegetation.GrownCells} px");
             GUILayout.Label($"Terra retirada: {_colony.TotalDelivered}");
+            GUILayout.Label($"Depósitos (guardado/vagas): alimentos {DepotLine(StorageKind.Food)} · construção {DepotLine(StorageKind.Blocks)} · " +
+                            $"água {DepotLine(StorageKind.Water)} · soltos {_colony.LooseItems}");
             GUILayout.Label($"Pixels marcados: {_grid.MarkedCount} para cavar · {_grid.BuildMarkedCount} para construir");
             GUILayout.Label($"Rainha: {QueenStatus()}");
             GUILayout.Label($"Cupins  [F4]: {RaidStatus()}");
@@ -1071,6 +1076,9 @@ namespace Fabula.Incrementant.AntFarm
             return $"{_grid.BedCount} canteiros: {_colony.BedsAwaitingPlant} sem planta, {_colony.BedsAwaitingWater} sem água, " +
                    $"{_grid.GrowingBedCount} brotando · {_grid.NutrientCount} prontos{paused}";
         }
+
+        string DepotLine(StorageKind kind) =>
+            _colony.HasDepot(kind) ? $"{_colony.DepotStock(kind)}/{_colony.DepotFree(kind)}" : "—";
 
         string DewRoomStatus()
         {

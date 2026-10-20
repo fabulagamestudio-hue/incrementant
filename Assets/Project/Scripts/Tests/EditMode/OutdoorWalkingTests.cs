@@ -127,6 +127,71 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
+        public void FallenPlantOutside_IsWalkableInside()
+        {
+            PixelGrid grid = MakeGround(20, 30);
+            foreach (CellMaterial material in new[] { CellMaterial.FallenLeaf, CellMaterial.FallenGrass })
+            {
+                for (int x = 4; x <= 8; x++)
+                for (int y = Surface + 1; y <= Surface + 5; y++)
+                    grid.Set(x, y, material);
+                Assert.IsTrue(AntNavigation.IsWalkable(grid, 6, Surface + 3), $"Meio de um bloco de {material} fora: anda por dentro.");
+            }
+            grid.Set(10, 4, CellMaterial.FallenLeaf);
+            Assert.IsFalse(AntNavigation.IsWalkable(grid, 10, 4), "Folha caída dentro do formigueiro continua parede.");
+        }
+
+        [Test]
+        public void Colony_AntInsideThePileUnderFallenLeaves_ClimbsOverThemToDrop()
+        {
+            // Relato de 2026-10-19: folhas caídas escorreram por cima do monte de despejo e as formigas que estavam dentro
+            // dele ficaram presas, sem vazio acima para soltar o grão. Elas devem subir pelas folhas e soltar em cima.
+            const int surface = 20;
+            PixelGrid grid = new PixelGrid(80, 40);
+            for (int x = 0; x < grid.Width; x++)
+            {
+                grid.SetSurfaceY(x, surface);
+                grid.Set(x, 0, CellMaterial.Rock);
+                for (int y = 1; y <= surface; y++)
+                    grid.Set(x, y, CellMaterial.Dirt);
+            }
+            for (int y = 5; y <= surface; y++)
+            for (int x = 39; x <= 41; x++)
+                grid.Set(x, y, CellMaterial.Empty);
+            for (int x = 39; x <= 50; x++)
+            for (int y = 5; y <= 7; y++)
+                grid.Set(x, y, CellMaterial.Empty);
+
+            // A abertura em x 39..41 dá uma faixa de despejo de cada lado (10..20 e 60..70): monte coberto nas duas.
+            const int pileTop = surface + 6, leafTop = surface + 9;
+            for (int x = 5; x <= 75; x++)
+            {
+                if (x > 25 && x < 55)
+                    continue;
+                for (int y = surface + 1; y <= pileTop; y++)
+                    grid.Set(x, y, CellMaterial.Spoil);
+                for (int y = pileTop + 1; y <= leafTop; y++)
+                    grid.Set(x, y, CellMaterial.FallenLeaf);
+            }
+
+            var colony = new AntColony(grid, new ColonySettings(), new TerrainLayout(40, new Vector2Int(40, 6), 60, 70), seed: 5);
+            Ant ant = colony.Ants[0];
+            ant.X = 65;
+            ant.Y = surface + 3;
+            ant.PickUp(CellMaterial.Spoil, 128);
+            ant.State = AntState.Carrying;
+
+            for (int tick = 0; tick < 60 * 60 && ant.CarriedCount > 0; tick++)
+                colony.Tick(1f / 60f);
+
+            Assert.AreEqual(0, ant.CarriedCount, "A formiga deveria ter soltado o grão.");
+            int above = 0;
+            for (int x = 0; x < grid.Width; x++)
+                above += grid.Get(x, leafTop + 1) == CellMaterial.Spoil ? 1 : 0;
+            Assert.AreEqual(1, above, "O grão foi solto em cima das folhas.");
+        }
+
+        [Test]
         public void Colony_PlacedSoilIsMarkedAsBuilt_AndStillGrowsFromTheGroundOverSceneryArt()
         {
             // Arte do cenário cobrindo todo o céu em volta da obra: a célula marcada é caminhável sem apoio, mas a obra

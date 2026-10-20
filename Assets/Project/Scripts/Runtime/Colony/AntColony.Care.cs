@@ -63,7 +63,7 @@ namespace Fabula.Incrementant.Colony
                         _dewTendedPoints += DewBlockSize(ant.EggId - 1);
                 }
             }
-            if (ant.Role == AntRole.Worker)
+            if (ant.TaskRole == AntRole.Worker)
                 _workerCount++;
             bool nursery = ant.State == AntState.Tending || ant.State == AntState.MovingBrood;
             bool garden = ant.State == AntState.Gardening;
@@ -71,7 +71,7 @@ namespace Fabula.Incrementant.Colony
                 return;
 
             ref RegionLoad region = ref (nursery ? ref _nursery : ref _garden);
-            if (ant.Role == AntRole.Worker)
+            if (ant.TaskRole == AntRole.Worker)
             {
                 region.Commons++;
                 _commonTenders++;
@@ -82,7 +82,7 @@ namespace Fabula.Incrementant.Colony
             }
             // Só quem está dentro da sala faz os blocos avançarem: ir até lá ainda não é cuidar.
             if (nursery ? _grid.IsNurseryRoom(ant.X, ant.Y) : _grid.IsNutrientRoom(ant.X, ant.Y))
-                region.CapacityInside += nursery ? Tree.CareCapacity(ant.Role) : GardenCapacity(ant);
+                region.CapacityInside += nursery ? Tree.CareCapacity(ant.Role) + (ant.Role == AntRole.Nurse ? Effects.NurseCapacityBonus : 0) : GardenCapacity(ant);
 
             if (nursery && ant.EggId != 0)
             {
@@ -110,7 +110,7 @@ namespace Fabula.Incrementant.Colony
             if (region.Blocks == 0)
                 return false;
             int desired = Desired(region.Blocks);
-            if (ant.Role != AntRole.Worker)
+            if (ant.TaskRole != AntRole.Worker)
                 return region.Specialists < desired;
             int cap = Mathf.Max(1, Mathf.RoundToInt(_workerCount * _settings.CommonTenderShare));
             return region.Commons < desired - region.Specialists && _commonTenders < cap;
@@ -119,15 +119,15 @@ namespace Fabula.Incrementant.Colony
         bool IsSurplus(Ant ant, in RegionLoad region)
         {
             int desired = Desired(region.Blocks);
-            return ant.Role != AntRole.Worker ? region.Specialists > desired : region.Commons > Mathf.Max(0, desired - region.Specialists);
+            return ant.TaskRole != AntRole.Worker ? region.Specialists > desired : region.Commons > Mathf.Max(0, desired - region.Specialists);
         }
 
         /// <summary>Ociosa: vai à região (berçário ou sala de nutrientes) mais carente entre as que o papel dela cuida e ainda querem gente.</summary>
         bool TryStartCare(Ant ant)
         {
-            bool nursery = AntRoles.Tends(ant.Role) && _nurserySpots.Count > 0 && WantsTender(ant, _nursery) &&
+            bool nursery = AntRoles.Tends(ant.TaskRole) && SectionAllows(WorkSection.Nursery, ant) && _nurserySpots.Count > 0 && WantsTender(ant, _nursery) &&
                            _nurseryField.Get(ant.X, ant.Y) != FlowField.Unreachable;
-            bool garden = AntRoles.Gardens(ant.Role) && WantsTender(ant, _garden) &&
+            bool garden = AntRoles.Gardens(ant.TaskRole) && SectionAllows(WorkSection.Garden, ant) && WantsTender(ant, _garden) &&
                           _curingField.Get(ant.X, ant.Y) != FlowField.Unreachable;
             if (!nursery && !garden)
                 return false;
@@ -152,7 +152,7 @@ namespace Fabula.Incrementant.Colony
 
         void Join(Ant ant, ref RegionLoad region)
         {
-            if (ant.Role == AntRole.Worker)
+            if (ant.TaskRole == AntRole.Worker)
             {
                 region.Commons++;
                 _commonTenders++;
@@ -165,7 +165,7 @@ namespace Fabula.Incrementant.Colony
 
         void Leave(Ant ant, ref RegionLoad region)
         {
-            if (ant.Role == AntRole.Worker)
+            if (ant.TaskRole == AntRole.Worker)
             {
                 region.Commons--;
                 _commonTenders--;
@@ -180,7 +180,8 @@ namespace Fabula.Incrementant.Colony
             Hold(ant);
         }
 
-        float CarePause(Ant ant) => _settings.CarePauseSeconds / Tree.CareRate(ant.Role);
+        float CarePause(Ant ant) =>
+            _settings.CarePauseSeconds / Tree.CareRate(ant.Role) * (ant.Role == AntRole.Nurse ? Effects.CarePauseFactor : 1f);
 
         bool NearCell(Ant ant, Vector2Int cell) => Mathf.Abs(ant.X - cell.x) <= 1 && Mathf.Abs(ant.Y - cell.y) <= 1;
 
@@ -228,7 +229,7 @@ namespace Fabula.Incrementant.Colony
         /// </summary>
         void UpdateTending(Ant ant)
         {
-            if (_nursery.Blocks == 0 || _nurserySpots.Count == 0 || IsSurplus(ant, _nursery) ||
+            if (_nursery.Blocks == 0 || _nurserySpots.Count == 0 || IsSurplus(ant, _nursery) || RoleWorkWaiting(ant) ||
                 _nurseryField.Get(ant.X, ant.Y) == FlowField.Unreachable)
             {
                 Leave(ant, ref _nursery);
@@ -367,7 +368,7 @@ namespace Fabula.Incrementant.Colony
             {
                 if (ant.State != AntState.Gardening || !ant.Interacting || ant.EggId == 0)
                     continue;
-                float rate = Tree.GardenRate(ant.Role);
+                float rate = Tree.GardenRate(ant.Role) * (ant.Role == AntRole.Gardener ? 1f / Effects.GardenerBedTime : 1f);
                 if (rate > 1f)
                     GrownNutrients += _grid.ShaveBedGrowth(ant.TargetX, ant.TargetY, deltaTime * (rate - 1f));
             }
@@ -409,7 +410,7 @@ namespace Fabula.Incrementant.Colony
         /// </summary>
         void UpdateGardening(Ant ant)
         {
-            if (_garden.Blocks == 0 || IsSurplus(ant, _garden) || _curingField.Get(ant.X, ant.Y) == FlowField.Unreachable)
+            if (_garden.Blocks == 0 || IsSurplus(ant, _garden) || RoleWorkWaiting(ant) || _curingField.Get(ant.X, ant.Y) == FlowField.Unreachable)
             {
                 Leave(ant, ref _garden);
                 return;

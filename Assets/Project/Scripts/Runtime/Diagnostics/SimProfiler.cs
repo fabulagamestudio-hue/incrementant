@@ -26,7 +26,6 @@ namespace Fabula.Incrementant.Diagnostics
         Brood,
         Ants,
         Termites,
-        Drown,
         RenderTerrain,
         RenderAnts,
         RenderBrood,

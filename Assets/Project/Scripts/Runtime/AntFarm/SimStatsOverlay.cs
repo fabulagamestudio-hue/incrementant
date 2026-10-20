@@ -20,7 +20,7 @@ namespace Fabula.Incrementant.AntFarm
             "Chuva", "Água", "Vegetação", "Granular", "Colônia (Tick)", "  preparo", "  campos (rebuild)", "    walkability",
             "    sala da rainha", "    despejo", "    casa/colônia", "    berçário", "    nutrientes", "    escavação", "    jardim",
             "    construção", "    cupins/resíduos", "  rainha", "  criação", "  formigas (UpdateAnt)", "  cupins/combate",
-            "  afogamento", "Render terreno", "Render formigas",
+          "Render terreno", "Render formigas",
             "Render crias", "Render cenário/plantas",
         };
 
@@ -88,7 +88,7 @@ namespace Fabula.Incrementant.AntFarm
             }
 
             CountAnts(colony);
-            t.Append($"\n<b>Formigas: {colony.Ants.Count}</b> (máx {colony.MaxAnts}) · afogadas {colony.DrownedAnts} · velhice {colony.AgedAnts}\n");
+            t.Append($"\n<b>Formigas: {colony.Ants.Count}</b> (máx {colony.MaxAnts})\n");
             AppendCounts(t, _byRole, typeof(AntRole));
             AppendCounts(t, _byState, typeof(AntState));
 

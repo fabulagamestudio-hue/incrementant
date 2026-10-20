@@ -472,7 +472,7 @@ namespace Fabula.Incrementant.Tests
             var (grid, vegetation, plantX, shape) = MakeGarden();
             PrepareCultivation(grid);
             // A colheita passa por vários ciclos dos canteiros: o teste é dela, não do envelhecimento nem do afogamento.
-            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 7) { DeathEnabled = false };
+            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 7);
             colony.AttachVegetation(vegetation);
             int expected = HarvestableCells(shape);
             Assert.AreEqual(0, grid.MarkedCount, "O jogador não marca nada: a planta nasce sem marca.");
@@ -636,9 +636,8 @@ namespace Fabula.Incrementant.Tests
             var (grid, vegetation, plantX, shape) = MakeGarden(new[] { wide });
             AddBeds(grid, 24, 27, 30, 33, 36, 39, 42, 45);
             AddPuddle(grid);
-            // A colheita leva até 30 min de jogo, mais que a vida das formigas (~10 min), e aqui não há berçário para repor
-            // quem morre: o teste é da colheita, não do envelhecimento (ver AntColony.Age).
-            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 5) { DeathEnabled = false };
+            // A colheita leva até 30 min de jogo; o teste é da colheita, sem morte de formigas.
+            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 5);
             colony.AttachVegetation(vegetation);
             int expected = HarvestableCells(shape);
 
@@ -658,7 +657,7 @@ namespace Fabula.Incrementant.Tests
         {
             var (grid, vegetation, plantX, shape) = MakeGarden();
             PrepareCultivation(grid);
-            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 7) { DeathEnabled = false };
+            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 7);
             colony.AttachVegetation(vegetation);
             var granular = new GranularSimulation();
             int expected = HarvestableCells(shape);
@@ -767,7 +766,7 @@ namespace Fabula.Incrementant.Tests
         {
             var (grid, vegetation, _, _) = MakeGarden();
             AddBeds(grid, 24);
-            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 5) { DeathEnabled = false };
+            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 5);
             colony.AttachVegetation(vegetation);
             for (int i = 0; i < 7; i++)
                 colony.Spawn(AntRole.Worker);
@@ -858,6 +857,66 @@ namespace Fabula.Incrementant.Tests
             Assert.AreEqual(5, colony2.Nutrients);
             Assert.AreEqual(12, colony2.TotalNutrients);
             Assert.AreEqual(13, colony2.HarvestedPixels);
+        }
+
+        [Test]
+        public void HarvestStopped_NoAntCutsPlants_AndTurningItBackOn_Resumes()
+        {
+            var (grid, vegetation, plantX, shape) = MakeGarden();
+            PrepareCultivation(grid);
+            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 7);
+            colony.AttachVegetation(vegetation);
+            colony.Work.SetEnabled(WorkSection.Harvest, false);
+            var granular = new GranularSimulation();
+            int before = PlantCells(grid, plantX, shape);
+            for (int i = 0; i < 60 * 60; i++)
+            {
+                colony.Tick(Dt);
+                granular.Step(grid);
+                Assert.AreEqual(0, colony.WorkersIn(WorkSection.Harvest), "Seção parada: ninguém vai cortar.");
+            }
+            Assert.AreEqual(before, PlantCells(grid, plantX, shape), "Com a coleta parada, a planta fica inteira.");
+
+            colony.Work.SetEnabled(WorkSection.Harvest, true);
+            for (int i = 0; i < 60 * 600 && colony.HarvestedPixels == 0; i++)
+            {
+                colony.Tick(Dt);
+                granular.Step(grid);
+            }
+            Assert.Greater(colony.HarvestedPixels, 0, "Religada, a coleta volta.");
+        }
+
+        [Test]
+        public void ForagingQueen_CutsAndStoresPlants_WithTheAntsOffTheJob()
+        {
+            var (grid, vegetation, plantX, shape) = MakeGarden();
+            PrepareCultivation(grid);
+            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 7);
+            colony.AttachVegetation(vegetation);
+            // As formigas ficam fora da coleta (cortar e recolher pedaços): só a rainha colhe.
+            colony.Work.SetEnabled(WorkSection.Harvest, false);
+            colony.Work.SetEnabled(WorkSection.Dig, false);
+            var granular = new GranularSimulation();
+
+            for (int i = 0; i < 60 * 120; i++)
+            {
+                colony.Tick(Dt);
+                granular.Step(grid);
+            }
+            Assert.AreEqual(0, colony.HarvestedPixels, "No ninho, a rainha não colhe.");
+
+            colony.QueenJob = QueenJob.Forage;
+            bool queenOutside = false;
+            for (int i = 0; i < 60 * 900 && colony.HarvestedPixels == 0; i++)
+            {
+                colony.Tick(Dt);
+                granular.Step(grid);
+                queenOutside |= colony.QueenPlace == ColonyPlace.Outdoor;
+                Assert.AreEqual(0, colony.WorkersIn(WorkSection.Harvest), "Nenhuma formiga entra na coleta parada.");
+            }
+            Assert.IsTrue(queenOutside, "A rainha coletora sai do formigueiro.");
+            Assert.Greater(colony.HarvestedPixels, 0, "A rainha cortou, carregou e plantou um pedaço num canteiro.");
+            Assert.Less(PlantCells(grid, plantX, shape), shape.Cells.Length);
         }
     }
 }

@@ -55,8 +55,11 @@ namespace Fabula.Incrementant.Save
         /// 13: ataques de cupins e área de resíduos.
         /// 14: postura da rainha diante dos cupins (<see cref="QueenStance"/>).
         /// 15: relógio das tempestades automáticas (<see cref="SecondsToStormRoll"/>, <see cref="StormRemaining"/>).
+        /// 16: painel da colônia: trabalho da rainha (<see cref="QueenJob"/>) e seções ativas e limites (<see cref="WorkEnabled"/>, <see cref="WorkLimits"/>).
+        /// 17: depósitos (<see cref="StorageRoom"/>) e itens guardados (<see cref="Stored"/>, <see cref="StoredShades"/>), inclusive os resíduos.
+        /// 18: níveis das galerias do catálogo de melhorias, por id textual (<see cref="GalleryIds"/>, <see cref="GalleryLevels"/>).
         /// </summary>
-        public const int CurrentVersion = 15;
+        public const int CurrentVersion = 18;
         /// <summary>
         /// Versão mais antiga que ainda carrega (a 2 volta sem sala pintada e com a rainha no ninho; a 2 e a 3 voltam sem
         /// sala de nutrientes e com 0 nutrientes).
@@ -83,6 +86,7 @@ namespace Fabula.Incrementant.Save
         /// <summary>Legado: a água não evapora mais (só é consumida no formigueiro). Mantido no arquivo, sempre 0.</summary>
         public int EvaporatedCells;
         public int AbsorbedCells;
+        /// <summary>Legado: o afogamento foi removido (KI-025). Mantido no arquivo, sempre 0.</summary>
         public int DrownedAnts;
 
         public int StoredPixels;
@@ -135,6 +139,21 @@ namespace Fabula.Incrementant.Save
         // Versão 15: tempestades. Antes dela, -1 (sorteia o primeiro período ao carregar) e sem tempestade em curso.
         public float SecondsToStormRoll = -1f;
         public float StormRemaining;
+        // Versão 16: painel da colônia. Antes dela, rainha no ninho e todas as seções ativas e sem limite.
+        public byte QueenJob;
+        /// <summary>Por célula: depósito pintado (<see cref="StorageKind"/>, 0 = nenhum). Vazio antes da versão 17.</summary>
+        public byte[] StorageRoom = Array.Empty<byte>();
+        /// <summary>
+        /// Por célula: item guardado (<see cref="StoredItems"/>) e o tom dele. Vazios antes da versão 17: o resíduo da área
+        /// era material sólido e vira item ao carregar (<c>AntColony.RescanWaste</c>).
+        /// </summary>
+        public byte[] Stored = Array.Empty<byte>();
+        public byte[] StoredShades = Array.Empty<byte>();
+        /// <summary>Versão 18: galerias com nível (id textual, ex.: "O+1") e os níveis. Vazios antes: nenhuma galeria comprada.</summary>
+        public string[] GalleryIds = Array.Empty<string>();
+        public int[] GalleryLevels = Array.Empty<int>();
+        public bool[] WorkEnabled = Array.Empty<bool>();
+        public int[] WorkLimits = Array.Empty<int>();
 
         public static GameSnapshot Capture(PixelGrid grid, AntColony colony, RainSimulation rain, WaterSimulation water,
                                            int mapSource, int seed, double matchSeconds, VegetationSimulation vegetation = null)
@@ -157,7 +176,6 @@ namespace Fabula.Incrementant.Save
                 RainWaterCells = rain.WaterCells,
                 ErodedCells = water.ErodedCells,
                 AbsorbedCells = water.AbsorbedCells,
-                DrownedAnts = colony.DrownedAnts,
                 StoredPixels = colony.StoredPixels,
                 TotalDelivered = colony.TotalDelivered,
                 SimulationTime = colony.SimulationTime,
@@ -183,11 +201,19 @@ namespace Fabula.Incrementant.Save
                 Brood = new List<BroodRecord>(colony.Brood.Brood).ToArray(),
                 Behind = new byte[count],
                 BehindShades = new byte[count],
+                StorageRoom = new byte[count],
+                Stored = new byte[count],
+                StoredShades = new byte[count],
                 RaidsUnlocked = colony.RaidsUnlocked,
                 RaidsSurvived = colony.RaidsSurvived,
                 QueenStance = (byte)colony.QueenStance,
+                QueenJob = (byte)colony.QueenJob,
+                WorkEnabled = new bool[WorkPolicy.Count],
+                WorkLimits = new int[WorkPolicy.Count],
                 SecondsToNextRaid = colony.RaidState == RaidState.Calm ? colony.SecondsToNextRaid : 0f,
             };
+            colony.Work.CopyTo(snapshot.WorkEnabled, snapshot.WorkLimits);
+            colony.Galleries.Export(out snapshot.GalleryIds, out snapshot.GalleryLevels);
 
             int i = 0;
             for (int y = area.yMin; y < area.yMax; y++)
@@ -207,6 +233,9 @@ namespace Fabula.Incrementant.Save
                 snapshot.BehindShades[i] = grid.GetBehindShade(x, y);
                 // Bits 2-7 eram a cura que faltava (até a versão 11); hoje vão sempre 0 e são ignorados ao ler.
                 snapshot.NutrientRoom[i] = (byte)((grid.IsNutrientRoom(x, y) ? 1 : 0) | (grid.HasNutrient(x, y) ? 2 : 0));
+                snapshot.StorageRoom[i] = (byte)grid.GetStorageRoom(x, y);
+                snapshot.Stored[i] = grid.GetStored(x, y);
+                snapshot.StoredShades[i] = grid.GetStoredShade(x, y);
             }
 
             var beds = new List<BedRecord>(grid.BedCount);
@@ -286,6 +315,17 @@ namespace Fabula.Incrementant.Save
                     grid.SetWasteRoom(x, y, (NurseryRoom[i] & 2) != 0);
                     grid.SetDewRoom(x, y, (NurseryRoom[i] & 4) != 0);
                 }
+                // Depósitos e itens: troca o que o mapa tinha pelo do save (item só entra em célula sem material).
+                StorageKind room = grid.GetStorageRoom(x, y);
+                StorageKind savedRoom = StorageRoom.Length != 0 ? (StorageKind)StorageRoom[i] : StorageKind.None;
+                if (room != savedRoom)
+                {
+                    grid.SetStorageRoom(x, y, room, false);
+                    grid.SetStorageRoom(x, y, savedRoom, true);
+                }
+                grid.SetStored(x, y, StoredItems.None);
+                if (Stored.Length != 0 && Stored[i] != StoredItems.None)
+                    grid.SetStored(x, y, Stored[i], StoredShades[i]);
             }
             // Depois das células: só terra fofa vira canteiro.
             foreach (BedRecord bed in Beds)
@@ -305,15 +345,19 @@ namespace Fabula.Incrementant.Save
                     Role = (AntRole)r.Role, Age = r.Age, Lifespan = r.Lifespan,
                 });
             }
-            colony.RestoreState(StoredPixels, TotalDelivered, SimulationTime, ants, DrownedAnts);
+            colony.RestoreState(StoredPixels, TotalDelivered, SimulationTime, ants);
             colony.RestoreNutrients(Nutrients, TotalNutrients, HarvestedPixels);
             if (HasQueen)
                 colony.RestoreQueen(QueenX, QueenY, QueenFacingX);
             colony.SetQueenPolicy((QueenMode)QueenMode, (AntRole)QueenTarget);
             colony.RestoreBrood(Brood, LayTimer);
             colony.Tree.Restore(TreeMask);
+            colony.RestoreGalleries(GalleryIds, GalleryLevels);
             colony.RestoreRaids(RaidsUnlocked, RaidsSurvived, SecondsToNextRaid);
             colony.QueenStance = (QueenStance)QueenStance;
+            // Valor desconhecido (save de versão futura ou corrompido): rainha no ninho.
+            colony.QueenJob = Enum.IsDefined(typeof(QueenJob), (QueenJob)QueenJob) ? (QueenJob)QueenJob : Colony.QueenJob.Nest;
+            colony.Work.Restore(WorkEnabled, WorkLimits);
         }
 
         /// <summary>Linhas enterradas das plantas (chame depois de <c>MarkPopulated</c>; as células já vêm da grade).</summary>
@@ -399,6 +443,20 @@ namespace Fabula.Incrementant.Save
                 w.Write(RaidsUnlocked); w.Write(RaidsSurvived); w.Write(SecondsToNextRaid);
                 w.Write(QueenStance);
                 w.Write(SecondsToStormRoll); w.Write(StormRemaining);
+                w.Write(QueenJob);
+                w.Write(WorkEnabled.Length);
+                for (int i = 0; i < WorkEnabled.Length; i++)
+                {
+                    w.Write(WorkEnabled[i]); w.Write(WorkLimits[i]);
+                }
+                w.Write(StorageRoom);
+                w.Write(Stored);
+                w.Write(StoredShades);
+                w.Write(GalleryIds.Length);
+                for (int i = 0; i < GalleryIds.Length; i++)
+                {
+                    w.Write(GalleryIds[i]); w.Write(GalleryLevels[i]);
+                }
             }
         }
 
@@ -526,6 +584,39 @@ namespace Fabula.Incrementant.Save
                     {
                         s.SecondsToStormRoll = r.ReadSingle();
                         s.StormRemaining = r.ReadSingle();
+                    }
+                    if (version >= 16)
+                    {
+                        s.QueenJob = r.ReadByte();
+                        int sections = r.ReadInt32();
+                        if (sections < 0 || sections > 64)
+                            throw new InvalidDataException("O save tem uma contagem de seções de trabalho inválida.");
+                        s.WorkEnabled = new bool[sections];
+                        s.WorkLimits = new int[sections];
+                        for (int i = 0; i < sections; i++)
+                        {
+                            s.WorkEnabled[i] = r.ReadBoolean();
+                            s.WorkLimits[i] = r.ReadInt32();
+                        }
+                    }
+                    if (version >= 17)
+                    {
+                        s.StorageRoom = ReadBlock(r, count);
+                        s.Stored = ReadBlock(r, count);
+                        s.StoredShades = ReadBlock(r, count);
+                    }
+                    if (version >= 18)
+                    {
+                        int galleries = r.ReadInt32();
+                        if (galleries < 0 || galleries > 256)
+                            throw new InvalidDataException("O save tem uma contagem de galerias inválida.");
+                        s.GalleryIds = new string[galleries];
+                        s.GalleryLevels = new int[galleries];
+                        for (int i = 0; i < galleries; i++)
+                        {
+                            s.GalleryIds[i] = r.ReadString();
+                            s.GalleryLevels[i] = r.ReadInt32();
+                        }
                     }
                     return s;
                 }

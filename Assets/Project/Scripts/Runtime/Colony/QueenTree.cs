@@ -70,44 +70,44 @@ namespace Fabula.Incrementant.Colony
 
         static readonly QueenNodeDef[] Defs =
         {
-            new QueenNodeDef(QueenNode.Q0, QueenBranch.Queen, "Postura inicial", "Sem ciclos antes do berçário → 1 ovo a cada 18 s", 0, true, initial: true),
-            new QueenNodeDef(QueenNode.Q1, QueenBranch.Queen, "Postura acelerada", "18 s por ciclo → 12 s por ciclo (−33%)", 150, true, false, QueenNode.Q0),
-            new QueenNodeDef(QueenNode.Q2, QueenBranch.Queen, "Postura em lotes", "1 ovo por ciclo → até 3 ovos por ciclo; cada um paga seu custo, lote parcial se faltar alimento ou vaga", 450, true, false, QueenNode.Q1),
+            new QueenNodeDef(QueenNode.Q0, QueenBranch.Queen, "Postura inicial", "Com o berçário pronto, a rainha põe 1 ovo a cada 18 s", 0, true, initial: true),
+            new QueenNodeDef(QueenNode.Q1, QueenBranch.Queen, "Postura acelerada", "A rainha põe um ovo a cada 12 s em vez de 18 s", 150, true, false, QueenNode.Q0),
+            new QueenNodeDef(QueenNode.Q2, QueenBranch.Queen, "Postura em lotes", "Até 3 ovos por postura, se houver alimento e vaga no berçário", 450, true, false, QueenNode.Q1),
 
-            new QueenNodeDef(QueenNode.O0, QueenBranch.Common, "Operária comum", "Generalista: mantém todas as tarefas básicas", 0, true, initial: true),
-            new QueenNodeDef(QueenNode.O1, QueenBranch.Common, "Carga ampliada", "Carga de 2 UM ou 32 células → 3 UM ou 48 (+50%) nas comuns", 100, true, false, QueenNode.O0),
-            new QueenNodeDef(QueenNode.O2, QueenBranch.Common, "Deslocamento rápido", "24 células/s → 30 células/s (+25%) nas comuns", 100, true, false, QueenNode.O0),
-            new QueenNodeDef(QueenNode.O3, QueenBranch.Common, "Retirada de companheiras", "Sem puxar adultas → resgata adulta a até 8 células da borda", 240, false, false, QueenNode.O0),
+            new QueenNodeDef(QueenNode.O0, QueenBranch.Common, "Operária", "Faz todas as tarefas básicas da colônia", 0, true, initial: true),
+            new QueenNodeDef(QueenNode.O1, QueenBranch.Common, "Carga ampliada", "Operárias levam 3 pedaços de planta em vez de 2 e 4 de terra em vez de 3", 100, true, false, QueenNode.O0),
+            new QueenNodeDef(QueenNode.O2, QueenBranch.Common, "Deslocamento rápido", "Operárias andam 25% mais rápido", 100, true, false, QueenNode.O0),
+            new QueenNodeDef(QueenNode.O3, QueenBranch.Common, "Retirada de companheiras", "Operárias resgatam companheiras soterradas perto da borda do túnel", 240, true, false, QueenNode.O0),
 
-            new QueenNodeDef(QueenNode.L0, QueenBranch.Carrier, "Carregadora", "Libera a classe: 28 células/s, carga 4 UM", 140, true),
-            new QueenNodeDef(QueenNode.L1, QueenBranch.Carrier, "Cargas maiores", "4 UM → 6 UM (+50%)", 160, true, false, QueenNode.L0),
-            new QueenNodeDef(QueenNode.L2, QueenBranch.Carrier, "Transporte cooperativo", "Individual → 2 carregadoras levam peça de até 8 UM", 300, false, false, QueenNode.L1),
-            new QueenNodeDef(QueenNode.L3, QueenBranch.Carrier, "Velocidade das carregadoras", "28 células/s → 35 células/s (+25%)", 200, true, false, QueenNode.L0),
+            new QueenNodeDef(QueenNode.L0, QueenBranch.Carrier, "Carregadora", "Nova classe: leva 4 pedaços de planta por viagem e anda 17% mais rápido que a operária", 140, true),
+            new QueenNodeDef(QueenNode.L1, QueenBranch.Carrier, "Cargas maiores", "Carregadoras levam 6 pedaços de planta em vez de 4", 160, true, false, QueenNode.L0),
+            new QueenNodeDef(QueenNode.L2, QueenBranch.Carrier, "Transporte cooperativo", "Duas carregadoras levam juntas uma peça grande", 300, false, false, QueenNode.L1),
+            new QueenNodeDef(QueenNode.L3, QueenBranch.Carrier, "Velocidade das carregadoras", "Carregadoras andam 25% mais rápido", 200, true, false, QueenNode.L0),
 
-            new QueenNodeDef(QueenNode.F0, QueenBranch.Cutter, "Cortadeira", "Libera a classe: corta 2 UM em 1 s (a comum leva 2 s)", 160, true),
-            new QueenNodeDef(QueenNode.F1, QueenBranch.Cutter, "Cortes maiores", "2 UM em 1 s → 4 UM em 1,5 s", 220, true, false, QueenNode.F0),
+            new QueenNodeDef(QueenNode.F0, QueenBranch.Cutter, "Cortadeira", "Nova classe: corta plantas 2× mais rápido que a operária", 160, true),
+            new QueenNodeDef(QueenNode.F1, QueenBranch.Cutter, "Cortes maiores", "Cortadeiras cortam 33% mais rápido", 220, true, false, QueenNode.F0),
 
-            new QueenNodeDef(QueenNode.E0, QueenBranch.Digger, "Escavadora", "Libera a classe: escava 32 células/s (a comum faz 16)", 180, true),
-            new QueenNodeDef(QueenNode.E1, QueenBranch.Digger, "Remoção ampliada", "32 células/s → 48 células/s (+50%) ao escavar", 200, true, false, QueenNode.E0),
-            new QueenNodeDef(QueenNode.E2, QueenBranch.Digger, "Quebra de rocha", "Pedra bloqueia → quebra 4 células de rocha/s", 400, true, false, QueenNode.E1),
+            new QueenNodeDef(QueenNode.E0, QueenBranch.Digger, "Escavadora", "Nova classe: cava 2× mais rápido que a operária e leva 6 de terra por viagem", 180, true),
+            new QueenNodeDef(QueenNode.E1, QueenBranch.Digger, "Remoção ampliada", "Escavadoras cavam 50% mais rápido e levam 9 de terra em vez de 6", 200, true, false, QueenNode.E0),
+            new QueenNodeDef(QueenNode.E2, QueenBranch.Digger, "Quebra de rocha", "Escavadoras conseguem quebrar rocha", 400, true, false, QueenNode.E1),
 
-            new QueenNodeDef(QueenNode.J0, QueenBranch.Gardener, "Jardineira", "Libera a classe: cuida do cultivo (atende 6 B, a comum 4 B)", 180, true),
-            new QueenNodeDef(QueenNode.J1, QueenBranch.Gardener, "Produção otimizada de fungo", "Crescimento (cura dos nutrientes) ×1 → ×1,3 na área atendida", 240, true, false, QueenNode.J0),
-            new QueenNodeDef(QueenNode.J2, QueenBranch.Gardener, "Transplante de fungo", "Instalação de 8 s por B → 4 s por B", 300, false, false, QueenNode.J1),
+            new QueenNodeDef(QueenNode.J0, QueenBranch.Gardener, "Jardineira", "Nova classe: cuida dos canteiros e atende uma área 50% maior que a operária", 180, true),
+            new QueenNodeDef(QueenNode.J1, QueenBranch.Gardener, "Produção otimizada de fungo", "Canteiros cuidados por jardineiras ficam prontos 30% mais rápido", 240, true, false, QueenNode.J0),
+            new QueenNodeDef(QueenNode.J2, QueenBranch.Gardener, "Transplante de fungo", "Jardineiras preparam canteiros novos na metade do tempo", 300, false, false, QueenNode.J1),
 
-            new QueenNodeDef(QueenNode.N0, QueenBranch.Nurse, "Cuidadora", "Libera a classe: atende 4 crias em 3 s", 200, true),
-            new QueenNodeDef(QueenNode.N1, QueenBranch.Nurse, "Alimentação em lote", "4 crias por viagem → 8 crias por viagem", 240, true, false, QueenNode.N0),
-            new QueenNodeDef(QueenNode.N2, QueenBranch.Nurse, "Resgate de crias", "Sem evacuação → transporta 2 crias por viagem, com prioridade de emergência", 320, false, false, QueenNode.N1),
+            new QueenNodeDef(QueenNode.N0, QueenBranch.Nurse, "Cuidadora", "Nova classe: cuida das crias 33% mais rápido que a operária", 200, true),
+            new QueenNodeDef(QueenNode.N1, QueenBranch.Nurse, "Alimentação em lote", "Cuidadoras atendem 8 crias de uma vez em vez de 4", 240, true, false, QueenNode.N0),
+            new QueenNodeDef(QueenNode.N2, QueenBranch.Nurse, "Resgate de crias", "Em perigo, cuidadoras levam as crias para longe, 2 por viagem", 320, false, false, QueenNode.N1),
 
-            new QueenNodeDef(QueenNode.S0, QueenBranch.Soldier, "Soldado", "Libera a classe: dano 3/s, vida 18 (depois do primeiro ataque de cupins)", 220, true),
-            new QueenNodeDef(QueenNode.S1, QueenBranch.Soldier, "Mandíbulas fortes", "Dano 3/s → 4,5/s (+50%)", 220, true, false, QueenNode.S0),
-            new QueenNodeDef(QueenNode.S2, QueenBranch.Soldier, "Carapaça resistente", "Vida 18 → 27 (+50%)", 220, true, false, QueenNode.S0),
-            new QueenNodeDef(QueenNode.S3, QueenBranch.Soldier, "Contenção", "Combate sem empurrão → empurra a invasora 4 células a cada 3 s", 500, false, false, QueenNode.S1, QueenNode.S2),
+            new QueenNodeDef(QueenNode.S0, QueenBranch.Soldier, "Soldado", "Nova classe, depois do primeiro ataque de cupins: luta com 3× o dano e a vida de uma operária", 220, true),
+            new QueenNodeDef(QueenNode.S1, QueenBranch.Soldier, "Mandíbulas fortes", "Soldados causam 50% mais dano", 220, true, false, QueenNode.S0),
+            new QueenNodeDef(QueenNode.S2, QueenBranch.Soldier, "Carapaça resistente", "Soldados têm 50% mais vida", 220, true, false, QueenNode.S0),
+            new QueenNodeDef(QueenNode.S3, QueenBranch.Soldier, "Contenção", "Soldados empurram os cupins para trás a cada 3 s", 500, false, false, QueenNode.S1, QueenNode.S2),
         };
 
         static readonly string[] BranchLabels =
         {
-            "RAINHA", "COMUM", "CARREGADORA", "CORTADEIRA", "ESCAVADORA", "JARDINEIRA", "CUIDADORA", "SOLDADO",
+            "RAINHA", "OPERÁRIA", "CARREGADORA", "CORTADEIRA", "ESCAVADORA", "JARDINEIRA", "CUIDADORA", "SOLDADO",
         };
 
         /// <summary>Todos os nós, na ordem do enum (e do save).</summary>

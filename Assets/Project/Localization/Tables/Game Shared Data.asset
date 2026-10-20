@@ -1295,6 +1295,882 @@ MonoBehaviour:
     m_Key: tip.recall.off
     m_Metadata:
       m_Items: []
+  - m_Id: 316986930204672
+    m_Key: raid.storm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370496
+    m_Key: tip.menu.colony
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370497
+    m_Key: colony.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370498
+    m_Key: colony.tab.stats
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370499
+    m_Key: colony.col.section
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370500
+    m_Key: colony.col.now
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370501
+    m_Key: colony.col.limit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370502
+    m_Key: colony.queen.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370503
+    m_Key: colony.queen.nest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370504
+    m_Key: colony.queen.forage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370505
+    m_Key: colony.reset
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370506
+    m_Key: colony.stats.ants
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370507
+    m_Key: colony.stats.adults
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370508
+    m_Key: colony.stats.brood
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370509
+    m_Key: colony.stats.idle
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986955370510
+    m_Key: colony.stats.fighting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564800
+    m_Key: colony.stats.roles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564801
+    m_Key: colony.stats.work
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564802
+    m_Key: colony.stats.queen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564803
+    m_Key: colony.stats.recalled
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564804
+    m_Key: colony.stats.places
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564805
+    m_Key: colony.stats.rates
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564806
+    m_Key: colony.section.dig
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564807
+    m_Key: colony.section.build
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564808
+    m_Key: colony.section.harvest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564809
+    m_Key: colony.section.queenfeed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564810
+    m_Key: colony.section.nursery
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564811
+    m_Key: colony.section.garden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564812
+    m_Key: colony.section.dew
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564813
+    m_Key: colony.section.waste
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564814
+    m_Key: colony.place.outdoor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564815
+    m_Key: colony.place.tunnels
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564816
+    m_Key: colony.place.queenroom
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564817
+    m_Key: colony.place.nursery
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564818
+    m_Key: colony.place.nutrientroom
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564819
+    m_Key: colony.place.dewroom
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564820
+    m_Key: colony.place.wasteroom
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564821
+    m_Key: colony.rate.toqueen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564822
+    m_Key: colony.rate.grown
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564823
+    m_Key: colony.rate.harvest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564824
+    m_Key: colony.rate.soil
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564825
+    m_Key: colony.stopped
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564826
+    m_Key: colony.now
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564827
+    m_Key: colony.limit.none
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564828
+    m_Key: colony.limit.max
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564829
+    m_Key: colony.queen.nesting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564830
+    m_Key: colony.queen.foraging
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564831
+    m_Key: colony.queen.state.nest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564832
+    m_Key: colony.queen.state.forage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564833
+    m_Key: tip.colony.toggle
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564834
+    m_Key: tip.colony.minus
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564835
+    m_Key: tip.colony.plus
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564836
+    m_Key: tip.colony.reset
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564837
+    m_Key: tip.colony.queen.nest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564838
+    m_Key: tip.colony.queen.forage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564839
+    m_Key: tip.colony.section.dig
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564840
+    m_Key: tip.colony.section.build
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564841
+    m_Key: tip.colony.section.harvest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564842
+    m_Key: tip.colony.section.queenfeed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564843
+    m_Key: tip.colony.section.nursery
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564844
+    m_Key: tip.colony.section.garden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564845
+    m_Key: tip.colony.section.dew
+    m_Metadata:
+      m_Items: []
+  - m_Id: 316986959564846
+    m_Key: tip.colony.section.waste
+    m_Metadata:
+      m_Items: []
+  - m_Id: 320654177964032
+    m_Key: colony.queen.nutrients
+    m_Metadata:
+      m_Items: []
+  - m_Id: 320654177964033
+    m_Key: colony.queen.eating
+    m_Metadata:
+      m_Items: []
+  - m_Id: 320654177964034
+    m_Key: colony.queen.state.nutrients
+    m_Metadata:
+      m_Items: []
+  - m_Id: 320654177964035
+    m_Key: tip.colony.queen.nutrients
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726718664704
+    m_Key: brush.foodstore
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859008
+    m_Key: brush.blockstore
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859009
+    m_Key: brush.waterstore
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859010
+    m_Key: ui.depots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859011
+    m_Key: tip.menu.depots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859012
+    m_Key: tip.brush.foodstore
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859013
+    m_Key: tip.brush.blockstore
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859014
+    m_Key: tip.brush.waterstore
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859015
+    m_Key: tip.st.depot.paint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859016
+    m_Key: tip.st.depot.nospot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332726722859017
+    m_Key: tip.st.depot.ok
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332730325766144
+    m_Key: brush.foodstore.U
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332730858442752
+    m_Key: brush.blockstore.U
+    m_Metadata:
+      m_Items: []
+  - m_Id: 332731399507968
+    m_Key: brush.waterstore.U
+    m_Metadata:
+      m_Items: []
+  - m_Id: 350737034874880
+    m_Key: tip.colony.slider
+    m_Metadata:
+      m_Items: []
+  - m_Id: 381798674567168
+    m_Key: colony.stats.waterStock
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707392
+    m_Key: tree.branch.hive.dew
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707393
+    m_Key: tree.branch.hive.works
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707394
+    m_Key: tree.branch.hive.outside
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707395
+    m_Key: tree.branch.hive.defense
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707396
+    m_Key: tree.root.hive
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707397
+    m_Key: tree.controls
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707398
+    m_Key: tree.max
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707399
+    m_Key: tree.depth
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707400
+    m_Key: tree.ring.closed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707401
+    m_Key: tree.kind.chamber
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707402
+    m_Key: tree.kind.gallery
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707403
+    m_Key: tree.level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707404
+    m_Key: tree.level.open
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707405
+    m_Key: tree.value
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707406
+    m_Key: tree.value.full
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707407
+    m_Key: tree.milestone
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707408
+    m_Key: tree.cost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707409
+    m_Key: tree.cost.levels
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707410
+    m_Key: tree.fiveraids
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819835707411
+    m_Key: tree.fiftyadults
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901696
+    m_Key: upgrade.C5.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901697
+    m_Key: upgrade.C5.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901698
+    m_Key: upgrade.B4.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901699
+    m_Key: upgrade.B4.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901700
+    m_Key: upgrade.D3.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901701
+    m_Key: upgrade.D3.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901702
+    m_Key: upgrade.D4.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901703
+    m_Key: upgrade.D4.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901704
+    m_Key: upgrade.D5.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901705
+    m_Key: upgrade.D5.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901706
+    m_Key: upgrade.G0.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901707
+    m_Key: upgrade.G0.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901708
+    m_Key: upgrade.G1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901709
+    m_Key: upgrade.G1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901710
+    m_Key: upgrade.G2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901711
+    m_Key: upgrade.G2.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901712
+    m_Key: upgrade.T1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901713
+    m_Key: upgrade.T1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901714
+    m_Key: upgrade.T2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901715
+    m_Key: upgrade.T2.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901716
+    m_Key: upgrade.X0.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901717
+    m_Key: upgrade.X0.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901718
+    m_Key: upgrade.X1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901719
+    m_Key: upgrade.X1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901720
+    m_Key: upgrade.M0.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901721
+    m_Key: upgrade.M0.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901722
+    m_Key: upgrade.M1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901723
+    m_Key: upgrade.M1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901724
+    m_Key: upgrade.Q3.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901725
+    m_Key: upgrade.Q3.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901726
+    m_Key: upgrade.O4.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901727
+    m_Key: upgrade.O4.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901728
+    m_Key: upgrade.L4.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901729
+    m_Key: upgrade.L4.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901730
+    m_Key: upgrade.F2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901731
+    m_Key: upgrade.F2.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901732
+    m_Key: upgrade.E3.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901733
+    m_Key: upgrade.E3.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901734
+    m_Key: upgrade.J3.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901735
+    m_Key: upgrade.J3.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901736
+    m_Key: upgrade.N3.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901737
+    m_Key: upgrade.N3.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901738
+    m_Key: upgrade.S4.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901739
+    m_Key: upgrade.S4.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901740
+    m_Key: upgrade.H+1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901741
+    m_Key: upgrade.H+1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901742
+    m_Key: upgrade.C+1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901743
+    m_Key: upgrade.C+1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901744
+    m_Key: upgrade.C+2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901745
+    m_Key: upgrade.C+2.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901746
+    m_Key: upgrade.C+3.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901747
+    m_Key: upgrade.C+3.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901748
+    m_Key: upgrade.B+1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901749
+    m_Key: upgrade.B+1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901750
+    m_Key: upgrade.B+2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901751
+    m_Key: upgrade.B+2.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901752
+    m_Key: upgrade.D+1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901753
+    m_Key: upgrade.D+1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901754
+    m_Key: upgrade.D+2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901755
+    m_Key: upgrade.D+2.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901756
+    m_Key: upgrade.G+1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901757
+    m_Key: upgrade.G+1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901758
+    m_Key: upgrade.G+2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901759
+    m_Key: upgrade.G+2.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901760
+    m_Key: upgrade.T+1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901761
+    m_Key: upgrade.T+1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901762
+    m_Key: upgrade.T+2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901763
+    m_Key: upgrade.T+2.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901764
+    m_Key: upgrade.X+1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901765
+    m_Key: upgrade.X+1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901766
+    m_Key: upgrade.X+2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901767
+    m_Key: upgrade.X+2.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901768
+    m_Key: upgrade.X+3.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901769
+    m_Key: upgrade.X+3.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901770
+    m_Key: upgrade.M+1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901771
+    m_Key: upgrade.M+1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901772
+    m_Key: upgrade.M+2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901773
+    m_Key: upgrade.M+2.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901774
+    m_Key: upgrade.Q+1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901775
+    m_Key: upgrade.Q+1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901776
+    m_Key: upgrade.Q+2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901777
+    m_Key: upgrade.Q+2.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901778
+    m_Key: upgrade.Q+3.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901779
+    m_Key: upgrade.Q+3.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901780
+    m_Key: upgrade.O+1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901781
+    m_Key: upgrade.O+1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901782
+    m_Key: upgrade.O+2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901783
+    m_Key: upgrade.O+2.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901784
+    m_Key: upgrade.O+3.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901785
+    m_Key: upgrade.O+3.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901786
+    m_Key: upgrade.L+1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901787
+    m_Key: upgrade.L+1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901788
+    m_Key: upgrade.L+2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901789
+    m_Key: upgrade.L+2.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901790
+    m_Key: upgrade.F+1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901791
+    m_Key: upgrade.F+1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901792
+    m_Key: upgrade.E+1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901793
+    m_Key: upgrade.E+1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901794
+    m_Key: upgrade.E+2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901795
+    m_Key: upgrade.E+2.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901796
+    m_Key: upgrade.E+3.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901797
+    m_Key: upgrade.E+3.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901798
+    m_Key: upgrade.J+1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901799
+    m_Key: upgrade.J+1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901800
+    m_Key: upgrade.J+2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901801
+    m_Key: upgrade.J+2.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901802
+    m_Key: upgrade.N+1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901803
+    m_Key: upgrade.N+1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901804
+    m_Key: upgrade.N+2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901805
+    m_Key: upgrade.N+2.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901806
+    m_Key: upgrade.S+1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901807
+    m_Key: upgrade.S+1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901808
+    m_Key: upgrade.S+2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901809
+    m_Key: upgrade.S+2.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901810
+    m_Key: upgrade.S+3.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 391819839901811
+    m_Key: upgrade.S+3.effect
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

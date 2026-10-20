@@ -297,48 +297,5 @@ namespace Fabula.Incrementant.Tests
             CollectionAssert.AreEquivalent(lake, WaterCells(grid), "O laguinho gerado já nasce assentado e contido.");
             Assert.AreEqual(0, water.ErodedCells);
         }
-
-        [Test]
-        public void Colony_AntsDrownAfterStayingUnderwater()
-        {
-            var terrain = new TerrainSettings();
-            var grid = new PixelGrid(terrain.Width, terrain.Height);
-            TerrainLayout layout = TerrainGenerator.Generate(grid, terrain, 4321);
-            var colony = new AntColony(grid, new ColonySettings(), layout, 4321);
-            int ants = colony.Ants.Count;
-            Assert.Greater(ants, 0);
-
-            // Inunda todo o vazio dentro do formigueiro.
-            for (int x = 0; x < grid.Width; x++)
-            for (int y = 0; y <= grid.GetSurfaceY(x); y++)
-                grid.SetWater(x, y, true);
-
-            for (int i = 0; i < 120; i++) // 2 s
-                colony.Tick(Tick);
-            Assert.AreEqual(ants, colony.Ants.Count, "Antes do limite ninguém se afoga.");
-            Assert.Greater(colony.Ants[0].UnderwaterSeconds, 1.5f);
-
-            for (int i = 0; i < 240; i++) // +4 s (limite padrão: 5 s)
-                colony.Tick(Tick);
-            Assert.AreEqual(0, colony.Ants.Count);
-            Assert.AreEqual(ants, colony.DrownedAnts);
-        }
-
-        [Test]
-        public void Colony_UnderwaterTimeResetsOnDryCell()
-        {
-            var terrain = new TerrainSettings();
-            var grid = new PixelGrid(terrain.Width, terrain.Height);
-            TerrainLayout layout = TerrainGenerator.Generate(grid, terrain, 4321);
-            var colony = new AntColony(grid, new ColonySettings(), layout, 4321);
-            Ant ant = colony.Ants[0];
-            ant.UnderwaterSeconds = 4.9f;
-            Assert.IsFalse(grid.HasWater(ant.X, ant.Y), "O ninho começa seco.");
-
-            colony.Tick(Tick);
-
-            Assert.AreEqual(0f, ant.UnderwaterSeconds, "Fora da água o tempo submerso zera.");
-            Assert.AreEqual(0, colony.DrownedAnts);
-        }
     }
 }

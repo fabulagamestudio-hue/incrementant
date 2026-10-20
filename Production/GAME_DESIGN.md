@@ -2,7 +2,7 @@
 
 **Projeto:** Incrementant
 **Setor:** GAME_DESIGN
-**Última avaliação:** 2026-10-17
+**Última avaliação:** 2026-10-19
 
 ## Resumo
 
@@ -18,6 +18,7 @@ Conceito informado pelo desenvolvedor em 2026-10-17: formigueiro visto de lado, 
 | GD-004 | Rainha e sala da rainha | IN_PROGRESS | UNDEFINED | Informado pelo desenvolvedor em 2026-10-17 | REQ-007 | 2026-10-17 |
 | GD-005 | Plantas, sala de nutrientes e nutrientes como moeda | IN_PROGRESS | UNDEFINED | Informado pelo desenvolvedor em 2026-10-17 | REQ-008 | 2026-10-17 |
 | GD-007 | Ataques de cupins, combate e área de resíduos | IN_PROGRESS | UNDEFINED | Informado pelo desenvolvedor em 2026-10-18 | REQ-029 | 2026-10-18 |
+| GD-008 | Melhorias incrementais e formigueiro de dependências | IMPLEMENTED | UNDEFINED | [Documento 39](../Docs/01_Design/39_Melhorias_incrementais_e_formigueiro_de_dependencias.md) e [planilha](../Docs/04_Data/39_Melhorias_incrementais_valores.xlsx) escritos em 2026-10-19; níveis repetíveis e valores aprovados pelo desenvolvedor em 2026-10-19; sem teste em jogo nem construção | REQ-039 | 2026-10-19 |
 | GD-006 | Documento de design revisado organizado em Markdown | VERIFIED | UNDEFINED | Conferência automática em 2026-10-17: 38 seções, 507 parágrafos, 28 tabelas, 209 linhas e 604 células preservados; 156 links locais válidos. [Índice e conferência](../Docs/README.md) | REQ-009 | 2026-10-17 |
 
 ## Detalhes
@@ -51,6 +52,12 @@ Validação de 2026-10-17: comparação automática, em ordem, de todos os pará
 ### GD-007 — Ataques de cupins, combate e área de resíduos
 
 Regras do pedido de 2026-10-18 (REQ-029) e decisões tomadas na conversa: parede destruída vira terra fofa solta; área de resíduos é sala pintada; formiga pode morrer em combate mesmo com a morte desligada. Valores vindos do design (seções 15, 21, 27 e 32): vida 6/8/18, dano 1/s e 3/s, cupim com vida 10 e mordida 2/s, decomposição 120 s. Pedido complementar do mesmo dia: só o soldado caça cupins, as demais só se defendem quando mordidas (como no design); a quantidade de cupins é sorteada entre 40% e um teto que cresce a cada ataque até 200% (crescimento de 20 pontos escolhido pelo agente, a confirmar). Diferença do design ainda a decidir: no design a invasora entra por um acesso e ataca formigas (inclusive a rainha, com game over); no pedido, os cupins vão atrás de crias, canteiros e paredes. Regras e números implementados: [RaidGuide.md](../Assets/Project/Scripts/Runtime/Colony/RaidGuide.md).
+
+### GD-008 — Melhorias incrementais e formigueiro de dependências
+
+Pedido de 2026-10-19 (REQ-039): expandir os upgrades das formigas e do formigueiro num incremental pago com nutrientes, só documentado. O documento 39 propõe três camadas (câmaras de compra única, galerias com nível e marcos), anéis de profundidade e túneis de dependência (simples, de nível, cruzados entre abas e de junção), nas duas abas da tela Evolução. Números na planilha de `Docs/04_Data/`.
+
+**Revisão do design revisado:** a seção 28 diz "uma compra por nó, sem níveis infinitos já definidos"; decidido pelo desenvolvedor em 2026-10-19 que os níveis repetíveis do documento 39 passam a valer (físicos com teto, economia e combate infinitos) e que os valores sugeridos da planilha são os iniciais. Também acrescenta requisitos cruzados a nós que já existem (Q2, L2, D2, E2, J0, J1, N0) e transforma em nós os pincéis hoje livres (C0, R0, G0 como iniciais; D0, D3, D4 como compras baratas, com migração de save). Até a implementação, o jogo segue as regras atuais.
 
 ## Riscos e bloqueios
 

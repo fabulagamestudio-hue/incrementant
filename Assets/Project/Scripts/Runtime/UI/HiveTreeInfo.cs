@@ -28,20 +28,20 @@ namespace Fabula.Incrementant.UI
 
         public static readonly IReadOnlyList<Node> All = new[]
         {
-            N("C0", "Cultivo inicial", "Sem produção → 0,25 UM/s por B; 3 N por UM de folha", 0, "Nenhum", 765, 487, -1),
-            N("C1", "Canteiros organizados", "0,25 UM/s por B → 0,325 UM/s por B (+30%)", 90, "C0", 585, 380, 0),
-            N("C2", "Área de preparo", "Folhas diretas → prepara 2 UM em 2 s; reserva de 12 UM por B", 180, "C1", 393, 275, 1),
-            N("C3", "Cultivo produtivo", "3 N por UM de folha → 3,6 N (+20%); fruto 6 → 7,2 N", 200, "C1", 343, 477, 1),
-            N("C4", "Cultivo integrado", "Redistribui a reserva preparada entre cultivos; alvo de 6 UM por B", 400, "C2 e C3", 168, 350, 2, 3),
-            N("B0", "Berçário inicial", "Sem novas crias → 2 vagas de cria por B", 50, "C0", 1155, 487, -1),
-            N("B1", "Leitos de criação", "Larva de 14 s → 10,5 s (−25%)", 110, "B0", 1335, 330, 5),
-            N("B2", "Área de maturação", "Pupa de 12 s → 9 s (−25%)", 110, "B0", 1365, 540, 5),
-            N("B3", "Berçário organizado", "2 vagas por B → 3 vagas por B (+50%)", 260, "B1 e B2", 1600, 408, 6, 7),
-            N("D0", "Depósito inicial", "6 UM por B no cultivo → 20 UM por B no depósito", 80, "C0", 765, 702, -1),
-            N("D1", "Pilhas organizadas", "20 UM por B → 30 UM por B (+50%)", 150, "D0", 573, 810, 9),
-            N("D2", "Espaço para cargas grandes", "Cargas soltas de até 4 UM → guarda peças inteiras de até 8 UM", 260, "D1", 342, 905, 10),
-            N("R0", "Área de resíduos", "Resíduos ocupam a origem → 12 UR por B; decomposição de 120 s por UR", 60, "C0", 1155, 702, -1),
-            N("R1", "Decomposição acelerada", "120 s por UR → 60 s por UR (−50%)", 140, "R0", 1350, 860, 12),
+            N("C0", "Cultivo inicial", "Libera a sala de nutrientes, onde os canteiros transformam plantas em nutrientes", 0, "Nenhum", 765, 487, -1),
+            N("C1", "Canteiros organizados", "Canteiros produzem 30% mais rápido", 90, "C0", 585, 380, 0),
+            N("C2", "Área de preparo", "Libera uma área onde as formigas picam plantas e guardam uma reserva para os canteiros", 180, "C1", 393, 275, 1),
+            N("C3", "Cultivo produtivo", "Cada planta rende 20% mais nutrientes", 200, "C1", 343, 477, 1),
+            N("C4", "Cultivo integrado", "As formigas levam a reserva preparada aos canteiros que estão com pouca", 400, "C2 e C3", 168, 350, 2, 3),
+            N("B0", "Berçário inicial", "Libera o berçário: sem ele, a rainha não põe ovos", 50, "C0", 1155, 487, -1),
+            N("B1", "Leitos de criação", "Larvas crescem 25% mais rápido", 110, "B0", 1335, 330, 5),
+            N("B2", "Área de maturação", "Pupas viram adultas 25% mais rápido", 110, "B0", 1365, 540, 5),
+            N("B3", "Berçário organizado", "O berçário comporta 50% mais crias no mesmo espaço", 260, "B1 e B2", 1600, 408, 6, 7),
+            N("D0", "Depósito inicial", "Libera o depósito de alimentos para guardar plantas", 80, "C0", 765, 702, -1),
+            N("D1", "Pilhas organizadas", "Depósitos guardam 50% mais no mesmo espaço", 150, "D0", 573, 810, 9),
+            N("D2", "Espaço para cargas grandes", "Depósitos guardam peças grandes inteiras", 260, "D1", 342, 905, 10),
+            N("R0", "Área de resíduos", "Libera a área de resíduos, para onde vão restos e corpos", 60, "C0", 1155, 702, -1),
+            N("R1", "Decomposição acelerada", "Resíduos somem 2× mais rápido", 140, "R0", 1350, 860, 12),
         };
 
         /// <summary>Rótulos dos ramos e onde ficam (referência), para o desenho.</summary>

@@ -4,10 +4,10 @@ Como a árvore da rainha funciona e como mexer nela. Onde estão os arquivos: [R
 
 ## Como funciona
 
-- **Dados.** `QueenTree` (`Colony/QueenTree.cs`) guarda a tabela dos 26 nós (`QueenNodeDef`: id, ramo, nome, efeito em texto, custo em nutrientes, pré-requisitos, `Implemented`, `Initial`) e o estado de compra: um bit por nó em `QueenTree.Mask`. **A ordem do enum `QueenNode` é o formato do save**: não reordenar nem remover; nó novo vai no fim.
+- **Dados.** `QueenTree` (`Colony/QueenTree.cs`) guarda a tabela dos 26 nós (`QueenNodeDef`: id, ramo, nome, efeito em texto para o jogador (regras de escrita no [UpgradesGuide](../Upgrades/UpgradesGuide.md), "Textos dos nós"), custo em nutrientes, pré-requisitos, `Implemented`, `Initial`) e o estado de compra: um bit por nó em `QueenTree.Mask`. **A ordem do enum `QueenNode` é o formato do save**: não reordenar nem remover; nó novo vai no fim.
 - **Compra.** `AntColony.TryBuy(node)` é o único caminho. Confere (`QueenTree.Check`) já comprado, nó sem sistema no jogo, pré-requisito e saldo, nessa ordem; só então debita `Nutrients` e marca o bit. Recusa não debita nada. Cada nó é comprado uma vez e vale para as formigas existentes e futuras.
 - **Nós iniciais.** Q0 e O0 custam 0 e já vêm adquiridos (a regra "só põe ovo com berçário" já está no ciclo de criação).
-- **Nós sem sistema (`Implemented = false`).** Aparecem na tela como EM BREVE e não podem ser comprados, para não existir bônus invisível. Hoje: O3, L2, J2, N2 e S3 (contenção). S0 a S2 (soldado, mandíbulas, carapaça) existem desde 2026-10-18, mas só podem ser comprados depois do primeiro ataque de cupins (`QueenTree.SoldiersAvailable`, `BuyBlock.NeedsFirstRaid`; ver [RaidGuide](RaidGuide.md)). Quando o sistema existir, troque a flag na tabela e ligue o efeito.
+- **Nós sem sistema (`Implemented = false`).** Aparecem na tela como EM BREVE e não podem ser comprados, para não existir bônus invisível. Hoje: L2, J2, N2 e S3 (contenção). S0 a S2 (soldado, mandíbulas, carapaça) existem desde 2026-10-18, mas só podem ser comprados depois do primeiro ataque de cupins (`QueenTree.SoldiersAvailable`, `BuyBlock.NeedsFirstRaid`; ver [RaidGuide](RaidGuide.md)). Quando o sistema existir, troque a flag na tabela e ligue o efeito.
 - **Carga e rocha (2026-10-17).** `QueenTree.MaterialCapacity` (pixels de planta = UM: comum 2/O1 3, carregadora 4/L1 6, escavadora 4, demais 2) e `SoilCapacity` (terra, no décimo da escala do design: comum 3/O1 4, escavadora 6/E1 9, demais 3). `CutTimeFactor` (F1: 3/4 do tempo por pixel, equivalente a 4 UM em 1,5 s contra 2 UM em 1 s) e `CanBreakRock` (E2). Como o corte solta pixels, F1 é modelado como taxa e não como peça maior.
 - **Pausa.** Abrir a árvore não pausa o jogo (regra em aberto no design, seção 34).
 
@@ -33,7 +33,7 @@ O que cada classe já fazia antes da árvore (velocidade da classe, escavar em m
 
 ## Tela Evolução
 
-Menu Colônia → EVOLUÇÃO → aba RAINHA E CLASSES (`SkillTreeScreen`, em tela cheia): um ramo por coluna, nós na ordem de compra, detalhe do nó escolhido (nome, efeito base → depois, requisito) e o botão DESBLOQUEAR. Como a tela funciona, os estados visuais e a arte: [HudGuide](../UI/HudGuide.md) ("Tela Evolução"). Os nós da rainha usam ícones gerais, porque o kit de arte da árvore só tem os do formigueiro.
+Menu Colônia → EVOLUÇÃO → aba RAINHA E CLASSES (`SkillTreeScreen`, em tela cheia): formigueiro radial arrastável com os 26 nós desta árvore mais as câmaras e galerias novas do documento 39 ([UpgradesGuide](../Upgrades/UpgradesGuide.md)), detalhe do nó escolhido (nome, efeito, requisito) e o botão DESBLOQUEAR, que continua chamando `AntColony.TryBuy` com as regras desta árvore. Como a tela funciona, os estados visuais e a arte: [HudGuide](../UI/HudGuide.md) ("Tela Evolução"). Os nós da rainha usam ícones gerais, porque o kit de arte da árvore só tem os do formigueiro.
 
 ## Como estender
 

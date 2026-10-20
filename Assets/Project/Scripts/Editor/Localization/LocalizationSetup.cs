@@ -188,7 +188,7 @@ namespace Fabula.Incrementant.EditorTools.Localization
         }
 
         /// <summary>Texto igual em qualquer idioma (velocidade "2X", id de nó "Q0", números e símbolos): não vai para a tabela.</summary>
-        static bool IsNeutral(string text) => System.Text.RegularExpressions.Regex.IsMatch(text, @"^([A-Z]\d|\d+X|[\d\W_]+)$");
+        static bool IsNeutral(string text) => System.Text.RegularExpressions.Regex.IsMatch(text, @"^([A-Z]\+?\d|\d+X|[\d\W_]+)$");
 
         static string Slug(string text)
         {

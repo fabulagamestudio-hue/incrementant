@@ -17,6 +17,9 @@ namespace Fabula.Incrementant.AntFarm
         /// <summary>O dedo não pinta: o contorno é só a mira.</summary>
         Finger,
         DewRoom,
+        FoodStore,
+        BlockStore,
+        WaterStore,
     }
 
     /// <summary>
@@ -48,6 +51,14 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField] Color32 _wasteRoomColor = new Color32(170, 150, 90, 255);
         [Tooltip("Cor da sala Gotas de Orvalho pintada e do pincel no modo sala Gotas de Orvalho.")]
         [SerializeField] Color32 _dewRoomColor = new Color32(90, 190, 230, 255);
+        [Tooltip("Cor do depósito de alimentos pintado e do pincel no modo depósito de alimentos.")]
+        [SerializeField] Color32 _foodStoreColor = new Color32(150, 210, 60, 255);
+        [Tooltip("Cor do depósito de construção pintado e do pincel no modo depósito de construção.")]
+        [SerializeField] Color32 _blockStoreColor = new Color32(220, 140, 70, 255);
+        [Tooltip("Cor do depósito de água pintado e do pincel no modo depósito de água.")]
+        [SerializeField] Color32 _waterStoreColor = new Color32(70, 120, 235, 255);
+        [Tooltip("Quanto o item guardado (depósitos e resíduos) mistura a cor dele com o fundo do túnel: 1 = a cor do material.")]
+        [SerializeField, Range(0f, 1f)] float _storedStrength = 0.8f;
         [Tooltip("Força da tinta da sala de nutrientes; células ainda maciças ficam com metade.")]
         [SerializeField, Range(0f, 1f)] float _nutrientRoomStrength = 0.35f;
         [Tooltip("Cor do nutriente pronto que brotou de um canteiro (e carregado até a rainha, no fallback sem sprites).")]
@@ -108,6 +119,22 @@ namespace Fabula.Incrementant.AntFarm
         byte[] _fogRows;
         // Tabela de área somada de _open (uma linha e uma coluna a mais, de zeros): ver FogDistance.
         int[] _openSum;
+        // Cache de cor (e de material, com tiles) de cada célula da grade inteira. Só os blocos cuja versão visual mudou
+        // (PixelGrid.GetChunkRenderVersion, ou um vizinho por causa da névoa) são redesenhados; a janela é cópia do cache.
+        PixelGrid _cachedGrid;
+        bool _cachedHasColony;
+        Color32[] _cellColors;
+        byte[] _cellTiles;
+        // Distância da névoa de cada célula no último desenho do bloco dela (só muda com a forma do terreno).
+        byte[] _cellFog;
+        int[] _drawnVersion;
+        long _renderLogSeen;
+
+        /// <summary>Blocos redesenhados no último <see cref="Render"/> e blocos da janela (diagnóstico do painel F11).</summary>
+        public int LastRedrawnChunks { get; private set; }
+        public int LastWindowChunks { get; private set; }
+        public int LastRedrawnCells { get; private set; }
+        public Vector2Int LastWindowSize => new Vector2Int(_width, _height);
 
         /// <param name="transparentSky">Deixa o céu transparente, para um cenário desenhado atrás (SurfaceSceneryView) aparecer.</param>
         /// <param name="skyBaseY">Linha onde o gradiente do céu começa (cor de baixo); o topo da grade tem a cor de cima.</param>
@@ -185,7 +212,8 @@ namespace Fabula.Incrementant.AntFarm
             if (_tileInstance != null)
                 _tileInstance.SetVector(WindowOriginId, new Vector4(_originX, _originY, _width, _height));
 
-            DrawCells(grid, colony);
+            RefreshCells(grid, colony, window);
+            CopyWindow(grid.Width);
             DrawDumpMarkers(grid, dumpStrips);
             if (drops != null)
                 DrawDrops(drops);
@@ -217,6 +245,9 @@ namespace Fabula.Incrementant.AntFarm
                 case BrushTint.NurseryRoom: return _nurseryRoomColor;
                 case BrushTint.WasteRoom: return _wasteRoomColor;
                 case BrushTint.DewRoom: return _dewRoomColor;
+                case BrushTint.FoodStore: return _foodStoreColor;
+                case BrushTint.BlockStore: return _blockStoreColor;
+                case BrushTint.WaterStore: return _waterStoreColor;
                 default: return _brushColor;
             }
         }
@@ -249,123 +280,250 @@ namespace Fabula.Incrementant.AntFarm
             }
         }
 
-        void DrawCells(PixelGrid grid, AntColony colony)
+        /// <summary>Redesenha no cache os blocos da janela cuja versão visual (ou a de um vizinho) mudou desde o último desenho.</summary>
+        void RefreshCells(PixelGrid grid, AntColony colony, RectInt window)
         {
-            float faintRoom = _queenRoomStrength * 0.5f;
+            bool hasColony = colony != null;
+            bool tiles = _tileInstance != null;
+            if (_cachedGrid != grid || _cellColors == null || _cellColors.Length != grid.Width * grid.Height ||
+                (tiles && _cellTiles == null) || _cachedHasColony != hasColony)
+            {
+                _cachedGrid = grid;
+                _cachedHasColony = hasColony;
+                _cellColors = new Color32[grid.Width * grid.Height];
+                _cellTiles = tiles ? new byte[grid.Width * grid.Height] : null;
+                _cellFog = new byte[grid.Width * grid.Height];
+                _drawnVersion = new int[grid.ChunkColumns * grid.ChunkRows];
+                for (int i = 0; i < _drawnVersion.Length; i++)
+                    _drawnVersion[i] = -1;
+                _renderLogSeen = grid.RenderLogCount;
+            }
+            // Mudanças demais desde o último frame para o registro circular: o que não foi lido se perdeu, refaz tudo.
+            if (grid.RenderLogCount - _renderLogSeen > PixelGrid.RenderLogCapacity)
+            {
+                for (int i = 0; i < _drawnVersion.Length; i++)
+                    _drawnVersion[i] = -1;
+                _renderLogSeen = grid.RenderLogCount;
+            }
+
+            int cx0 = window.xMin >> PixelGrid.ChunkShift;
+            int cx1 = (window.xMax - 1) >> PixelGrid.ChunkShift;
+            int cy0 = window.yMin >> PixelGrid.ChunkShift;
+            int cy1 = (window.yMax - 1) >> PixelGrid.ChunkShift;
+            LastRedrawnChunks = 0;
+            LastRedrawnCells = 0;
+            LastWindowChunks = (cx1 - cx0 + 1) * (cy1 - cy0 + 1);
+            for (int cy = cy0; cy <= cy1; cy++)
+            for (int cx = cx0; cx <= cx1; cx++)
+            {
+                // A névoa lê até _revealRadius células em volta (menos que um bloco): os 8 vizinhos entram na versão.
+                int version = 0;
+                for (int ny = Mathf.Max(0, cy - 1); ny <= Mathf.Min(grid.ChunkRows - 1, cy + 1); ny++)
+                for (int nx = Mathf.Max(0, cx - 1); nx <= Mathf.Min(grid.ChunkColumns - 1, cx + 1); nx++)
+                    version = Mathf.Max(version, grid.GetChunkRenderVersion(nx, ny));
+                int index = cy * grid.ChunkColumns + cx;
+                if (_drawnVersion[index] == version)
+                    continue;
+                DrawChunk(grid, colony, cx, cy);
+                _drawnVersion[index] = version;
+                LastRedrawnChunks++;
+            }
+
+            ApplyRenderLog(grid, colony, window);
+        }
+
+        /// <summary>
+        /// Mudanças de aparência de uma célula só (água, umidade, marcas, salas, depósitos, nutriente): refaz a célula e a de
+        /// baixo (o tom da água depende da água acima) em vez do bloco inteiro; a névoa não muda, vale a guardada. Célula fora da
+        /// janela só invalida o bloco dela, que é refeito quando a janela chegar lá.
+        /// </summary>
+        void ApplyRenderLog(PixelGrid grid, AntColony colony, RectInt window)
+        {
+            long count = grid.RenderLogCount;
             int radius = _fogOfWar ? _revealRadius : 0;
-            if (radius > 0)
-                ComputeOpenness(grid, radius);
-            int stride = _width + 2 * radius;
-            bool tiles = _materialIds != null && _tileInstance != null;
+            for (long sequence = _renderLogSeen; sequence < count; sequence++)
+            {
+                int cell = grid.GetRenderLogCell(sequence);
+                int x = cell % grid.Width, y = cell / grid.Width;
+                RedrawCell(grid, colony, window, radius, x, y);
+                RedrawCell(grid, colony, window, radius, x, y - 1);
+            }
+            _renderLogSeen = count;
+        }
+
+        void RedrawCell(PixelGrid grid, AntColony colony, RectInt window, int radius, int x, int y)
+        {
+            if ((uint)x >= (uint)grid.Width || (uint)y >= (uint)grid.Height)
+                return;
+            int chunk = (y >> PixelGrid.ChunkShift) * grid.ChunkColumns + (x >> PixelGrid.ChunkShift);
+            if (_drawnVersion[chunk] < 0)
+                return;
+            if (x < window.xMin || x >= window.xMax || y < window.yMin || y >= window.yMax)
+            {
+                _drawnVersion[chunk] = -1;
+                return;
+            }
+            int index = y * grid.Width + x;
+            _cellColors[index] = ComputeCell(grid, colony, x, y, radius > 0 ? _cellFog[index] : 0, radius, out byte tileId);
+            if (_cellTiles != null)
+                _cellTiles[index] = tileId;
+            LastRedrawnCells++;
+        }
+
+        /// <summary>Copia a janela do cache para a textura (as camadas que mudam todo frame são desenhadas por cima).</summary>
+        void CopyWindow(int gridWidth)
+        {
+            bool tiles = _materialIds != null && _cellTiles != null;
             for (int wy = 0; wy < _height; wy++)
             {
-                int row = wy * _width;
-                int y = _originY + wy;
-                for (int wx = 0; wx < _width; wx++)
+                int source = (_originY + wy) * gridWidth + _originX;
+                System.Array.Copy(_cellColors, source, _pixels, wy * _width, _width);
+                if (tiles)
+                    System.Array.Copy(_cellTiles, source, _materialIds, wy * _width, _width);
+            }
+        }
+
+        void DrawChunk(PixelGrid grid, AntColony colony, int cx, int cy)
+        {
+            int radius = _fogOfWar ? _revealRadius : 0;
+            int x0 = cx << PixelGrid.ChunkShift;
+            int y0 = cy << PixelGrid.ChunkShift;
+            int w = Mathf.Min(PixelGrid.ChunkSize, grid.Width - x0);
+            int h = Mathf.Min(PixelGrid.ChunkSize, grid.Height - y0);
+            if (radius > 0)
+                ComputeOpenness(grid, radius, x0, y0, w, h);
+            int stride = w + 2 * radius;
+            bool tiles = _cellTiles != null;
+            for (int ly = 0; ly < h; ly++)
+            {
+                int y = y0 + ly;
+                int row = y * grid.Width + x0;
+                for (int lx = 0; lx < w; lx++)
                 {
-                    int x = _originX + wx;
-                    CellMaterial material = grid.Get(x, y);
-                    Color32 color;
-                    bool solid = false;
-                    byte tileId = (byte)material;
-                    if (_plantsAsSprites && CellMaterials.IsPlant(material))
-                    {
-                        color = _skyRows[y];
-                        tileId = CellTileArt.SkyId;
-                    }
-                    else if (material == CellMaterial.Empty)
-                    {
-                        if (y > grid.GetSurfaceY(x))
-                        {
-                            color = _skyRows[y];
-                            tileId = CellTileArt.SkyId;
-                            if (grid.IsBuildMarked(x, y))
-                                color = Color32.Lerp(color, _buildMarkColor, _markStrength);
-                        }
-                        else
-                        {
-                            // Fundo de túnel com leve granulação fixa por posição.
-                            int n = ((x * 73856093) ^ (y * 19349663)) & 15;
-                            color = new Color32((byte)(_tunnelColor.r + n), (byte)(_tunnelColor.g + n / 2), (byte)(_tunnelColor.b + n / 3), 255);
-                            if (grid.IsBuildMarked(x, y))
-                                color = Color32.Lerp(color, _buildMarkColor, _markStrength);
-                            if (grid.IsQueenRoom(x, y))
-                                color = Color32.Lerp(color, _queenRoomColor,
-                                                     colony != null && colony.IsQueenArea(x, y) ? _queenRoomStrength : faintRoom);
-                            if (grid.IsNutrientRoom(x, y))
-                                color = Color32.Lerp(color, _nutrientRoomColor, _nutrientRoomStrength);
-                            if (grid.IsNurseryRoom(x, y))
-                                color = Color32.Lerp(color, _nurseryRoomColor, _nutrientRoomStrength);
-                            if (grid.IsWasteRoom(x, y))
-                                color = Color32.Lerp(color, _wasteRoomColor, _nutrientRoomStrength);
-                            if (grid.IsDewRoom(x, y))
-                                color = Color32.Lerp(color, _dewRoomColor, _nutrientRoomStrength);
-                        }
-                        if (grid.HasNutrient(x, y))
-                            color = NutrientAt(x, y);
-                        if (grid.HasWater(x, y))
-                            color = WaterOver(color, grid.HasWater(x, y + 1) ? _waterColor : _waterSurfaceColor);
-                    }
-                    else
-                    {
-                        color = CellMaterials.ShadedColor(material, grid.GetShade(x, y));
-                        byte wetness = grid.GetWetness(x, y);
-                        if (wetness != 0)
-                            color = Darken(color, Mathf.Max(0.4f, 1f - wetness * _wetDarkening));
-                        solid = true;
-                    }
+                    int x = x0 + lx;
+                    int fogDistance = 0;
                     if (radius > 0)
                     {
-                        int d = FogDistance(wx, wy, radius, stride);
-                        if (d > 0)
-                            color = Darken(color, d > radius ? 0f : 1f - d / (float)(radius + 1));
+                        fogDistance = FogDistance(lx, ly, radius, stride);
+                        _cellFog[row + lx] = (byte)fogDistance;
                     }
-                    // A marca de cavar e a pintura de sala vêm depois da névoa: não escurecem com ela.
-                    if (solid)
-                    {
-                        if (grid.IsMarked(x, y))
-                            color = Color32.Lerp(color, _markColor, _markStrength);
-                        if (grid.IsQueenRoom(x, y))
-                            color = Color32.Lerp(color, _queenRoomColor, faintRoom);
-                        if (grid.IsNutrientRoom(x, y))
-                            color = Color32.Lerp(color, _nutrientRoomColor, _nutrientRoomStrength * 0.5f);
-                        if (grid.IsNurseryRoom(x, y))
-                            color = Color32.Lerp(color, _nurseryRoomColor, _nutrientRoomStrength * 0.5f);
-                        if (grid.IsWasteRoom(x, y))
-                            color = Color32.Lerp(color, _wasteRoomColor, _nutrientRoomStrength * 0.5f);
-                        if (grid.IsDewRoom(x, y))
-                            color = Color32.Lerp(color, _dewRoomColor, _nutrientRoomStrength * 0.5f);
-                    }
-                    _pixels[row + wx] = color;
+                    _cellColors[row + lx] = ComputeCell(grid, colony, x, y, fogDistance, radius, out byte tileId);
                     if (tiles)
-                        _materialIds[row + wx] = tileId;
+                        _cellTiles[row + lx] = tileId;
                 }
             }
         }
 
+        /// <summary>Cor (e material de tile) de uma célula, dada a distância da névoa dela (0 = sem névoa).</summary>
+        Color32 ComputeCell(PixelGrid grid, AntColony colony, int x, int y, int fogDistance, int radius, out byte tileId)
+        {
+            float faintRoom = _queenRoomStrength * 0.5f;
+            CellMaterial material = grid.Get(x, y);
+            Color32 color;
+            bool solid = false;
+            tileId = (byte)material;
+            if (_plantsAsSprites && CellMaterials.IsPlant(material))
+            {
+                color = _skyRows[y];
+                tileId = CellTileArt.SkyId;
+            }
+            else if (material == CellMaterial.Empty)
+            {
+                if (y > grid.GetSurfaceY(x))
+                {
+                    color = _skyRows[y];
+                    tileId = CellTileArt.SkyId;
+                    if (grid.IsBuildMarked(x, y))
+                        color = Color32.Lerp(color, _buildMarkColor, _markStrength);
+                }
+                else
+                {
+                    // Fundo de túnel com leve granulação fixa por posição.
+                    int n = ((x * 73856093) ^ (y * 19349663)) & 15;
+                    color = new Color32((byte)(_tunnelColor.r + n), (byte)(_tunnelColor.g + n / 2), (byte)(_tunnelColor.b + n / 3), 255);
+                    if (grid.IsBuildMarked(x, y))
+                        color = Color32.Lerp(color, _buildMarkColor, _markStrength);
+                    if (grid.IsQueenRoom(x, y))
+                        color = Color32.Lerp(color, _queenRoomColor,
+                                             colony != null && colony.IsQueenArea(x, y) ? _queenRoomStrength : faintRoom);
+                    if (grid.IsNutrientRoom(x, y))
+                        color = Color32.Lerp(color, _nutrientRoomColor, _nutrientRoomStrength);
+                    if (grid.IsNurseryRoom(x, y))
+                        color = Color32.Lerp(color, _nurseryRoomColor, _nutrientRoomStrength);
+                    if (grid.IsWasteRoom(x, y))
+                        color = Color32.Lerp(color, _wasteRoomColor, _nutrientRoomStrength);
+                    if (grid.IsDewRoom(x, y))
+                        color = Color32.Lerp(color, _dewRoomColor, _nutrientRoomStrength);
+                    StorageKind store = grid.GetStorageRoom(x, y);
+                    if (store != StorageKind.None)
+                        color = Color32.Lerp(color, StoreColor(store), _nutrientRoomStrength);
+                }
+                if (grid.HasNutrient(x, y))
+                    color = NutrientAt(x, y);
+                byte stored = grid.GetStored(x, y);
+                if (stored != StoredItems.None)
+                    color = StoredAt(color, stored, grid.GetStoredShade(x, y), x, y);
+                if (grid.HasWater(x, y))
+                    color = WaterOver(color, grid.HasWater(x, y + 1) ? _waterColor : _waterSurfaceColor);
+            }
+            else
+            {
+                color = CellMaterials.ShadedColor(material, grid.GetShade(x, y));
+                byte wetness = grid.GetWetness(x, y);
+                if (wetness != 0)
+                    color = Darken(color, Mathf.Max(0.4f, 1f - wetness * _wetDarkening));
+                solid = true;
+            }
+            if (radius > 0 && fogDistance > 0)
+                color = Darken(color, fogDistance > radius ? 0f : 1f - fogDistance / (float)(radius + 1));
+            // A marca de cavar e a pintura de sala vêm depois da névoa: não escurecem com ela.
+            if (solid)
+            {
+                if (grid.IsMarked(x, y))
+                    color = Color32.Lerp(color, _markColor, _markStrength);
+                if (grid.IsQueenRoom(x, y))
+                    color = Color32.Lerp(color, _queenRoomColor, faintRoom);
+                if (grid.IsNutrientRoom(x, y))
+                    color = Color32.Lerp(color, _nutrientRoomColor, _nutrientRoomStrength * 0.5f);
+                if (grid.IsNurseryRoom(x, y))
+                    color = Color32.Lerp(color, _nurseryRoomColor, _nutrientRoomStrength * 0.5f);
+                if (grid.IsWasteRoom(x, y))
+                    color = Color32.Lerp(color, _wasteRoomColor, _nutrientRoomStrength * 0.5f);
+                if (grid.IsDewRoom(x, y))
+                    color = Color32.Lerp(color, _dewRoomColor, _nutrientRoomStrength * 0.5f);
+                StorageKind store = grid.GetStorageRoom(x, y);
+                if (store != StorageKind.None)
+                    color = Color32.Lerp(color, StoreColor(store), _nutrientRoomStrength * 0.5f);
+            }
+            return color;
+        }
+
         /// <summary>
-        /// Névoa: marca as células abertas da janela mais <paramref name="radius"/> de folga (o que está fora da janela
+        /// Névoa: marca as células abertas do bloco (origem <paramref name="ox"/>, <paramref name="oy"/>, tamanho
+        /// <paramref name="w"/> x <paramref name="h"/>) mais <paramref name="radius"/> de folga (o que está fora do bloco
         /// também ilumina a borda) e a menor distância horizontal até uma delas, em cada célula.
         /// </summary>
-        void ComputeOpenness(PixelGrid grid, int radius)
+        void ComputeOpenness(PixelGrid grid, int radius, int ox, int oy, int w, int h)
         {
-            int stride = _width + 2 * radius;
-            int rows = _height + 2 * radius;
-            if (_open == null || _open.Length != stride * rows)
+            int stride = w + 2 * radius;
+            int rows = h + 2 * radius;
+            if (_open == null || _open.Length < stride * rows)
             {
                 _open = new bool[stride * rows];
                 _fogRows = new byte[stride * rows];
                 _openSum = new int[(stride + 1) * (rows + 1)];
             }
+            // A tabela reaproveitada precisa da linha e da coluna de zeros do tamanho atual.
+            System.Array.Clear(_openSum, 0, (stride + 1) * (rows + 1));
 
             int sumStride = stride + 1;
             for (int r = 0; r < rows; r++)
             {
-                int y = _originY - radius + r;
+                int y = oy - radius + r;
                 int rowSum = 0;
                 for (int c = 0; c < stride; c++)
                 {
-                    int x = _originX - radius + c;
+                    int x = ox - radius + c;
                     bool open = grid.InBounds(x, y) &&
                                 (grid.Get(x, y) == CellMaterial.Empty || y > grid.GetSurfaceY(x));
                     _open[r * stride + c] = open;
@@ -375,9 +533,9 @@ namespace Fabula.Incrementant.AntFarm
                 }
             }
 
-            // Distância horizontal (até radius + 1 = longe) para cada coluna da janela, em todas as linhas com folga.
+            // Distância horizontal (até radius + 1 = longe) para cada coluna do bloco, em todas as linhas com folga.
             for (int r = 0; r < rows; r++)
-            for (int wx = 0; wx < _width; wx++)
+            for (int wx = 0; wx < w; wx++)
             {
                 int best = radius + 1;
                 int center = r * stride + wx + radius;
@@ -417,6 +575,31 @@ namespace Fabula.Incrementant.AntFarm
                     best = d;
             }
             return best;
+        }
+
+        Color32 StoreColor(StorageKind kind)
+        {
+            switch (kind)
+            {
+                case StorageKind.Food: return _foodStoreColor;
+                case StorageKind.Blocks: return _blockStoreColor;
+                default: return _waterStoreColor;
+            }
+        }
+
+        /// <summary>
+        /// Item guardado (depósito ou resíduo): a cor do material com o tom dele, misturada com o fundo para não parecer
+        /// parede (a célula continua livre para passar); a água guardada usa a cor da água, com um granulado por posição.
+        /// </summary>
+        Color32 StoredAt(Color32 background, byte item, byte shade, int x, int y)
+        {
+            if (item == StoredItems.Water)
+            {
+                int n = ((x * 19349663) ^ (y * 83492791)) & 15;
+                Color32 water = new Color32((byte)(_waterColor.r + n), (byte)(_waterColor.g + n), (byte)Mathf.Min(255, _waterColor.b + n), 255);
+                return Color32.Lerp(background, water, _storedStrength);
+            }
+            return Color32.Lerp(background, CellMaterials.ShadedColor(StoredItems.MaterialOf(item), shade), _storedStrength);
         }
 
         /// <summary>Nutriente pronto: a cor fixa com um leve granulado por posição, para vários juntos não virarem um bloco liso.</summary>
@@ -542,6 +725,9 @@ namespace Fabula.Incrementant.AntFarm
             else
                 _pixels[i] = Color32.Lerp(under, new Color32(color.r, color.g, color.b, under.a), t);
         }
+
+        // Cor e névoa vêm dos campos serializados: mudar no Inspector com o jogo rodando redesenha tudo.
+        void OnValidate() => _cachedGrid = null;
 
         void OnDestroy()
         {

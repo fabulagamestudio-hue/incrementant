@@ -70,14 +70,6 @@ namespace Fabula.Incrementant.Audio
                 case SfxId.AntDie:
                     b.Tone(0f, 0.28f, 420f, 130f, Wave.Triangle, 0.9f, 0.004f, 9f);
                     break;
-                case SfxId.Drowned:
-                    for (int i = 0; i < 5; i++)
-                    {
-                        float start = i * 0.08f + b.Rand() * 0.03f;
-                        float f = 260f + b.Rand() * 200f;
-                        b.Tone(start, 0.09f, f, f * 1.8f, Wave.Sine, 0.7f, 0.004f, 30f);
-                    }
-                    break;
                 case SfxId.RaidWarning:
                     for (int i = 0; i < 4; i++)
                         b.Tone(i * 0.3f, 0.28f, i % 2 == 0 ? 520f : 390f, i % 2 == 0 ? 520f : 390f, Wave.Square, 0.55f, 0.01f, 5f);
@@ -140,7 +132,6 @@ namespace Fabula.Incrementant.Audio
                 case SfxId.EggLaid: return 0.3f;
                 case SfxId.AntBorn: return 0.4f;
                 case SfxId.AntDie: return 0.45f;
-                case SfxId.Drowned: return 0.6f;
                 case SfxId.RaidWarning: return 1.3f;
                 case SfxId.RaidStart: return 1.4f;
                 case SfxId.RaidEnd: return 1.1f;

@@ -13,7 +13,7 @@ namespace Fabula.Incrementant.UI
     {
         // Índices de AntFarmGame.BrushLabels (os mesmos de AntFarmGame.BrushMode).
         const int BrushDig = 0, BrushBuild = 1, BrushQueenRoom = 2, BrushNutrientRoom = 3, BrushNursery = 4, BrushWaste = 5,
-            BrushFinger = 6, BrushDew = 7;
+            BrushFinger = 6, BrushDew = 7, BrushFoodStore = 8, BrushBlockStore = 9, BrushWaterStore = 10;
 
         static string Join(string description, string status) =>
             string.IsNullOrEmpty(status) ? description : description + "\n\n" + status;
@@ -35,6 +35,9 @@ namespace Fabula.Incrementant.UI
                         ? Loc.T("tip.brush.waste.locked")
                         : Join(Loc.T("tip.brush.waste") + " " + Loc.T("tip.room.paint"), WasteStatus(colony, grid));
                 case BrushDew: return Join(Loc.T("tip.brush.dew") + " " + Loc.T("tip.room.paint"), DewStatus(colony, grid));
+                case BrushFoodStore: return Join(Loc.T("tip.brush.foodstore") + " " + Loc.T("tip.room.paint"), DepotStatus(colony, StorageKind.Food));
+                case BrushBlockStore: return Join(Loc.T("tip.brush.blockstore") + " " + Loc.T("tip.room.paint"), DepotStatus(colony, StorageKind.Blocks));
+                case BrushWaterStore: return Join(Loc.T("tip.brush.waterstore") + " " + Loc.T("tip.room.paint"), DepotStatus(colony, StorageKind.Water));
                 default: return null;
             }
         }
@@ -125,6 +128,18 @@ namespace Fabula.Incrementant.UI
             if (colony.NurserySlots == 0)
                 return Loc.T("tip.st.nursery.dig");
             return Loc.T("tip.st.nursery.ok", colony.Brood.Count, colony.NurserySlots);
+        }
+
+        /// <summary>Estado de um depósito: sem pintura, sem vaga nem item (falta cavar) ou guardado e vagas.</summary>
+        static string DepotStatus(AntColony colony, StorageKind kind)
+        {
+            if (colony == null)
+                return null;
+            if (!colony.HasDepot(kind))
+                return Loc.T("tip.st.depot.paint");
+            if (colony.DepotFree(kind) == 0 && colony.DepotStock(kind) == 0)
+                return Loc.T("tip.st.depot.nospot");
+            return Loc.T("tip.st.depot.ok", colony.DepotStock(kind), colony.DepotFree(kind));
         }
 
         static string WasteStatus(AntColony colony, PixelGrid grid)

@@ -15,17 +15,17 @@ namespace Fabula.Incrementant.Colony
         [Tooltip("Formigas adultas que a colônia precisa ter alcançado uma vez para os ataques começarem.")]
         [SerializeField, Min(1)] int _minAnts = 15;
         [Tooltip("Intervalo mínimo (minutos de jogo) entre um ataque e o próximo, contado do fim do anterior. Minutos de jogo correm em tempo real a 1x: não aceleram com 3x/8x e não correm na pausa.")]
-        [SerializeField, Min(0.05f)] float _minIntervalMinutes = 1f;
+        [SerializeField, Min(0.05f)] float _minIntervalMinutes = 2f;
         [Tooltip("Intervalo máximo (minutos de jogo) entre um ataque e o próximo.")]
-        [SerializeField, Min(0.05f)] float _maxIntervalMinutes = 5f;
+        [SerializeField, Min(0.05f)] float _maxIntervalMinutes = 10f;
         [Tooltip("Segundos de aviso (alerta no topo da tela) antes de os cupins aparecerem no céu.")]
         [SerializeField, Min(0f)] float _warningSeconds = 8f;
-        [Tooltip("Mínimo de cupins por formiga adulta (0,4 = 40%). Cada ataque sorteia entre este mínimo e o teto do momento; arredonda para cima, pelo menos 1.")]
-        [SerializeField, Range(0.05f, 2f)] float _termitesPerAnt = 0.4f;
-        [Tooltip("Teto final de cupins por formiga adulta (1 = 100%).")]
-        [SerializeField, Range(0.05f, 5f)] float _maxTermitesPerAnt = 1f;
-        [Tooltip("Quanto o teto sobe a cada ataque que termina (0,05 = +5 pontos percentuais): o primeiro ataque vem com o mínimo e o teto chega ao máximo depois de (máximo − mínimo) / este valor ataques.")]
-        [SerializeField, Min(0f)] float _termitesPerAntGrowth = 0.05f;
+        [Tooltip("Mínimo de cupins por formiga adulta (0,2 = 20%). Cada ataque sorteia entre este mínimo e o teto do momento; arredonda para cima, pelo menos 1.")]
+        [SerializeField, Range(0.05f, 2f)] float _termitesPerAnt = 0.2f;
+        [Tooltip("Teto final de cupins por formiga adulta (0,5 = 50%).")]
+        [SerializeField, Range(0.05f, 5f)] float _maxTermitesPerAnt = 0.5f;
+        [Tooltip("Quanto o teto sobe a cada ataque que termina (0,025 = +2,5 pontos percentuais): o primeiro ataque vem com o mínimo e o teto chega ao máximo depois de (máximo − mínimo) / este valor ataques.")]
+        [SerializeField, Min(0f)] float _termitesPerAntGrowth = 0.025f;
 
         [Header("Chegada")]
         [Tooltip("Altura (células) acima do chão de onde cada cupim começa a descer voando.")]

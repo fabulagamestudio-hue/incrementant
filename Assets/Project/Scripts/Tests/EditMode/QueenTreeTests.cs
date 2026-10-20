@@ -114,7 +114,6 @@ namespace Fabula.Incrementant.Tests
         public void ANodeWhoseSystemDoesNotExistYet_CannotBeBought()
         {
             AntColony colony = MakeColony(21, 5000);
-            Assert.AreEqual(BuyBlock.NotAvailableYet, colony.TryBuy(QueenNode.O3));
             Assert.AreEqual(BuyBlock.NotAvailableYet, colony.TryBuy(QueenNode.S3));
             Assert.AreEqual(BuyBlock.NotAvailableYet, colony.TryBuy(QueenNode.N2));
             Assert.AreEqual(5000, colony.Nutrients, "Sem bônus invisível: nada é cobrado.");

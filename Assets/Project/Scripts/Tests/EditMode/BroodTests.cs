@@ -173,17 +173,14 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
-        public void OnlyCommonAntsAndCarriersCarryTheEgg()
+        public void IdleCutters_CarryTheEgg_AsWorkers()
         {
             AntColony colony = MakeColony(21, 1000);
             foreach (Ant ant in colony.Ants)
                 ant.Role = AntRole.Cutter;
             Assert.IsTrue(TickUntil(colony, () => colony.Brood.Count == 1, 25f));
-            Tick(colony, 30f);
-            Assert.AreEqual(EggPhase.Laid, colony.Brood.Brood[0].Phase, "Cortadeiras não carregam ovo.");
-
-            colony.Ants[0].Role = AntRole.Worker;
-            Assert.IsTrue(TickUntil(colony, () => AllPlaced(colony), 40f), "Uma operária comum leva o ovo.");
+            // Levar ovo não é trabalho da cortadeira, mas sem planta para cortar ela faz o da comum (pedido de 2026-10-19).
+            Assert.IsTrue(TickUntil(colony, () => AllPlaced(colony), 40f), "Cortadeira sem corte leva o ovo como a comum.");
         }
 
         [Test]
@@ -276,7 +273,7 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
-        public void WithoutAGardener_TheQueenEatsTheStoredNutrients()
+        public void WithoutAGardener_TheStoredNutrientsReachTheQueen()
         {
             PixelGrid grid = MakeWorld(21);
             for (int x = 46; x < 50; x++)
@@ -292,12 +289,12 @@ namespace Fabula.Incrementant.Tests
             int stored = grid.NutrientCount;
             Assert.Greater(stored, 0);
 
-            Assert.IsTrue(TickUntil(colony, () => colony.Nutrients > 0, 60f), "A rainha vai à sala e come o nutriente.");
+            Assert.IsTrue(TickUntil(colony, () => colony.Nutrients > 0, 60f), "As operárias levam o nutriente guardado à rainha.");
             Assert.Less(grid.NutrientCount, stored);
         }
 
         [Test]
-        public void WithAGardener_TheQueenStillGoesToTheNutrientRoomToEat()
+        public void InTheNest_TheQueenNoLongerLeavesToEat_OnlyWithTheNutrientJob()
         {
             PixelGrid grid = MakeWorld(21);
             for (int x = 46; x < 50; x++)
@@ -312,8 +309,13 @@ namespace Fabula.Incrementant.Tests
             colony.Spawn(AntRole.Gardener);
             Assert.Greater(colony.CountOf(AntRole.Gardener), 0);
 
+            Assert.IsFalse(TickUntil(colony, () => grid.IsNutrientRoom(colony.Queen.X, colony.Queen.Y), 60f),
+                "No ninho, a rainha não sai para comer: as formigas levam o nutriente até ela.");
+            Assert.IsTrue(colony.QueenInRoom, "Ela fica na sala dela.");
+
+            colony.QueenJob = QueenJob.Nutrients;
             Assert.IsTrue(TickUntil(colony, () => grid.IsNutrientRoom(colony.Queen.X, colony.Queen.Y), 60f),
-                "Com jardineira viva, a rainha continua indo à sala de nutrientes.");
+                "Com COLETAR NUTRIENTE, ela vai à sala de nutrientes.");
         }
 
         [Test]

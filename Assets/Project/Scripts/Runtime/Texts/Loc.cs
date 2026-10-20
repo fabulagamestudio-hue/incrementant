@@ -120,6 +120,11 @@ namespace Fabula.Incrementant.Texts
 
         public static string HiveEffect(string id) => T("hive." + id + ".effect");
 
+        /// <summary>Câmaras e galerias novas do documento 39 (id do <c>UpgradeCatalog</c>).</summary>
+        public static string UpgradeName(string id) => T("upgrade." + id + ".name");
+
+        public static string UpgradeEffect(string id) => T("upgrade." + id + ".effect");
+
         /// <summary>Texto da chave no idioma atual (o modelo cru, com os <c>{0}</c> ainda no lugar).</summary>
         public static string T(string key)
         {

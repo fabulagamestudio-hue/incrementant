@@ -79,12 +79,16 @@ namespace Fabula.Incrementant.EditorTools.Localization
             Add(l, "brush.waste", "Resíduos", "Waste");
             Add(l, "brush.finger", "Dedo", "Finger");
             Add(l, "brush.dew", "Gotas de orvalho", "Dew drops");
+            Add(l, "brush.foodstore", "Depósito de alimentos", "Food storage");
+            Add(l, "brush.blockstore", "Depósito de construção", "Building storage");
+            Add(l, "brush.waterstore", "Depósito de água", "Water storage");
+            Add(l, "ui.depots", "DEPÓSITO", "STORAGE");
             Add(l, "queen.mode.auto", "AUTOMÁTICO", "AUTOMATIC");
             Add(l, "queen.mode.specific", "TIPO ESPECÍFICO", "SPECIFIC TYPE");
             Add(l, "queen.mode.paused", "PAUSADO", "PAUSED");
             Add(l, "queen.stance.offensive", "OFENSIVA: ATACA OS CUPINS", "OFFENSIVE: ATTACKS THE TERMITES");
             Add(l, "queen.stance.defensive", "DEFENSIVA: SÓ SE DEFENDE", "DEFENSIVE: ONLY DEFENDS");
-            Add(l, "role.worker", "Comum", "Common");
+            Add(l, "role.worker", "Operária", "Worker");
             Add(l, "role.carrier", "Carregadora", "Carrier");
             Add(l, "role.cutter", "Cortadeira", "Cutter");
             Add(l, "role.digger", "Escavadora", "Digger");
@@ -132,11 +136,81 @@ namespace Fabula.Incrementant.EditorTools.Localization
 
             // ---------------------------------------------------------------- HUD: dicas (tooltips) dos botões e das seções
             Add(l, "tip.menu.paint", "Ferramentas do mapa: cavar terra, marcar obras e o dedo, que fere cupins.", "Map tools: dig soil, mark building work, and the finger, which hurts termites.");
-            Add(l, "tip.menu.environments", "Salas do formigueiro. Pinte onde ficam a rainha, o cultivo, as crias, o lixo e o orvalho.", "Anthill rooms. Paint where the queen, the farm, the brood, the waste and the dew go.");
+            Add(l, "tip.menu.environments", "Salas do formigueiro. Pinte onde ficam a rainha, o cultivo, as crias, o lixo, o orvalho e os depósitos.", "Anthill rooms. Paint where the queen, the farm, the brood, the waste, the dew and the storage go.");
+            Add(l, "tip.menu.depots", "Depósitos de alimentos, de construção e de água. O que as formigas trazem de fora fica guardado ali, sem fechar a passagem, e é usado de lá primeiro.", "Food, building and water storage. What the ants bring from outside is kept there, without blocking the way, and is used from there first.");
             Add(l, "tip.menu.queen", "Rainha: escolha o tipo de formiga que ela põe, como reage aos cupins e acompanhe a criação.", "Queen: choose the type of ant she lays, how she reacts to termites, and follow the breeding.");
             Add(l, "tip.menu.evolution", "Evolução: gaste nutrientes em novas classes de formiga e melhorias.", "Evolution: spend nutrients on new ant classes and upgrades.");
             Add(l, "tip.recall.on", "Volte para o formigueiro: as formigas terminam o que carregam e param de trabalhar.", "Back to the nest: ants finish what they carry and stop working.");
             Add(l, "tip.recall.off", "Volte ao trabalho: as formigas retomam as tarefas.", "Back to work: ants resume their tasks.");
+            Add(l, "tip.menu.colony", "Painel da colônia: estatísticas das formigas e da produção, e quais trabalhos ficam ativos.", "Colony panel: ant and production statistics, and which jobs stay active.");
+
+            // ---------------------------------------------------------------- painel da colônia
+            Add(l, "colony.title", "PAINEL DA COLÔNIA", "COLONY PANEL");
+            Add(l, "colony.tab.stats", "ESTATÍSTICAS", "STATISTICS");
+            Add(l, "colony.col.section", "SEÇÃO DE TRABALHO", "WORK SECTION");
+            Add(l, "colony.col.now", "AGORA", "NOW");
+            Add(l, "colony.col.limit", "LIMITE DE FORMIGAS", "ANT LIMIT");
+            Add(l, "colony.queen.title", "TRABALHO DA RAINHA", "QUEEN'S JOB");
+            Add(l, "colony.queen.nest", "NINHO: PÔR OVOS", "NEST: LAY EGGS");
+            Add(l, "colony.queen.forage", "COLETAR RECURSOS", "GATHER RESOURCES");
+            Add(l, "colony.queen.nutrients", "COLETAR NUTRIENTE", "GATHER NUTRIENT");
+            Add(l, "colony.reset", "TUDO ATIVO", "ALL ACTIVE");
+            Add(l, "colony.stats.ants", "FORMIGAS", "ANTS");
+            Add(l, "colony.stats.adults", "Adultas", "Adults");
+            Add(l, "colony.stats.brood", "Crias", "Brood");
+            Add(l, "colony.stats.idle", "Sem trabalho", "Without a job");
+            Add(l, "colony.stats.fighting", "Lutando", "Fighting");
+            Add(l, "colony.stats.waterStock", "Enchendo dep. água", "Filling water depot");
+            Add(l, "colony.stats.roles", "POR TIPO", "BY TYPE");
+            Add(l, "colony.stats.work", "TRABALHANDO EM", "WORKING ON");
+            Add(l, "colony.stats.queen", "RAINHA", "QUEEN");
+            Add(l, "colony.stats.recalled", "Sino tocado: recolhidas", "Bell rung: called back");
+            Add(l, "colony.stats.places", "ONDE ESTÃO", "WHERE THEY ARE");
+            Add(l, "colony.stats.rates", "PRODUÇÃO POR SEGUNDO", "PRODUCTION PER SECOND");
+            Add(l, "colony.section.dig", "Escavação", "Digging");
+            Add(l, "colony.section.build", "Construção", "Building");
+            Add(l, "colony.section.harvest", "Coleta de plantas", "Plant gathering");
+            Add(l, "colony.section.queenfeed", "Alimentar a rainha", "Feeding the queen");
+            Add(l, "colony.section.nursery", "Berçário", "Nursery");
+            Add(l, "colony.section.garden", "Sala de nutrientes", "Nutrient room");
+            Add(l, "colony.section.dew", "Gotas de orvalho", "Dew drops");
+            Add(l, "colony.section.waste", "Resíduos", "Waste");
+            Add(l, "colony.place.outdoor", "Exterior", "Outdoors");
+            Add(l, "colony.place.tunnels", "Túneis", "Tunnels");
+            Add(l, "colony.place.queenroom", "Sala da rainha", "Queen's room");
+            Add(l, "colony.place.nursery", "Berçário", "Nursery");
+            Add(l, "colony.place.nutrientroom", "Sala de nutrientes", "Nutrient room");
+            Add(l, "colony.place.dewroom", "Gotas de orvalho", "Dew drops");
+            Add(l, "colony.place.wasteroom", "Resíduos", "Waste");
+            Add(l, "colony.rate.toqueen", "Nutriente à rainha", "Nutrient to queen");
+            Add(l, "colony.rate.grown", "Nutriente brotado", "Nutrient sprouted");
+            Add(l, "colony.rate.harvest", "Planta colhida", "Plant harvested");
+            Add(l, "colony.rate.soil", "Terra escavada", "Soil dug out");
+            Add(l, "colony.stopped", "PARADA", "STOPPED");
+            Add(l, "colony.limit.none", "SEM LIMITE", "NO LIMIT");
+            Add(l, "colony.limit.max", "MÁX {0}", "MAX {0}");
+            Add(l, "colony.queen.nesting", "No ninho, pondo ovos", "In the nest, laying eggs");
+            Add(l, "colony.queen.foraging", "Coletando recursos", "Gathering resources");
+            Add(l, "colony.queen.eating", "Coletando nutriente", "Gathering nutrient");
+            Add(l, "colony.queen.state.nest", "A rainha fica na sala dela pondo ovos. Agora: {0}.", "The queen stays in her room laying eggs. Now: {0}.");
+            Add(l, "colony.queen.state.nutrients", "Na sala de nutrientes, comendo cada nutriente pronto (sem ovos). Agora: {0}.", "In the nutrient room, eating each ready nutrient (no eggs). Now: {0}.");
+            Add(l, "colony.queen.state.forage", "A rainha coleta e não põe ovos fora da sala. Agora: {0}.", "The queen gathers and lays no eggs outside her room. Now: {0}.");
+            Add(l, "tip.colony.toggle", "Clique para ligar ou parar. Parada, nenhuma formiga nova entra; quem está nela termina o que carrega.", "Click to turn on or stop. Stopped, no new ant joins; those in it finish what they carry.");
+            Add(l, "tip.colony.minus", "Diminui o limite de formigas nesta seção.", "Lowers the ant limit for this section.");
+            Add(l, "tip.colony.plus", "Aumenta o limite; acima do total de formigas, fica sem limite.", "Raises the limit; above the total number of ants, there is no limit.");
+            Add(l, "tip.colony.slider", "Arraste para escolher o limite; no fim do trilho, fica sem limite.", "Drag to pick the limit; at the end of the track, there is no limit.");
+            Add(l, "tip.colony.reset", "Liga todas as seções e tira todos os limites.", "Turns every section on and removes every limit.");
+            Add(l, "tip.colony.queen.nest", "A rainha fica na sala dela e põe ovos.", "The queen stays in her room and lays eggs.");
+            Add(l, "tip.colony.queen.nutrients", "A rainha vai à sala de nutrientes, fica lá e come cada nutriente assim que fica pronto, sem cortar plantas. Enquanto isso, não põe ovos.", "The queen goes to the nutrient room, stays there and eats each nutrient as soon as it is ready, without cutting plants. Meanwhile, she lays no eggs.");
+            Add(l, "tip.colony.queen.forage", "A rainha sai para coletar: come o nutriente guardado e corta e carrega plantas de fora. Enquanto isso, não põe ovos.", "The queen goes out to gather: she eats stored nutrient and cuts and carries plants from outside. Meanwhile, she lays no eggs.");
+            Add(l, "tip.colony.section.dig", "Escavação: cavar a terra marcada e levá-la para fora.", "Digging: dig the marked soil and carry it outside.");
+            Add(l, "tip.colony.section.build", "Construção: buscar terra na pilha de fora e montar as obras.", "Building: fetch soil from the outside pile and raise the structures.");
+            Add(l, "tip.colony.section.harvest", "Coleta de plantas: cortar plantas de fora e levar os pedaços aos canteiros.", "Plant gathering: cut outside plants and carry the pieces to the beds.");
+            Add(l, "tip.colony.section.queenfeed", "Alimentar a rainha: levar o nutriente guardado até ela.", "Feeding the queen: carry stored nutrient to her.");
+            Add(l, "tip.colony.section.nursery", "Berçário: levar os ovos e cuidar das crias.", "Nursery: carry the eggs and tend the brood.");
+            Add(l, "tip.colony.section.garden", "Sala de nutrientes: montar canteiros, regar e cuidar do que brota.", "Nutrient room: build beds, water them and tend what sprouts.");
+            Add(l, "tip.colony.section.dew", "Gotas de orvalho: terra fofa no teto e cuidado das gotas.", "Dew drops: loose soil on the ceiling and care of the drops.");
+            Add(l, "tip.colony.section.waste", "Resíduos: desmembrar cupins mortos e levar os restos.", "Waste: dismember dead termites and carry the remains away.");
             Add(l, "tip.pause", "Pausa ou retoma a simulação (tecla P).", "Pauses or resumes the simulation (P key).");
             Add(l, "tip.speed", "Velocidade {0}x (tecla {1}).", "Speed {0}x (key {1}).");
             Add(l, "tip.brush.dig", "Cavar: marque a terra que as escavadoras devem tirar. Botão esquerdo marca, direito desmarca.", "Dig: mark the soil the diggers must remove. Left button marks, right button unmarks.");
@@ -148,13 +222,19 @@ namespace Fabula.Incrementant.EditorTools.Localization
             Add(l, "tip.brush.nursery", "Berçário: onde ovos, larvas e pupas se desenvolvem. As vagas de cria vêm das células livres dele.", "Nursery: where eggs, larvae and pupae develop. Brood slots come from its free cells.");
             Add(l, "tip.brush.waste", "Resíduos: onde as formigas deixam entulho e restos para se decomporem.", "Waste: where ants leave rubble and scraps to decompose.");
             Add(l, "tip.brush.waste.locked", "Resíduos: bloqueado até você repelir o primeiro ataque de cupins.", "Waste: locked until you repel the first termite attack.");
+            Add(l, "tip.brush.foodstore", "Depósito de alimentos: guarda os pedaços de planta cortados. Com ele, os canteiros e a sala de orvalho só recebem planta daqui.", "Food storage: keeps the cut plant pieces. With it, the beds and the dew room only get plants from here.");
+            Add(l, "tip.brush.blockstore", "Depósito de construção: guarda a terra cavada. Com ele, obras, canteiros e a sala de orvalho só usam a terra daqui.", "Building storage: keeps the dug soil. With it, builds, beds and the dew room only use the soil from here.");
+            Add(l, "tip.brush.waterstore", "Depósito de água: guarda a água tirada do mapa. Com ele, os canteiros só são regados com a água daqui.", "Water storage: keeps the water taken from the map. With it, the beds are only watered with the water from here.");
+            Add(l, "tip.st.depot.paint", "Falta: pintar o depósito (Ambientes > Depósito).", "Missing: paint the storage (Environments > Storage).");
+            Add(l, "tip.st.depot.nospot", "Falta: espaço livre. Cave o depósito; qualquer célula vazia guarda um item.", "Missing: free space. Dig the storage; any empty cell holds one item.");
+            Add(l, "tip.st.depot.ok", "Funcionando: {0} guardados, {1} vagas livres.", "Working: {0} stored, {1} free slots.");
             Add(l, "tip.brush.dew", "Gotas de orvalho: as formigas põem terra fofa e folhas no teto da sala, e dela pingam gotas de água para regar os canteiros.", "Dew drops: ants place loose soil and leaves on the room's ceiling, and water drops fall from it to water the beds.");
             Add(l, "tip.card.nutrients", "Nutrientes: a moeda das formigas novas. A rainha consome o que as formigas guardam na sala de nutrientes.", "Nutrients: the currency for new ants. The queen eats what the ants store in the nutrient room.");
             Add(l, "tip.card.nutrients.balance", "Saldo {0} N; a rainha preserva {1} N antes de pôr um ovo.", "Balance {0} N; the queen keeps {1} N in reserve before laying an egg.");
             Add(l, "tip.card.ants", "Formigas: adultas / vagas de adulta (vêm da área escavada do formigueiro) e crias.", "Ants: adults / adult slots (from the dug area of the anthill) and brood.");
             Add(l, "tip.card.ants.capacity", "Agora: {0} de {1} vagas; {2} crias em {3} vagas de berçário.", "Now: {0} of {1} slots; {2} brood in {3} nursery slots.");
             Add(l, "tip.card.queen", "Rainha: precisa da própria sala, de berçário, de vaga e de nutrientes para pôr ovos.", "Queen: needs her own room, a nursery, a free slot and nutrients to lay eggs.");
-            Add(l, "tip.role.worker", "Comum: faz de tudo um pouco e corta plantas quando está sem outra tarefa.", "Common: does a bit of everything and cuts plants when it has no other task.");
+            Add(l, "tip.role.worker", "Operária: faz de tudo um pouco e corta plantas quando está sem outra tarefa.", "Worker: does a bit of everything and cuts plants when it has no other task.");
             Add(l, "tip.role.carrier", "Carregadora: a mais rápida; leva ovos e carrega mais material por viagem.", "Carrier: the fastest; carries eggs and hauls more material per trip.");
             Add(l, "tip.role.cutter", "Cortadeira: corta as plantas da superfície na metade do tempo e as leva à sala de nutrientes.", "Cutter: cuts surface plants in half the time and takes them to the nutrient room.");
             Add(l, "tip.role.digger", "Escavadora: especialista em cavar a terra marcada e despejá-la fora.", "Digger: specialist in digging the marked soil and dumping it outside.");
@@ -182,7 +262,7 @@ namespace Fabula.Incrementant.EditorTools.Localization
             Add(l, "tip.st.nursery.dig", "Falta: cavar o berçário; ainda não há vaga de cria.", "Missing: dig the nursery; there is no brood slot yet.");
             Add(l, "tip.st.nursery.ok", "Funcionando: {0} crias em {1} vagas.", "Working: {0} brood in {1} slots.");
             Add(l, "tip.st.waste.paint", "Falta: pintar a área de resíduos (menu Ambientes).", "Missing: paint the waste area (Environments menu).");
-            Add(l, "tip.st.waste.nospot", "Falta: espaço livre. Cave a área, com chão livre para deixar resíduos.", "Missing: free space. Dig the area, with free floor to leave waste on.");
+            Add(l, "tip.st.waste.nospot", "Falta: espaço livre. Cave a área; qualquer célula vazia guarda um resíduo.", "Missing: free space. Dig the area; any empty cell holds one piece of waste.");
             Add(l, "tip.st.waste.ok", "Funcionando: {0} lugares livres, {1} resíduos se decompondo, {2} já depositados.", "Working: {0} free spots, {1} waste pieces decomposing, {2} already deposited.");
             Add(l, "tip.st.dew.paint", "Falta: pintar a sala (menu Ambientes).", "Missing: paint the room (Environments menu).");
             Add(l, "tip.st.dew.soil", "Etapa 1 de 3: levar terra fofa ({0} pontos). As formigas a tiram da pilha de fora ou do que cavam.", "Step 1 of 3: bringing loose soil ({0} spots). Ants take it from the pile outside or from what they dig.");
@@ -245,14 +325,34 @@ namespace Fabula.Incrementant.EditorTools.Localization
             Add(l, "tree.branch.hive.nursery", "BERÇÁRIO", "NURSERY");
             Add(l, "tree.branch.hive.storage", "DEPÓSITO", "STORAGE");
             Add(l, "tree.branch.hive.waste", "RESÍDUOS", "WASTE");
+            Add(l, "tree.branch.hive.dew", "ORVALHO", "DEW");
+            Add(l, "tree.branch.hive.works", "OBRA", "WORKS");
+            Add(l, "tree.branch.hive.outside", "EXTERIOR", "OUTSIDE");
+            Add(l, "tree.branch.hive.defense", "DEFESA", "DEFENSE");
+            Add(l, "tree.root.hive", "CÂMARA REAL", "ROYAL CHAMBER");
+            Add(l, "tree.controls", "ARRASTE PARA MOVER  ·  RODA DO MOUSE PARA ZOOM", "DRAG TO MOVE  ·  MOUSE WHEEL TO ZOOM");
+            Add(l, "tree.max", "MÁX", "MAX");
+            Add(l, "tree.depth", "PROFUNDIDADE {0}", "DEPTH {0}");
+            Add(l, "tree.ring.closed", "TERRA NÃO ESCAVADA · ABRE COM PROFUNDIDADE {0}", "UNDUG SOIL · OPENS AT DEPTH {0}");
+            Add(l, "tree.kind.chamber", "CÂMARA", "CHAMBER");
+            Add(l, "tree.kind.gallery", "GALERIA", "GALLERY");
+            Add(l, "tree.level", "NV {0}/{1}", "LV {0}/{1}");
+            Add(l, "tree.level.open", "NV {0}", "LV {0}");
+            Add(l, "tree.value", "TOTAL {0} → {1}", "TOTAL {0} → {1}");
+            Add(l, "tree.value.full", "TOTAL {0} (COMPLETA)", "TOTAL {0} (COMPLETE)");
+            Add(l, "tree.milestone", "MARCO NO NV {0}", "MILESTONE AT LV {0}");
+            Add(l, "tree.cost", "CUSTO: {0} N", "COST: {0} N");
+            Add(l, "tree.cost.levels", "+{0} NV: {1} N", "+{0} LV: {1} N");
+            Add(l, "tree.fiveraids", "5 ATAQUES VENCIDOS", "5 ATTACKS SURVIVED");
+            Add(l, "tree.fiftyadults", "50 ADULTAS", "50 ADULTS");
             Add(l, "buy.owned", "JÁ COMPRADO", "ALREADY BOUGHT");
             Add(l, "buy.missing", "FALTA UM PRÉ-REQUISITO", "A PREREQUISITE IS MISSING");
             Add(l, "buy.soon", "EM BREVE: O JOGO AINDA NÃO TEM ESSE SISTEMA", "COMING SOON: THE GAME DOESN'T HAVE THIS SYSTEM YET");
             Add(l, "buy.insufficient", "NUTRIENTES INSUFICIENTES", "NOT ENOUGH NUTRIENTS");
             Add(l, "buy.raid", "LIBERA DEPOIS DO PRIMEIRO ATAQUE DE CUPINS", "UNLOCKS AFTER THE FIRST TERMITE ATTACK");
             Add(l, "buy.done", "COMPRADO", "BOUGHT");
-            string[] branchPt = { "RAINHA", "COMUM", "CARREGADORA", "CORTADEIRA", "ESCAVADORA", "JARDINEIRA", "CUIDADORA", "SOLDADO" };
-            string[] branchEn = { "QUEEN", "COMMON", "CARRIER", "CUTTER", "DIGGER", "GARDENER", "NURSE", "SOLDIER" };
+            string[] branchPt = { "RAINHA", "OPERÁRIA", "CARREGADORA", "CORTADEIRA", "ESCAVADORA", "JARDINEIRA", "CUIDADORA", "SOLDADO" };
+            string[] branchEn = { "QUEEN", "WORKER", "CARRIER", "CUTTER", "DIGGER", "GARDENER", "NURSE", "SOLDIER" };
             for (int i = 0; i < branchPt.Length; i++)
                 Add(l, "tree.branch." + ((QueenBranch)i).ToString().ToLowerInvariant(), branchPt[i], branchEn[i]);
 
@@ -313,57 +413,58 @@ namespace Fabula.Incrementant.EditorTools.Localization
 
             AddQueenNodes(l);
             AddHiveNodes(l);
+            AddUpgradeNodes(l);
             return l;
         }
 
         // Inglês dos nós da árvore da rainha, na ordem de QueenNode; o português vem de QueenTree (não repete aqui).
         static readonly (string Name, string Effect)[] QueenEn =
         {
-            ("Initial laying", "No cycles before the nursery → 1 egg every 18 s"),
-            ("Faster laying", "18 s per cycle → 12 s per cycle (−33%)"),
-            ("Batch laying", "1 egg per cycle → up to 3 eggs per cycle; each pays its own cost, partial batch if food or space runs out"),
-            ("Common worker", "Generalist: keeps up all basic tasks"),
-            ("Larger load", "Load of 2 UM or 32 cells → 3 UM or 48 (+50%) for common workers"),
-            ("Fast movement", "24 cells/s → 30 cells/s (+25%) for common workers"),
-            ("Rescuing nestmates", "No pulling of adults → rescues an adult up to 8 cells from the edge"),
-            ("Carrier", "Unlocks the class: 28 cells/s, load 4 UM"),
-            ("Bigger loads", "4 UM → 6 UM (+50%)"),
-            ("Cooperative transport", "Solo → 2 carriers carry a piece of up to 8 UM"),
-            ("Carrier speed", "28 cells/s → 35 cells/s (+25%)"),
-            ("Cutter", "Unlocks the class: cuts 2 UM in 1 s (common takes 2 s)"),
-            ("Bigger cuts", "2 UM in 1 s → 4 UM in 1.5 s"),
-            ("Digger", "Unlocks the class: digs 32 cells/s (common does 16)"),
-            ("Wider removal", "32 cells/s → 48 cells/s (+50%) when digging"),
-            ("Rock breaking", "Stone blocks → breaks 4 rock cells/s"),
-            ("Gardener", "Unlocks the class: tends the crops (serves 6 B, common 4 B)"),
-            ("Optimized fungus production", "Growth (nutrient curing) ×1 → ×1.3 in the served area"),
-            ("Fungus transplant", "Setup of 8 s per B → 4 s per B"),
-            ("Nurse", "Unlocks the class: tends 4 brood in 3 s"),
-            ("Batch feeding", "4 brood per trip → 8 brood per trip"),
-            ("Brood rescue", "No evacuation → carries 2 brood per trip, with emergency priority"),
-            ("Soldier", "Unlocks the class: damage 3/s, health 18 (after the first termite attack)"),
-            ("Strong mandibles", "Damage 3/s → 4.5/s (+50%)"),
-            ("Tough carapace", "Health 18 → 27 (+50%)"),
-            ("Containment", "Combat without knockback → pushes the invader 4 cells every 3 s"),
+            ("Initial laying", "With the nursery ready, the queen lays 1 egg every 18 s"),
+            ("Faster laying", "The queen lays an egg every 12 s instead of 18 s"),
+            ("Batch laying", "Up to 3 eggs per laying, if there is food and nursery space"),
+            ("Worker", "Does every basic task in the colony"),
+            ("Larger load", "Workers carry 3 plant pieces instead of 2 and 4 soil instead of 3"),
+            ("Fast movement", "Workers walk 25% faster"),
+            ("Rescuing nestmates", "Workers rescue buried nestmates near the tunnel edge"),
+            ("Carrier", "New class: carries 4 plant pieces per trip and walks 17% faster than a worker"),
+            ("Bigger loads", "Carriers carry 6 plant pieces instead of 4"),
+            ("Cooperative transport", "Two carriers carry a big piece together"),
+            ("Carrier speed", "Carriers walk 25% faster"),
+            ("Cutter", "New class: cuts plants 2× faster than a worker"),
+            ("Bigger cuts", "Cutters cut 33% faster"),
+            ("Digger", "New class: digs 2× faster than a worker and carries 6 soil per trip"),
+            ("Wider removal", "Diggers dig 50% faster and carry 9 soil instead of 6"),
+            ("Rock breaking", "Diggers can break rock"),
+            ("Gardener", "New class: tends the beds and covers an area 50% larger than a worker"),
+            ("Optimized fungus production", "Beds tended by gardeners are ready 30% faster"),
+            ("Fungus transplant", "Gardeners set up new beds in half the time"),
+            ("Nurse", "New class: tends the brood 33% faster than a worker"),
+            ("Batch feeding", "Nurses tend 8 brood at once instead of 4"),
+            ("Brood rescue", "In danger, nurses carry the brood away, 2 per trip"),
+            ("Soldier", "New class, after the first termite attack: fights with 3× a worker's damage and health"),
+            ("Strong mandibles", "Soldiers deal 50% more damage"),
+            ("Tough carapace", "Soldiers have 50% more health"),
+            ("Containment", "Soldiers push termites back every 3 s"),
         };
 
         // Inglês dos nós da árvore do formigueiro, na ordem de HiveTreeInfo.All.
         static readonly (string Name, string Effect)[] HiveEn =
         {
-            ("Initial cultivation", "No production → 0.25 UM/s per B; 3 N per UM of leaf"),
-            ("Organized beds", "0.25 UM/s per B → 0.325 UM/s per B (+30%)"),
-            ("Preparation area", "Direct leaves → prepares 2 UM in 2 s; reserve of 12 UM per B"),
-            ("Productive cultivation", "3 N per UM of leaf → 3.6 N (+20%); fruit 6 → 7.2 N"),
-            ("Integrated cultivation", "Redistributes the prepared reserve among crops; target of 6 UM per B"),
-            ("Initial nursery", "No new brood → 2 brood slots per B"),
-            ("Rearing beds", "Larva 14 s → 10.5 s (−25%)"),
-            ("Maturation area", "Pupa 12 s → 9 s (−25%)"),
-            ("Organized nursery", "2 slots per B → 3 slots per B (+50%)"),
-            ("Initial storage", "6 UM per B in cultivation → 20 UM per B in storage"),
-            ("Organized piles", "20 UM per B → 30 UM per B (+50%)"),
-            ("Room for big loads", "Loose loads of up to 4 UM → stores whole pieces of up to 8 UM"),
-            ("Waste area", "Waste takes up its source → 12 UR per B; decomposition of 120 s per UR"),
-            ("Accelerated decomposition", "120 s per UR → 60 s per UR (−50%)"),
+            ("Initial cultivation", "Unlocks the nutrient room, where beds turn plants into nutrients"),
+            ("Organized beds", "Beds produce 30% faster"),
+            ("Preparation area", "Unlocks an area where ants chop plants and keep a reserve for the beds"),
+            ("Productive cultivation", "Each plant yields 20% more nutrients"),
+            ("Integrated cultivation", "Ants bring the prepared reserve to beds that are running low"),
+            ("Initial nursery", "Unlocks the nursery: without it, the queen lays no eggs"),
+            ("Rearing beds", "Larvae grow 25% faster"),
+            ("Maturation area", "Pupae become adults 25% faster"),
+            ("Organized nursery", "The nursery holds 50% more brood in the same space"),
+            ("Initial storage", "Unlocks the food storage to keep plants"),
+            ("Organized piles", "Storages hold 50% more in the same space"),
+            ("Room for big loads", "Storages keep big pieces whole"),
+            ("Waste area", "Unlocks the waste area, where scraps and bodies go"),
+            ("Accelerated decomposition", "Waste disappears 2× faster"),
         };
 
         static void AddQueenNodes(List<Entry> l)
@@ -383,6 +484,78 @@ namespace Fabula.Incrementant.EditorTools.Localization
                 HiveTreeInfo.Node node = HiveTreeInfo.All[i];
                 Add(l, "hive." + node.Id + ".name", node.Name, HiveEn[i].Name);
                 Add(l, "hive." + node.Id + ".effect", node.Effect, HiveEn[i].Effect);
+            }
+        }
+
+        // Nós novos do documento 39 (câmaras e galerias que não existiam nas árvores da rainha e do formigueiro).
+        static readonly (string Id, string NamePt, string EffectPt, string NameEn, string EffectEn)[] UpgradeTexts =
+        {
+            ("C5", "Jardim da rainha", "Nutrientes prontos perto da rainha entram direto no saldo, sem transporte", "Queen's garden", "Ready nutrients near the queen go straight to the balance, with no carrying"),
+            ("B4", "Ninhada gêmea", "10% dos ovos viram duas larvas pelo preço de uma", "Twin brood", "10% of eggs become two larvae for the price of one"),
+            ("D3", "Depósito de construção", "Libera o pincel do depósito de construção", "Building storage", "Unlocks the building storage brush"),
+            ("D4", "Depósito de água", "Libera o pincel do depósito de água", "Water storage", "Unlocks the water storage brush"),
+            ("D5", "Logística integrada", "Formigas sem tarefa levam os itens para o depósito mais perto de quem vai usar", "Integrated logistics", "Idle ants move items to the storage closest to whoever will use them"),
+            ("G0", "Sala Gotas de orvalho", "Libera o pincel da sala de orvalho", "Dew drop room", "Unlocks the dew room brush"),
+            ("G1", "Folhas coletoras", "Cada gota de orvalho rende o dobro de água", "Collecting leaves", "Each dew drop yields twice the water"),
+            ("G2", "Neblina do amanhecer", "As gotas também regam os canteiros vizinhos da sala", "Dawn mist", "Drops also water the beds next to the room"),
+            ("T1", "Despejo organizado", "Mais 2 saídas para despejar terra (4 → 6)", "Organized dump", "2 more exits to dump soil (4 → 6)"),
+            ("T2", "Rotas batidas", "Túneis muito usados viram trilhas: +10% de velocidade dentro do formigueiro", "Beaten paths", "Busy tunnels become trails: +10% speed inside the anthill"),
+            ("X0", "Trilha de forrageio", "Formigas andam 10% mais rápido fora do formigueiro", "Foraging trail", "Ants walk 10% faster outside the anthill"),
+            ("X1", "Jardim cultivado", "Plantas cortadas perto da entrada voltam a crescer no mesmo lugar", "Tended garden", "Plants cut near the entrance grow back in the same spot"),
+            ("M0", "Entradas vigiadas", "O aviso de ataque chega 4 s mais cedo (8 → 12 s)", "Guarded entrances", "The attack warning comes 4 s earlier (8 → 12 s)"),
+            ("M1", "Câmara de refúgio", "Libera o pincel de refúgio: no aviso de ataque, crias e cuidadoras vão para lá", "Refuge chamber", "Unlocks the refuge brush: on the attack warning, brood and nurses go there"),
+            ("Q3", "Postura em campo", "A rainha também põe ovos quando está coletando ou na sala de nutrientes", "Field laying", "The queen also lays eggs while foraging or in the nutrient room"),
+            ("O4", "Operária versátil", "Sem especialista por perto, a operária faz a tarefa dela com metade do bônus", "Versatile worker", "With no specialist nearby, a worker does its task with half the bonus"),
+            ("L4", "Comboio", "Grupos de carregadoras levam peças grandes inteiras direto ao depósito", "Convoy", "Groups of carriers bring big pieces whole straight to storage"),
+            ("F2", "Poda seletiva", "Plantas cortadas por cortadeiras voltam a crescer 50% mais rápido", "Selective pruning", "Plants cut by cutters grow back 50% faster"),
+            ("E3", "Frente larga", "Escavadoras cavam 2 células vizinhas de cada vez", "Wide front", "Diggers dig 2 neighboring cells at a time"),
+            ("J3", "Simbiose", "Canteiros cuidados por jardineiras não deixam resíduo de fungo velho", "Symbiosis", "Beds tended by gardeners leave no old fungus waste"),
+            ("N3", "Ama de leite", "Cada cria custa 10% menos alimento (com Geleia real, no máximo 40% menos)", "Wet nurse", "Each brood costs 10% less food (with Royal jelly, at most 40% less)"),
+            ("S4", "Guarda real", "No aviso de ataque, até 4 soldados cercam a rainha", "Royal guard", "On the attack warning, up to 4 soldiers surround the queen"),
+            ("H+1", "Câmara real ampliada", "Cada adulta ocupa 4% menos espaço por nível: cabem mais formigas", "Enlarged royal chamber", "Each adult takes 4% less space per level: more ants fit"),
+            ("C+1", "Fungo vigoroso", "Canteiros ficam prontos 8% mais rápido por nível", "Vigorous fungus", "Beds are ready 8% faster per level"),
+            ("C+2", "Colheita nutritiva", "Cada entrega de nutriente vale 5% mais por nível", "Nutritious harvest", "Each nutrient delivery is worth 5% more per level"),
+            ("C+3", "Cura rápida", "Nutrientes ficam prontos para levar 4% mais rápido por nível", "Quick curing", "Nutrients are ready to carry 4% faster per level"),
+            ("B+1", "Leitos aquecidos", "Larvas e pupas crescem 3% mais rápido por nível", "Warm beds", "Larvae and pupae grow 3% faster per level"),
+            ("B+2", "Vagas extras", "Cada cria ocupa 5% menos espaço no berçário por nível", "Extra slots", "Each brood takes 5% less nursery space per level"),
+            ("D+1", "Empilhamento", "Depósitos guardam 25% mais por nível", "Stacking", "Storages hold 25% more per level"),
+            ("D+2", "Conservação", "Alimentos estragam 5% mais devagar no depósito por nível", "Preservation", "Food spoils 5% slower in storage per level"),
+            ("G+1", "Orvalho farto", "Gotas de orvalho caem 5% mais rápido por nível", "Plentiful dew", "Dew drops fall 5% faster per level"),
+            ("G+2", "Reservatório", "A sala de orvalho guarda +4 de água por nível", "Reservoir", "The dew room holds +4 water per level"),
+            ("T+1", "Obra barata", "Pintar ambientes custa 3% menos por nível", "Cheap works", "Painting rooms costs 3% less per level"),
+            ("T+2", "Frentes de obra", "Todas as formigas cavam 3% mais rápido por nível", "Work fronts", "Every ant digs 3% faster per level"),
+            ("X+1", "Brotação", "Plantas de fora crescem 6% mais rápido por nível", "Sprouting", "Outdoor plants grow 6% faster per level"),
+            ("X+2", "Feromônio de trilha", "Formigas andam 3% mais rápido fora do formigueiro por nível", "Trail pheromone", "Ants walk 3% faster outside the anthill per level"),
+            ("X+3", "Faro", "Formigas acham plantas 5% mais longe por nível", "Scent", "Ants find plants 5% farther away per level"),
+            ("M+1", "Paredes reforçadas", "Cupins levam 10% mais tempo para quebrar paredes por nível", "Reinforced walls", "Termites take 10% longer to break walls per level"),
+            ("M+2", "Vigias", "O aviso de ataque chega 1 s mais cedo por nível", "Lookouts", "The attack warning comes 1 s earlier per level"),
+            ("Q+1", "Fertilidade", "A rainha põe ovos 3% mais rápido por nível", "Fertility", "The queen lays eggs 3% faster per level"),
+            ("Q+2", "Geleia real", "Cada cria custa 2% menos alimento por nível", "Royal jelly", "Each brood costs 2% less food per level"),
+            ("Q+3", "Vigor real", "A rainha tem 10% mais vida por nível", "Royal vigor", "The queen has 10% more health per level"),
+            ("O+1", "Passo firme", "Operárias andam 4% mais rápido por nível", "Steady stride", "Workers walk 4% faster per level"),
+            ("O+2", "Vitalidade", "Todas as adultas têm 10% mais vida em combate por nível", "Vitality", "Every adult has 10% more health in combat per level"),
+            ("O+3", "Mandíbula de trabalho", "Operárias cortam plantas 3% mais rápido por nível", "Work mandible", "Workers cut plants 3% faster per level"),
+            ("L+1", "Costas largas", "Carregadoras levam +1 pedaço de planta por nível", "Broad back", "Carriers carry +1 plant piece per level"),
+            ("L+2", "Passo de carga", "Carregadoras andam 4% mais rápido por nível", "Hauling stride", "Carriers walk 4% faster per level"),
+            ("F+1", "Serrilha", "Cortadeiras cortam 4% mais rápido por nível", "Serration", "Cutters cut 4% faster per level"),
+            ("E+1", "Mandíbulas de pá", "Escavadoras cavam 4% mais rápido por nível", "Shovel mandibles", "Diggers dig 4% faster per level"),
+            ("E+2", "Carga de terra", "Escavadoras levam +1 de terra por viagem por nível", "Soil load", "Diggers carry +1 soil per trip per level"),
+            ("E+3", "Britador", "Escavadoras quebram rocha 6% mais rápido por nível", "Crusher", "Diggers break rock 6% faster per level"),
+            ("J+1", "Mãos verdes", "Jardineiras deixam os canteiros 5% mais rápidos por nível", "Green thumb", "Gardeners make beds 5% faster per level"),
+            ("J+2", "Orvalheira", "Jardineiras fazem as gotas de orvalho cair 10% mais rápido por nível", "Dew keeper", "Gardeners make dew drops fall 10% faster per level"),
+            ("N+1", "Ninhada atenta", "Cuidadoras param 5% menos entre um cuidado e outro por nível", "Attentive care", "Nurses pause 5% less between tasks per level"),
+            ("N+2", "Turno dobrado", "Cada cuidadora atende +1 parte do berçário por nível", "Double shift", "Each nurse covers +1 nursery section per level"),
+            ("S+1", "Mandíbulas afiadas", "Soldados causam 8% mais dano por nível", "Sharp mandibles", "Soldiers deal 8% more damage per level"),
+            ("S+2", "Carapaça grossa", "Soldados têm 8% mais vida por nível", "Thick carapace", "Soldiers have 8% more health per level"),
+            ("S+3", "Recuperação", "Soldados feridos começam a se curar 5% mais cedo por nível", "Recovery", "Wounded soldiers start healing 5% sooner per level"),
+        };
+
+        static void AddUpgradeNodes(List<Entry> l)
+        {
+            foreach ((string id, string namePt, string effectPt, string nameEn, string effectEn) in UpgradeTexts)
+            {
+                Add(l, "upgrade." + id + ".name", namePt, nameEn);
+                Add(l, "upgrade." + id + ".effect", effectPt, effectEn);
             }
         }
 

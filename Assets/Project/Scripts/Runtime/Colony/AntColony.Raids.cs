@@ -155,7 +155,7 @@ namespace Fabula.Incrementant.Colony
                 return;
             }
             RaidState = RaidState.Warning;
-            _raidTimer = RaidSettings.WarningSeconds;
+            _raidTimer = RaidSettings.WarningSeconds + Effects.WarningBonusSeconds;
             _forcedRaid = true;
             Emit(SfxId.RaidWarning);
         }
@@ -208,7 +208,7 @@ namespace Fabula.Incrementant.Colony
                     if (_raidTimer <= 0f && !stormHold)
                     {
                         RaidState = RaidState.Warning;
-                        _raidTimer = RaidSettings.WarningSeconds;
+                        _raidTimer = RaidSettings.WarningSeconds + Effects.WarningBonusSeconds;
                         _forcedRaid = false;
                         Emit(SfxId.RaidWarning);
                     }
@@ -265,7 +265,7 @@ namespace Fabula.Incrementant.Colony
         void LaunchRaid()
         {
             BeginRaid();
-            // Sorteio entre o mínimo (40%) e o teto, que cresce a cada ataque até 200% (pedido do desenvolvedor em 2026-10-18).
+            // Sorteio entre o mínimo (20%) e o teto, que cresce a cada ataque até 50% (KI-036, 2026-10-20).
             float share = Mathf.Lerp(RaidSettings.TermitesPerAnt, TermiteCap, (float)RaidRng.NextDouble());
             LastRaidShare = share;
             int count = Mathf.Max(1, Mathf.CeilToInt(_ants.Count * share));
@@ -468,7 +468,7 @@ namespace Fabula.Incrementant.Colony
             _queenBiteTimer = RaidSettings.AttackSeconds;
             if (target.X != Queen.X)
                 Queen.FacingX = target.X > Queen.X ? 1 : -1;
-            HitTermite(target, Tree.Damage(AntRole.Soldier) * RaidSettings.QueenDamageFactor * RaidSettings.AttackSeconds);
+            HitTermite(target, DamageOf(AntRole.Soldier) * RaidSettings.QueenDamageFactor * RaidSettings.AttackSeconds);
         }
 
         /// <summary>Ao alcance de um cupim, fica mordendo; senão desce o campo do combate (só invasores). <c>false</c> = sem rota.</summary>
@@ -612,6 +612,8 @@ namespace Fabula.Incrementant.Colony
             int bestDistance = int.MaxValue;
             foreach (Ant ant in _ants)
             {
+                if (ant.Buried)
+                    continue; // presa na terra: fora do alcance das mordidas
                 int distance = Mathf.Max(Mathf.Abs(ant.X - x), Mathf.Abs(ant.Y - y));
                 if (distance > reach || distance >= bestDistance)
                     continue;
@@ -644,7 +646,7 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Formigas que passaram da vida do papel morrem (o que levavam se perde, o ovo volta ao chão).</summary>
         void RemoveCasualties()
         {
-            if (Queen.Wounds >= RaidSettings.QueenHealth && !GameOver)
+            if (Queen.Wounds >= RaidSettings.QueenHealth * Effects.QueenHealthFactor && !GameOver)
             {
                 GameOver = true;
                 Emit(SfxId.GameOver);
@@ -652,7 +654,7 @@ namespace Fabula.Incrementant.Colony
             for (int i = _ants.Count - 1; i >= 0; i--)
             {
                 Ant ant = _ants[i];
-                if (ant.Wounds < Tree.MaxHealth(ant.Role))
+                if (ant.Wounds < MaxHealthOf(ant.Role))
                     continue;
                 RemoveAnt(i);
                 AntsKilledInCombat++;
@@ -660,15 +662,20 @@ namespace Fabula.Incrementant.Colony
             }
         }
 
+        float DamageOf(AntRole role) => Tree.Damage(role) * (role == AntRole.Soldier ? Effects.SoldierDamageFactor : 1f);
+
+        float MaxHealthOf(AntRole role) => Tree.MaxHealth(role) * Effects.VitalityFactor * (role == AntRole.Soldier ? Effects.SoldierHealthFactor : 1f);
+
         /// <summary>Recupera 1 ponto de vida por segundo depois de um tempo sem levar mordida (design 27).</summary>
         void HealAnts(float deltaTime)
         {
             float delay = RaidSettings.HealDelaySeconds;
+            float soldierDelay = delay * Effects.SoldierHealTime;
             if (Queen.Wounds > 0f && SimulationTime - Queen.LastHitTime >= delay)
                 Queen.Wounds = Mathf.Max(0f, Queen.Wounds - deltaTime);
             foreach (Ant ant in _ants)
             {
-                if (ant.Wounds > 0f && SimulationTime - ant.LastHitTime >= delay)
+                if (ant.Wounds > 0f && SimulationTime - ant.LastHitTime >= (ant.Role == AntRole.Soldier ? soldierDelay : delay))
                     ant.Wounds = Mathf.Max(0f, ant.Wounds - deltaTime);
             }
         }
@@ -1482,7 +1489,7 @@ namespace Fabula.Incrementant.Colony
                 ant.DigY = target.Y;
                 if (target.X != ant.X)
                     ant.FacingX = target.X > ant.X ? 1 : -1;
-                HitTermite(target, Tree.Damage(ant.Role) * RaidSettings.AttackSeconds);
+                HitTermite(target, DamageOf(ant.Role) * RaidSettings.AttackSeconds);
                 ant.Cooldown = RaidSettings.AttackSeconds;
                 return;
             }
@@ -1516,7 +1523,8 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Ociosa que retira corpos: se há parte de corpo sem ninguém indo tirá-la, vai desmembrar o mais perto.</summary>
         bool TryStartDismember(Ant ant)
         {
-            if (!AntRoles.ClearsCorpses(ant.Role) || _groundTermites > 0 || _corpsePieces <= _dismemberers || _combatField == null)
+            if (!AntRoles.ClearsCorpses(ant.TaskRole) || !SectionAllows(WorkSection.Waste, ant) ||
+                _groundTermites > 0 || _corpsePieces <= _dismemberers || _combatField == null)
                 return false;
             if (_combatField.Get(ant.X, ant.Y) == FlowField.Unreachable)
                 return false;

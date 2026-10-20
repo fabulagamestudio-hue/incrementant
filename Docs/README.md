@@ -72,6 +72,7 @@ Os textos preservam a distinção original entre regras definidas, propostas de 
 | 27 | [Soldado habilidades e números](01_Design/27_Soldado_habilidades_e_numeros.md) | Documento revisado de 2026-10-17; estado das definições preservado conforme a fonte |
 | 32 | [Invasoras combate e consequências](01_Design/32_Invasoras_combate_e_consequencias.md) | Documento revisado de 2026-10-17; estado das definições preservado conforme a fonte |
 | 37 | [Continuidade pausa e game over](01_Design/37_Continuidade_pausa_e_game_over.md) | Documento revisado de 2026-10-17; estado das definições preservado conforme a fonte |
+| 39 | [Melhorias incrementais e formigueiro de dependências](01_Design/39_Melhorias_incrementais_e_formigueiro_de_dependencias.md) | Documento do projeto de 2026-10-19 (REQ-039); proposta, sem balanceamento nem construção |
 
 ### 02_World_Art_UI/ — Mundo, arte, interface e áudio
 
@@ -98,6 +99,7 @@ Os textos preservam a distinção original entre regras definidas, propostas de 
 | 15 | [Valores base de cada formiga](04_Data/15_Valores_base_de_cada_formiga.md) | Documento revisado de 2026-10-17; estado das definições preservado conforme a fonte |
 | 28 | [Custos totais e regras de aplicação de melhorias](04_Data/28_Custos_totais_e_regras_de_aplicacao_de_melhorias.md) | Documento revisado de 2026-10-17; estado das definições preservado conforme a fonte |
 | 29 | [Consistência econômica e cenários de teste](04_Data/29_Consistencia_economica_e_cenarios_de_teste.md) | Documento revisado de 2026-10-17; estado das definições preservado conforme a fonte |
+| 39 | [Valores das melhorias incrementais (planilha)](04_Data/39_Melhorias_incrementais_valores.xlsx) | Documento do projeto de 2026-10-19 (REQ-039); valores propostos pelo agente |
 
 ### 05_Narrative/ — Referências da ambientação
 

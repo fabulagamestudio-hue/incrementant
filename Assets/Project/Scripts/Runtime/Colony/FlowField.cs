@@ -15,6 +15,54 @@ namespace Fabula.Incrementant.Colony
         public static readonly int[] Dx = { 1, -1, 0, 0, 1, 1, -1, -1 };
         public static readonly int[] Dy = { 0, 0, 1, -1, 1, -1, 1, -1 };
 
+        /// <summary>
+        /// Direção (índice de <see cref="Dx"/>) do vizinho caminhável de menor distância; -1 = nenhum desce.
+        /// O campo dá custo 1 a todo vizinho, então quase sempre há empate (indo para a direita, leste, nordeste e sudeste
+        /// costumam descer igual). Sortear a cada passo fazia a formiga ziguezaguear. O empate fica com o passo ortogonal
+        /// (no máximo um desce: o do eixo mais longo), depois com <paramref name="previous"/>, e só então é sorteado; assim
+        /// o caminho sai reto e só vira diagonal quando precisa. A direção anterior na frente faria um V: quem vinha na
+        /// diagonal seguiria nela mesmo com o alvo à frente e voltaria depois.
+        /// </summary>
+        public static int Downhill(PixelGrid grid, FlowField field, Random rng, int x, int y, int previous)
+        {
+            int current = field.Get(x, y);
+            int best = current;
+            int ties = 0;
+            int chosen = -1;
+            int chosenRank = -1;
+            for (int k = 0; k < 8; k++)
+            {
+                int nx = x + Dx[k];
+                int ny = y + Dy[k];
+                int d = field.Get(nx, ny);
+                if (d > best || d == FlowField.Unreachable || !IsWalkable(grid, nx, ny))
+                    continue;
+                // 2 = ortogonal (índices 0–3), 1 = mantém a direção, 0 = outra diagonal.
+                int rank = k < 4 ? 2 : k == previous ? 1 : 0;
+                if (d < best)
+                {
+                    best = d;
+                    chosen = k;
+                    chosenRank = rank;
+                    ties = 1;
+                }
+                else if (d < current)
+                {
+                    if (rank > chosenRank)
+                    {
+                        chosen = k;
+                        chosenRank = rank;
+                        ties = 1;
+                    }
+                    else if (rank == chosenRank && rng.Next(++ties) == 0)
+                    {
+                        chosen = k;
+                    }
+                }
+            }
+            return chosen;
+        }
+
         public static bool IsWalkable(PixelGrid grid, int x, int y)
         {
             if (!grid.InBounds(x, y))
@@ -47,7 +95,8 @@ namespace Fabula.Incrementant.Colony
         /// Bloco acima do solo original em cuja face a formiga anda, como na parede de trás do formigueiro (pedido do
         /// desenvolvedor em 2026-10-19): a obra, a terra e a areia que elas despejaram (soltas, compactadas pela chuva ou
         /// amolecidas pela água). Acima do solo original não há terreno natural, então esse material só pode ter vindo
-        /// das formigas.
+        /// das formigas. A planta solta (folha e grama caídas) também: ela escorre por cima do monte e, se fosse parede,
+        /// prendia embaixo dela quem estava dentro do monte, sem vazio acima para soltar o grão (relato de 2026-10-19).
         /// </summary>
         public static bool IsOutdoorWall(PixelGrid grid, int x, int y)
         {
@@ -57,7 +106,7 @@ namespace Fabula.Incrementant.Colony
                 return true;
             CellMaterial material = grid.Get(x, y);
             return material == CellMaterial.Spoil || material == CellMaterial.PackedSpoil || material == CellMaterial.Mud ||
-                   material == CellMaterial.Sand || material == CellMaterial.PackedSand;
+                   material == CellMaterial.Sand || material == CellMaterial.PackedSand || CellMaterials.IsPlantDebris(material);
         }
 
         /// <summary>
@@ -89,9 +138,12 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Acima disto de células alteradas ou de origens trocadas, refazer do zero sai mais barato que corrigir.</summary>
         const int MaxIncrementalChanges = 2500;
         const int MaxIncrementalSourceChanges = 1500;
+        const int MaxIncrementalInvalid = 6000;
 
         readonly int[] _distance;
         readonly int[] _queue;
+        // Deslocamento de índice dos 8 vizinhos (ordem de AntNavigation.Dx/Dy), válido longe da borda do mundo.
+        readonly int[] _offset;
         readonly int _width;
         readonly int _height;
         int _reached;
@@ -129,6 +181,9 @@ namespace Fabula.Incrementant.Colony
             _height = height;
             _distance = new int[width * height];
             _queue = new int[width * height];
+            _offset = new int[8];
+            for (int k = 0; k < 8; k++)
+                _offset[k] = AntNavigation.Dy[k] * width + AntNavigation.Dx[k];
             _isSource = new bool[width * height];
             _scratch = scratch ?? new Scratch(width, height);
             Array.Fill(_distance, Unreachable);
@@ -188,26 +243,54 @@ namespace Fabula.Incrementant.Colony
                 _queue[tail++] = source;
             }
 
+            // Laço quente (uma passada pelo alcançado a cada Build): vetores locais, uma divisão por célula e, longe da
+            // borda do mundo, os 8 vizinhos por deslocamento fixo. A ordem dos vizinhos é a de AntNavigation.Dx/Dy.
+            int[] distance = _distance;
+            int[] queue = _queue;
+            bool[] walkable = walkability.WalkableCells;
+            int width = _width;
+            int height = _height;
             while (head < tail)
             {
-                int i = _queue[head++];
-                int x = i % _width;
-                int y = i / _width;
-                int next = _distance[i] + 1;
+                int i = queue[head++];
+                int y = i / width;
+                int x = i - y * width;
+                int next = distance[i] + 1;
+
+                if (!anthillOnly && x > 0 && x < width - 1 && y > 0 && y < height - 1)
+                {
+                    int n = i + 1;
+                    if (distance[n] == Unreachable && walkable[n]) { distance[n] = next; queue[tail++] = n; }
+                    n = i - 1;
+                    if (distance[n] == Unreachable && walkable[n]) { distance[n] = next; queue[tail++] = n; }
+                    n = i + width;
+                    if (distance[n] == Unreachable && walkable[n]) { distance[n] = next; queue[tail++] = n; }
+                    n = i - width;
+                    if (distance[n] == Unreachable && walkable[n]) { distance[n] = next; queue[tail++] = n; }
+                    n = i + width + 1;
+                    if (distance[n] == Unreachable && walkable[n]) { distance[n] = next; queue[tail++] = n; }
+                    n = i - width + 1;
+                    if (distance[n] == Unreachable && walkable[n]) { distance[n] = next; queue[tail++] = n; }
+                    n = i + width - 1;
+                    if (distance[n] == Unreachable && walkable[n]) { distance[n] = next; queue[tail++] = n; }
+                    n = i - width - 1;
+                    if (distance[n] == Unreachable && walkable[n]) { distance[n] = next; queue[tail++] = n; }
+                    continue;
+                }
 
                 for (int k = 0; k < 8; k++)
                 {
                     int nx = x + AntNavigation.Dx[k];
                     int ny = y + AntNavigation.Dy[k];
-                    if ((uint)nx >= (uint)_width || (uint)ny >= (uint)_height)
+                    if ((uint)nx >= (uint)width || (uint)ny >= (uint)height)
                         continue;
-                    int ni = ny * _width + nx;
-                    if (_distance[ni] != Unreachable || !walkability.IsWalkableAt(ni))
+                    int ni = ny * width + nx;
+                    if (distance[ni] != Unreachable || !walkable[ni])
                         continue;
                     if (anthillOnly && (ny > grid.GetSurfaceY(nx) || grid.IsBuildMarked(nx, ny)))
                         continue;
-                    _distance[ni] = next;
-                    _queue[tail++] = ni;
+                    distance[ni] = next;
+                    queue[tail++] = ni;
                 }
             }
             _reached = tail;
@@ -230,7 +313,7 @@ namespace Fabula.Incrementant.Colony
             LastUpdateWasIncremental = false;
             if (!_synced || walkability.ChangesOverflowed || changed.Count > MaxIncrementalChanges)
             {
-                Build(walkability, sourceIndices);
+                Fallback(walkability, sourceIndices, !_synced ? Fallbacks.NotSynced : Fallbacks.TooManyChanges);
                 return;
             }
 
@@ -272,7 +355,9 @@ namespace Fabula.Incrementant.Colony
             if (scratch.AddedSources.Count + scratch.RemovedSources.Count > MaxIncrementalSourceChanges ||
                 scratch.RemovedSources.Count > 0 && scratch.RemovedSources.Count == _sources.Count)
             {
-                Build(walkability, sourceIndices);
+                Fallback(walkability, sourceIndices,
+                         scratch.RemovedSources.Count > 0 && scratch.RemovedSources.Count == _sources.Count
+                             ? Fallbacks.AllSourcesGone : Fallbacks.TooManySourceChanges);
                 return;
             }
             LastUpdateWasIncremental = true;
@@ -303,26 +388,36 @@ namespace Fabula.Incrementant.Colony
             // Invalidar mais da metade do alcançado (a origem única que andou uma célula invalida tudo) custa várias vezes um
             // Build: medido no campo de casa com a rainha andando, ~30 ms corrigindo contra ~6 ms refazendo. Até aqui as
             // distâncias não mudaram, então o Build parte de um estado válido; o resultado é o mesmo pelos dois caminhos.
-            int maxInvalid = _reached / 2;
+            // O teto absoluto vale para o mundo grande: corrigir custa várias vezes o Build por célula invalidada (medido: ~20 ms
+            // corrigindo 40 mil células contra ~5 ms refazendo um campo de 113 mil), então passa de MaxIncrementalInvalid o Build ganha.
+            int maxInvalid = Math.Min(_reached / 2, MaxIncrementalInvalid);
             for (int head = 0; head < scratch.Invalid.Count; head++)
             {
                 if (scratch.Invalid.Count > maxInvalid)
                 {
-                    Build(walkability, sourceIndices);
-                    LastUpdateWasIncremental = false;
+                    Fallback(walkability, sourceIndices, Fallbacks.TooManyInvalid);
                     return;
                 }
                 int c = scratch.Invalid[head];
-                int cx = c % _width;
                 int cy = c / _width;
+                int cx = c - cy * _width;
                 int dependent = _distance[c] + 1;
+                bool interior = cx > 0 && cx < _width - 1 && cy > 0 && cy < _height - 1;
                 for (int k = 0; k < 8; k++)
                 {
-                    int nx = cx + AntNavigation.Dx[k];
-                    int ny = cy + AntNavigation.Dy[k];
-                    if ((uint)nx >= (uint)_width || (uint)ny >= (uint)_height)
-                        continue;
-                    int ni = ny * _width + nx;
+                    int ni;
+                    if (interior)
+                    {
+                        ni = c + _offset[k];
+                    }
+                    else
+                    {
+                        int nx = cx + AntNavigation.Dx[k];
+                        int ny = cy + AntNavigation.Dy[k];
+                        if ((uint)nx >= (uint)_width || (uint)ny >= (uint)_height)
+                            continue;
+                        ni = ny * _width + nx;
+                    }
                     if (_distance[ni] != dependent || mark[ni] == stamp || _isSource[ni])
                         continue;
                     if (!HasSupport(ni, stamp))
@@ -359,6 +454,7 @@ namespace Fabula.Incrementant.Colony
             // Propaga em ordem crescente de distância: as sementes (ordenadas) e a fila de ondas (já em ordem) se intercalam.
             scratch.Seeds.Sort();
             scratch.Wave.Clear();
+            bool[] walkable = walkability.WalkableCells;
             int seed = 0;
             int wave = 0;
             while (seed < scratch.Seeds.Count || wave < scratch.Wave.Count)
@@ -372,16 +468,25 @@ namespace Fabula.Incrementant.Colony
                 int d = (int)(entry >> 32);
                 if (_distance[c] != d)
                     continue; // já melhorou depois de entrar na fila
-                int cx = c % _width;
                 int cy = c / _width;
+                int cx = c - cy * _width;
+                bool interior = cx > 0 && cx < _width - 1 && cy > 0 && cy < _height - 1;
                 for (int k = 0; k < 8; k++)
                 {
-                    int nx = cx + AntNavigation.Dx[k];
-                    int ny = cy + AntNavigation.Dy[k];
-                    if ((uint)nx >= (uint)_width || (uint)ny >= (uint)_height)
-                        continue;
-                    int ni = ny * _width + nx;
-                    if (_distance[ni] <= d + 1 || !walkability.IsWalkableAt(ni))
+                    int ni;
+                    if (interior)
+                    {
+                        ni = c + _offset[k];
+                    }
+                    else
+                    {
+                        int nx = cx + AntNavigation.Dx[k];
+                        int ny = cy + AntNavigation.Dy[k];
+                        if ((uint)nx >= (uint)_width || (uint)ny >= (uint)_height)
+                            continue;
+                        ni = ny * _width + nx;
+                    }
+                    if (_distance[ni] <= d + 1 || !walkable[ni])
                         continue;
                     if (_distance[ni] == Unreachable)
                         _reached++;
@@ -389,6 +494,30 @@ namespace Fabula.Incrementant.Colony
                     scratch.Wave.Add(((long)(d + 1) << 32) | (uint)ni);
                 }
             }
+        }
+
+        /// <summary>Por que um <see cref="Update"/> caiu em <see cref="Build"/> (diagnóstico do painel e dos testes).</summary>
+        public enum Fallbacks
+        {
+            NotSynced,
+            TooManyChanges,
+            TooManySourceChanges,
+            AllSourcesGone,
+            TooManyInvalid,
+        }
+
+        /// <summary>Quantas vezes cada motivo fez <see cref="Update"/> refazer o campo do zero.</summary>
+        public readonly int[] FallbackCounts = new int[5];
+
+        /// <summary>Tempo total (ticks do cronômetro) e chamadas de <see cref="Update"/>, para achar o campo mais caro.</summary>
+        public long UpdateTicks;
+        public int UpdateCalls;
+
+        void Fallback(WalkabilityMap walkability, List<int> sourceIndices, Fallbacks reason)
+        {
+            FallbackCounts[(int)reason]++;
+            Build(walkability, sourceIndices);
+            LastUpdateWasIncremental = false;
         }
 
         void MarkInvalid(int cell, int stamp)
