@@ -27,6 +27,7 @@ Entrada rápida para os 38 arquivos de design derivados do documento revisado e 
 | Invasão e combate | [32 — Invasoras combate e consequências](01_Design/32_Invasoras_combate_e_consequencias.md) | [27 — Soldado habilidades e números](01_Design/27_Soldado_habilidades_e_numeros.md), [13 — Capacidade superlotação e morte da rainha](01_Design/13_Capacidade_superlotacao_e_morte_da_rainha.md) |
 | Menus, HUD ou configurações | [33 — Menus fluxo de telas e configurações](02_World_Art_UI/33_Menus_fluxo_de_telas_e_configuracoes.md) | [34 — Interface durante a partida](02_World_Art_UI/34_Interface_durante_a_partida.md), [37 — Continuidade pausa e game over](01_Design/37_Continuidade_pausa_e_game_over.md) |
 | Áudio e feedback visual | [35 — Áudio atmosfera e juice](02_World_Art_UI/35_Audio_atmosfera_e_juice.md) | [34 — Interface durante a partida](02_World_Art_UI/34_Interface_durante_a_partida.md) |
+| Direção de arte, densidade de pixel, paleta, shader e luz do terreno | [40 — Direção de arte unificada e terreno iluminado](02_World_Art_UI/40_Direcao_de_arte_unificada_e_terreno_iluminado.md) | [35 — Áudio atmosfera e juice](02_World_Art_UI/35_Audio_atmosfera_e_juice.md) |
 | Jam, demonstração ou escopo | [36 — Escopo completo e demonstração da jam](03_Production/36_Escopo_completo_e_demonstracao_da_jam.md) | [06 — Fluxo completo do início do jogo](01_Design/06_Fluxo_completo_do_inicio_do_jogo.md), [07 — Garantias do tutorial e primeiros objetivos](01_Design/07_Garantias_do_tutorial_e_primeiros_objetivos.md), [29 — Consistência econômica e cenários de teste](04_Data/29_Consistencia_economica_e_cenarios_de_teste.md) |
 | Salvar, continuar, pausar ou perder | [37 — Continuidade pausa e game over](01_Design/37_Continuidade_pausa_e_game_over.md) | [12 — Ciclo de vida contadores e recuperação](01_Design/12_Ciclo_de_vida_contadores_e_recuperacao.md), [13 — Capacidade superlotação e morte da rainha](01_Design/13_Capacidade_superlotacao_e_morte_da_rainha.md) |
 | Pesquisa de biologia e ambientação | [38 — Referências da ambientação](05_Narrative/38_Referencias_da_ambientacao.md) | [02 — Identidade mundo e papel do jogador](01_Design/02_Identidade_mundo_e_papel_do_jogador.md) |
@@ -76,6 +77,7 @@ Os caminhos dos links são relativos a `Docs/`. Cada arquivo aparece uma vez no 
 | [33_Menus_fluxo_de_telas_e_configuracoes.md](02_World_Art_UI/33_Menus_fluxo_de_telas_e_configuracoes.md) | Menus; fluxo e relações entre telas; opções de configurações. |
 | [34_Interface_durante_a_partida.md](02_World_Art_UI/34_Interface_durante_a_partida.md) | HUD e informação permanente; painéis por seleção; estados das ações e leitura da colônia. |
 | [35_Audio_atmosfera_e_juice.md](02_World_Art_UI/35_Audio_atmosfera_e_juice.md) | Áudio, atmosfera, feedback visual e juice; sensação e legibilidade. |
+| [40_Direcao_de_arte_unificada_e_terreno_iluminado.md](02_World_Art_UI/40_Direcao_de_arte_unificada_e_terreno_iluminado.md) | Diagnóstico das regras de arte divergentes; padrão proposto de 16 px por célula; camadas do visual do terreno (textura, borda, fundo, luz); plano em etapas. |
 
 ### 03_Production/ — Planejamento
 

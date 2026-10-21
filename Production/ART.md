@@ -2,7 +2,7 @@
 
 **Projeto:** Incrementant
 **Setor:** ART
-**Última avaliação:** 2026-10-18
+**Última avaliação:** 2026-10-21
 
 ## Resumo
 
@@ -25,8 +25,13 @@ Só há arte provisória gerada por código para o protótipo: as formigas (pixe
 | ART-011 | Formiga inimiga alada: voo, perda das asas e caminhada (usada como cupim) | IMPLEMENTED | UNDEFINED | [16 sprites e validação](../Assets/Project/Art/Ants/InimigaAlada/README.md); ligada aos cupins na cena e vista em Play Mode pelo agente em 2026-10-18 (PRG-034) | REQ-027, REQ-029 | 2026-10-18 |
 
 | ART-012 | Pulgão: 4 quadros laterais e 4 superiores, menor que a formiga | IMPLEMENTED | UNDEFINED | [Pacote e validação na Unity](../Assets/Project/Art/Aphids/README.md); ver detalhes ART-012 | REQ-033 | 2026-10-18 |
+| ART-013 | Direção de arte unificada: paleta mestra, atlas RGB do terreno e do fundo, formigas em 48×32, crias, cenário e UI a 16 px por célula | PLANNED | UNDEFINED | [Plano em etapas](../Docs/02_World_Art_UI/40_Direcao_de_arte_unificada_e_terreno_iluminado.md) | REQ-047, PRG-059 | — |
 
 ## Detalhes
+
+### ART-013 — Direção de arte unificada
+
+Planejado em 2026-10-21 (REQ-047). O diagnóstico achou densidades de 1, 4, 6, 16 e 36 px de arte por célula, contornos e paletas diferentes por família. A proposta fixa 16 px por célula e uma paleta mestra; as etapas de arte (0, 5, 8, 9, 10, 11 e 12) estão no [documento 40](../Docs/02_World_Art_UI/40_Direcao_de_arte_unificada_e_terreno_iluminado.md). Regras e decisões aprovadas pelo desenvolvedor em 2026-10-21, substituindo a decisão de 2026-10-17 de a formiga ter pixels menores que os do terreno: câmera continua em 16 px por célula, sem pixels grossos (D1); formigas mantêm os quadros de lado e de cima (D2); a luz substitui a névoa (D3); o cenário também vai para 16 px por célula, sem exceção de fundo (D4); a paleta mestra sai do cenário e vale para tudo (D5). Falta montar e salvar a paleta, o que fecha a etapa 0 e libera as etapas de arte.
 
 ### ART-012 — Arte do pulgão menor que a formiga
 

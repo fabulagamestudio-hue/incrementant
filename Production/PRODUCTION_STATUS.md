@@ -7,7 +7,7 @@
 - **Engine:** Unity 6000.3.11f1, URP 17.3.0
 - **Plataformas-alvo:** Pendente de definição
 - **Marco atual:** Pendente de definição
-- **Última avaliação:** 2026-10-20
+- **Última avaliação:** 2026-10-21
 
 ## Resumo executivo
 
@@ -180,6 +180,7 @@ Melhorias incrementais documentadas (GD-008, REQ-039): o [documento 39](../Docs/
 | REQ-040 | Combate e cupins: postos de guarda, distribuição das soldadas e velocidade por situação | IMPLEMENTED | UNDEFINED |
 | REQ-041 | Áudio espacial: SFX pela posição da câmera e pelo zoom | DONE | UNDEFINED |
 | REQ-042 | Água no mapa: lagos mais fundos e bolsões de água no subterrâneo | DONE | UNDEFINED |
+| REQ-047 | Direção de arte unificada (16 px por célula) e terreno iluminado, em etapas (etapas 2, 3 e 6 feitas e aprovadas; borda do terreno recusada) | IN_PROGRESS | UNDEFINED |
 
 Registro completo: [REQUESTS.md](REQUESTS.md)
 
@@ -207,6 +208,7 @@ Registro completo: [REQUESTS.md](REQUESTS.md)
 
 ## Decisões necessárias
 
+- Direção de arte (REQ-047): regras e D1 a D5 decididas em 2026-10-21 ([documento 40](../Docs/02_World_Art_UI/40_Direcao_de_arte_unificada_e_terreno_iluminado.md)); falta o tamanho da paleta mestra (origem: o cenário) e, na etapa 1, se o zoom máximo sobe até 32 px por célula.
 - Árvore da rainha: o que fazer com os 15 nós sem sistema no jogo (EM BREVE) e se a árvore do formigueiro entra no protótipo; a jardineira (J0) não tem tarefa até existir o cultivo de fungo (REQ-018, KI-014)
 - Tamanho do mundo (960x520) e zoom máximo aberto preso ao enquadramento inicial estão bons? (REQ-003)
 - Regras da chuva: quando chove (manual × ciclo automático), compactação permanente ou temporária, se a chuva leve afeta areia despejada e o compactado (GD-002)

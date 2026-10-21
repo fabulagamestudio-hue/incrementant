@@ -83,6 +83,7 @@ Os textos preservam a distinção original entre regras definidas, propostas de 
 | 33 | [Menus fluxo de telas e configurações](02_World_Art_UI/33_Menus_fluxo_de_telas_e_configuracoes.md) | Documento revisado de 2026-10-17; estado das definições preservado conforme a fonte |
 | 34 | [Interface durante a partida](02_World_Art_UI/34_Interface_durante_a_partida.md) | Documento revisado de 2026-10-17; estado das definições preservado conforme a fonte |
 | 35 | [Áudio atmosfera e juice](02_World_Art_UI/35_Audio_atmosfera_e_juice.md) | Documento revisado de 2026-10-17; estado das definições preservado conforme a fonte |
+| 40 | [Direção de arte unificada e terreno iluminado](02_World_Art_UI/40_Direcao_de_arte_unificada_e_terreno_iluminado.md) | Documento do projeto de 2026-10-21; proposta em etapas, regras a aprovar |
 
 ### 03_Production/ — Planejamento da demonstração
 

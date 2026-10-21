@@ -1,7 +1,7 @@
 # Solicitações do desenvolvedor
 
 **Projeto:** Incrementant
-**Última atualização:** 2026-10-20
+**Última atualização:** 2026-10-21
 
 ## Índice
 
@@ -47,6 +47,7 @@
 | REQ-040 | 2026-10-20 | Combate e cupins: postos de guarda, distribuição das soldadas e velocidade por situação | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
 | REQ-041 | 2026-10-20 | Áudio espacial: SFX pela posição da câmera e pelo zoom | AUDIO, PROGRAMMING | UNDEFINED | DONE |
 | REQ-042 | 2026-10-20 | Água no mapa: lagos mais fundos e bolsões de água no subterrâneo | PROGRAMMING | UNDEFINED | DONE |
+| REQ-047 | 2026-10-21 | Direção de arte unificada (16 px por célula) e terreno iluminado no estilo do menu, em etapas | ART, PROGRAMMING | UNDEFINED | IN_PROGRESS |
 
 ## Registros
 
@@ -787,3 +788,27 @@
   - 2026-10-20 — registrado.
   - 2026-10-20 — IMPLEMENTED: laguinhos fundos e `CarveWaterPockets`; 2 testes novos em `WaterSimulationTests` passando na Unity (os 5 que falham são os de KI-022). Mapa gerado renderizado à parte (8 laguinhos, ~27 bolsões); não visto em Play Mode pelo agente.
   - 2026-10-20 — DONE: aprovado pelo desenvolvedor ("excelente, pode marcar como pronto").
+
+### REQ-047 — Direção de arte unificada (16 px por célula) e terreno iluminado no estilo do menu, em etapas
+
+- **Data de registro:** 2026-10-21
+- **Estado:** IN_PROGRESS
+- **Prioridade:** UNDEFINED
+- **Setores:** ART, PROGRAMMING
+- **Descrição:** Em 2026-10-21, depois da análise de uma referência de salas em tiles e da ilustração do menu principal: "o melhor a fazer é unificar o nosso próprio estilo artístico para manter um padrão de desenho"; perguntou se era possível chegar ao "shader e texturas" da ilustração do menu (sem as formas orgânicas) padronizando em 16 px; e pediu "um documento explicando tudo isso para fazermos isso em diversas seções, e em etapas diversas". Implementação ainda não pedida ("Ainda não").
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-024 (experimento 16x16), REQ-025 e REQ-026 (resolução e refinamento das formigas)
+- **Itens relacionados:** ART-013, PRG-059
+- **Referências:** [40 — Direção de arte unificada e terreno iluminado](../Docs/02_World_Art_UI/40_Direcao_de_arte_unificada_e_terreno_iluminado.md)
+- **Decisões pendentes:** tamanho da paleta mestra (a origem já foi decidida: o cenário). Regras e D1 a D5 decididas em 2026-10-21 (ver histórico).
+- **Histórico:**
+  - 2026-10-21 — registrado; plano de 13 etapas escrito no documento 40.
+  - 2026-10-21 — decisões do desenvolvedor: D1 "pode seguir do jeito que está" (câmera em 16 px por célula, sem pixels grossos); D2 "mantém" (formigas de lado e de cima); D3 "vamos ficar com a luz" (a luz substitui a névoa); D4 "vamos unificar a resolução de tudo" (cenário em 16 px por célula); D5 "o cenário é a definição dos pixels, vamos manter tudo no mesmo padrão" (paleta mestra a partir do cenário). Substitui a decisão de 2026-10-17 de a formiga ter pixels menores que os do terreno. Registrado no documento 40.
+  - 2026-10-21 — etapa 3 pedida ("com valores provisórios") e implementada: borda iluminada e parede de fundo no shader do terreno (PRG-059).
+  - 2026-10-21 — o desenvolvedor não gostou da borda ("tira a borda dos elementos"): borda clara, faixa escura e contorno de 1 texel removidos do terreno; a parede de fundo com sombra de canto ficou.
+  - 2026-10-21 — etapa 6 pedida ("mapa de luz quantizado substituindo a névoa") e implementada (PRG-059): a névoa saiu.
+  - 2026-10-21 — ajuste da luz pedido pelo desenvolvedor, com print: a luz parte da entrada e avança pelo formigueiro, "apenas o início do formigueiro deveria ser iluminado deixando o interior em um forte breu"; "o pincel deve ficar em uma camada acima da iluminação"; a superfície "deve ser completamente visível". Feito: só o lado de fora é fonte, salas e túneis não emitem luz, marcações e pincel acima da luz.
+  - 2026-10-21 — segundo ajuste, com desenho: a luz de fora desce "sem limite para baixo" pelo caminho livre e só se espalha ao bater num bloco. Feito com um feixe por coluna.
+  - 2026-10-21 — luz aprovada pelo desenvolvedor ("Vi no jogo e a luz está aprovada assim"); etapa 6 concluída.
+  - 2026-10-21 — parede de fundo com sombra de canto aprovada pelo desenvolvedor ("está aprovada assim"); etapa 3 concluída.
+  - 2026-10-21 — o desenvolvedor pediu para começar pela etapa 2 enquanto decide a etapa 0; distância com sinal, teste e visualização de depuração implementados (PRG-059).

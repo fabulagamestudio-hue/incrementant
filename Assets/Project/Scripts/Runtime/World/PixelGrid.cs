@@ -450,6 +450,7 @@ namespace Fabula.Incrementant.World
 
             int i = y * Width + x;
             bool wasSolid = _cells[i] != CellMaterial.Empty;
+            bool wasPlant = CellMaterials.IsPlant(_cells[i]);
             if (material != CellMaterial.Empty && !CellMaterials.IsPlant(material) && CellMaterials.IsPlant(_cells[i]))
                 PushBehindAt(i);
             else if (CellMaterials.IsPlant(material))
@@ -490,8 +491,9 @@ namespace Fabula.Incrementant.World
             if (wasSolid != (material != CellMaterial.Empty) || wasBuilt)
                 StructureVersion++;
             Touch(x, y);
-            // Só abrir ou fechar a célula muda a névoa (blocos em volta); trocar sólido por sólido só muda a cor dela.
-            if (wasSolid != (material != CellMaterial.Empty))
+            // Abrir ou fechar a célula muda a luz e a borda dos blocos em volta; a planta também, porque o render pode
+            // desenhá-la à parte e tratá-la como vazio. Trocar sólido por sólido só muda a cor dela.
+            if (wasSolid != (material != CellMaterial.Empty) || wasPlant != CellMaterials.IsPlant(material))
                 DirtyShape(i);
             else
                 NoteRender(i);
@@ -1013,7 +1015,7 @@ namespace Fabula.Incrementant.World
             _renderLogCount++;
         }
 
-        /// <summary>A forma do terreno mudou na célula (aberta/fechada): o render refaz o bloco, a névoa depende dos vizinhos.</summary>
+        /// <summary>A forma do terreno mudou na célula: o render refaz o bloco e os vizinhos (luz e borda dependem deles).</summary>
         void DirtyShape(int index) => _chunkRender[ChunkOf(index)] = ++_renderCounter;
 
         /// <summary>Quantas células marcadas há no bloco.</summary>
