@@ -1,0 +1,1289 @@
+﻿{
+    "CreatedAt": "2026-10-22 17:58:03",
+    "Scripts": [
+        {
+            "Path": "Assets/Iung/Build Assistant/Editor/Menus/BuildAssistantMenu.cs",
+            "Hash": "a7f49b09934c8f5b0292ede154e5aa0a80f78d7e3951879046feed8425b7b972",
+            "Size": 828,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.5325429Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Editor/Services/BuildAssistantActivePlatformService.cs",
+            "Hash": "86b2d9df2b628f68cc3a163fabc36f385ba54e7e52cab3f61bd7c3ba7e57ae8f",
+            "Size": 1818,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.5430189Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Editor/Services/BuildAssistantBuildProfileService.cs",
+            "Hash": "b5aa5ff4aa578b78e8ed3bd822c7d5af14aceba66a6b093da316546c8c3ae9f4",
+            "Size": 3353,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.6778559Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Editor/Services/BuildAssistantBuildService.cs",
+            "Hash": "632dd9942b22d475c5fc2fe70362523b3d433dc639a985ce9a2164267182ad48",
+            "Size": 13637,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.6376982Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Editor/Services/BuildAssistantChangelogService.cs",
+            "Hash": "12d86b06a0ed6dffaf6d79c90363825af3dd4142d6974c4cb61ef5ae080cb641",
+            "Size": 10578,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.6475322Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Editor/Services/BuildAssistantEditorAssetLoader.cs",
+            "Hash": "3bf48ab0889f0080d6b6ee1a02ee35b2064dfeb426f874a56442c986d6285e06",
+            "Size": 912,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.5450187Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Editor/Services/BuildAssistantHistoryService.cs",
+            "Hash": "210bed84cd1050478cd430d22dcfaebe6d31ed29664342ceda2984ad02969e88",
+            "Size": 7871,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.6298418Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Editor/Services/BuildAssistantPaths.cs",
+            "Hash": "f43477fbafcd6f639ca9d046beba0bf33e380de42c28dfe73db49afe796e9a03",
+            "Size": 548,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.5470219Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Editor/Services/BuildAssistantPathUtility.cs",
+            "Hash": "89a10e0c6e0f583b9c9ac84d4c472015fdd6668bff3ed517184020fc036b1a92",
+            "Size": 3239,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.5575752Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Editor/Services/BuildAssistantPlayerSettingsService.cs",
+            "Hash": "bc66fb5c00f628d43035d5907a8f785882eb211f9785a7198a447dda57a36ea3",
+            "Size": 3964,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.5670936Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Editor/Services/BuildAssistantScriptChangeService.cs",
+            "Hash": "feab540a1202ad6b6472cf0fb87bac69f9fae7e913136e4ff4504b4000935194",
+            "Size": 10908,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.6682743Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Editor/Services/BuildAssistantSessionService.cs",
+            "Hash": "cf1dca72341c7a26c303d1a86c0a40d6a317d3a6ec1a3367aef950ca5398053c",
+            "Size": 7837,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.5781035Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Editor/Services/BuildAssistantSettingsService.cs",
+            "Hash": "03d15f01b57eed113a862db41badc4bcada0c3960eef56ab5c130bf3a55d1380",
+            "Size": 6398,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.5899279Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Editor/Services/BuildAssistantThumbnailDrawer.cs",
+            "Hash": "8a7458a35eedfb56722bb01c35e22c27f3adcdfd2e0b1d29ad33638872535fdf",
+            "Size": 644,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.5989398Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Editor/Services/BuildAssistantTmpVersionLabelEditor.cs",
+            "Hash": "e6ed8b8e6311c5b9d9108d0b4fbe3e2035570c947dd785b2173107fc6a9e83ae",
+            "Size": 2080,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.6049329Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Editor/Services/BuildAssistantValidationService.cs",
+            "Hash": "206966940f815f085aaf2e65bab0b36ed5d009e50365695f9cd9d1d3f7f98157",
+            "Size": 12443,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.6573106Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Editor/Services/BuildAssistantVersioningService.cs",
+            "Hash": "602dbf328e3a93a9419b05b56f31373ebcec444b32a2a64cf3d540582ac53cd1",
+            "Size": 6415,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.6155960Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Editor/Windows/BuildAssistantWindow.cs",
+            "Hash": "c001a3fc90a88721f647c669859217f4d60d9715a9518e241a2775e6b6a418e7",
+            "Size": 65740,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.6907520Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Runtime/Config/BuildAssistantSettings.cs",
+            "Hash": "ddd55269d65451d541f0f309a43a5b4f7d27695493631a99258b4ea49b7237a9",
+            "Size": 11736,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.7282215Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Runtime/Models/BuildAssistantChangelogEntry.cs",
+            "Hash": "20af33b15d9dff51308d117c214a4beed61ed4d28aac2bfc633c0d543a2245da",
+            "Size": 3156,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.8654629Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Runtime/Models/BuildAssistantChangelogNotes.cs",
+            "Hash": "8ae0a8143f6c8f509fac240395f123f099bbfe333dd1fb61ab4e561477ddef7b",
+            "Size": 3908,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.8826511Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Runtime/Models/BuildAssistantEnums.cs",
+            "Hash": "770b23ae28dabec1677696a97a7a45f340e18ced5c5d981f081915843bc038a7",
+            "Size": 606,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.7455145Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Runtime/Models/BuildAssistantFolderNameComposition.cs",
+            "Hash": "f3339cd91ffd3850b68a706334ec7c58f9060ca9253b46f21d6eba95cb43af29",
+            "Size": 3529,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.7611838Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Runtime/Models/BuildAssistantHistoryEntry.cs",
+            "Hash": "7a6c4235b74956cc6fbcedc84cb4c54f5265584a666467ce8cd025bb00a92712",
+            "Size": 932,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.7739362Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Runtime/Models/BuildAssistantProfileSession.cs",
+            "Hash": "864aac068c28a26785a3f8645f864426084eee391218a36176acba678de8d57d",
+            "Size": 447,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.8739752Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Runtime/Models/BuildAssistantReviewReport.cs",
+            "Hash": "cdf1b02e9c1852eb596ee8f9ec8e6092c125f4f6f8394fbec36910afbdd1a40a",
+            "Size": 804,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.7849651Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Runtime/Models/BuildAssistantScriptChangeReport.cs",
+            "Hash": "6a33154c1f8e126cf8d84d73416c056596237328daf7c2307f0d423ecc6567ee",
+            "Size": 928,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.7959175Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Runtime/Models/BuildAssistantScriptSnapshot.cs",
+            "Hash": "4c83a4957309c7977ee3c164479195752c78e81ab08912b8b12559b721359d11",
+            "Size": 639,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.8078560Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Runtime/Models/BuildAssistantSessionState.cs",
+            "Hash": "d8035bdc3b01ea8b8d6c4a9c0ac23bb57531f08a60eede8e5fa257205cc2fbe5",
+            "Size": 2474,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.8204531Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Runtime/Models/BuildAssistantValidationIssue.cs",
+            "Hash": "2315df67c6b72eacdcd652c7ecba63eaaa3b7a07f586cb76fcebac3f64694db9",
+            "Size": 738,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.8314191Z"
+        },
+        {
+            "Path": "Assets/Iung/Build Assistant/Runtime/UI/BuildAssistantTmpVersionLabel.cs",
+            "Hash": "f21da0ca42a119b9f47a3eeba59f48c0c817c2818363e0d7e7e3c915bdee347f",
+            "Size": 12948,
+            "LastWriteTimeUtc": "2026-10-22T18:23:06.9110055Z"
+        },
+        {
+            "Path": "Assets/Project/Art/Scenery/Source~/RefinedScenery/NormalizeScenery.cs",
+            "Hash": "840de452d69297f5aaa5c403a87d17d42e01c3b34ae51c773bb28b0d8e82cdb4",
+            "Size": 5515,
+            "LastWriteTimeUtc": "2026-10-21T22:14:59.7837657Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/AntFarm/AntFarmGameEditor.cs",
+            "Hash": "922ee211902565b3143eae19124597eb2e5a23bd848d8ff0108be43ca9592830",
+            "Size": 2726,
+            "LastWriteTimeUtc": "2026-10-17T12:33:22.3284362Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/AntFarm/AntSpriteGenerator.cs",
+            "Hash": "1477ea6a8a42d10ab96992a59b931dd86ac60fbe265ac7a36c165bb2a81eba90",
+            "Size": 10074,
+            "LastWriteTimeUtc": "2026-10-19T02:47:55.5568389Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/AntFarm/AntSpriteImporter.cs",
+            "Hash": "662bf5349e35d46172a2d98db204761ab7f6fc1840f6f82beb019cf2b6c745f7",
+            "Size": 4570,
+            "LastWriteTimeUtc": "2026-10-21T21:04:08.0477987Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/AntFarm/AphidSpriteImporter.cs",
+            "Hash": "29b332df505f2d6e3d0b07c2b9fb50c22e638bbebedf5dac491b9991d5a75d84",
+            "Size": 1664,
+            "LastWriteTimeUtc": "2026-10-21T20:59:10.5381538Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/AntFarm/SceneryArtExporter.cs",
+            "Hash": "9598db7010c3144c2070f4fdf06ee58dafc2f5ea24646fb90c05664e83486535",
+            "Size": 6669,
+            "LastWriteTimeUtc": "2026-10-17T13:22:25.7370786Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/AntFarm/SceneryArtImporter.cs",
+            "Hash": "cdeb9f59220d0b1ffe026ee61e3e14ac5e3b6ef585d0336870403b1bb57da72f",
+            "Size": 3356,
+            "LastWriteTimeUtc": "2026-10-21T22:06:10.0785077Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/Localization/LocalizationCatalog.cs",
+            "Hash": "5b96ec1dae394e7dee23fa72464ad11c93ff63ca4063966f6b97cb329df8734d",
+            "Size": 70937,
+            "LastWriteTimeUtc": "2026-10-22T20:08:27.2544521Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/Localization/LocalizationCatalog.Glossary.cs",
+            "Hash": "11e8522d473e3e3ad536041769c197e4d20dee3c9c60b27cf9e0f6ea0ebe836c",
+            "Size": 22501,
+            "LastWriteTimeUtc": "2026-10-22T20:08:20.1715680Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/Localization/LocalizationSetup.cs",
+            "Hash": "a68db4fee66be738c258234504598cc72770d7eebd23fdf685d07e6e80cda8b2",
+            "Size": 10828,
+            "LastWriteTimeUtc": "2026-10-19T23:41:50.2242439Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/Setup/AntFarmMapImporter.cs",
+            "Hash": "70307bd6a2f07e163622a78651ca7862dcd700c05854b2820a1688fd2d1d94ff",
+            "Size": 1732,
+            "LastWriteTimeUtc": "2026-10-17T11:25:36.3934855Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/Setup/AntFarmMapTools.cs",
+            "Hash": "c75d62838640bee9738259fa307c221273bac1866c866d4c2752fbbf89f0d17f",
+            "Size": 4171,
+            "LastWriteTimeUtc": "2026-10-17T11:36:51.0594751Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/Setup/AntFarmSceneSetup.cs",
+            "Hash": "9ae7af364242a37ff916acf96d0e8ae9a7815a39675bbf0cf62dd112e705b5c0",
+            "Size": 19179,
+            "LastWriteTimeUtc": "2026-10-22T12:24:44.4120184Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/Setup/PostProcessSetup.cs",
+            "Hash": "fc487599f2560e91326f8efdead81670f0a79b02954626fe8140c9b93ee8d94e",
+            "Size": 5257,
+            "LastWriteTimeUtc": "2026-10-21T19:43:45.7193915Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/Setup/ValidateRefinedSceneryTemporary.cs",
+            "Hash": "f2da2ba46ac9a4cbc64e2c622b3fda1e429a903388fff2fd2527b85792ff364e",
+            "Size": 5912,
+            "LastWriteTimeUtc": "2026-10-21T22:27:45.4523501Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/UI/AntFarmHudSetup.ColonyPanel.cs",
+            "Hash": "e5ff86bcd90be72fc3e54addfb94a009da2822e13e7da7cd347641da2516878b",
+            "Size": 15514,
+            "LastWriteTimeUtc": "2026-10-21T19:54:03.5835659Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/UI/AntFarmHudSetup.cs",
+            "Hash": "40ec8364c699ba6ff2239dac8069f9477a4e857ce80e1b5c3acbe8ce786b2503",
+            "Size": 83011,
+            "LastWriteTimeUtc": "2026-10-22T20:09:40.6818928Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/UI/AntFarmHudSetup.Evolution.cs",
+            "Hash": "3b4c93b2c2a4aad51861921a899fc375399d1a2f9d05510184d38b902760b95a",
+            "Size": 22960,
+            "LastWriteTimeUtc": "2026-10-20T19:02:58.7102045Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/UI/AntFarmHudSetup.Glossary.cs",
+            "Hash": "61026d67ee925de598db6238e018dc066e670be64cf3191056d0c1cb3c9c246c",
+            "Size": 7614,
+            "LastWriteTimeUtc": "2026-10-22T20:36:15.8000239Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/UI/AntFarmHudSetup.MainMenu.cs",
+            "Hash": "39572df913b7a31e2037db63fa4a2fed2356014cff43d4050653b89bf51b1770",
+            "Size": 17331,
+            "LastWriteTimeUtc": "2026-10-20T11:54:03.0610743Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/UI/AntFarmHudSetup.Version.cs",
+            "Hash": "068faad36ab8bd1c3e122a46d6f109f9ad8cb17ff7fe338fefac00b0b9e6bdae",
+            "Size": 15263,
+            "LastWriteTimeUtc": "2026-10-22T18:52:00.0018262Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/UI/GlossaryImageImporter.cs",
+            "Hash": "6a0b9a9cc914647b14488ea16daa451f59b5d72320e69435f22deb5f28496974",
+            "Size": 1157,
+            "LastWriteTimeUtc": "2026-10-22T20:35:53.0870179Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/UI/SkillTreeSpriteImporter.cs",
+            "Hash": "6add00b4fd0e1a610372db7fa2a23294f19412d317b314bab1485f961c79f059",
+            "Size": 3791,
+            "LastWriteTimeUtc": "2026-10-17T23:05:28.9719332Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/UI/SplashDissolveSetup.cs",
+            "Hash": "05bae71b1c2569a530838a77e10401201c5d4c5fd894117b6e8d7cf41c7afc78",
+            "Size": 22862,
+            "LastWriteTimeUtc": "2026-10-19T02:47:55.5638374Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/UI/SplashSceneSetup.cs",
+            "Hash": "4d2cd690b5a859c7eb209d9677e7492caec6935ee909ce633e617e6848e4033b",
+            "Size": 8741,
+            "LastWriteTimeUtc": "2026-10-19T02:47:55.5638374Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/UI/UiCursorImporter.cs",
+            "Hash": "bf70c61ac417edc345b97796468be65151647e11305161e1d4c42754715e9fd7",
+            "Size": 1039,
+            "LastWriteTimeUtc": "2026-10-19T02:47:55.5648381Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/UI/UiFontImporter.cs",
+            "Hash": "697fb37ce2960d3ad68843436846a1335058f422fcaa904fbb24139fffc514e6",
+            "Size": 1721,
+            "LastWriteTimeUtc": "2026-10-17T23:37:09.1841431Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Editor/UI/UiSpriteImporter.cs",
+            "Hash": "efff63da439f68ed174bbcbc0420ac82b63a199a3b80971aed1fe5af3887d7b9",
+            "Size": 5035,
+            "LastWriteTimeUtc": "2026-10-17T21:40:15.7371539Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/AntFarm/AntFarmGame.cs",
+            "Hash": "ba7e6a4a8740356dfc62b843b6856f5175040bbc2da81674a02d1bbec49de786",
+            "Size": 71310,
+            "LastWriteTimeUtc": "2026-10-22T19:45:16.1078680Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/AntFarm/AntFarmView.cs",
+            "Hash": "b351f6bc3280d84117255f20109d986bfcdc6070ac2f5cfe185439718e225288",
+            "Size": 48863,
+            "LastWriteTimeUtc": "2026-10-22T14:08:35.7827808Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/AntFarm/AntFarmView.Light.cs",
+            "Hash": "a7f77e161329e0c699c5cd30d4f750d7dad5f107fcc44211ddacc4a87a16a865",
+            "Size": 14519,
+            "LastWriteTimeUtc": "2026-10-21T19:43:45.7193915Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/AntFarm/AntSwarmView.cs",
+            "Hash": "dc0b407df2d9ab9a4acb6484e80758c17bbbee860241752e1c894594bce4635c",
+            "Size": 36967,
+            "LastWriteTimeUtc": "2026-10-22T12:24:40.6111581Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/AntFarm/BroodView.cs",
+            "Hash": "279abec5dedda2d221379164d887f389036a903f865dc85d140c584167a8167f",
+            "Size": 4586,
+            "LastWriteTimeUtc": "2026-10-18T10:46:48.9078725Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/AntFarm/CellTileArt.cs",
+            "Hash": "2d81f55917b62588755c0f77c537ea1ee4ea003585dd4da501f48e5edee0aa49",
+            "Size": 11627,
+            "LastWriteTimeUtc": "2026-10-22T13:25:06.7196760Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/AntFarm/CultivationView.cs",
+            "Hash": "d10a8f094201f9649ab30c6bdba6d7990a2d09b9ed15f27431279b847e6ea9de",
+            "Size": 11253,
+            "LastWriteTimeUtc": "2026-10-19T02:47:55.5698386Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/AntFarm/MapCamera.cs",
+            "Hash": "e17f5707f4dee6ea69222cb6d60ff8c4ef2d439933af462bfbc8a5a0225f0650",
+            "Size": 17787,
+            "LastWriteTimeUtc": "2026-10-21T21:32:08.9570117Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/AntFarm/MatchTimer.cs",
+            "Hash": "a2e047b2eca15b72caaa450a0354bff1a0266b41dd43e72ac58c265f542e3e25",
+            "Size": 1103,
+            "LastWriteTimeUtc": "2026-10-17T14:11:16.7106372Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/AntFarm/MenuShowcase.cs",
+            "Hash": "09933fc04a0e754f6af7067551ff1edbdb2224c18669bbc30068a31527a589c7",
+            "Size": 9946,
+            "LastWriteTimeUtc": "2026-10-19T02:47:55.5708379Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/AntFarm/PlantCellMask.cs",
+            "Hash": "f28f16c353d032f3685fd5bbb7ecb515de4fbf3c8fde34db9c78fbbca2b6f868",
+            "Size": 1834,
+            "LastWriteTimeUtc": "2026-10-21T22:22:59.8466522Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/AntFarm/PlantSprites.cs",
+            "Hash": "61bab6ce3fe66873c43beead9fc3efd3bffaf1c039268dc32588343cf2bdc611",
+            "Size": 13807,
+            "LastWriteTimeUtc": "2026-10-21T22:22:59.8476525Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/AntFarm/ProgressBarsView.cs",
+            "Hash": "1a6622c3d9ddca1a244af4b63b1c8649e98f70e17b0cef9a4299caf451bb4693",
+            "Size": 3781,
+            "LastWriteTimeUtc": "2026-10-20T16:27:59.6716604Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/AntFarm/SceneryArtSet.cs",
+            "Hash": "339e1b94c1615a778f27e1fbb37aa643685bec48e94c855331367c3b3265e3ba",
+            "Size": 3610,
+            "LastWriteTimeUtc": "2026-10-17T13:21:40.0045889Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/AntFarm/SceneryStamps.cs",
+            "Hash": "576ba5f5629b6e7b539a9ad527f811b0de8808fcf40dfe279c7fd1548277fd89",
+            "Size": 8775,
+            "LastWriteTimeUtc": "2026-10-21T22:05:38.1127873Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/AntFarm/SimStatsOverlay.cs",
+            "Hash": "d68ea8b400756719530a38bcbded76e56dd2f39b0e0eeeb7ebd3224036d163e6",
+            "Size": 8788,
+            "LastWriteTimeUtc": "2026-10-21T12:39:43.2692874Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/AntFarm/SurfaceSceneryPainter.cs",
+            "Hash": "e33f5e7af35fd3e899f16b1b5c4228f9f2f8bbf81348c5d37b83a8f8359e232f",
+            "Size": 42624,
+            "LastWriteTimeUtc": "2026-10-21T21:38:06.2335006Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/AntFarm/SurfaceSceneryView.cs",
+            "Hash": "423810fa8836c322ad1f25491320541b4c6633cc5713fa21fc32539879dcba5c",
+            "Size": 12795,
+            "LastWriteTimeUtc": "2026-10-21T21:44:48.0806176Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/AntFarm/TerrainTileAtlas.cs",
+            "Hash": "190b97943b006fe3a9ddc1f10ec648e5b07fbd2a33ea64b46469c7f21de253d0",
+            "Size": 6309,
+            "LastWriteTimeUtc": "2026-10-22T13:25:14.5521423Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Audio/ButtonSfx.cs",
+            "Hash": "c2ea2efefca6d452068c630c14b66e9450db8cc39fc8c84091a2eab0636dc293",
+            "Size": 1144,
+            "LastWriteTimeUtc": "2026-10-19T02:47:55.5738869Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Audio/GameAudio.cs",
+            "Hash": "0a2b7736d150f9f6f6ccc7429338fdcb14781529d1443c18153c6f730b9915f6",
+            "Size": 10894,
+            "LastWriteTimeUtc": "2026-10-20T19:45:30.1890677Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Audio/MusicPlayer.cs",
+            "Hash": "f2795abf5bda4026cee67ef9d07474ed410e4bcd4ffd859f8c3c5d5d8dfe7921",
+            "Size": 3830,
+            "LastWriteTimeUtc": "2026-10-19T02:47:55.5748864Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Audio/SceneMusic.cs",
+            "Hash": "de8385eb5fe0a4ea7cb7bc9e218fbbc6a05e9a0825b1cbf194d6ec2b03d0ec2b",
+            "Size": 754,
+            "LastWriteTimeUtc": "2026-10-19T02:47:55.5758873Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Audio/SfxId.cs",
+            "Hash": "0300ac3afe7fdebfc6ec236bd12f49285ec332fec57bdd75a560c0e625feb6e3",
+            "Size": 773,
+            "LastWriteTimeUtc": "2026-10-20T11:54:03.0590745Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Audio/SfxSynth.cs",
+            "Hash": "7a5af78482199c3007644dff855ca4ed3c8370a87b9e31819534f587b92f3972",
+            "Size": 14724,
+            "LastWriteTimeUtc": "2026-10-20T11:54:03.0590745Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Colony/Ant.cs",
+            "Hash": "8433268d80bd3667b82de563831b0d699aed32bf784c4c76c3cc7186e15ced09",
+            "Size": 28479,
+            "LastWriteTimeUtc": "2026-10-22T12:24:10.8260281Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Colony/AntColony.Audio.cs",
+            "Hash": "49b343fa531bebaebd6ae2df9c7aa34844eb04af3fd6852542740d23fab69b70",
+            "Size": 936,
+            "LastWriteTimeUtc": "2026-10-20T19:45:04.9470121Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Colony/AntColony.Burial.cs",
+            "Hash": "d54af5df7c9866759059a595cc82d0b12bc3cc8a8030d20a018be33953fb00b0",
+            "Size": 8228,
+            "LastWriteTimeUtc": "2026-10-20T11:55:36.1498462Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Colony/AntColony.Care.cs",
+            "Hash": "0cc3de15595ab558801cb8d4bc6234367544099cf54e5774c2bf04c1306027f7",
+            "Size": 19612,
+            "LastWriteTimeUtc": "2026-10-21T22:12:08.0018317Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Colony/AntColony.cs",
+            "Hash": "02fd9fae6cdaab8f22c598938cd18f38d00ca35ba6d84c942ee09ae0a98cca15",
+            "Size": 188803,
+            "LastWriteTimeUtc": "2026-10-22T16:20:15.8655459Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Colony/AntColony.Cultivation.cs",
+            "Hash": "b30dfabfd7673a2579668aa20e78def933a39ff14608208b2fe63efba85946b4",
+            "Size": 63537,
+            "LastWriteTimeUtc": "2026-10-22T14:08:20.9721698Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Colony/AntColony.Dew.cs",
+            "Hash": "e3d3ce8cd5bf6bf4577c3a13baaa5fbb291862f73eb8dbbe3346ae9fb15fd668",
+            "Size": 32963,
+            "LastWriteTimeUtc": "2026-10-20T22:05:39.2890152Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Colony/AntColony.Farm.cs",
+            "Hash": "07df98a72fc22b8f7f8afc8eda5273502601afd35f2f3736beec3f771961bf50",
+            "Size": 53791,
+            "LastWriteTimeUtc": "2026-10-22T18:01:59.3230336Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Colony/AntColony.Fx.cs",
+            "Hash": "8337fb3d7a58c9f1ea258fd13bfd20e4fe6765cad7039a47eb374c13ec82a6d5",
+            "Size": 1264,
+            "LastWriteTimeUtc": "2026-10-19T13:29:08.1393726Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Colony/AntColony.Lining.cs",
+            "Hash": "314d9d40b1b543db6b58d41b0db6a31cd9ef705ccdc9e9813d783c5be2d3ad59",
+            "Size": 12303,
+            "LastWriteTimeUtc": "2026-10-22T16:20:15.9234328Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Colony/AntColony.Raids.cs",
+            "Hash": "19ba9b40f3f7dcf545ac82a6926faf28b21f08910c3cddbfdb43fbd3b354e896",
+            "Size": 89886,
+            "LastWriteTimeUtc": "2026-10-22T12:12:38.6913489Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Colony/AntColony.Storage.cs",
+            "Hash": "d589e617d70722c4724eaf0794b83f8786317f90eb2627275a53815a1cdc3983",
+            "Size": 48651,
+            "LastWriteTimeUtc": "2026-10-22T14:08:20.9711676Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Colony/AntColony.Waste.cs",
+            "Hash": "a3375ea7e75a450e92d4db4069d0958fa48d9dd542ddca7e6203233a0ddad7ef",
+            "Size": 27868,
+            "LastWriteTimeUtc": "2026-10-21T11:24:00.3377642Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Colony/AntColony.Work.cs",
+            "Hash": "ab32813a1726ef0064ae67545305949fa6eda1ae87a3a1b709e0f861d3052142",
+            "Size": 19543,
+            "LastWriteTimeUtc": "2026-10-22T14:08:20.9711676Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Colony/Aphid.cs",
+            "Hash": "173f72f332189137ebd0712e7d3e39bcd8ce66836b443e5e641d3f8545c0f1e5",
+            "Size": 1882,
+            "LastWriteTimeUtc": "2026-10-22T17:46:20.3520750Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Colony/BroodCycle.cs",
+            "Hash": "3e6041660a6704e204bcaff83517c59c74ae88dfc29eb47bf1c097272350cbec",
+            "Size": 22052,
+            "LastWriteTimeUtc": "2026-10-20T16:27:49.7006579Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Colony/ColonySettings.cs",
+            "Hash": "4aa85340f4d9ac57c3c431bc73bdf7380b287c2fda71a46d0a5ae00e929d7ca2",
+            "Size": 12865,
+            "LastWriteTimeUtc": "2026-10-22T17:46:20.2970439Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Colony/ColonyWork.cs",
+            "Hash": "3d8600dacf9eb356444cf02d59139eb24b098c1c9feb56575a3c948d29fdf4c6",
+            "Size": 9173,
+            "LastWriteTimeUtc": "2026-10-22T12:05:45.9499817Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Colony/FlowField.cs",
+            "Hash": "4c5fba984f3bb4910d2706bcef02835d4fcb9189f881e461be9953beb3b4041b",
+            "Size": 27057,
+            "LastWriteTimeUtc": "2026-10-20T12:44:14.2262698Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Colony/PaintBudget.cs",
+            "Hash": "2e725d1cfc89bd526184a3a52bf3e31572e8074c0136438e1099bcb17bcb7248",
+            "Size": 10754,
+            "LastWriteTimeUtc": "2026-10-22T14:06:12.7004129Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Colony/PointIndex.cs",
+            "Hash": "930a1d7eb937321f47a3db69be842eb7756ee44a3d453d8d0fc8e85da50c1e8c",
+            "Size": 3906,
+            "LastWriteTimeUtc": "2026-10-20T20:35:51.7006600Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Colony/QueenTree.cs",
+            "Hash": "f0690130107a486a5527ad8a3779acb76f781c3d1f54417798b30a8bd8867464",
+            "Size": 19101,
+            "LastWriteTimeUtc": "2026-10-22T12:05:59.3654109Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Colony/RaidSettings.cs",
+            "Hash": "b6401ee00f84bc6f783371058e977ad64e469e7d5598787dc36cd1fca09a4417",
+            "Size": 10194,
+            "LastWriteTimeUtc": "2026-10-21T22:44:48.1750532Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Colony/Termite.cs",
+            "Hash": "9867a748ea6f85464c139a6e6d9a1ec4373a60d9ff3f3896aeb14a007ef68cce",
+            "Size": 5258,
+            "LastWriteTimeUtc": "2026-10-22T12:12:38.6913489Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Colony/WalkabilityMap.cs",
+            "Hash": "c03cc07f64f5ba7d65c734411b07a590f8ae42ab3ef7e0bee44d1ed9e13c69c3",
+            "Size": 7685,
+            "LastWriteTimeUtc": "2026-10-20T21:48:04.6931970Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Diagnostics/SimProfiler.cs",
+            "Hash": "2f656c352ca155f2ebab687e83a3deb9bf0625dd26528003c598de9ed03f07c5",
+            "Size": 7070,
+            "LastWriteTimeUtc": "2026-10-21T12:39:16.1106445Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Glossary/GlossaryContent.cs",
+            "Hash": "818d1736cbeb9c3e4adbc32b0d7b4db3ea4e8380acc15c39666c1b61f0df6878",
+            "Size": 1994,
+            "LastWriteTimeUtc": "2026-10-22T20:07:06.6487211Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Glossary/GlossaryScreen.cs",
+            "Hash": "b100b5db43e12306771616666a0fb5737120359a17a545c11f6774c9ae208acb",
+            "Size": 6621,
+            "LastWriteTimeUtc": "2026-10-22T20:36:01.1721902Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Juice/ButtonJuice.cs",
+            "Hash": "04c9cbeed1364119100be20a068419830cddfa6fb2342632ee29f5e1e4485a9e",
+            "Size": 9938,
+            "LastWriteTimeUtc": "2026-10-19T13:43:38.0305405Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Juice/Easing.cs",
+            "Hash": "a70e667f7ced8c5d3e4e8c29c135fb59232705093f31ce4dde43a65b7850f5ef",
+            "Size": 1117,
+            "LastWriteTimeUtc": "2026-10-19T02:47:55.5898865Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Juice/FloatingText.cs",
+            "Hash": "01dcff7c26906ab52ed57ba0a489656476a4c066408168dadd670bb99dadaea3",
+            "Size": 9346,
+            "LastWriteTimeUtc": "2026-10-19T13:29:53.2194865Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Juice/FxAggregator.cs",
+            "Hash": "e2a9e82122effd95707f1025109fd435adf01b20ff880eb3f3433460cb47444d",
+            "Size": 1316,
+            "LastWriteTimeUtc": "2026-10-19T13:29:17.9806027Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Juice/FxId.cs",
+            "Hash": "fca113bdab2c17b5ad4a2a50e099f9ee0c73ca0fb6f1eafe964163a2bd24c917",
+            "Size": 844,
+            "LastWriteTimeUtc": "2026-10-19T02:47:55.5918877Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Juice/FxLimiter.cs",
+            "Hash": "18993b316dffbe3d23a9691e4c5405716623adb24559d8c779e14244ed01ce53",
+            "Size": 1002,
+            "LastWriteTimeUtc": "2026-10-19T02:47:55.5928879Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Juice/PanelAnimator.cs",
+            "Hash": "1c8a32f0353afe9b5dd85b6631f4a2962f47b352def9a9ca4ed38ede4b5782c0",
+            "Size": 3570,
+            "LastWriteTimeUtc": "2026-10-19T02:47:55.5938891Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Juice/Pulse.cs",
+            "Hash": "f40f8f1830a0c7ca2e6f279072ff268170c6cad67714af262526b1be84c938b2",
+            "Size": 3657,
+            "LastWriteTimeUtc": "2026-10-19T02:47:55.5948886Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Juice/Vfx.cs",
+            "Hash": "2f58be9baacf767da5a4fd8a9e88b348c9f8dd22124bc5de08210ca191260be5",
+            "Size": 1067,
+            "LastWriteTimeUtc": "2026-10-19T02:47:55.5948886Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Juice/WorldFx.cs",
+            "Hash": "a8b63e1ac81b673bad4d210853607ae08e5da8447f5f25eafae362c8ce8ef8d5",
+            "Size": 7878,
+            "LastWriteTimeUtc": "2026-10-19T13:30:04.3786537Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Menu/GameLaunch.cs",
+            "Hash": "decdf1a9aaa1d7260fb8de7b2baf0e8236a63aff6b72938ff530363cbc62579e",
+            "Size": 1121,
+            "LastWriteTimeUtc": "2026-10-19T02:47:55.5968865Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Menu/MainMenu.cs",
+            "Hash": "9db3a9e09001d4732955f7e83eab24731124cc6eb0e9f23e134d0e5ee862f84b",
+            "Size": 6989,
+            "LastWriteTimeUtc": "2026-10-22T18:50:05.6810660Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Menu/SplashLogoDissolve.cs",
+            "Hash": "8362604390cb5376fe18e4c3c9c65d391582bdfac07d6fc7ddd44a5633ed4eb0",
+            "Size": 2389,
+            "LastWriteTimeUtc": "2026-10-19T02:47:55.5988865Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Menu/SplashScreen.cs",
+            "Hash": "24d6637ac0021154c5c321d59ce21418ccefcd21c8b442f5a3729021ae90a14f",
+            "Size": 4694,
+            "LastWriteTimeUtc": "2026-10-19T02:47:55.5988865Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Save/ColonyHistory.cs",
+            "Hash": "851b0e8c0ee20056b31a443725919a5f22decdc9f63f9e43934b6cc4335b4480",
+            "Size": 3188,
+            "LastWriteTimeUtc": "2026-10-20T16:27:02.8991133Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Save/GameSnapshot.cs",
+            "Hash": "bfd6fa65a7abd69dcd2d73d58b6ea48ba68f5641ba009ba90484403888d6b668",
+            "Size": 38822,
+            "LastWriteTimeUtc": "2026-10-22T18:01:11.5598999Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Save/SaveStorage.cs",
+            "Hash": "5acbdc93bdca5b14f3b985f42076647ed2cb97d5d442535f229ef16915e1f195",
+            "Size": 1197,
+            "LastWriteTimeUtc": "2026-10-17T14:11:16.6770606Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Settings/GameSettings.cs",
+            "Hash": "379e4f2cdbe8a679da40f2d7f42d7c348fb040d8fc17bbd000bef155fe5e56af",
+            "Size": 4889,
+            "LastWriteTimeUtc": "2026-10-19T02:47:55.6184508Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Settings/GameSettingsData.cs",
+            "Hash": "2a65cec851fe3847f04642c1fe78210d458c2061f90bfd482d2dedc1c6a05e33",
+            "Size": 4205,
+            "LastWriteTimeUtc": "2026-10-21T19:53:24.3426840Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Settings/PostProcessSettingsBinder.cs",
+            "Hash": "d441158097ae1690950fe03dd1d0d7e99e4bf011efbca96fac56a36055302874",
+            "Size": 1706,
+            "LastWriteTimeUtc": "2026-10-21T18:44:21.6998369Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Texts/Loc.cs",
+            "Hash": "6329dec47c5c64f322306255bf9a9b96c956eb3ea5117c4d5a9116a291ca9b6a",
+            "Size": 6639,
+            "LastWriteTimeUtc": "2026-10-20T00:43:21.1171811Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Tutorial/TutorialDirector.cs",
+            "Hash": "994c98fc87aeb858bb3de35aed006963a58fa57e1b6ca3a701b45f5648a8563c",
+            "Size": 17900,
+            "LastWriteTimeUtc": "2026-10-22T20:09:15.2029484Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/UI/AntFarmHud.cs",
+            "Hash": "9c92302ffdc41903b397cc572edc77c95fcaa247b331012e7ccea205bb358aea",
+            "Size": 42004,
+            "LastWriteTimeUtc": "2026-10-22T20:09:05.5549951Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/UI/BuildVersionOverlay.cs",
+            "Hash": "957b5c7721493f96a6b6a3c5d656e7faaa83407e2085d8983d585f6aa9302f09",
+            "Size": 3410,
+            "LastWriteTimeUtc": "2026-10-22T18:49:43.5679693Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/UI/CaveGraphic.cs",
+            "Hash": "40e27e035551003964076fe7375cc985ee14de94927d568e953d8f2f048389f4",
+            "Size": 6994,
+            "LastWriteTimeUtc": "2026-10-20T19:01:36.3302465Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/UI/ColonyMenuDrawer.cs",
+            "Hash": "85b04f1de77d6a645cad69aa1dd8d3ae6a11d4529e5bb2476c96bc5585bc59a9",
+            "Size": 3234,
+            "LastWriteTimeUtc": "2026-10-22T20:00:17.6012641Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/UI/ColonyPanel.cs",
+            "Hash": "03235a9d7af88f4abfbc0b2d441414b1afd1d633af1fcecd9c2f331ecfe0d10a",
+            "Size": 23986,
+            "LastWriteTimeUtc": "2026-10-22T12:15:24.4907275Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/UI/GameOverScreen.cs",
+            "Hash": "7c1eec983a2ccfdbe6415b7f6b38579e896f13f0227bcd685820c3c97ef09d09",
+            "Size": 2457,
+            "LastWriteTimeUtc": "2026-10-19T02:47:55.6644517Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/UI/HiveTreeInfo.cs",
+            "Hash": "603fc1bf1547c8d2808fa2bbe2f861644d988c40c7c57238e4eda87e4934a114",
+            "Size": 3537,
+            "LastWriteTimeUtc": "2026-10-20T00:58:42.5880130Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/UI/HudTooltips.cs",
+            "Hash": "224d4294a80c606817346090f17db8672314d3caa2fcb65a7215beecb9f3a0f3",
+            "Size": 7689,
+            "LastWriteTimeUtc": "2026-10-19T02:47:55.6659788Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/UI/HudTooltipTexts.cs",
+            "Hash": "4c7bb0c0ac29b1f4aa2132fd7c5e796f068fa710005a192a8b4b3769d1ad67c9",
+            "Size": 12732,
+            "LastWriteTimeUtc": "2026-10-22T12:40:36.3627759Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/UI/PauseMenu.cs",
+            "Hash": "fd04e579117058c010aae3aa6e116adafbd3a4a5a825087a2b58b0eb80d70d53",
+            "Size": 5437,
+            "LastWriteTimeUtc": "2026-10-22T20:09:15.2029484Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/UI/RingGraphic.cs",
+            "Hash": "128702f9eee3b5691f06b19b2eca1e609de6c55e31d055166b2d046739dccedf",
+            "Size": 1766,
+            "LastWriteTimeUtc": "2026-10-19T23:33:19.3339570Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/UI/SettingsScreen.cs",
+            "Hash": "d87f0f626f751531a10a8872cdc11e0bd464ee4480cd1ae882cd8f6c7bbbe2d6",
+            "Size": 11644,
+            "LastWriteTimeUtc": "2026-10-22T16:46:02.8092750Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/UI/SkillNodeWidget.cs",
+            "Hash": "60e1b3148fd92e0c09c39b8f94e9f2277a3c33fd19e2a7d21cbe3e801f66f686",
+            "Size": 4276,
+            "LastWriteTimeUtc": "2026-10-20T19:14:34.9569721Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/UI/SkillTreeScreen.cs",
+            "Hash": "a051e33a288c6f7330b2f4507880631790fa8121ebc7ef403ea1f5b0b5812d0f",
+            "Size": 28365,
+            "LastWriteTimeUtc": "2026-10-22T19:26:32.5218520Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/UI/TermiteMarkers.cs",
+            "Hash": "e93e964677248464cfe5f39d9b9834d52af6e9431d90c87a6cfb9401f51350e4",
+            "Size": 9647,
+            "LastWriteTimeUtc": "2026-10-19T02:47:55.6689688Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/UI/TreeViewport.cs",
+            "Hash": "94a103ccaf25d39731cfb9fb313707e066419007ff71bfbdd6a92f22c70f2177",
+            "Size": 4406,
+            "LastWriteTimeUtc": "2026-10-19T23:33:19.2998055Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/UI/TunnelPathGraphic.cs",
+            "Hash": "7e0fed0f3d65a07cc38045799e98b9bc96fc74067de5c513adbe00840ccf2f45",
+            "Size": 4159,
+            "LastWriteTimeUtc": "2026-10-20T19:01:20.9572624Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/UI/VersionHistoryScreen.cs",
+            "Hash": "5e8e9d082305e3a9e4e72941a2d6bf68266cf0f4097ad96a67896573c278f868",
+            "Size": 8230,
+            "LastWriteTimeUtc": "2026-10-22T19:00:12.7894968Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Upgrades/UpgradeBoard.cs",
+            "Hash": "19d51c078fedbe990060281e945dacce4604ff440898d97e88cc88f695305101",
+            "Size": 7332,
+            "LastWriteTimeUtc": "2026-10-22T12:06:18.9877093Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Upgrades/UpgradeCatalog.cs",
+            "Hash": "75820dcdd33b82723df6c891ba22afd865494d4f7df538e260a70781a1c85438",
+            "Size": 24416,
+            "LastWriteTimeUtc": "2026-10-22T12:40:36.3617757Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Upgrades/UpgradeEffects.cs",
+            "Hash": "3cd92b232889578e5a495d0d97cff7f92f0a067e3c22a31772ca22b1138a73c8",
+            "Size": 8244,
+            "LastWriteTimeUtc": "2026-10-22T12:06:18.9877093Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Upgrades/UpgradeLayout.cs",
+            "Hash": "ca7477fa63a0c143a2a3f00d4c249d2a8564eb1b95b4945f0971b0785f6233d9",
+            "Size": 5814,
+            "LastWriteTimeUtc": "2026-10-20T18:50:24.4050500Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/Upgrades/UpgradeLevels.cs",
+            "Hash": "7eb91bf446be03b2039f276b542caa8c4ebc0ccc1d2eb59561e89dd0204cfe90",
+            "Size": 2607,
+            "LastWriteTimeUtc": "2026-10-20T10:33:27.7756579Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/World/CellMaterial.cs",
+            "Hash": "ec463c8743d833bf5491468a47f3290369af6da4b8a583a86c65e706b7483213",
+            "Size": 11000,
+            "LastWriteTimeUtc": "2026-10-21T20:20:13.0365238Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/World/GranularSimulation.cs",
+            "Hash": "b1bd290af2826207785543700ef38e579ad4bf6e25e5fddc3cb8372412e8c6df",
+            "Size": 4678,
+            "LastWriteTimeUtc": "2026-10-19T17:27:49.5582873Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/World/PixelGrid.cs",
+            "Hash": "7edce9142c41d077e95fde82883b1459701afa5d246fc410d8b5d851df578efe",
+            "Size": 60642,
+            "LastWriteTimeUtc": "2026-10-22T14:06:01.1968045Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/World/PixelGrid.Storage.cs",
+            "Hash": "18af5459ad547af0a8feefa4be9b8e3eed7670c8ef2161567f742d9ade89579a",
+            "Size": 9307,
+            "LastWriteTimeUtc": "2026-10-22T12:40:04.0507687Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/World/RainSimulation.cs",
+            "Hash": "d578275ca53c26c24da40be58e1d495dcd23969ff4abb465e4326c60111f6b28",
+            "Size": 13506,
+            "LastWriteTimeUtc": "2026-10-19T02:47:55.6799683Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/World/TerrainGenerator.cs",
+            "Hash": "0f9415d31e58ecd732573e082d7bca290926d1b5ebcb339677228ba206574a7e",
+            "Size": 26625,
+            "LastWriteTimeUtc": "2026-10-20T20:08:02.4166749Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/World/TerrainMapCodec.cs",
+            "Hash": "e743def2e6113284ca36f11f82b55ae9fb6443e1a61cbbc808ff8499c2e1ee54",
+            "Size": 5861,
+            "LastWriteTimeUtc": "2026-10-19T14:27:26.3113594Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/World/VegetationSimulation.cs",
+            "Hash": "201f31cc29683890dd71530a1dbe4c1a4b7de34f439927cd43204ab7580e68c6",
+            "Size": 39022,
+            "LastWriteTimeUtc": "2026-10-20T10:36:14.1305473Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Runtime/World/WaterSimulation.cs",
+            "Hash": "5e608b3898cbc690e4d715625fa3b4fbc9a8cc7ad6d6aafe1c7bddd0bdd666a1",
+            "Size": 19374,
+            "LastWriteTimeUtc": "2026-10-20T21:29:57.2609830Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/AntFarmSimulationTests.cs",
+            "Hash": "fd3f492a76a93a6c7871578a3a443c0b9d6671d623d5ab645671cb88d299a407",
+            "Size": 26354,
+            "LastWriteTimeUtc": "2026-10-18T00:03:06.5934998Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/BroodTests.cs",
+            "Hash": "6a81d3c05792ef110b96249e5638731113421a6b9747a73308cefc0dfb2e60a8",
+            "Size": 23005,
+            "LastWriteTimeUtc": "2026-10-21T14:07:03.7305379Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/BurialTests.cs",
+            "Hash": "75d5b9537ca819e432fc1ad22912e68ed063ae7156a9cdeb517c0f0203af5dff",
+            "Size": 4461,
+            "LastWriteTimeUtc": "2026-10-20T11:57:00.6632328Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/CarryAndRockTests.cs",
+            "Hash": "0cf5ace7c716d7d4ddb8472168033248cfbc35033aeecfb9270655a73ecd9862",
+            "Size": 5775,
+            "LastWriteTimeUtc": "2026-10-18T00:05:39.7313155Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/ChunkedSimulationTests.cs",
+            "Hash": "b4a58dd7d2bb6b51b17c73940f3068d88309d4b1346269d890e640955ffa8259",
+            "Size": 8127,
+            "LastWriteTimeUtc": "2026-10-17T12:47:26.1983874Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/ColonyWorkTests.cs",
+            "Hash": "f03449ddf76ee27067ffc0ac1e07399e5b753401bb7c45d52e4fcab7600baf94",
+            "Size": 11927,
+            "LastWriteTimeUtc": "2026-10-21T13:52:48.2860872Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/CombatSpreadTests.cs",
+            "Hash": "15d7765164a8687d609fc1b83e69fc4eb8152b5246afcf97b03ccde76763cc81",
+            "Size": 11735,
+            "LastWriteTimeUtc": "2026-10-20T15:32:51.3762501Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/CultivationTests.cs",
+            "Hash": "ae07e5a0221f411cd5df83aa74a855bf352d8c3e5be8890b8d5676de351c5b23",
+            "Size": 20620,
+            "LastWriteTimeUtc": "2026-10-22T16:26:59.3454325Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/DewRoomTests.cs",
+            "Hash": "062b2f6c1438c1e74205dac62c6a6efcc8824583d84ee2761f72d7c8116308ac",
+            "Size": 31392,
+            "LastWriteTimeUtc": "2026-10-22T16:26:59.3464326Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/DigReservationTests.cs",
+            "Hash": "0df3236c3bb6a31e0d60a0cede922d81133b8dfb8d8fb7529b0a8dc9511f82e7",
+            "Size": 8435,
+            "LastWriteTimeUtc": "2026-10-21T13:13:32.6144238Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/DownhillTieBreakTests.cs",
+            "Hash": "ec74f62e68a2973196007454aab9d2fd5bee76b99c537acbe39ce00da330dcc4",
+            "Size": 4147,
+            "LastWriteTimeUtc": "2026-10-19T20:26:10.9286252Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/DropDisconnectedTests.cs",
+            "Hash": "8f0be45b08f5c03580043b5ce1b4e464e25f6f892862301fdb92b59bf75f47f9",
+            "Size": 4879,
+            "LastWriteTimeUtc": "2026-10-18T12:23:01.8244814Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/FarmTests.cs",
+            "Hash": "6bcbaa04e2ce7aba250bac4f133d7941a8a3cdc69035838d6bbfb52248f0871a",
+            "Size": 17751,
+            "LastWriteTimeUtc": "2026-10-22T18:02:12.5582796Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/FieldRefreshDeferralTests.cs",
+            "Hash": "eda052c06bf2b2b20d8c57578eeb1855811dbdb00cea1c1ed3a66f51261ef51e",
+            "Size": 2242,
+            "LastWriteTimeUtc": "2026-10-18T12:18:18.0784246Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/FlowFieldIncrementalTests.cs",
+            "Hash": "646626f16ee3f5568f9461c8e783bdbea66548d1c280dab91150d0b4998be4ac",
+            "Size": 5045,
+            "LastWriteTimeUtc": "2026-10-18T11:57:37.8438369Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/GalleryTests.cs",
+            "Hash": "5d65e806769e151fc705cba9a85379a8335cc66a86f15212cfea524ec96eb01e",
+            "Size": 9728,
+            "LastWriteTimeUtc": "2026-10-20T10:37:09.7683016Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/GameSettingsTests.cs",
+            "Hash": "9d5846f4c27351d42be11b401b22b963354612537c3788644fc9e1a4b895abd4",
+            "Size": 3895,
+            "LastWriteTimeUtc": "2026-10-21T19:58:36.7610528Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/GlowMushroomTests.cs",
+            "Hash": "43b6911e01e171a0533d0cf5219a9d8dfcd86cba6a3defe26a751714ab1e0d8b",
+            "Size": 13332,
+            "LastWriteTimeUtc": "2026-10-22T12:40:36.3634117Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/JuiceTests.cs",
+            "Hash": "b06d902b3b3d52924d022376846c4fb00eef1c1764f1c23b08c5d136e662dccb",
+            "Size": 3164,
+            "LastWriteTimeUtc": "2026-10-19T13:30:48.2052475Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/KnownIssuesScenarioTests.cs",
+            "Hash": "99d71d6262299f10f77a736a36868e0b94933c4c79e36654246ad79982fcc6ae",
+            "Size": 29775,
+            "LastWriteTimeUtc": "2026-10-20T21:49:10.2499701Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/LocalizationTests.cs",
+            "Hash": "7cd3aac0748c0a8d416eb0196f33da4febba1750f923db7b821199f50ad22818",
+            "Size": 4593,
+            "LastWriteTimeUtc": "2026-10-22T20:10:02.3783388Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/MapCameraZoomTests.cs",
+            "Hash": "39768b19eb8e32528b9711138488f6a8fde34d09514f2aa11d9960c2ab958c06",
+            "Size": 3940,
+            "LastWriteTimeUtc": "2026-10-21T21:32:37.9359751Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/NurseryCareTests.cs",
+            "Hash": "a42b1b98d7d6937737c576a0a596915d607b558edb34872a70ac4bce0d7c1d69",
+            "Size": 9887,
+            "LastWriteTimeUtc": "2026-10-19T21:26:51.5062749Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/NutrientRoomCareTests.cs",
+            "Hash": "1287dd23060b154c96690a88fb3d2075a6839e5468dff55cd1ff09639f7f3809",
+            "Size": 6687,
+            "LastWriteTimeUtc": "2026-10-19T02:47:55.6959699Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/NutrientTests.cs",
+            "Hash": "4fbe5f6a4e240d2d176c8437a3613e36f7b558b5fb70dc36527e1799d09c7fb7",
+            "Size": 48926,
+            "LastWriteTimeUtc": "2026-10-21T14:07:03.7325382Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/OutdoorWalkingTests.cs",
+            "Hash": "e4f480014545a59ba40602d97b21d1cd264a1fffb7b62c7afdfcccc2af5e4e42",
+            "Size": 15093,
+            "LastWriteTimeUtc": "2026-10-19T19:58:00.8260552Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/PaintBudgetTests.cs",
+            "Hash": "cca3ad32c6cf36c7ccbab289202d4f075c623f9e19d88f88d21f413cd90a6f19",
+            "Size": 8881,
+            "LastWriteTimeUtc": "2026-10-21T16:30:33.9941710Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/QueenTests.cs",
+            "Hash": "abd0210d995accbc945d54a9fabaa1249dd59fb480f54d6c27fc44a7d3882c8b",
+            "Size": 10377,
+            "LastWriteTimeUtc": "2026-10-21T14:01:01.5471417Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/QueenTreeTests.cs",
+            "Hash": "af12d6253f64a9e37d7ab24f4648b0975d55f9ba8ec1af4cb364e4bfb3795713",
+            "Size": 13477,
+            "LastWriteTimeUtc": "2026-10-22T12:25:13.9712921Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/RaidTests.cs",
+            "Hash": "66fe90b4cbee4d2c5e9fa33b036469a4c2471c3b4e2ac71f2bfdbfcda67377d9",
+            "Size": 35252,
+            "LastWriteTimeUtc": "2026-10-21T14:09:36.9938767Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/RainSimulationTests.cs",
+            "Hash": "d10cc2292f826865564f6b36a6bd9511f9d0a48cb0ed84de91fbb812d8c73430",
+            "Size": 9163,
+            "LastWriteTimeUtc": "2026-10-19T02:47:55.7089692Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/RoleFallbackTests.cs",
+            "Hash": "25c15df39b92be450e0fc45aadf420465fc46c7428de7dc0d4d1f2b38810b0e4",
+            "Size": 4768,
+            "LastWriteTimeUtc": "2026-10-20T11:54:12.1537845Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/RoomLiningTests.cs",
+            "Hash": "bf02ac278c7839baee1c79704c232d1f9d94b83e689968452e4c962b625f9a0e",
+            "Size": 16218,
+            "LastWriteTimeUtc": "2026-10-22T16:26:39.8824097Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/SaveLoadTests.cs",
+            "Hash": "35b67acf131b1f78de4fcbdb3c6292182977c802313d3d8897974b0b4d2f2bee",
+            "Size": 6751,
+            "LastWriteTimeUtc": "2026-10-17T21:40:15.7479566Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/SfxSynthTests.cs",
+            "Hash": "564cead193951546d531ecbfcdf5423ec4fcc314c1526865e3260b0ae6ff5a28",
+            "Size": 3268,
+            "LastWriteTimeUtc": "2026-10-20T19:46:12.8601313Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/SpitterAndMiddenTests.cs",
+            "Hash": "c972fcfaf292d307df52369bc1f28d5a5195b1b71c89971d6ffe615ba3ac3f0c",
+            "Size": 7966,
+            "LastWriteTimeUtc": "2026-10-21T23:44:39.8594293Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/StorageTests.cs",
+            "Hash": "fc0c8f0c290674165eda5f6ef31cf08d9b8f1f2db3eb1e112add9755d551a595",
+            "Size": 34446,
+            "LastWriteTimeUtc": "2026-10-22T16:26:59.3464326Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/SurfaceSceneryTests.cs",
+            "Hash": "9bc38a55155d95b063205c7490112fe7701308501d243b729a0d2b032a1ccac7",
+            "Size": 15246,
+            "LastWriteTimeUtc": "2026-10-21T22:22:59.8476525Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/TerrainRenderCacheTests.cs",
+            "Hash": "7f525f3e34bd012ae27ddc992cdeff60d55b21d6293079417e5389667ada3788",
+            "Size": 19800,
+            "LastWriteTimeUtc": "2026-10-21T19:32:04.7226926Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/TerrainTileAtlasTests.cs",
+            "Hash": "ae47baf9c23216697ee98cafc304e5f1ad4ccf2f20b6d01ce4cc52d99d35d04b",
+            "Size": 7081,
+            "LastWriteTimeUtc": "2026-10-22T13:25:26.6742145Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/UpgradeCatalogTests.cs",
+            "Hash": "39c48e40fcf2aecf0c6aad44c90de614171eac80b492ff7a31e7e2a75ef83423",
+            "Size": 9643,
+            "LastWriteTimeUtc": "2026-10-22T12:40:36.3634117Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/WalkabilityMapTests.cs",
+            "Hash": "954bd26d5e4300b1f2d0a4502566173909a628c7e2a34b7e657fd77e812cca8e",
+            "Size": 3075,
+            "LastWriteTimeUtc": "2026-10-20T21:48:19.1921644Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/WasteModeTests.cs",
+            "Hash": "ff0b027419cd9eb4bebe949ceefb565ff5f39d5c523abd789d0253fe7ed89e98",
+            "Size": 14927,
+            "LastWriteTimeUtc": "2026-10-22T16:26:59.3474323Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/WaterReleaseTests.cs",
+            "Hash": "e26ac0b8cfb53e9b59fead827f55150ba4d8bae6c66b97d5d683593bce335c9a",
+            "Size": 6876,
+            "LastWriteTimeUtc": "2026-10-20T11:54:12.1547844Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/WaterSimulationTests.cs",
+            "Hash": "ac756a6caf42ca8638c4413add2157efa5897c919ea925a205efe88709e06944",
+            "Size": 16025,
+            "LastWriteTimeUtc": "2026-10-20T21:20:58.4149003Z"
+        },
+        {
+            "Path": "Assets/Project/Scripts/Tests/EditMode/WorldExpansionTests.cs",
+            "Hash": "a3e15b5278617f8ed587f5139c7947f25973ff63a5dc6d1c85b21fb793faffbf",
+            "Size": 6204,
+            "LastWriteTimeUtc": "2026-10-17T12:34:14.7531198Z"
+        },
+        {
+            "Path": "Assets/TutorialInfo/Scripts/Editor/ReadmeEditor.cs",
+            "Hash": "d2023934bc2be23af69cd930ade85eff41c5db0a6f6666b05324b975befdb5b5",
+            "Size": 6677,
+            "LastWriteTimeUtc": "2025-01-30T19:19:37.0000000Z"
+        },
+        {
+            "Path": "Assets/TutorialInfo/Scripts/Readme.cs",
+            "Hash": "c09c93844f93eb252a6fb39c222d169c63a63e96008fd040b9e7628c3e7ccc2e",
+            "Size": 302,
+            "LastWriteTimeUtc": "2025-01-30T19:19:37.0000000Z"
+        }
+    ]
+}

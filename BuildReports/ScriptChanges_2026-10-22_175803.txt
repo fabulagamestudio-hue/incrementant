@@ -1,0 +1,227 @@
+﻿Timestamp: 2026-10-22 17:58:03
+Product: Incrementant
+Build Profile: StandaloneWindows64
+Version: v0.2.0
+Added: 214 | Modified: 0 | Removed: 0
+
+Added Scripts:
+- Assets/Iung/Build Assistant/Editor/Menus/BuildAssistantMenu.cs
+- Assets/Iung/Build Assistant/Editor/Services/BuildAssistantActivePlatformService.cs
+- Assets/Iung/Build Assistant/Editor/Services/BuildAssistantBuildProfileService.cs
+- Assets/Iung/Build Assistant/Editor/Services/BuildAssistantBuildService.cs
+- Assets/Iung/Build Assistant/Editor/Services/BuildAssistantChangelogService.cs
+- Assets/Iung/Build Assistant/Editor/Services/BuildAssistantEditorAssetLoader.cs
+- Assets/Iung/Build Assistant/Editor/Services/BuildAssistantHistoryService.cs
+- Assets/Iung/Build Assistant/Editor/Services/BuildAssistantPaths.cs
+- Assets/Iung/Build Assistant/Editor/Services/BuildAssistantPathUtility.cs
+- Assets/Iung/Build Assistant/Editor/Services/BuildAssistantPlayerSettingsService.cs
+- Assets/Iung/Build Assistant/Editor/Services/BuildAssistantScriptChangeService.cs
+- Assets/Iung/Build Assistant/Editor/Services/BuildAssistantSessionService.cs
+- Assets/Iung/Build Assistant/Editor/Services/BuildAssistantSettingsService.cs
+- Assets/Iung/Build Assistant/Editor/Services/BuildAssistantThumbnailDrawer.cs
+- Assets/Iung/Build Assistant/Editor/Services/BuildAssistantTmpVersionLabelEditor.cs
+- Assets/Iung/Build Assistant/Editor/Services/BuildAssistantValidationService.cs
+- Assets/Iung/Build Assistant/Editor/Services/BuildAssistantVersioningService.cs
+- Assets/Iung/Build Assistant/Editor/Windows/BuildAssistantWindow.cs
+- Assets/Iung/Build Assistant/Runtime/Config/BuildAssistantSettings.cs
+- Assets/Iung/Build Assistant/Runtime/Models/BuildAssistantChangelogEntry.cs
+- Assets/Iung/Build Assistant/Runtime/Models/BuildAssistantChangelogNotes.cs
+- Assets/Iung/Build Assistant/Runtime/Models/BuildAssistantEnums.cs
+- Assets/Iung/Build Assistant/Runtime/Models/BuildAssistantFolderNameComposition.cs
+- Assets/Iung/Build Assistant/Runtime/Models/BuildAssistantHistoryEntry.cs
+- Assets/Iung/Build Assistant/Runtime/Models/BuildAssistantProfileSession.cs
+- Assets/Iung/Build Assistant/Runtime/Models/BuildAssistantReviewReport.cs
+- Assets/Iung/Build Assistant/Runtime/Models/BuildAssistantScriptChangeReport.cs
+- Assets/Iung/Build Assistant/Runtime/Models/BuildAssistantScriptSnapshot.cs
+- Assets/Iung/Build Assistant/Runtime/Models/BuildAssistantSessionState.cs
+- Assets/Iung/Build Assistant/Runtime/Models/BuildAssistantValidationIssue.cs
+- Assets/Iung/Build Assistant/Runtime/UI/BuildAssistantTmpVersionLabel.cs
+- Assets/Project/Art/Scenery/Source~/RefinedScenery/NormalizeScenery.cs
+- Assets/Project/Scripts/Editor/AntFarm/AntFarmGameEditor.cs
+- Assets/Project/Scripts/Editor/AntFarm/AntSpriteGenerator.cs
+- Assets/Project/Scripts/Editor/AntFarm/AntSpriteImporter.cs
+- Assets/Project/Scripts/Editor/AntFarm/AphidSpriteImporter.cs
+- Assets/Project/Scripts/Editor/AntFarm/SceneryArtExporter.cs
+- Assets/Project/Scripts/Editor/AntFarm/SceneryArtImporter.cs
+- Assets/Project/Scripts/Editor/Localization/LocalizationCatalog.cs
+- Assets/Project/Scripts/Editor/Localization/LocalizationCatalog.Glossary.cs
+- Assets/Project/Scripts/Editor/Localization/LocalizationSetup.cs
+- Assets/Project/Scripts/Editor/Setup/AntFarmMapImporter.cs
+- Assets/Project/Scripts/Editor/Setup/AntFarmMapTools.cs
+- Assets/Project/Scripts/Editor/Setup/AntFarmSceneSetup.cs
+- Assets/Project/Scripts/Editor/Setup/PostProcessSetup.cs
+- Assets/Project/Scripts/Editor/Setup/ValidateRefinedSceneryTemporary.cs
+- Assets/Project/Scripts/Editor/UI/AntFarmHudSetup.ColonyPanel.cs
+- Assets/Project/Scripts/Editor/UI/AntFarmHudSetup.cs
+- Assets/Project/Scripts/Editor/UI/AntFarmHudSetup.Evolution.cs
+- Assets/Project/Scripts/Editor/UI/AntFarmHudSetup.Glossary.cs
+- Assets/Project/Scripts/Editor/UI/AntFarmHudSetup.MainMenu.cs
+- Assets/Project/Scripts/Editor/UI/AntFarmHudSetup.Version.cs
+- Assets/Project/Scripts/Editor/UI/GlossaryImageImporter.cs
+- Assets/Project/Scripts/Editor/UI/SkillTreeSpriteImporter.cs
+- Assets/Project/Scripts/Editor/UI/SplashDissolveSetup.cs
+- Assets/Project/Scripts/Editor/UI/SplashSceneSetup.cs
+- Assets/Project/Scripts/Editor/UI/UiCursorImporter.cs
+- Assets/Project/Scripts/Editor/UI/UiFontImporter.cs
+- Assets/Project/Scripts/Editor/UI/UiSpriteImporter.cs
+- Assets/Project/Scripts/Runtime/AntFarm/AntFarmGame.cs
+- Assets/Project/Scripts/Runtime/AntFarm/AntFarmView.cs
+- Assets/Project/Scripts/Runtime/AntFarm/AntFarmView.Light.cs
+- Assets/Project/Scripts/Runtime/AntFarm/AntSwarmView.cs
+- Assets/Project/Scripts/Runtime/AntFarm/BroodView.cs
+- Assets/Project/Scripts/Runtime/AntFarm/CellTileArt.cs
+- Assets/Project/Scripts/Runtime/AntFarm/CultivationView.cs
+- Assets/Project/Scripts/Runtime/AntFarm/MapCamera.cs
+- Assets/Project/Scripts/Runtime/AntFarm/MatchTimer.cs
+- Assets/Project/Scripts/Runtime/AntFarm/MenuShowcase.cs
+- Assets/Project/Scripts/Runtime/AntFarm/PlantCellMask.cs
+- Assets/Project/Scripts/Runtime/AntFarm/PlantSprites.cs
+- Assets/Project/Scripts/Runtime/AntFarm/ProgressBarsView.cs
+- Assets/Project/Scripts/Runtime/AntFarm/SceneryArtSet.cs
+- Assets/Project/Scripts/Runtime/AntFarm/SceneryStamps.cs
+- Assets/Project/Scripts/Runtime/AntFarm/SimStatsOverlay.cs
+- Assets/Project/Scripts/Runtime/AntFarm/SurfaceSceneryPainter.cs
+- Assets/Project/Scripts/Runtime/AntFarm/SurfaceSceneryView.cs
+- Assets/Project/Scripts/Runtime/AntFarm/TerrainTileAtlas.cs
+- Assets/Project/Scripts/Runtime/Audio/ButtonSfx.cs
+- Assets/Project/Scripts/Runtime/Audio/GameAudio.cs
+- Assets/Project/Scripts/Runtime/Audio/MusicPlayer.cs
+- Assets/Project/Scripts/Runtime/Audio/SceneMusic.cs
+- Assets/Project/Scripts/Runtime/Audio/SfxId.cs
+- Assets/Project/Scripts/Runtime/Audio/SfxSynth.cs
+- Assets/Project/Scripts/Runtime/Colony/Ant.cs
+- Assets/Project/Scripts/Runtime/Colony/AntColony.Audio.cs
+- Assets/Project/Scripts/Runtime/Colony/AntColony.Burial.cs
+- Assets/Project/Scripts/Runtime/Colony/AntColony.Care.cs
+- Assets/Project/Scripts/Runtime/Colony/AntColony.cs
+- Assets/Project/Scripts/Runtime/Colony/AntColony.Cultivation.cs
+- Assets/Project/Scripts/Runtime/Colony/AntColony.Dew.cs
+- Assets/Project/Scripts/Runtime/Colony/AntColony.Farm.cs
+- Assets/Project/Scripts/Runtime/Colony/AntColony.Fx.cs
+- Assets/Project/Scripts/Runtime/Colony/AntColony.Lining.cs
+- Assets/Project/Scripts/Runtime/Colony/AntColony.Raids.cs
+- Assets/Project/Scripts/Runtime/Colony/AntColony.Storage.cs
+- Assets/Project/Scripts/Runtime/Colony/AntColony.Waste.cs
+- Assets/Project/Scripts/Runtime/Colony/AntColony.Work.cs
+- Assets/Project/Scripts/Runtime/Colony/Aphid.cs
+- Assets/Project/Scripts/Runtime/Colony/BroodCycle.cs
+- Assets/Project/Scripts/Runtime/Colony/ColonySettings.cs
+- Assets/Project/Scripts/Runtime/Colony/ColonyWork.cs
+- Assets/Project/Scripts/Runtime/Colony/FlowField.cs
+- Assets/Project/Scripts/Runtime/Colony/PaintBudget.cs
+- Assets/Project/Scripts/Runtime/Colony/PointIndex.cs
+- Assets/Project/Scripts/Runtime/Colony/QueenTree.cs
+- Assets/Project/Scripts/Runtime/Colony/RaidSettings.cs
+- Assets/Project/Scripts/Runtime/Colony/Termite.cs
+- Assets/Project/Scripts/Runtime/Colony/WalkabilityMap.cs
+- Assets/Project/Scripts/Runtime/Diagnostics/SimProfiler.cs
+- Assets/Project/Scripts/Runtime/Glossary/GlossaryContent.cs
+- Assets/Project/Scripts/Runtime/Glossary/GlossaryScreen.cs
+- Assets/Project/Scripts/Runtime/Juice/ButtonJuice.cs
+- Assets/Project/Scripts/Runtime/Juice/Easing.cs
+- Assets/Project/Scripts/Runtime/Juice/FloatingText.cs
+- Assets/Project/Scripts/Runtime/Juice/FxAggregator.cs
+- Assets/Project/Scripts/Runtime/Juice/FxId.cs
+- Assets/Project/Scripts/Runtime/Juice/FxLimiter.cs
+- Assets/Project/Scripts/Runtime/Juice/PanelAnimator.cs
+- Assets/Project/Scripts/Runtime/Juice/Pulse.cs
+- Assets/Project/Scripts/Runtime/Juice/Vfx.cs
+- Assets/Project/Scripts/Runtime/Juice/WorldFx.cs
+- Assets/Project/Scripts/Runtime/Menu/GameLaunch.cs
+- Assets/Project/Scripts/Runtime/Menu/MainMenu.cs
+- Assets/Project/Scripts/Runtime/Menu/SplashLogoDissolve.cs
+- Assets/Project/Scripts/Runtime/Menu/SplashScreen.cs
+- Assets/Project/Scripts/Runtime/Save/ColonyHistory.cs
+- Assets/Project/Scripts/Runtime/Save/GameSnapshot.cs
+- Assets/Project/Scripts/Runtime/Save/SaveStorage.cs
+- Assets/Project/Scripts/Runtime/Settings/GameSettings.cs
+- Assets/Project/Scripts/Runtime/Settings/GameSettingsData.cs
+- Assets/Project/Scripts/Runtime/Settings/PostProcessSettingsBinder.cs
+- Assets/Project/Scripts/Runtime/Texts/Loc.cs
+- Assets/Project/Scripts/Runtime/Tutorial/TutorialDirector.cs
+- Assets/Project/Scripts/Runtime/UI/AntFarmHud.cs
+- Assets/Project/Scripts/Runtime/UI/BuildVersionOverlay.cs
+- Assets/Project/Scripts/Runtime/UI/CaveGraphic.cs
+- Assets/Project/Scripts/Runtime/UI/ColonyMenuDrawer.cs
+- Assets/Project/Scripts/Runtime/UI/ColonyPanel.cs
+- Assets/Project/Scripts/Runtime/UI/GameOverScreen.cs
+- Assets/Project/Scripts/Runtime/UI/HiveTreeInfo.cs
+- Assets/Project/Scripts/Runtime/UI/HudTooltips.cs
+- Assets/Project/Scripts/Runtime/UI/HudTooltipTexts.cs
+- Assets/Project/Scripts/Runtime/UI/PauseMenu.cs
+- Assets/Project/Scripts/Runtime/UI/RingGraphic.cs
+- Assets/Project/Scripts/Runtime/UI/SettingsScreen.cs
+- Assets/Project/Scripts/Runtime/UI/SkillNodeWidget.cs
+- Assets/Project/Scripts/Runtime/UI/SkillTreeScreen.cs
+- Assets/Project/Scripts/Runtime/UI/TermiteMarkers.cs
+- Assets/Project/Scripts/Runtime/UI/TreeViewport.cs
+- Assets/Project/Scripts/Runtime/UI/TunnelPathGraphic.cs
+- Assets/Project/Scripts/Runtime/UI/VersionHistoryScreen.cs
+- Assets/Project/Scripts/Runtime/Upgrades/UpgradeBoard.cs
+- Assets/Project/Scripts/Runtime/Upgrades/UpgradeCatalog.cs
+- Assets/Project/Scripts/Runtime/Upgrades/UpgradeEffects.cs
+- Assets/Project/Scripts/Runtime/Upgrades/UpgradeLayout.cs
+- Assets/Project/Scripts/Runtime/Upgrades/UpgradeLevels.cs
+- Assets/Project/Scripts/Runtime/World/CellMaterial.cs
+- Assets/Project/Scripts/Runtime/World/GranularSimulation.cs
+- Assets/Project/Scripts/Runtime/World/PixelGrid.cs
+- Assets/Project/Scripts/Runtime/World/PixelGrid.Storage.cs
+- Assets/Project/Scripts/Runtime/World/RainSimulation.cs
+- Assets/Project/Scripts/Runtime/World/TerrainGenerator.cs
+- Assets/Project/Scripts/Runtime/World/TerrainMapCodec.cs
+- Assets/Project/Scripts/Runtime/World/VegetationSimulation.cs
+- Assets/Project/Scripts/Runtime/World/WaterSimulation.cs
+- Assets/Project/Scripts/Tests/EditMode/AntFarmSimulationTests.cs
+- Assets/Project/Scripts/Tests/EditMode/BroodTests.cs
+- Assets/Project/Scripts/Tests/EditMode/BurialTests.cs
+- Assets/Project/Scripts/Tests/EditMode/CarryAndRockTests.cs
+- Assets/Project/Scripts/Tests/EditMode/ChunkedSimulationTests.cs
+- Assets/Project/Scripts/Tests/EditMode/ColonyWorkTests.cs
+- Assets/Project/Scripts/Tests/EditMode/CombatSpreadTests.cs
+- Assets/Project/Scripts/Tests/EditMode/CultivationTests.cs
+- Assets/Project/Scripts/Tests/EditMode/DewRoomTests.cs
+- Assets/Project/Scripts/Tests/EditMode/DigReservationTests.cs
+- Assets/Project/Scripts/Tests/EditMode/DownhillTieBreakTests.cs
+- Assets/Project/Scripts/Tests/EditMode/DropDisconnectedTests.cs
+- Assets/Project/Scripts/Tests/EditMode/FarmTests.cs
+- Assets/Project/Scripts/Tests/EditMode/FieldRefreshDeferralTests.cs
+- Assets/Project/Scripts/Tests/EditMode/FlowFieldIncrementalTests.cs
+- Assets/Project/Scripts/Tests/EditMode/GalleryTests.cs
+- Assets/Project/Scripts/Tests/EditMode/GameSettingsTests.cs
+- Assets/Project/Scripts/Tests/EditMode/GlowMushroomTests.cs
+- Assets/Project/Scripts/Tests/EditMode/JuiceTests.cs
+- Assets/Project/Scripts/Tests/EditMode/KnownIssuesScenarioTests.cs
+- Assets/Project/Scripts/Tests/EditMode/LocalizationTests.cs
+- Assets/Project/Scripts/Tests/EditMode/MapCameraZoomTests.cs
+- Assets/Project/Scripts/Tests/EditMode/NurseryCareTests.cs
+- Assets/Project/Scripts/Tests/EditMode/NutrientRoomCareTests.cs
+- Assets/Project/Scripts/Tests/EditMode/NutrientTests.cs
+- Assets/Project/Scripts/Tests/EditMode/OutdoorWalkingTests.cs
+- Assets/Project/Scripts/Tests/EditMode/PaintBudgetTests.cs
+- Assets/Project/Scripts/Tests/EditMode/QueenTests.cs
+- Assets/Project/Scripts/Tests/EditMode/QueenTreeTests.cs
+- Assets/Project/Scripts/Tests/EditMode/RaidTests.cs
+- Assets/Project/Scripts/Tests/EditMode/RainSimulationTests.cs
+- Assets/Project/Scripts/Tests/EditMode/RoleFallbackTests.cs
+- Assets/Project/Scripts/Tests/EditMode/RoomLiningTests.cs
+- Assets/Project/Scripts/Tests/EditMode/SaveLoadTests.cs
+- Assets/Project/Scripts/Tests/EditMode/SfxSynthTests.cs
+- Assets/Project/Scripts/Tests/EditMode/SpitterAndMiddenTests.cs
+- Assets/Project/Scripts/Tests/EditMode/StorageTests.cs
+- Assets/Project/Scripts/Tests/EditMode/SurfaceSceneryTests.cs
+- Assets/Project/Scripts/Tests/EditMode/TerrainRenderCacheTests.cs
+- Assets/Project/Scripts/Tests/EditMode/TerrainTileAtlasTests.cs
+- Assets/Project/Scripts/Tests/EditMode/UpgradeCatalogTests.cs
+- Assets/Project/Scripts/Tests/EditMode/WalkabilityMapTests.cs
+- Assets/Project/Scripts/Tests/EditMode/WasteModeTests.cs
+- Assets/Project/Scripts/Tests/EditMode/WaterReleaseTests.cs
+- Assets/Project/Scripts/Tests/EditMode/WaterSimulationTests.cs
+- Assets/Project/Scripts/Tests/EditMode/WorldExpansionTests.cs
+- Assets/TutorialInfo/Scripts/Editor/ReadmeEditor.cs
+- Assets/TutorialInfo/Scripts/Readme.cs
+
+Modified Scripts:
+- None
+
+Removed Scripts:
+- None
