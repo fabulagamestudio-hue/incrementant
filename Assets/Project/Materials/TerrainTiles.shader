@@ -449,7 +449,9 @@ Shader "Incrementant/TerrainTiles"
                 // dela e a sombra de canto mais forte, porque encosta na terra.
                 bool chipped = false;
                 ChipStyle chipStyle;
-                if (_ChipEnabled > 0.5 && fade > 0.5 && ChipStyleOf(id, chipStyle))
+                // Só a célula encostada no vazio (distância 1) pode lascar: o miolo da terra sai com uma leitura só, sem as
+                // 4 vizinhas nem as mordidas (a borda lascada dobrava o custo do shader com a tela cheia de terra).
+                if (_ChipEnabled > 0.5 && fade > 0.5 && SignedDistanceAt(cell) == 1.0 && ChipStyleOf(id, chipStyle))
                 {
                     float2 from = ChipFrom(cell, inner, chipStyle);
                     if (any(from != 0))
