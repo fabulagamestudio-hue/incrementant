@@ -90,7 +90,12 @@ MonoBehaviour:
 
       A short interface
       tour opens every new game: it explains the cards, menus and buttons, and you
-      can click anything along the way'
+      can click anything along the way
+
+      The Colony menu on the left tucks away until the mouse gets close
+
+      New glossary explaining every part of the game, opened by the ? button
+      or the ESC menu'
     Removed: Speed buttons (pause stays)
     Modified: 'Dew drops every 4 s (was 8 s)
 
@@ -135,7 +140,7 @@ MonoBehaviour:
         vers\xE3o da build aparece no canto inferior direito de todas as telas\nClique
         na vers\xE3o para ver todas as vers\xF5es at\xE9 agora e as notas de cada
         uma\nUm tour curto da interface abre todo jogo novo: explica os cart\xF5es,
-        os menus e os bot\xF5es, e voc\xEA pode clicar em tudo durante ele"
+        os menus e os bot\xF5es, e voc\xEA pode clicar em tudo durante ele\nO menu Col\xF4nia, \xE0 esquerda, fica recolhido at\xE9 o mouse chegar perto\nNovo gloss\xE1rio com a explica\xE7\xE3o de cada parte do jogo, aberto pelo bot\xE3o ? ou pelo menu do ESC"
       Removed: "Bot\xF5es de velocidade (a pausa continua)"
       Modified: "Gota de orvalho a cada 4 s (era 8 s)\nAtaques a cada 2 a 10 minutos,
         com enxames de 20% a 50% das formigas\nFormigas sem trabalho ajudam como
