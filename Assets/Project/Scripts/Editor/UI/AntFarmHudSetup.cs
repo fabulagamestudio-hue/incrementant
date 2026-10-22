@@ -4,6 +4,7 @@ using Fabula.Incrementant.Audio;
 using Fabula.Incrementant.Colony;
 using Fabula.Incrementant.EditorTools.Localization;
 using Fabula.Incrementant.EditorTools.Setup;
+using Fabula.Incrementant.Glossary;
 using Fabula.Incrementant.Tutorial;
 using Fabula.Incrementant.UI;
 using UnityEditor;
@@ -213,10 +214,10 @@ namespace Fabula.Incrementant.EditorTools.UI
             BuildRaidAlert(root, refs);
 
             // --- canto inferior esquerdo, num cartão só: pausa, painel da colônia (estatísticas), sino (recolhe as formigas
-            // ao formigueiro / manda de volta ao trabalho) e mostrar ambientes. Sem botões de acelerar o tempo (as teclas
+            // ao formigueiro / manda de volta ao trabalho), mostrar ambientes e glossário. Sem botões de acelerar o tempo (as teclas
             // 1/2/3 são só cheat de teste).
             Image bottomBar = BuildSprite(root, "BarraInferior", "panels/hud_card", new Vector2(0, 0), new Vector2(0, 0),
-                                          new Vector2(16, 16), new Vector2(14 + 4 * 64 - 8 + 14, 76));
+                                          new Vector2(16, 16), new Vector2(14 + 5 * 64 - 8 + 14, 76));
             Sprite iconIdle = Load("buttons/icon_button");
             Button pause = BuildIconButton(bottomBar.transform, "Pausa", 0, "icons/pause", null, out Image pauseImage);
             SetObject(refs, "_pauseButton", pause);
@@ -230,6 +231,9 @@ namespace Fabula.Incrementant.EditorTools.UI
             Button rooms = BuildIconButton(bottomBar.transform, "Ambientes", 3, "icons/mushroom", null, out Image roomsImage);
             SetObject(refs, "_roomsButton", rooms);
             SetObject(refs, "_roomsImage", roomsImage);
+            // Glossário: sem ícone de livro no kit, o botão leva um "?" na fonte do HUD.
+            Button glossaryButton = BuildIconButton(bottomBar.transform, "Glossario", 4, null, "?", out _);
+            SetObject(refs, "_glossaryButton", glossaryButton);
 
             // --- dica no rodapé
             Text hint = BuildText(root, "Dica", "", TextSmall, Cream, TextAnchor.MiddleCenter);
@@ -237,8 +241,8 @@ namespace Fabula.Incrementant.EditorTools.UI
             hintRect.anchorMin = new Vector2(0, 0);
             hintRect.anchorMax = new Vector2(1, 0);
             hintRect.pivot = new Vector2(0.5f, 0);
-            hintRect.offsetMin = new Vector2(320, 28);
-            hintRect.offsetMax = new Vector2(-320, 60);
+            hintRect.offsetMin = new Vector2(384, 28);
+            hintRect.offsetMax = new Vector2(-384, 60);
             hint.gameObject.AddComponent<Shadow>().effectDistance = new Vector2(1, -1);
             SetText(refs, "_hint", hint);
 
@@ -250,8 +254,12 @@ namespace Fabula.Incrementant.EditorTools.UI
             SetObject(refs, "_tutorial", BuildTutorial(root, game, hud));
             // O game over cobre o HUD inteiro, mas o menu do ESC ainda abre por cima dele.
             BuildGameOverScreen(root, game);
-            // O menu do ESC fica acima de tudo, inclusive da tela de evolução e do tutorial.
-            SetObject(refs, "_pauseMenu", BuildPauseMenu(root, game));
+            // O menu do ESC fica acima de tudo, inclusive da tela de evolução e do tutorial; só o glossário, que ele também
+            // abre, fica por cima dele.
+            GlossaryScreen glossary = BuildGlossary(root, game);
+            SetObject(refs, "_glossary", glossary);
+            SetObject(refs, "_pauseMenu", BuildPauseMenu(root, game, glossary));
+            glossary.transform.SetAsLastSibling();
 
             SetObject(refs, "_fingerCursor", AssetDatabase.LoadAssetAtPath<Texture2D>(UiCursorImporter.CursorsFolder + "/cursor_finger.png"));
             SetObject(refs, "_buttonIdle", Load("buttons/button_normal"));
@@ -595,7 +603,7 @@ namespace Fabula.Incrementant.EditorTools.UI
         /// Menu do ESC: fundo escurecido em tela cheia (bloqueia cliques no mundo e no HUD), o painel do menu no centro e a
         /// tela de configurações, que troca de lugar com ele. Começa escondido; o <see cref="AntFarmHud"/> abre no ESC.
         /// </summary>
-        static PauseMenu BuildPauseMenu(Transform root, AntFarmGame game)
+        static PauseMenu BuildPauseMenu(Transform root, AntFarmGame game, GlossaryScreen glossary)
         {
             var go = new GameObject("MenuPausa", typeof(RectTransform), typeof(Image), typeof(PauseMenu));
             go.layer = LayerMask.NameToLayer("UI");
@@ -605,8 +613,9 @@ namespace Fabula.Incrementant.EditorTools.UI
             backdrop.color = new Color(0.05f, 0.03f, 0.02f, 0.6f);
             backdrop.raycastTarget = true;
 
-            string[] labels = { "CONTINUAR", "CONFIGURAÇÕES", "SALVAR PARTIDA", "CARREGAR PARTIDA", "MENU PRINCIPAL", "SAIR DO JOGO" };
-            string[] icons = { "icons/play", "icons/gear", "icons/arrow_down", "icons/arrow_up", "icons/arrow_left", "icons/close" };
+            string[] labels = { "CONTINUAR", "CONFIGURAÇÕES", "GLOSSÁRIO", "SALVAR PARTIDA", "CARREGAR PARTIDA", "MENU PRINCIPAL", "SAIR DO JOGO" };
+            // Sem ícone de livro no kit: o glossário usa a folha, como os itens de lista do histórico de versões.
+            string[] icons = { "icons/play", "icons/gear", "icons/leaf", "icons/arrow_down", "icons/arrow_up", "icons/arrow_left", "icons/close" };
             const float width = 520f;
             Image panel = BuildPanelWithHeader(go.transform, "PainelMenu", new Vector2(0.5f, 0.5f), Vector2.zero,
                                                new Vector2(width, 62 + labels.Length * 56 + 52), "MENU");
@@ -630,10 +639,12 @@ namespace Fabula.Incrementant.EditorTools.UI
             SetObject(so, "_settings", settings);
             SetObject(so, "_resume", buttons[0]);
             SetObject(so, "_settingsButton", buttons[1]);
-            SetObject(so, "_save", buttons[2]);
-            SetObject(so, "_load", buttons[3]);
-            SetObject(so, "_mainMenu", buttons[4]);
-            SetObject(so, "_quit", buttons[5]);
+            SetObject(so, "_glossaryButton", buttons[2]);
+            SetObject(so, "_glossary", glossary);
+            SetObject(so, "_save", buttons[3]);
+            SetObject(so, "_load", buttons[4]);
+            SetObject(so, "_mainMenu", buttons[5]);
+            SetObject(so, "_quit", buttons[6]);
             SetText(so, "_status", status);
             so.ApplyModifiedPropertiesWithoutUndo();
             go.SetActive(false);

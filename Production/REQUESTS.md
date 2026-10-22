@@ -73,7 +73,8 @@
 | REQ-063 | 2026-10-22 | Versão da build no canto inferior da tela, em todas as cenas | RELEASE | UNDEFINED | VERIFIED |
 | REQ-064 | 2026-10-22 | Histórico de versões ao clicar na versão, sem clique no mundo sob ela | RELEASE | UNDEFINED | VERIFIED |
 | REQ-065 | 2026-10-22 | Tutorial como tour da interface, com o jogador livre para clicar | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
-| REQ-066 | 2026-10-22 | Glossário com a explicação de tudo | PROGRAMMING, GAME_DESIGN | UNDEFINED | PLANNED |
+| REQ-066 | 2026-10-22 | Glossário com a explicação de tudo | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
+| REQ-067 | 2026-10-22 | Menu Colônia recuado até o cursor chegar perto, visível no tutorial | PROGRAMMING | UNDEFINED | IMPLEMENTED |
 
 ## Registros
 
@@ -1252,14 +1253,31 @@
 ### REQ-066 — Glossário com a explicação de tudo
 
 - **Data de registro:** 2026-10-22
-- **Estado:** PLANNED
+- **Estado:** IMPLEMENTED
 - **Prioridade:** UNDEFINED
 - **Setores:** PROGRAMMING, GAME_DESIGN
 - **Descrição:** Depois do tour da interface (REQ-065), criar um glossário com a explicação de tudo. Acesso decidido pelo desenvolvedor: um botão na barra inferior e uma entrada no menu do ESC; o fim do tour aponta para ele.
 - **Critérios de aceitação:** Pendente de definição
 - **Dependências:** REQ-065
 - **Itens relacionados:** PRG-072
-- **Referências:** —
-- **Decisões pendentes:** organização e conteúdo das entradas.
+- **Referências:** [GlossaryGuide.md](../Assets/Project/Scripts/Runtime/Glossary/GlossaryGuide.md)
+- **Decisões pendentes:** organização e conteúdo das entradas foram propostos pelo agente (9 categorias, 49 entradas); falta o desenvolvedor revisar os textos.
 - **Histórico:**
   - 2026-10-22 — PLANNED: pedido registrado.
+  - 2026-10-22 — IMPLEMENTED: janela `GlossaryScreen`, botão `?` na barra inferior, entrada GLOSSÁRIO no menu do ESC e tour apontando para ele; suíte EditMode 445/445 e Play Mode pelo agente (abrir, fechar, ESC, menu do ESC).
+
+### REQ-067 — Menu Colônia recuado até o cursor chegar perto, visível no tutorial
+
+- **Data de registro:** 2026-10-22
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING
+- **Descrição:** O menu (coluna Colônia, à esquerda) fica recuado até o jogador aproximar o cursor dele; durante o tutorial, fica visível enquanto o tour fala do menu. Pedido antes do glossário (REQ-066).
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-065
+- **Itens relacionados:** PRG-073
+- **Referências:** [HudGuide.md](../Assets/Project/Scripts/Runtime/UI/HudGuide.md) ("Menu Colônia recuado")
+- **Decisões pendentes:** —
+- **Histórico:**
+  - 2026-10-22 — PLANNED: pedido registrado.
+  - 2026-10-22 — IMPLEMENTED: `ColonyMenuDrawer`; conferido em Play Mode pelo agente com mouse simulado e nas paradas do tour; falta uma pessoa usar com o mouse.

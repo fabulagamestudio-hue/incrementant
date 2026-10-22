@@ -58,6 +58,24 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
+        public void EveryGlossaryEntryHasItsTexts()
+        {
+            // As chaves do glossário são montadas por código (GlossaryContent), então o teste de cima não as acha.
+            var known = Collection.SharedData.Entries.Select(e => e.Key).ToHashSet();
+            var seen = new System.Collections.Generic.HashSet<string>();
+            foreach (Glossary.GlossaryContent.Category category in Glossary.GlossaryContent.Categories)
+            {
+                Assert.IsTrue(known.Contains(Glossary.GlossaryContent.CategoryKey(category.Id)), category.Id);
+                foreach (string entry in category.Entries)
+                {
+                    Assert.IsTrue(seen.Add(entry), $"Entrada '{entry}' repetida no glossário");
+                    Assert.IsTrue(known.Contains(Glossary.GlossaryContent.TitleKey(entry)), entry + " (título)");
+                    Assert.IsTrue(known.Contains(Glossary.GlossaryContent.TextKey(entry)), entry + " (texto)");
+                }
+            }
+        }
+
+        [Test]
         public void TemplatesKeepTheSamePlaceholdersInEveryLanguage()
         {
             var pt = (StringTable)Collection.GetTable(new LocaleIdentifier("pt-BR"));

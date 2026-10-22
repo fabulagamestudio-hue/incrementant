@@ -71,7 +71,7 @@ namespace Fabula.Incrementant.Tutorial
             new Stop(AntFarmHud.Spot.RecallButton, "tutorial.tour.bell.title", "tutorial.tour.bell"),
             new Stop(AntFarmHud.Spot.RoomsButton, "tutorial.tour.showrooms.title", "tutorial.tour.showrooms"),
             new Stop(null, "tutorial.tour.threats.title", "tutorial.tour.threats"),
-            new Stop(null, "tutorial.tour.tips.title", "tutorial.tour.tips"),
+            new Stop(AntFarmHud.Spot.GlossaryButton, "tutorial.tour.tips.title", "tutorial.tour.tips"),
         };
 
         const int Welcome = -1;
@@ -96,6 +96,19 @@ namespace Fabula.Incrementant.Tutorial
 
         /// <summary>O pop-up central está na tela: o ESC não abre o menu e o mundo fica travado.</summary>
         public bool ModalOpen => _begun && (_index == Welcome || _index == Farewell);
+
+        /// <summary>A parada atual explica um botão do menu Colônia: o HUD mantém a coluna aberta (ela fica recuada fora disso).</summary>
+        public bool HoldsColonyMenu
+        {
+            get
+            {
+                if (!_begun || ModalOpen || !Stops[_index].Spot.HasValue)
+                    return false;
+                AntFarmHud.Spot spot = Stops[_index].Spot.Value;
+                return spot == AntFarmHud.Spot.PaintMenu || spot == AntFarmHud.Spot.EnvironmentMenu ||
+                       spot == AntFarmHud.Spot.QueenMenu || spot == AntFarmHud.Spot.EvolutionMenu;
+            }
+        }
 
         // ---------------------------------------------------------------- ciclo de vida
 

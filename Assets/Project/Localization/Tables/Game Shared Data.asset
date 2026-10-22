@@ -2755,6 +2755,442 @@ MonoBehaviour:
     m_Key: tutorial.farewell
     m_Metadata:
       m_Items: []
+  - m_Id: 1425894803632128
+    m_Key: glossary.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603648
+    m_Key: tip.glossary
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603649
+    m_Key: glossary.cat.basics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603650
+    m_Key: glossary.cat.resources
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603651
+    m_Key: glossary.cat.tools
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603652
+    m_Key: glossary.cat.rooms
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603653
+    m_Key: glossary.cat.ants
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603654
+    m_Key: glossary.cat.queenmenu
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603655
+    m_Key: glossary.cat.evolution
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603656
+    m_Key: glossary.cat.threats
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603657
+    m_Key: glossary.cat.interface
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603658
+    m_Key: glossary.goal.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603659
+    m_Key: glossary.goal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603660
+    m_Key: glossary.camera.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603661
+    m_Key: glossary.camera
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603662
+    m_Key: glossary.pause.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603663
+    m_Key: glossary.pause
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603664
+    m_Key: glossary.save.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603665
+    m_Key: glossary.save
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603666
+    m_Key: glossary.gameover.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603667
+    m_Key: glossary.gameover
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603668
+    m_Key: glossary.nutrients.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603669
+    m_Key: glossary.nutrients
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603670
+    m_Key: glossary.slots.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603671
+    m_Key: glossary.slots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603672
+    m_Key: glossary.soil.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603673
+    m_Key: glossary.soil
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603674
+    m_Key: glossary.water.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603675
+    m_Key: glossary.water
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603676
+    m_Key: glossary.rain.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603677
+    m_Key: glossary.rain
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894824603678
+    m_Key: glossary.plants.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797952
+    m_Key: glossary.plants
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797953
+    m_Key: glossary.light.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797954
+    m_Key: glossary.light
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797955
+    m_Key: glossary.rubble.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797956
+    m_Key: glossary.rubble
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797957
+    m_Key: glossary.dig.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797958
+    m_Key: glossary.dig
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797959
+    m_Key: glossary.build.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797960
+    m_Key: glossary.build
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797961
+    m_Key: glossary.glowbrush.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797962
+    m_Key: glossary.glowbrush
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797963
+    m_Key: glossary.finger.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797964
+    m_Key: glossary.finger
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797965
+    m_Key: glossary.queenroom.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797966
+    m_Key: glossary.queenroom
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797967
+    m_Key: glossary.nutrientroom.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797968
+    m_Key: glossary.nutrientroom
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797969
+    m_Key: glossary.nursery.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797970
+    m_Key: glossary.nursery
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797971
+    m_Key: glossary.waste.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797972
+    m_Key: glossary.waste
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797973
+    m_Key: glossary.dew.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797974
+    m_Key: glossary.dew
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797975
+    m_Key: glossary.farm.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797976
+    m_Key: glossary.farm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797977
+    m_Key: glossary.depots.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797978
+    m_Key: glossary.depots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797979
+    m_Key: glossary.area.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797980
+    m_Key: glossary.area
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797981
+    m_Key: glossary.queen.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797982
+    m_Key: glossary.queen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797983
+    m_Key: glossary.brood.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797984
+    m_Key: glossary.brood
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797985
+    m_Key: glossary.worker.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797986
+    m_Key: glossary.worker
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797987
+    m_Key: glossary.carrier.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797988
+    m_Key: glossary.carrier
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797989
+    m_Key: glossary.cutter.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797990
+    m_Key: glossary.cutter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797991
+    m_Key: glossary.digger.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797992
+    m_Key: glossary.digger
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797993
+    m_Key: glossary.gardener.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797994
+    m_Key: glossary.gardener
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797995
+    m_Key: glossary.nurse.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797996
+    m_Key: glossary.nurse
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797997
+    m_Key: glossary.soldier.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797998
+    m_Key: glossary.soldier
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828797999
+    m_Key: glossary.spitter.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798000
+    m_Key: glossary.spitter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798001
+    m_Key: glossary.midden.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798002
+    m_Key: glossary.midden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798003
+    m_Key: glossary.farmer.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798004
+    m_Key: glossary.farmer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798005
+    m_Key: glossary.mode.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798006
+    m_Key: glossary.mode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798007
+    m_Key: glossary.stance.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798008
+    m_Key: glossary.stance
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798009
+    m_Key: glossary.tree.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798010
+    m_Key: glossary.tree
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798011
+    m_Key: glossary.unlocks.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798012
+    m_Key: glossary.unlocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798013
+    m_Key: glossary.raids.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798014
+    m_Key: glossary.raids
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798015
+    m_Key: glossary.raidtargets.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798016
+    m_Key: glossary.raidtargets
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798017
+    m_Key: glossary.blackaphid.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798018
+    m_Key: glossary.blackaphid
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798019
+    m_Key: glossary.cards.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798020
+    m_Key: glossary.cards
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798021
+    m_Key: glossary.colonypanel.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798022
+    m_Key: glossary.colonypanel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798023
+    m_Key: glossary.bell.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798024
+    m_Key: glossary.bell
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798025
+    m_Key: glossary.showrooms.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798026
+    m_Key: glossary.showrooms
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798027
+    m_Key: glossary.tips.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1425894828798028
+    m_Key: glossary.tips
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

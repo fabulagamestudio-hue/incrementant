@@ -2,6 +2,7 @@ using Fabula.Incrementant.Texts;
 using Fabula.Incrementant.Audio;
 using Fabula.Incrementant.AntFarm;
 using Fabula.Incrementant.Colony;
+using Fabula.Incrementant.Glossary;
 using Fabula.Incrementant.Juice;
 using System;
 using Fabula.Incrementant.Settings;
@@ -103,6 +104,9 @@ namespace Fabula.Incrementant.UI
         [Tooltip("Mostrar ambientes: liga e desliga a pintura das salas no terreno (GameSettingsData.ShowRooms). Opcional: cenas antigas não têm.")]
         [SerializeField] Button _roomsButton;
         [SerializeField] Image _roomsImage;
+        [Tooltip("Botão ? da barra inferior e a janela do glossário (também aberta pelo menu do ESC). Opcional: cenas antigas não têm.")]
+        [SerializeField] Button _glossaryButton;
+        [SerializeField] GlossaryScreen _glossary;
 
         [Header("Sprites de estado")]
         [SerializeField] Sprite _buttonIdle;
@@ -118,6 +122,7 @@ namespace Fabula.Incrementant.UI
 
         bool _fingerCursorShown;
         HudTooltips _tooltips;
+        ColonyMenuDrawer _menuDrawer;
 
         const string DefaultHintKey = "hud.hint";
         const float TextRefreshSeconds = 0.25f;
@@ -153,7 +158,7 @@ namespace Fabula.Incrementant.UI
         public enum Spot
         {
             PaintMenu, EnvironmentMenu, EvolutionMenu, NutrientsCard, AntsCard, QueenCard, QueenMenu,
-            PauseButton, ColonyButton, RecallButton, RoomsButton,
+            PauseButton, ColonyButton, RecallButton, RoomsButton, GlossaryButton,
         }
 
         public bool TreeOpen => _treePanel != null && _treePanel.activeSelf;
@@ -175,6 +180,7 @@ namespace Fabula.Incrementant.UI
                 case Spot.PauseButton: c = _pauseButton; break;
                 case Spot.ColonyButton: c = _colonyButton; break;
                 case Spot.RecallButton: c = _recallButton; break;
+                case Spot.GlossaryButton: c = _glossaryButton; break;
                 default: c = _roomsButton; break;
             }
             return c != null ? (RectTransform)c.transform : null;
@@ -273,6 +279,8 @@ namespace Fabula.Incrementant.UI
             // Cliques de todos os botões da tela (painéis, menu do ESC, árvore, configurações).
             ButtonSfx.AttachAll(transform.root);
             ButtonJuice.AttachAll(transform.root);
+            // A coluna do menu Colônia é o pai dos botões dela (sem campo próprio: cenas montadas antes da gaveta servem).
+            _menuDrawer = new ColonyMenuDrawer((RectTransform)_paintButton.transform.parent);
             _tooltips = new HudTooltips(_raidAlertText.font);
             _floatingText = FloatingText.Create(_raidAlertText.font, _game.WorldCamera, GetComponentInParent<CanvasScaler>());
             AttachTooltips();
@@ -333,6 +341,8 @@ namespace Fabula.Incrementant.UI
                 _tooltips.Attach(_colonyButton, () => Loc.T("tip.menu.colony"));
             if (_roomsButton != null)
                 _tooltips.Attach(_roomsButton, () => Loc.T(GameSettings.Current.ShowRooms ? "tip.rooms.hide" : "tip.rooms.show"));
+            if (_glossaryButton != null)
+                _tooltips.Attach(_glossaryButton, () => Loc.T("tip.glossary"));
             for (int i = 0; i < _brushButtons.Length; i++)
             {
                 int index = i;
@@ -389,6 +399,8 @@ namespace Fabula.Incrementant.UI
                 _colonyButton.onClick.AddListener(ToggleColony);
             if (_roomsButton != null)
                 _roomsButton.onClick.AddListener(ToggleShowRooms);
+            if (_glossaryButton != null && _glossary != null)
+                _glossaryButton.onClick.AddListener(_glossary.Open);
             _environmentButton.onClick.AddListener(ToggleEnvironment);
             _depotButton.onClick.AddListener(ToggleDepot);
             _queenButton.onClick.AddListener(ToggleQueen);
@@ -420,6 +432,8 @@ namespace Fabula.Incrementant.UI
                 _colonyButton.onClick.RemoveListener(ToggleColony);
             if (_roomsButton != null)
                 _roomsButton.onClick.RemoveListener(ToggleShowRooms);
+            if (_glossaryButton != null && _glossary != null)
+                _glossaryButton.onClick.RemoveListener(_glossary.Open);
             _environmentButton.onClick.RemoveListener(ToggleEnvironment);
             _depotButton.onClick.RemoveListener(ToggleDepot);
             _queenButton.onClick.RemoveListener(ToggleQueen);
@@ -545,7 +559,7 @@ namespace Fabula.Incrementant.UI
         }
 
         /// <summary>
-        /// Um ESC fecha a camada de cima: configurações → menu → jogo; sem menu aberto, fecha a tela de evolução ou o
+        /// Um ESC fecha a camada de cima: glossário → configurações → menu → jogo; sem menu aberto, fecha a tela de evolução ou o
         /// submenu da colônia; sem nada aberto, abre o menu. Fica tudo aqui para duas telas não reagirem ao mesmo ESC.
         /// </summary>
         void HandleEscape()
@@ -554,7 +568,9 @@ namespace Fabula.Incrementant.UI
                 return; // o pop-up central do tutorial é modal
             if (VersionHistoryScreen.BlocksEscape)
                 return; // o histórico de versões fecha sozinho
-            if (_pauseMenu.IsOpen)
+            if (_glossary != null && _glossary.IsOpen)
+                _glossary.Close(); // aberto pelo menu do ESC, volta para ele
+            else if (_pauseMenu.IsOpen)
                 _pauseMenu.Back();
             else if (_menu != Menu.None || _treePanel.activeSelf || ColonyPanelOpen)
                 OpenMenu(Menu.None);
@@ -578,6 +594,9 @@ namespace Fabula.Incrementant.UI
 
             SetFingerCursor(_game.FingerSelected && _game.PointerOverWorld);
             _tooltips.Tick();
+            // Recuada até o cursor chegar perto; aberta enquanto um submenu dela está aberto ou o tutorial fala dela.
+            bool submenuOpen = _menu == Menu.Paint || _menu == Menu.Environment || _menu == Menu.Queen;
+            _menuDrawer.Tick(submenuOpen || (_tutorial != null && _tutorial.HoldsColonyMenu));
 
             // Tempo de relógio real desta sessão (ignora pausa e velocidade); FPS médio entre duas atualizações do texto.
             _playedSeconds += Time.unscaledDeltaTime;

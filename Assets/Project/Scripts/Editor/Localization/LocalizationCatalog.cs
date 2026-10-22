@@ -11,7 +11,7 @@ namespace Fabula.Incrementant.EditorTools.Localization
     /// Textos de UI estáticos (rótulos montados pelo setup do HUD) são achados pelo português: o mesmo texto repetido em
     /// telas diferentes usa a mesma chave. Modelos com <c>{0}</c> são preenchidos por <c>Loc.T(chave, args)</c>.
     /// </summary>
-    public static class LocalizationCatalog
+    public static partial class LocalizationCatalog
     {
         public readonly struct Entry
         {
@@ -461,15 +461,16 @@ namespace Fabula.Incrementant.EditorTools.Localization
             Add(l, "tutorial.tour.threats.title", "Cupins", "Termites");
             Add(l, "tutorial.tour.threats", "De tempos em tempos os cupins atacam. Um alerta aparece no alto da tela e cada cupim ganha um círculo vermelho (ou uma seta na borda). Se matarem a rainha, a partida acaba.",
                 "From time to time termites attack. An alert shows at the top of the screen and each termite gets a red circle (or an arrow on the edge). If they kill the queen, the game is over.");
-            Add(l, "tutorial.tour.tips.title", "Dicas", "Tips");
-            Add(l, "tutorial.tour.tips", "Pare o mouse sobre qualquer botão ou cartão para ver o que ele faz e o que está faltando. O ESC abre o menu: salvar, carregar e configurações.",
-                "Rest the mouse over any button or card to see what it does and what is missing. ESC opens the menu: save, load and settings.");
-            Add(l, "tutorial.farewell", "O jogo volta a correr quando você fechar esta janela. Uma boa primeira jogada: cave uma câmara ligada ao abrigo e pinte nela uma sala de nutrientes. Depois, explore à vontade!",
-                "The game resumes when you close this window. A good first move: dig a chamber connected to the shelter and paint a nutrient room in it. Then explore freely!");
+            Add(l, "tutorial.tour.tips.title", "Dicas e glossário", "Tips and glossary");
+            Add(l, "tutorial.tour.tips", "Pare o mouse sobre qualquer botão ou cartão para ver o que ele faz e o que está faltando. Este botão abre o glossário, com a explicação de cada parte do jogo; ele também está no menu do ESC (salvar, carregar e configurações).",
+                "Rest the mouse over any button or card to see what it does and what is missing. This button opens the glossary, which explains every part of the game; it is also in the ESC menu (save, load and settings).");
+            Add(l, "tutorial.farewell", "O jogo volta a correr quando você fechar esta janela. Uma boa primeira jogada: cave uma câmara ligada ao abrigo e pinte nela uma sala de nutrientes. Na dúvida, o glossário (botão ? embaixo) explica tudo. Explore à vontade!",
+                "The game resumes when you close this window. A good first move: dig a chamber connected to the shelter and paint a nutrient room in it. When in doubt, the glossary (? button below) explains everything. Explore freely!");
 
             AddQueenNodes(l);
             AddHiveNodes(l);
             AddUpgradeNodes(l);
+            AddGlossary(l);
             return l;
         }
 

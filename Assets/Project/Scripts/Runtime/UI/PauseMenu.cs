@@ -1,5 +1,6 @@
 using Fabula.Incrementant.Texts;
 using Fabula.Incrementant.AntFarm;
+using Fabula.Incrementant.Glossary;
 using Fabula.Incrementant.Settings;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -8,7 +9,7 @@ using UnityEngine.UI;
 namespace Fabula.Incrementant.UI
 {
     /// <summary>
-    /// Menu do ESC: continuar, configurações, salvar, carregar e sair. Abrir pausa a simulação e trava o input do mundo
+    /// Menu do ESC: continuar, configurações, glossário, salvar, carregar e sair. Abrir pausa a simulação e trava o input do mundo
     /// (<see cref="AntFarmGame.InputLocked"/>); fechar devolve a pausa como estava. Quem decide o que o ESC faz é o
     /// <see cref="AntFarmHud"/>, que chama <see cref="Open"/> e <see cref="Back"/>. Montado pelo setup do HUD.
     /// </summary>
@@ -24,6 +25,9 @@ namespace Fabula.Incrementant.UI
         [SerializeField] Button _mainMenu;
         [SerializeField] Button _quit;
         [SerializeField] Text _status;
+        [Tooltip("GLOSSÁRIO: abre a janela por cima do menu; fechá-la volta ao menu. Opcional: cenas antigas não têm.")]
+        [SerializeField] Button _glossaryButton;
+        [SerializeField] GlossaryScreen _glossary;
 
         bool _wasPaused;
         string _localStatus = "";
@@ -53,6 +57,8 @@ namespace Fabula.Incrementant.UI
             _load.onClick.AddListener(Load);
             _mainMenu.onClick.AddListener(GoToMainMenu);
             _quit.onClick.AddListener(Quit);
+            if (_glossaryButton != null && _glossary != null)
+                _glossaryButton.onClick.AddListener(_glossary.Open);
         }
 
         void OnDisable()
@@ -65,6 +71,8 @@ namespace Fabula.Incrementant.UI
             _load.onClick.RemoveListener(Load);
             _mainMenu.onClick.RemoveListener(GoToMainMenu);
             _quit.onClick.RemoveListener(Quit);
+            if (_glossaryButton != null && _glossary != null)
+                _glossaryButton.onClick.RemoveListener(_glossary.Open);
         }
 
         public void Open()
