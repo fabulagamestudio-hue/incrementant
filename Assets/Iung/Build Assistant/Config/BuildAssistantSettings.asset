@@ -86,7 +86,11 @@ MonoBehaviour:
       build version now shows in the bottom-right corner of every screen
 
       Click
-      the version to see every release so far and its notes'
+      the version to see every release so far and its notes
+
+      A short interface
+      tour opens every new game: it explains the cards, menus and buttons, and you
+      can click anything along the way'
     Removed: Speed buttons (pause stays)
     Modified: 'Dew drops every 4 s (was 8 s)
 
@@ -130,7 +134,8 @@ MonoBehaviour:
         de fora, os t\xFAneis ficam na penumbra e t\xEAm parede de fundo com textura\nA
         vers\xE3o da build aparece no canto inferior direito de todas as telas\nClique
         na vers\xE3o para ver todas as vers\xF5es at\xE9 agora e as notas de cada
-        uma"
+        uma\nUm tour curto da interface abre todo jogo novo: explica os cart\xF5es,
+        os menus e os bot\xF5es, e voc\xEA pode clicar em tudo durante ele"
       Removed: "Bot\xF5es de velocidade (a pausa continua)"
       Modified: "Gota de orvalho a cada 4 s (era 8 s)\nAtaques a cada 2 a 10 minutos,
         com enxames de 20% a 50% das formigas\nFormigas sem trabalho ajudam como
@@ -187,7 +192,6 @@ MonoBehaviour:
       - Assets/Project/Scripts/Editor/Setup/AntFarmMapImporter.cs
       - Assets/Project/Scripts/Editor/Setup/AntFarmMapTools.cs
       - Assets/Project/Scripts/Editor/Setup/AntFarmSceneSetup.cs
-      - Assets/Project/Scripts/Editor/Setup/BuildVersionOverlaySetup.cs
       - Assets/Project/Scripts/Editor/Setup/PostProcessSetup.cs
       - Assets/Project/Scripts/Editor/Setup/ValidateRefinedSceneryTemporary.cs
       - Assets/Project/Scripts/Editor/Tutorial/TutorialMenu.cs
@@ -195,6 +199,7 @@ MonoBehaviour:
       - Assets/Project/Scripts/Editor/UI/AntFarmHudSetup.cs
       - Assets/Project/Scripts/Editor/UI/AntFarmHudSetup.Evolution.cs
       - Assets/Project/Scripts/Editor/UI/AntFarmHudSetup.MainMenu.cs
+      - Assets/Project/Scripts/Editor/UI/AntFarmHudSetup.Version.cs
       - Assets/Project/Scripts/Editor/UI/SkillTreeSpriteImporter.cs
       - Assets/Project/Scripts/Editor/UI/SplashDissolveSetup.cs
       - Assets/Project/Scripts/Editor/UI/SplashSceneSetup.cs
@@ -292,6 +297,7 @@ MonoBehaviour:
       - Assets/Project/Scripts/Runtime/UI/TermiteMarkers.cs
       - Assets/Project/Scripts/Runtime/UI/TreeViewport.cs
       - Assets/Project/Scripts/Runtime/UI/TunnelPathGraphic.cs
+      - Assets/Project/Scripts/Runtime/UI/VersionHistoryScreen.cs
       - Assets/Project/Scripts/Runtime/Upgrades/UpgradeBoard.cs
       - Assets/Project/Scripts/Runtime/Upgrades/UpgradeCatalog.cs
       - Assets/Project/Scripts/Runtime/Upgrades/UpgradeEffects.cs
@@ -359,7 +365,7 @@ MonoBehaviour:
       RemovedScripts: []
       HasPreviousSnapshot: 0
       PreviousSnapshotPath: H:\Fabula\Games\Incrementant\BuildReports\LastScriptSnapshot_platform_StandaloneWindows64.json
-      LastRefreshTime: 2026-10-22 15:30:12
+      LastRefreshTime: 2026-10-22 16:12:14
     FolderNameComposition:
     - Token: 0
       IsVisible: 1
@@ -542,7 +548,6 @@ MonoBehaviour:
         - Assets/Project/Scripts/Editor/Setup/AntFarmMapImporter.cs
         - Assets/Project/Scripts/Editor/Setup/AntFarmMapTools.cs
         - Assets/Project/Scripts/Editor/Setup/AntFarmSceneSetup.cs
-        - Assets/Project/Scripts/Editor/Setup/BuildVersionOverlaySetup.cs
         - Assets/Project/Scripts/Editor/Setup/PostProcessSetup.cs
         - Assets/Project/Scripts/Editor/Setup/ValidateRefinedSceneryTemporary.cs
         - Assets/Project/Scripts/Editor/Tutorial/TutorialMenu.cs
@@ -550,6 +555,7 @@ MonoBehaviour:
         - Assets/Project/Scripts/Editor/UI/AntFarmHudSetup.cs
         - Assets/Project/Scripts/Editor/UI/AntFarmHudSetup.Evolution.cs
         - Assets/Project/Scripts/Editor/UI/AntFarmHudSetup.MainMenu.cs
+        - Assets/Project/Scripts/Editor/UI/AntFarmHudSetup.Version.cs
         - Assets/Project/Scripts/Editor/UI/SkillTreeSpriteImporter.cs
         - Assets/Project/Scripts/Editor/UI/SplashDissolveSetup.cs
         - Assets/Project/Scripts/Editor/UI/SplashSceneSetup.cs
@@ -647,6 +653,7 @@ MonoBehaviour:
         - Assets/Project/Scripts/Runtime/UI/TermiteMarkers.cs
         - Assets/Project/Scripts/Runtime/UI/TreeViewport.cs
         - Assets/Project/Scripts/Runtime/UI/TunnelPathGraphic.cs
+        - Assets/Project/Scripts/Runtime/UI/VersionHistoryScreen.cs
         - Assets/Project/Scripts/Runtime/Upgrades/UpgradeBoard.cs
         - Assets/Project/Scripts/Runtime/Upgrades/UpgradeCatalog.cs
         - Assets/Project/Scripts/Runtime/Upgrades/UpgradeEffects.cs
@@ -714,7 +721,7 @@ MonoBehaviour:
         RemovedScripts: []
         HasPreviousSnapshot: 0
         PreviousSnapshotPath: H:\Fabula\Games\Incrementant\BuildReports\LastScriptSnapshot_platform_StandaloneWindows64.json
-        LastRefreshTime: 2026-10-22 15:30:12
+        LastRefreshTime: 2026-10-22 16:12:14
       FolderNameComposition:
       - Token: 0
         IsVisible: 1
