@@ -227,7 +227,6 @@ namespace Fabula.Incrementant.EditorTools.Localization
             Add(l, "tip.colony.section.dew", "Gotas de orvalho: terra fofa no teto e cuidado das gotas.", "Dew drops: loose soil on the ceiling and care of the drops.");
             Add(l, "tip.colony.section.waste", "Resíduos: desmembrar cupins mortos e levar os restos.", "Waste: dismember dead termites and carry the remains away.");
             Add(l, "tip.pause", "Pausa ou retoma a simulação (tecla P).", "Pauses or resumes the simulation (P key).");
-            Add(l, "tip.speed", "Velocidade {0}x (tecla {1}).", "Speed {0}x (key {1}).");
             Add(l, "tip.brush.dig", "Cavar: marque a terra que as escavadoras devem tirar. Botão esquerdo marca, direito desmarca.", "Dig: mark the soil the diggers must remove. Left button marks, right button unmarks.");
             Add(l, "tip.brush.build", "Construir: marque células vazias para as formigas levantarem terra, até acima do solo. Botão direito desmarca.", "Build: mark empty cells for the ants to fill with soil, even above the ground. Right button unmarks.");
             Add(l, "tip.brush.glowmushroom", "Cogumelo luminoso: clique numa célula do túnel encostada na terra. Uma formiga leva até lá um cogumelo colhido dos pulgões e o planta; ele ilumina os túneis em volta. Botão direito desmarca; para tirar um cogumelo, cave-o.", "Glowing mushroom: click a tunnel cell next to the soil. An ant brings a mushroom harvested from the aphids and plants it; it lights the tunnels around it. Right button unmarks; to remove a mushroom, dig it.");
@@ -448,8 +447,8 @@ namespace Fabula.Incrementant.EditorTools.Localization
             Add(l, "tutorial.tour.evolution", "Gaste nutrientes em novas classes de formiga e em melhorias. Arraste para mover a árvore, role para aproximar e clique num nó para ver efeito, custo e requisitos.",
                 "Spend nutrients on new ant classes and upgrades. Drag to move the tree, scroll to zoom, and click a node to see its effect, cost and requirements.");
             Add(l, "tutorial.tour.pause.title", "Pausa", "Pause");
-            Add(l, "tutorial.tour.pause", "Pausa e retoma o jogo (tecla P). Pausado, você ainda pode marcar e pintar. As teclas 1, 2 e 3 trocam a velocidade.",
-                "Pauses and resumes the game (P key). While paused you can still mark and paint. Keys 1, 2 and 3 change the speed.");
+            Add(l, "tutorial.tour.pause", "Pausa e retoma o jogo (tecla P). Pausado, você ainda pode marcar e pintar: as formigas começam quando o jogo voltar.",
+                "Pauses and resumes the game (P key). While paused you can still mark and paint: the ants start once the game resumes.");
             Add(l, "tutorial.tour.colony.title", "Painel da colônia", "Colony panel");
             Add(l, "tutorial.tour.colony", "Estatísticas das formigas e da produção, e quais trabalhos ficam ativos. Ali você para uma seção ou limita quantas formigas trabalham nela.",
                 "Ant and production statistics, and which jobs stay active. There you can stop a section or limit how many ants work in it.");

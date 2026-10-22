@@ -214,7 +214,7 @@ namespace Fabula.Incrementant.EditorTools.UI
 
             // --- canto inferior esquerdo, num cartão só: pausa, painel da colônia (estatísticas), sino (recolhe as formigas
             // ao formigueiro / manda de volta ao trabalho) e mostrar ambientes. Sem botões de acelerar o tempo (as teclas
-            // 1/2/3 seguem valendo).
+            // 1/2/3 são só cheat de teste).
             Image bottomBar = BuildSprite(root, "BarraInferior", "panels/hud_card", new Vector2(0, 0), new Vector2(0, 0),
                                           new Vector2(16, 16), new Vector2(14 + 4 * 64 - 8 + 14, 76));
             Sprite iconIdle = Load("buttons/icon_button");

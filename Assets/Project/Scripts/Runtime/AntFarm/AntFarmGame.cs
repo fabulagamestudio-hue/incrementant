@@ -913,6 +913,18 @@ namespace Fabula.Incrementant.AntFarm
         }
 
         /// <summary>
+        /// Cheat de teste (1/2/3): velocidade x1, x3 ou x8 (pedido do desenvolvedor em 2026-10-22: deixou de ser mecânica do
+        /// jogador). Só em Editor e builds de desenvolvimento.
+        /// </summary>
+        void CheatSpeed(int index)
+        {
+            if (!Debug.isDebugBuild)
+                return;
+            SetSpeed(index);
+            Debug.Log($"[AntFarmGame] Cheat {index + 1}: velocidade x{SpeedSteps[_speedIndex]}.");
+        }
+
+        /// <summary>
         /// Cheat de teste (F4): começa um ataque de cupins agora (com o alerta), mesmo antes do mínimo de formigas. Só em Editor
         /// e builds de desenvolvimento.
         /// </summary>
@@ -929,9 +941,9 @@ namespace Fabula.Incrementant.AntFarm
             Keyboard keyboard = Keyboard.current;
             if (keyboard != null)
             {
-                if (keyboard.digit1Key.wasPressedThisFrame) SetSpeed(0);
-                if (keyboard.digit2Key.wasPressedThisFrame) SetSpeed(1);
-                if (keyboard.digit3Key.wasPressedThisFrame) SetSpeed(2);
+                if (keyboard.digit1Key.wasPressedThisFrame) CheatSpeed(0);
+                if (keyboard.digit2Key.wasPressedThisFrame) CheatSpeed(1);
+                if (keyboard.digit3Key.wasPressedThisFrame) CheatSpeed(2);
                 if (keyboard.pKey.wasPressedThisFrame) SetPaused(!_paused);
                 if (keyboard.f1Key.wasPressedThisFrame) SpawnCheatAnts();
                 if (keyboard.f2Key.wasPressedThisFrame) _showDebugHud = !_showDebugHud;

@@ -2824,8 +2824,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1415372704182294
-    m_Localized: Pauses and resumes the game (P key). While paused you can still
-      mark and paint. Keys 1, 2 and 3 change the speed.
+    m_Localized: 'Pauses and resumes the game (P key). While paused you can still
+      mark and paint: the ants start once the game resumes.'
     m_Metadata:
       m_Items: []
   - m_Id: 1415372704182295

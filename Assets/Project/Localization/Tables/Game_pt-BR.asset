@@ -2853,7 +2853,7 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 1415372704182294
     m_Localized: "Pausa e retoma o jogo (tecla P). Pausado, voc\xEA ainda pode marcar
-      e pintar. As teclas 1, 2 e 3 trocam a velocidade."
+      e pintar: as formigas come\xE7am quando o jogo voltar."
     m_Metadata:
       m_Items: []
   - m_Id: 1415372704182295

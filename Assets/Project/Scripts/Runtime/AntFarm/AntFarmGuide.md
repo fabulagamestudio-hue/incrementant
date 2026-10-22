@@ -75,7 +75,7 @@ Valores exatos em `CellMaterials.BaseColor`; a leitura aceita a cor mais próxim
 | P / botão de pausa do HUD | Pausa e retoma a simulação (HUD de jogo: [HudGuide](../UI/HudGuide.md)); F2 mostra o HUD de depuração (IMGUI); **F11** mostra o painel de estatísticas (`SimStatsOverlay`); **Ctrl+F11** mostra as linhas dos blocos 16x16 do mapa (`AntFarmGame.DrawChunkLines`, a cada 4 blocos mais forte) |
 | F4 | **Cheat de teste:** começa um ataque de cupins agora (alerta de 8 s), mesmo antes de 15 formigas (`AntColony.ForceRaid`). Só em Editor e builds de desenvolvimento. Ataques: [RaidGuide](../Colony/RaidGuide.md) |
 | F1 | **Cheat de teste:** +50 operárias e +50 cortadeiras, nascidas onde a rainha está (`AntFarmGame.SpawnCheatAnts`). Não cobra nutrientes e ignora capacidade adulta e berçário; só em Editor e builds de desenvolvimento (`Debug.isDebugBuild`) |
-| 1 / 2 / 3 | Velocidade x1 / x3 / x8 |
+| 1 / 2 / 3 | **Cheat de teste:** velocidade x1 / x3 / x8 (`AntFarmGame.CheatSpeed`). Desde 2026-10-22 não é mecânica do jogador: só em Editor e builds de desenvolvimento |
 | C / botões do HUD | Tempo: seco → chuva leve → chuva forte (só a forte cria água) |
 | R | Procedural: gera outro mapa · Image: reinicia o mapa da cena |
 | F5 / F9, ou botões do HUD | Salvar / carregar a partida (save rápido) |
