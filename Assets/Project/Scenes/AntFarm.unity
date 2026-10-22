@@ -93139,6 +93139,7 @@ MonoBehaviour:
   _tileAtlas: {fileID: 2800000, guid: 12655b57ed48c8a408a475b64e71dcb7, type: 3}
   _tileDetail: 1
   _tileToneStrength: 0.5
+  _grassOverhang: {fileID: 2800000, guid: 3def7123e0c6b9b4b8890d4dc138514f, type: 3}
   _debugSignedDistance: 0
 --- !u!212 &1455741070
 SpriteRenderer:

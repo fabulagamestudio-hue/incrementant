@@ -23,6 +23,12 @@
 // _InteriorAmbient (penumbra do formigueiro); a terra longe da luz fica preta. O céu não recebe luz.
 // Emissão: o material _GlowMaterialId (cogumelo luminoso) sai com a cor × _GlowEmission, acima de 1 (HDR), para o bloom
 // do pós-processamento, com limiar acima do branco, brilhar só nele.
+// Transbordo (experimento de 2026-10-22): numa célula vazia (céu ou túnel) com _OverhangMaterialId (grama) embaixo, desenha
+// _OverhangTex (uma célula de altura, _OverhangSize texels de largura, lida no x do mundo) por cima: a grama passa do topo do
+// bloco sem mudar a célula, que continua vazia para a lógica. Usa o tom e a luz do texel de cima do bloco de baixo.
+// Borda lascada (experimento de 2026-10-22): pedaços da beira das faces expostas e das quinas convexas de terra, terra
+// despejada, areia e pedra (cada uma no seu ritmo, ChipStyleOf) são desenhados como a vizinha vazia (ChipFrom); a célula
+// continua sólida.
 Shader "Incrementant/TerrainTiles"
 {
     Properties
@@ -48,6 +54,16 @@ Shader "Incrementant/TerrainTiles"
         _GlowMaterialId ("Material emissivo: id no atlas (o AntFarmView sobrescreve)", Float) = 17
         _GlowEmission ("Emissão do material emissivo (o AntFarmView sobrescreve)", Range(1, 8)) = 2.5
         _ShadowTint ("Cor da penumbra", Color) = (0.8, 0.85, 1, 1)
+        _OverhangTex ("Transbordo da grama (o AntFarmView sobrescreve)", 2D) = "black" {}
+        _OverhangSize ("Transbordo: largura da textura, em texels", Float) = 128
+        _OverhangMaterialId ("Transbordo: material de baixo que o desenha (o AntFarmView sobrescreve; -1 = desligado)", Float) = -1
+        [Toggle] _ChipEnabled ("Borda lascada: ligada", Float) = 1
+        _ChipDirt ("Borda lascada, terra e terra mole: profundidade, topo, quina, trecho (texels)", Vector) = (8, 2, 12, 9)
+        _ChipSpoil ("Borda lascada, terra despejada (solta e compactada): profundidade, topo, quina, trecho", Vector) = (6, 2, 6, 6)
+        _ChipSand ("Borda lascada, areia (solta e compactada): profundidade, topo, quina, trecho", Vector) = (4, 1, 6, 3)
+        _ChipRock ("Borda lascada, pedra: profundidade, topo, quina, trecho", Vector) = (6, 1, 10, 12)
+        _ChipChance ("Borda lascada: chance de mordida por trecho (terra, despejada, areia, pedra)", Vector) = (0.75, 0.8, 0.9, 0.5)
+        _ChipSlope ("Borda lascada: inclinação da mordida, 1 = degraus de 1 texel, menor = arredondada, maior = reta (terra, despejada, areia, pedra)", Vector) = (1, 0.8, 1, 3)
         [Toggle] _DebugSignedDistance ("Depuração: distância com sinal", Float) = 0
     }
 
@@ -83,6 +99,7 @@ Shader "Incrementant/TerrainTiles"
             TEXTURE2D(_CellMaterials); SAMPLER(sampler_CellMaterials);
             TEXTURE2D(_TileAtlas); SAMPLER(sampler_TileAtlas);
             TEXTURE2D(_MaterialColors); SAMPLER(sampler_MaterialColors);
+            TEXTURE2D(_OverhangTex); SAMPLER(sampler_OverhangTex);
 
             CBUFFER_START(UnityPerMaterial)
                 float _TileCount;
@@ -103,6 +120,15 @@ Shader "Incrementant/TerrainTiles"
                 float _GlowMaterialId;
                 float _GlowEmission;
                 float _DebugSignedDistance;
+                float _OverhangSize;
+                float _OverhangMaterialId;
+                float _ChipEnabled;
+                float4 _ChipDirt;
+                float4 _ChipSpoil;
+                float4 _ChipSand;
+                float4 _ChipRock;
+                float4 _ChipChance;
+                float4 _ChipSlope;
             CBUFFER_END
 
             static const float SkyId = 255.0;
@@ -227,6 +253,171 @@ Shader "Incrementant/TerrainTiles"
                 return (half3)(1.0 - _WallShadowStrength * (1.0 - level / _WallShadowSteps));
             }
 
+            // Luz do mapa no texel: de fora e de cogumelo, cada uma interpolada à parte; fica a maior. O tom segue a proporção
+            // das duas: amarelado sutil onde manda o cogumelo, sem a penumbra azulada.
+            half3 MapLight(float2 cell, float2 inner, bool solid)
+            {
+                half outside = CurvedLight(cell, inner, 0.0);
+                half glowQ = CurvedLight(cell, inner, 1.0);
+                half q = max(outside, glowQ);
+                half glow = glowQ / max(glowQ + outside, 0.0001);
+                if (!solid)
+                    q = max(q, _InteriorAmbient);
+                half3 low = lerp(_ShadowTint.rgb, _GlowLightTint.rgb, glow);
+                half3 high = lerp(_LightTint.rgb, _GlowLightTint.rgb, glow);
+                return q * lerp(low, high, q);
+            }
+
+            // Transbordo numa célula vazia: rgb já com tom e luz, a = cobertura (0 = nada). O tom e a luz são os do texel de
+            // cima do bloco de baixo, para a grama continuar o bloco (marca, umidade e sombra passam junto).
+            half4 Overhang(float2 cell, float2 inner, half fade)
+            {
+                float2 below = cell - float2(0, 1);
+                if (_OverhangMaterialId < 0 || MaterialAt(below) != _OverhangMaterialId)
+                    return 0;
+                float worldX = (_WindowOrigin.x + cell.x) * _TexelsPerCell + inner.x;
+                float2 uv = float2((fmod(worldX, _OverhangSize) + 0.5) / _OverhangSize, (inner.y + 0.5) / _TexelsPerCell);
+                half4 art = SAMPLE_TEXTURE2D_LOD(_OverhangTex, sampler_OverhangTex, uv, 0);
+                if (art.a < 0.5)
+                    return 0;
+                float2 belowUv = (below + 0.5) / _WindowOrigin.zw;
+                float3 tone = SAMPLE_TEXTURE2D_LOD(_MainTex, sampler_MainTex, belowUv, 0).rgb
+                    / max(RowColor(_OverhangMaterialId, 0), 0.0005);
+                float4 data = SAMPLE_TEXTURE2D_LOD(_CellMaterials, sampler_CellMaterials, belowUv, 0);
+                half3 light = data.a < 0.75 ? MapLight(below, float2(inner.x, _TexelsPerCell - 1), true) : half3(1, 1, 1);
+                return half4(art.rgb * tone * light, fade);
+            }
+
+            float Hash(float2 p)
+            {
+                return frac(sin(dot(p, float2(127.1, 311.7))) * 43758.5453);
+            }
+
+            // Ritmo da borda lascada de um material: depth/top/corner/segment em texels (máximo nas laterais e no teto, no
+            // topo, desbaste extra na quina e comprimento do trecho), chance de mordida por trecho e inclinação da mordida.
+            struct ChipStyle
+            {
+                float depth;
+                float top;
+                float corner;
+                float segment;
+                float chance;
+                float slope;
+            };
+
+            ChipStyle MakeChipStyle(float4 shape, float chance, float slope)
+            {
+                ChipStyle style;
+                style.depth = shape.x;
+                style.top = shape.y;
+                style.corner = shape.z;
+                style.segment = max(shape.w, 2);
+                style.chance = chance;
+                style.slope = slope;
+                return style;
+            }
+
+            // Ids de CellMaterial (mesma ordem do enum e das linhas do atlas). Terra mole segue a terra; os compactados seguem
+            // o material solto. Devolve false nos materiais sem borda lascada.
+            bool ChipStyleOf(float id, out ChipStyle style)
+            {
+                style = MakeChipStyle(_ChipDirt, _ChipChance.x, _ChipSlope.x);
+                if (id == 1 || id == 9)          // Dirt, Mud
+                    return true;
+                if (id == 5 || id == 7)          // Spoil, PackedSpoil
+                {
+                    style = MakeChipStyle(_ChipSpoil, _ChipChance.y, _ChipSlope.y);
+                    return true;
+                }
+                if (id == 3 || id == 8)          // Sand, PackedSand
+                {
+                    style = MakeChipStyle(_ChipSand, _ChipChance.z, _ChipSlope.z);
+                    return true;
+                }
+                if (id == 4)                     // Rock
+                {
+                    style = MakeChipStyle(_ChipRock, _ChipChance.w, _ChipSlope.w);
+                    return true;
+                }
+                return false;
+            }
+
+            // Uma "mordida" num trecho de 'len' texels: com a chance do estilo falta um pedaço de 1 a maxDepth texels, mais
+            // fundo no meio e raso nas pontas, em vez de um dente por texel. A inclinação diz quanto ela aprofunda por texel
+            // a partir da ponta: 1 = degraus de 1 texel, menos de 1 = arredondada (monte), mais = paredes retas (pedra).
+            float Bite(float along, float len, float salt, float maxDepth, ChipStyle style)
+            {
+                float seg = floor(along / len);
+                if (Hash(float2(seg, salt)) > style.chance)
+                    return 0;
+                float depth = 1 + floor(Hash(float2(seg, salt + 7.3)) * maxDepth);
+                float t = along - seg * len;
+                return min(depth, floor((min(t, len - 1 - t) + 1) * style.slope));
+            }
+
+            // Profundidade do entalhe numa face exposta, em texels, no texel do mundo 'along' ao longo da face: dois ritmos de
+            // mordidas sobrepostos (o trecho e ~1,6×), para o padrão não se repetir a cada célula.
+            float ChipDepth(float along, float salt, float maxDepth, ChipStyle style)
+            {
+                float a = Bite(along, style.segment, salt, maxDepth, style);
+                float b = Bite(along + 3, round(style.segment * 1.6), salt + 19.1, maxDepth, style);
+                return min(max(a, b), maxDepth);
+            }
+
+            bool IsVoid(float2 cell)
+            {
+                return SignedDistanceAt(cell) < 0;
+            }
+
+            // Borda lascada (experimento de 2026-10-22): nos materiais com estilo (ChipStyleOf), os texels da beira de uma face
+            // que dá para o vazio podem virar vazio no desenho. Devolve a direção da vizinha vazia que "invade" o texel, ou
+            // (0, 0) se ele fica sólido. Topo raso (style.top, o chão onde as formigas andam), laterais e teto até style.depth,
+            // quinas convexas mais roídas (style.corner). A célula continua sólida para a lógica.
+            float2 ChipFrom(float2 cell, float2 inner, ChipStyle style)
+            {
+                float last = _TexelsPerCell - 1;
+                float2 world = (_WindowOrigin.xy + cell) * _TexelsPerCell + inner;
+                bool up = IsVoid(cell + float2(0, 1));
+                bool down = IsVoid(cell - float2(0, 1));
+                bool left = IsVoid(cell - float2(1, 0));
+                bool right = IsVoid(cell + float2(1, 0));
+                // Quina convexa: as duas faces expostas. O desbaste cresce em degraus rumo ao canto (de 2 texels; de 4 nos
+                // materiais de mordida reta, para a quina sair em lasca angulosa), com tamanho sorteado por quina (de metade
+                // a todo style.corner).
+                float fromTop = last - inner.y;
+                float fromBottom = inner.y;
+                float side = left ? -1 : 1;
+                // Bloco fino (vazio dos dois lados opostos, como um bloco solto de 1 célula): metade do entalhe, para ele não
+                // virar uma bolinha.
+                float thin = (left && right) || (up && down) ? 0.5 : 1;
+                float corner = style.corner * thin;
+                float depth = style.depth * thin;
+                float cornerX = 0;
+                if ((left || right) && up)
+                    cornerX = max(cornerX, corner * (0.5 + 0.5 * Hash(cell + _WindowOrigin.xy + float2(side, 1))) - fromTop);
+                if ((left || right) && down)
+                    cornerX = max(cornerX, corner * (0.5 + 0.5 * Hash(cell + _WindowOrigin.xy + float2(side, -1))) + 1 - fromBottom);
+                float step = style.slope >= 2 ? 4 : 2;
+                cornerX = floor(max(cornerX, 0) / step) * step;
+                if (left && inner.x < ChipDepth(world.y, 3, depth, style) + (up || down ? cornerX : 0))
+                    return float2(-1, 0);
+                if (right && last - inner.x < ChipDepth(world.y, 4, depth, style) + (up || down ? cornerX : 0))
+                    return float2(1, 0);
+                if (up && fromTop < ChipDepth(world.x, 1, style.top, style))
+                    return float2(0, 1);
+                if (down && fromBottom < ChipDepth(world.x, 2, depth, style))
+                    return float2(0, -1);
+                return float2(0, 0);
+            }
+
+            // over por cima de base (alpha comum, sem pré-multiplicar).
+            half4 OverlayOn(half4 over, half4 base)
+            {
+                half a = over.a + base.a * (1 - over.a);
+                half3 rgb = (over.rgb * over.a + base.rgb * base.a * (1 - over.a)) / max(a, 0.0001);
+                return half4(rgb, a);
+            }
+
             half4 frag(Varyings input) : SV_Target
             {
                 half4 cellColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv) * input.color;
@@ -235,49 +426,58 @@ Shader "Incrementant/TerrainTiles"
                 if (_DebugSignedDistance > 0.5)
                     return half4(lerp(cellColor.rgb, SignedDistanceColor(SignedDistanceAt(cell)), 0.8), 1.0);
                 float id = MaterialAt(cell);
-                if (id == SkyId)
-                    return cellColor;
 
                 // Texel dentro da célula (0.._TexelsPerCell-1); a textura é lida no mundo para emendar entre células.
                 float2 inner = floor(frac(cellPos) * _TexelsPerCell);
+                // Com o zoom aberto (texel menor que um pixel da tela), a textura vira ruído: some aos poucos.
+                float texelsPerPixel = max(fwidth(cellPos.x), fwidth(cellPos.y)) * _TexelsPerCell;
+                half fade = saturate((3.0 - texelsPerPixel) * 0.5);
+
+                half4 over = id == SkyId || id == EmptyId ? Overhang(cell, inner, fade) : half4(0, 0, 0, 0);
+                if (id == SkyId)
+                    return over.a > 0 ? OverlayOn(over, cellColor) : cellColor;
+                // Borda lascada: o texel entalhado é desenhado como a vizinha vazia (céu, túnel ou fundo de sala), com a cor
+                // dela e a sombra de canto mais forte, porque encosta na terra.
+                bool chipped = false;
+                ChipStyle chipStyle;
+                if (_ChipEnabled > 0.5 && fade > 0.5 && ChipStyleOf(id, chipStyle))
+                {
+                    float2 from = ChipFrom(cell, inner, chipStyle);
+                    if (any(from != 0))
+                    {
+                        float2 voidCell = cell + from;
+                        cellColor = SAMPLE_TEXTURE2D_LOD(_MainTex, sampler_MainTex, (voidCell + 0.5) / _WindowOrigin.zw, 0);
+                        id = MaterialAt(voidCell);
+                        if (id == SkyId)
+                            return cellColor;
+                        chipped = true;
+                    }
+                }
                 // Fundo de sala construída: linhas pares depois da parede de fundo (as ímpares são os blocos).
                 bool roomBack = id > _BackTileId && fmod(id - _BackTileId, 2.0) < 0.5;
-                bool solid = id != EmptyId && !roomBack;
+                bool solid = id != EmptyId && !roomBack && !chipped;
                 float row = solid || roomBack ? id : _BackTileId;
                 float3 texel = SAMPLE_TEXTURE2D_LOD(_TileAtlas, sampler_TileAtlas, AtlasUv(row, inner, cell), 0).rgb;
                 half detailStrength = solid ? _DetailStrength : _BackDetail;
                 // Ajuste da CPU sobre a arte: a cor da célula dividida pela referência da linha.
                 float3 tone = cellColor.rgb / max(RowColor(row, 0), 0.0005);
 
-                // Com o zoom aberto (texel menor que um pixel da tela), a textura vira ruído: some aos poucos.
-                float texelsPerPixel = max(fwidth(cellPos.x), fwidth(cellPos.y)) * _TexelsPerCell;
-                half fade = saturate((3.0 - texelsPerPixel) * 0.5);
-
                 // Sombra de canto: só nas células vazias encostadas na terra (d = -1). Com o zoom aberto ela passa a valer
                 // para a célula inteira (mais fraca), para o mapa afastado não ficar chapado.
                 half3 light = half3(1, 1, 1);
-                if (!solid && SignedDistanceAt(cell) == -1.0)
+                if (chipped)
+                    light = WallLight(0);
+                else if (!solid && SignedDistanceAt(cell) == -1.0)
                     light = lerp((half3)(1.0 - 0.5 * _WallShadowStrength), WallLight(TexelsToSolid(cell, inner)), fade);
 
                 // Luz do mapa, menos na terra com marca por cima: essa já vem iluminada da CPU, para a marca não escurecer.
                 float4 data = SAMPLE_TEXTURE2D_LOD(_CellMaterials, sampler_CellMaterials, (cell + 0.5) / _WindowOrigin.zw, 0);
                 if (data.a < 0.75)
-                {
-                    // Luz de fora e luz de cogumelo, cada uma interpolada à parte; fica a maior. O tom segue a proporção das
-                    // duas: amarelado sutil onde manda o cogumelo, sem a penumbra azulada.
-                    half outside = CurvedLight(cell, inner, 0.0);
-                    half glowQ = CurvedLight(cell, inner, 1.0);
-                    half q = max(outside, glowQ);
-                    half glow = glowQ / max(glowQ + outside, 0.0001);
-                    if (!solid)
-                        q = max(q, _InteriorAmbient);
-                    half3 low = lerp(_ShadowTint.rgb, _GlowLightTint.rgb, glow);
-                    half3 high = lerp(_LightTint.rgb, _GlowLightTint.rgb, glow);
-                    light *= q * lerp(low, high, q);
-                }
+                    light *= MapLight(cell, inner, solid);
                 float3 surface = lerp(RowColor(row, 1), texel, detailStrength * fade) * tone;
                 half emission = id == _GlowMaterialId ? _GlowEmission : 1.0;
-                return half4(surface * light * emission, cellColor.a);
+                half4 result = half4(surface * light * emission, cellColor.a);
+                return over.a > 0 ? OverlayOn(over, result) : result;
             }
             ENDHLSL
         }

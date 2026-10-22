@@ -119,6 +119,8 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField, Range(0f, 2f)] float _tileDetail = 1f;
         [Tooltip("Quanto do tom de cada célula (variação de cor por posição) passa por cima do atlas: 1 = o tom inteiro, 0 = só a arte do atlas.")]
         [SerializeField, Range(0f, 1f)] float _tileToneStrength = 0.5f;
+        [Tooltip("Grama que passa do topo do bloco de grama para a célula vazia de cima, só no desenho: 1 célula de altura, largura repetida no x do mundo, alpha = folha. Vazio: sem transbordo.")]
+        [SerializeField] Texture2D _grassOverhang;
         [Tooltip("Depuração: pinta cada célula pela distância com sinal até a borda terra/vazio (quente = terra, frio = vazio, claro = perto da borda). Só com Tile Material.")]
         [SerializeField] bool _debugSignedDistance;
 
@@ -231,6 +233,12 @@ namespace Fabula.Incrementant.AntFarm
             _tileInstance.SetFloat("_TileSize", CellTileArt.TileSize);
             _tileInstance.SetFloat("_TexelsPerCell", CellTileArt.TexelsPerCell);
             _tileInstance.SetFloat("_DetailStrength", _tileDetail);
+            if (_grassOverhang != null)
+            {
+                _tileInstance.SetTexture("_OverhangTex", _grassOverhang);
+                _tileInstance.SetFloat("_OverhangSize", _grassOverhang.width);
+            }
+            _tileInstance.SetFloat("_OverhangMaterialId", _grassOverhang != null ? (float)CellMaterial.Grass : -1f);
             return _tileInstance;
         }
 

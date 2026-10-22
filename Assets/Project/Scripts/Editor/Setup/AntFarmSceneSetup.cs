@@ -162,10 +162,14 @@ namespace Fabula.Incrementant.EditorTools.Setup
             SerializedProperty atlas = serialized.FindProperty("_tileAtlas");
             if (atlas.objectReferenceValue == null)
                 atlas.objectReferenceValue = AssetDatabase.LoadAssetAtPath<Texture2D>(TileAtlasPath);
+            SerializedProperty overhang = serialized.FindProperty("_grassOverhang");
+            if (overhang.objectReferenceValue == null)
+                overhang.objectReferenceValue = AssetDatabase.LoadAssetAtPath<Texture2D>(GrassOverhangPath);
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
         const string TileAtlasPath = "Assets/Project/Art/Terrain/TerrainAtlas.png";
+        const string GrassOverhangPath = "Assets/Project/Art/Terrain/GrassOverhang.png";
 
         static void EnsureInBuildSettings()
         {

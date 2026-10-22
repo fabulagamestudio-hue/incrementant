@@ -6,6 +6,8 @@ Atlas RGB desenhado na [paleta mestra](../Palette/README.md) (etapa 5 do [docume
 |---|---|
 | `TerrainAtlas.png` | 128 × 4224 px: 33 linhas de 128 × 128, de baixo para cima: os materiais na ordem de `CellMaterial`, a parede de fundo e o par bloco/fundo de cada sala construída (`RoomStyle`). Atribuído em **Tile Atlas** do `AntFarmView` nas cenas AntFarm e MainMenu. Importação: sRGB, Point, sem compressão, sem mipmaps, Read/Write, tamanho máximo 8192 (com 4096 a Unity reduziria o PNG e o jogo cairia no atlas gerado) |
 | `Source~/terrain_atlas.py` | Gerador do PNG e das duas prévias (a pasta com `~` não é importada pela Unity) |
+| `GrassOverhang.png` | 128 × 16 px RGBA: a grama que passa do topo do bloco de grama para a célula vazia de cima (experimento de 2026-10-22; como o shader usa: `AntFarmGuide.md`, "Transbordo da grama"). Franja de moitas baixas e touceiras em leque, só verdes da paleta (21–27), alpha = folha. Atribuído em **Grass Overhang** do `AntFarmView` nas cenas AntFarm e MainMenu. Importação: sRGB, Point, Repeat, sem compressão, sem mipmaps |
+| `Source~/grass_overhang.py` | Gerador do `GrassOverhang.png` e de uma prévia sobre o bloco de grama do atlas: `python -I "Assets/Project/Art/Terrain/Source~/grass_overhang.py" Assets/Project/Art/Palette/MasterPalette.hex Assets/Project/Art/Terrain/GrassOverhang.png [prévia.png] [TerrainAtlas.png]` |
 
 ## Como refazer
 
