@@ -135,6 +135,55 @@ namespace Fabula.Incrementant.AntFarm
         public const int SignedDistanceRange = 4;
         /// <summary>Valor gravado no canal G da textura de materiais para a distância 0: o canal guarda 128 + distância.</summary>
         public const byte SignedDistanceZero = 128;
+        /// <summary>
+        /// Somado ao canal G quando a célula fica numa fronteira entre famílias de junção diferentes (<see cref="MergeFamily"/>):
+        /// o shader só mistura as texturas dos dois materiais nessas células, para o miolo não pagar a consulta às vizinhas.
+        /// </summary>
+        public const byte MergeFlag = 64;
+
+        /// <summary>Distância com sinal gravada num byte do canal G, sem a marca de junção (<see cref="MergeFlag"/>).</summary>
+        public static int SignedDistanceOf(byte g) => (g >= SignedDistanceZero + MergeFlag / 2 ? g - MergeFlag : g) - SignedDistanceZero;
+
+        /// <summary>
+        /// Família de junção do material, a mesma do shader (<c>MergeFamily</c> em TerrainTiles): 0 terra e terra mole, 1 grama,
+        /// 2 terra despejada (solta e compactada), 3 areia (solta e compactada), 4 pedra; -1 não mistura com as vizinhas.
+        /// </summary>
+        public static int MergeFamily(CellMaterial material)
+        {
+            switch (material)
+            {
+                case CellMaterial.Dirt:
+                case CellMaterial.Mud:
+                    return 0;
+                case CellMaterial.Grass:
+                    return 1;
+                case CellMaterial.Spoil:
+                case CellMaterial.PackedSpoil:
+                    return 2;
+                case CellMaterial.Sand:
+                case CellMaterial.PackedSand:
+                    return 3;
+                case CellMaterial.Rock:
+                    return 4;
+                default:
+                    return -1;
+            }
+        }
+
+        /// <summary>A célula e alguma das 4 vizinhas são de famílias de junção diferentes (as duas misturáveis).</summary>
+        static bool IsMergeBoundary(PixelGrid grid, int x, int y)
+        {
+            int family = MergeFamily(grid.Get(x, y));
+            if (family < 0)
+                return false;
+            return Differs(x + 1, y) || Differs(x - 1, y) || Differs(x, y + 1) || Differs(x, y - 1);
+
+            bool Differs(int nx, int ny)
+            {
+                int other = MergeFamily(grid.Get(nx, ny));
+                return other >= 0 && other != family;
+            }
+        }
         /// <summary>Bytes por célula na textura de materiais (RGBA32) e no cache: material, distância com sinal, luz e "sem luz".</summary>
         public const int TileBytes = 4;
 
@@ -143,7 +192,8 @@ namespace Fabula.Incrementant.AntFarm
         Sprite _sprite;
         Color32[] _pixels;
         // Tiles: TileBytes por célula da janela (R = material, CellTileArt.SkyId = céu; G = 128 + distância com sinal até
-        // a borda; B = luz; A = 255 quando a cor já vem iluminada da CPU) e o material instanciado do shader.
+        // a borda, + MergeFlag na fronteira entre materiais que se misturam; B = luz; A = 255 quando a cor já vem iluminada
+        // da CPU) e o material instanciado do shader.
         Texture2D _materialTexture;
         byte[] _materialIds;
         Material _tileInstance;
@@ -458,8 +508,30 @@ namespace Fabula.Incrementant.AntFarm
                 int x = cell % grid.Width, y = cell / grid.Width;
                 RedrawCell(grid, colony, window, x, y);
                 RedrawCell(grid, colony, window, x, y - 1);
+                // Trocar sólido por sólido (terra virando lama, areia compactando) passa por aqui, não pelo bloco: a marca de
+                // junção da célula e das 4 vizinhas depende do material dela.
+                RefreshMergeFlag(grid, x, y);
+                RefreshMergeFlag(grid, x + 1, y);
+                RefreshMergeFlag(grid, x - 1, y);
+                RefreshMergeFlag(grid, x, y + 1);
+                RefreshMergeFlag(grid, x, y - 1);
             }
             _renderLogSeen = count;
+        }
+
+        /// <summary>
+        /// Refaz só a marca de junção (<see cref="MergeFlag"/>) da célula, mantendo a distância com sinal guardada. Grava no
+        /// cache mesmo com o bloco invalidado: a marca depende das vizinhas, e uma vizinha fora da janela invalida o bloco
+        /// (<see cref="RedrawCell"/>) sem que ele seja refeito neste quadro, enquanto esta célula, dentro da janela, é copiada
+        /// para a textura. Quando o bloco for refeito, ele sobrescreve tudo.
+        /// </summary>
+        void RefreshMergeFlag(PixelGrid grid, int x, int y)
+        {
+            if (_cellTiles == null || (uint)x >= (uint)grid.Width || (uint)y >= (uint)grid.Height)
+                return;
+            int t = TileBytes * (y * grid.Width + x) + 1;
+            _cellTiles[t] = (byte)(SignedDistanceZero + SignedDistanceOf(_cellTiles[t])
+                                   + (IsMergeBoundary(grid, x, y) ? MergeFlag : 0));
         }
 
         void RedrawCell(PixelGrid grid, AntColony colony, RectInt window, int x, int y)
@@ -522,7 +594,8 @@ namespace Fabula.Incrementant.AntFarm
                     {
                         int t = TileBytes * (row + lx);
                         _cellTiles[t] = tileId;
-                        _cellTiles[t + 1] = (byte)(SignedDistanceZero + SignedDistance(lx, ly, w));
+                        _cellTiles[t + 1] = (byte)(SignedDistanceZero + SignedDistance(lx, ly, w)
+                                                   + (IsMergeBoundary(grid, x, y) ? MergeFlag : 0));
                         _cellTiles[t + 2] = LightByte(light);
                         _cellTiles[t + 3] = LightFlags(lit, _cellGlowLight[row + lx]);
                     }

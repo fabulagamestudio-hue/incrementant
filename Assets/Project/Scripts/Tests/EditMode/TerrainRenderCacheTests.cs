@@ -111,7 +111,7 @@ namespace Fabula.Incrementant.Tests
                             expected = open ? -k : k;
                     }
                 }
-                int actual = materials[AntFarmView.TileBytes * (wy * window.width + wx) + 1] - AntFarmView.SignedDistanceZero;
+                int actual = AntFarmView.SignedDistanceOf(materials[AntFarmView.TileBytes * (wy * window.width + wx) + 1]);
                 if (actual != expected)
                     Assert.Fail($"{step}: distância com sinal em ({x}, {y}) é {actual}, a varredura da grade dá {expected}.");
             }
