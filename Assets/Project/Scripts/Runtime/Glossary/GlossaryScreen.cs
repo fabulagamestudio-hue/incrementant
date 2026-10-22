@@ -8,7 +8,7 @@ namespace Fabula.Incrementant.Glossary
 {
     /// <summary>
     /// Janela do glossário: à esquerda a lista de entradas agrupadas por categoria (<see cref="GlossaryContent"/>), à direita o
-    /// título e o texto da selecionada. Abre pelo botão da barra inferior e pelo menu do ESC; o fundo escurecido barra os
+    /// título, a imagem (quando a entrada tem) e o texto da selecionada. Abre pelo botão da barra inferior e pelo menu do ESC; o fundo escurecido barra os
     /// cliques no mundo, e enquanto aberta o jogo fica pausado e com o input travado (devolvidos como estavam ao fechar). O ESC
     /// que a fecha é tratado pelo <c>AntFarmHud</c>. Montada por <c>Incrementant/Setup/Montar HUD da partida</c>.
     /// </summary>
@@ -26,11 +26,16 @@ namespace Fabula.Incrementant.Glossary
         [SerializeField] Text _category;
         [SerializeField] Text _body;
         [SerializeField] Button _close;
+        [Tooltip("Quadro da imagem da entrada, entre a categoria e o texto; some na entrada sem imagem. Opcional.")]
+        [SerializeField] Image _picture;
+        [Tooltip("Imagens das entradas: o nome de cada sprite é o id da entrada (Art/UI/Glossary, ligadas pelo setup do HUD).")]
+        [SerializeField] Sprite[] _images;
 
         readonly List<Text> _headings = new List<Text>();
         readonly List<Button> _items = new List<Button>();
         readonly List<string> _entries = new List<string>();
         readonly List<string> _entryCategories = new List<string>();
+        readonly Dictionary<string, Sprite> _imageByEntry = new Dictionary<string, Sprite>();
         int _selected;
         bool _wasPaused, _wasLocked;
         bool _valid;
@@ -48,6 +53,14 @@ namespace Fabula.Incrementant.Glossary
             }
             _headingTemplate.gameObject.SetActive(false);
             _itemTemplate.gameObject.SetActive(false);
+            if (_images != null)
+            {
+                foreach (Sprite image in _images)
+                {
+                    if (image != null)
+                        _imageByEntry[image.name] = image;
+                }
+            }
             BuildList();
         }
 
@@ -141,6 +154,12 @@ namespace Fabula.Incrementant.Glossary
             _title.text = Loc.T(GlossaryContent.TitleKey(_entries[_selected]));
             _category.text = Loc.T(GlossaryContent.CategoryKey(_entryCategories[_selected]));
             _body.text = Loc.T(GlossaryContent.TextKey(_entries[_selected]));
+            if (_picture != null)
+            {
+                _imageByEntry.TryGetValue(_entries[_selected], out Sprite image);
+                _picture.sprite = image;
+                _picture.gameObject.SetActive(image != null);
+            }
         }
     }
 }

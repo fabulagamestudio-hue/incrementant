@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Fabula.Incrementant.AntFarm;
 using Fabula.Incrementant.EditorTools.Localization;
 using Fabula.Incrementant.Glossary;
@@ -14,7 +15,7 @@ namespace Fabula.Incrementant.EditorTools.UI
     public static partial class AntFarmHudSetup
     {
         const float GlossaryWidth = 1360f, GlossaryHeight = 840f, GlossaryTop = 64f, GlossaryFooter = 104f;
-        const float GlossaryListWidth = 480f, GlossaryGap = 24f, GlossaryItemHeight = 48f;
+        const float GlossaryListWidth = 480f, GlossaryGap = 24f, GlossaryItemHeight = 48f, GlossaryImageHeight = 360f;
         static readonly Color GlossaryHeading = new Color(0.48f, 0.29f, 0.12f);
 
         static GlossaryScreen BuildGlossary(Transform root, AntFarmGame game)
@@ -48,6 +49,16 @@ namespace Fabula.Incrementant.EditorTools.UI
             title.lineSpacing = 1.3f;
             Text category = BuildText(detail, "Categoria", "", TextSmall, InkDisabled, TextAnchor.UpperLeft);
             category.gameObject.AddComponent<LayoutElement>().minHeight = 40;
+            // Imagem da entrada (640x360, 1:1 no canvas), entre a categoria e o texto.
+            var pictureObject = new GameObject("Imagem", typeof(RectTransform), typeof(Image), typeof(LayoutElement));
+            pictureObject.layer = LayerMask.NameToLayer("UI");
+            pictureObject.transform.SetParent(detail, false);
+            var picture = pictureObject.GetComponent<Image>();
+            picture.preserveAspect = true;
+            picture.raycastTarget = false;
+            var pictureLayout = pictureObject.GetComponent<LayoutElement>();
+            pictureLayout.preferredHeight = GlossaryImageHeight;
+            pictureLayout.minHeight = GlossaryImageHeight;
             Text body = BuildText(detail, "Texto", "", TextSmall, Ink, TextAnchor.UpperLeft);
             body.horizontalOverflow = HorizontalWrapMode.Wrap;
             body.lineSpacing = 1.5f;
@@ -70,9 +81,30 @@ namespace Fabula.Incrementant.EditorTools.UI
             SetObject(so, "_category", category);
             SetObject(so, "_body", body);
             SetObject(so, "_close", close);
+            SetObject(so, "_picture", picture);
+            SetArray(so, "_images", LoadGlossaryImages());
             so.ApplyModifiedPropertiesWithoutUndo();
             screenObject.SetActive(false);
             return screen;
+        }
+
+        /// <summary>Sprites de <see cref="GlossaryImageImporter.Folder"/> (nome = id da entrada); avisa de imagem sem entrada.</summary>
+        static Sprite[] LoadGlossaryImages()
+        {
+            var ids = new HashSet<string>();
+            foreach (GlossaryContent.Category category in GlossaryContent.Categories)
+                ids.UnionWith(category.Entries);
+            var sprites = new List<Sprite>();
+            foreach (string guid in AssetDatabase.FindAssets("t:Sprite", new[] { GlossaryImageImporter.Folder.TrimEnd('/') }))
+            {
+                var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(AssetDatabase.GUIDToAssetPath(guid));
+                if (sprite == null)
+                    continue;
+                if (!ids.Contains(sprite.name))
+                    Debug.LogWarning($"[AntFarmHudSetup] Imagem do glossário sem entrada com esse id: {sprite.name}.");
+                sprites.Add(sprite);
+            }
+            return sprites.ToArray();
         }
 
         /// <summary>Botão-modelo de uma entrada (o runtime clona um por entrada): só o título.</summary>

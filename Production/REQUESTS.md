@@ -1265,6 +1265,7 @@
 - **Histórico:**
   - 2026-10-22 — PLANNED: pedido registrado.
   - 2026-10-22 — IMPLEMENTED: janela `GlossaryScreen`, botão `?` na barra inferior, entrada GLOSSÁRIO no menu do ESC e tour apontando para ele; suíte EditMode 445/445 e Play Mode pelo agente (abrir, fechar, ESC, menu do ESC).
+  - 2026-10-22 — IMPLEMENTED: imagens nas entradas, a pedido do desenvolvedor (misturar fotos do jogo e sprites; fotos de salas redondas de 16 células num mapa limpo, não do quicksave): 30 imagens em `Art/UI/Glossary`; conferidas na janela em Play Mode pelo agente.
 
 ### REQ-067 — Menu Colônia recuado até o cursor chegar perto, visível no tutorial
 
