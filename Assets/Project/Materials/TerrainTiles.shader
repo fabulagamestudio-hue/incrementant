@@ -29,6 +29,8 @@
 // Borda lascada (experimento de 2026-10-22): pedaços da beira das faces expostas e das quinas convexas de terra, grama,
 // terra despejada, areia e pedra (cada uma no seu ritmo, ChipStyleOf) são desenhados como a vizinha vazia (ChipFrom); a célula
 // continua sólida.
+// Junção grama/terra (experimento de 2026-10-22): na fronteira entre grama e terra logo abaixo, línguas irregulares dos
+// dois lados (MergeProfile): a grama escorre na terra e a terra sobe na grama, com a cor da célula de origem.
 Shader "Incrementant/TerrainTiles"
 {
     Properties
@@ -66,6 +68,9 @@ Shader "Incrementant/TerrainTiles"
         _ChipGrassStyle ("Borda lascada, grama: chance de mordida, inclinação", Vector) = (0.75, 1, 0, 0)
         _ChipChance ("Borda lascada: chance de mordida por trecho (terra, despejada, areia, pedra)", Vector) = (0.75, 0.8, 0.9, 0.5)
         _ChipSlope ("Borda lascada: inclinação da mordida, 1 = degraus de 1 texel, menor = arredondada, maior = reta (terra, despejada, areia, pedra)", Vector) = (1, 0.8, 1, 3)
+        [Toggle] _MergeEnabled ("Junção: grama escorre na terra de baixo", Float) = 1
+        _Drip ("Junção grama/terra: comprimento máximo da língua, trecho, chance de língua, linha base máxima (texels)", Vector) = (9, 7, 0.7, 2)
+        _Rise ("Junção grama/terra: montinho de terra subindo na grama: altura máxima, trecho, chance (texels)", Vector) = (5, 10, 0.6, 0)
         [Toggle] _DebugSignedDistance ("Depuração: distância com sinal", Float) = 0
     }
 
@@ -133,6 +138,9 @@ Shader "Incrementant/TerrainTiles"
                 float4 _ChipGrassStyle;
                 float4 _ChipChance;
                 float4 _ChipSlope;
+                float _MergeEnabled;
+                float4 _Drip;
+                float4 _Rise;
             CBUFFER_END
 
             static const float SkyId = 255.0;
@@ -419,6 +427,56 @@ Shader "Incrementant/TerrainTiles"
                 return float2(0, 0);
             }
 
+            // Uma língua num trecho de 'len' texels: com chance 'chance' (sorteio pelo 'salt'), de 1 a 3 texels de largura em
+            // posição sorteada no trecho, com comprimento de 3 a 'maxLength'; nas línguas largas as colunas de fora são 2 mais
+            // curtas, para a ponta afinar. 0 fora da língua.
+            float Tongue(float x, float len, float chance, float maxLength, float salt)
+            {
+                float seg = floor(x / len);
+                if (Hash(float2(seg, salt)) >= chance)
+                    return 0;
+                float width = 1 + floor(Hash(float2(seg, salt + 4.0)) * 3);
+                float start = floor(Hash(float2(seg, salt + 10.0)) * (len - width + 1));
+                float t = x - seg * len - start;
+                if (t < 0 || t >= width)
+                    return 0;
+                float tongue = 3 + floor(Hash(float2(seg, salt + 16.0)) * max(maxLength - 2, 1));
+                float edge = min(t, width - 1 - t);
+                return tongue - (width >= 3 && edge == 0 ? 2 : 0);
+            }
+
+            // Um montinho num trecho de 'len' texels: com chance 'chance', de 3 a 6 texels de largura, com altura de 2 a
+            // 'maxHeight' no meio, caindo em degraus inteiros para as pontas (perfil de cúpula). 0 fora dele.
+            float Mound(float x, float len, float chance, float maxHeight, float salt)
+            {
+                float seg = floor(x / len);
+                if (Hash(float2(seg, salt)) >= chance)
+                    return 0;
+                float width = 3 + floor(Hash(float2(seg, salt + 4.0)) * 4);
+                float start = floor(Hash(float2(seg, salt + 10.0)) * (len - width + 1));
+                float t = x - seg * len - start;
+                if (t < 0 || t >= width)
+                    return 0;
+                float height = 2 + floor(Hash(float2(seg, salt + 16.0)) * max(maxHeight - 1, 1));
+                float d = (t + 0.5) / width * 2 - 1;   // -1..1 do começo ao fim do montinho
+                return max(floor(height * sqrt(saturate(1 - d * d)) + 0.5), 1);
+            }
+
+            // Junção grama/terra (experimento de 2026-10-22), no texel do mundo x: x = quantos texels, a partir do topo da
+            // célula de terra, mostram a grama de cima; y = quantos texels, a partir da base da célula de grama, mostram a terra
+            // de baixo. Línguas de grama descendo (_Drip) e montinhos de terra subindo (_Rise), nunca as duas na mesma coluna (a que desce
+            // tem preferência); fora delas, uma linha base irregular de 0 a _Drip.w texels de grama na terra.
+            float2 MergeProfile(float x)
+            {
+                float down = Tongue(x, max(_Drip.y, 3), _Drip.z, _Drip.x, 43.0);
+                if (down > 0)
+                    return float2(down, 0);
+                float up = Mound(x + 5, max(_Rise.y, 6), _Rise.z, _Rise.x, 71.0);
+                if (up > 0)
+                    return float2(0, up);
+                return float2(floor(Hash(float2(floor(x / 2), 41.0)) * (_Drip.w + 1)), 0);
+            }
+
             // over por cima de base (alpha comum, sem pré-multiplicar).
             half4 OverlayOn(half4 over, half4 base)
             {
@@ -462,6 +520,34 @@ Shader "Incrementant/TerrainTiles"
                         if (id == SkyId)
                             return cellColor;
                         chipped = true;
+                    }
+                }
+                // Junção: a fronteira entre grama e terra (ou terra mole) logo abaixo vira línguas dos dois lados. Na terra, os
+                // texels do topo que MergeProfile pede mostram a grama de cima; na grama, os da base mostram a terra de baixo,
+                // com a cor da célula de origem (tom, umidade, marca). Só desenho: as células não mudam. O teste da altura vem
+                // antes da leitura da vizinha, para o miolo das células não pagar a leitura.
+                float fromTopTexel = _TexelsPerCell - 1 - inner.y;
+                if (!chipped && _MergeEnabled > 0.5 && fade > 0.5)
+                {
+                    float worldX = (_WindowOrigin.x + cell.x) * _TexelsPerCell + inner.x;
+                    if (fromTopTexel < _Drip.x && (id == 1 || id == 9))
+                    {
+                        float2 above = cell + float2(0, 1);
+                        if (MaterialAt(above) == 2 && fromTopTexel < MergeProfile(worldX).x)
+                        {
+                            id = 2;
+                            cellColor = SAMPLE_TEXTURE2D_LOD(_MainTex, sampler_MainTex, (above + 0.5) / _WindowOrigin.zw, 0);
+                        }
+                    }
+                    else if (inner.y < _Rise.x && id == 2)
+                    {
+                        float2 below = cell - float2(0, 1);
+                        float belowId = MaterialAt(below);
+                        if ((belowId == 1 || belowId == 9) && inner.y < MergeProfile(worldX).y)
+                        {
+                            id = belowId;
+                            cellColor = SAMPLE_TEXTURE2D_LOD(_MainTex, sampler_MainTex, (below + 0.5) / _WindowOrigin.zw, 0);
+                        }
                     }
                 }
                 // Fundo de sala construída: linhas pares depois da parede de fundo (as ímpares são os blocos).
