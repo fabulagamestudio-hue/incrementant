@@ -45,11 +45,21 @@ MonoBehaviour:
     MinorVersion: 0
     PatchVersion: 0
     ManualVersionSuffix: 
-    Added: The build version now shows in the bottom-right corner of every screen
+    Added: 'The build version now shows in the bottom-right corner of every screen
+
+      Click
+      the version to see every release so far and its notes'
     Removed: 
     Modified: 
     KnownBugs: 
-    ChangelogTranslations: []
+    ChangelogTranslations:
+    - LanguageCode: pt-BR
+      Added: "A vers\xE3o da build aparece no canto inferior direito de todas as
+        telas\nClique na vers\xE3o para ver todas as vers\xF5es at\xE9 agora e as
+        notas de cada uma"
+      Removed: 
+      Modified: 
+      KnownBugs: 
     ScriptChangeReport:
       AddedScripts:
       - Assets/Iung/Build Assistant/Editor/Menus/BuildAssistantMenu.cs
@@ -306,11 +316,21 @@ MonoBehaviour:
       MinorVersion: 0
       PatchVersion: 0
       ManualVersionSuffix: 
-      Added: The build version now shows in the bottom-right corner of every screen
+      Added: 'The build version now shows in the bottom-right corner of every screen
+
+        Click
+        the version to see every release so far and its notes'
       Removed: 
       Modified: 
       KnownBugs: 
-      ChangelogTranslations: []
+      ChangelogTranslations:
+      - LanguageCode: pt-BR
+        Added: "A vers\xE3o da build aparece no canto inferior direito de todas as
+          telas\nClique na vers\xE3o para ver todas as vers\xF5es at\xE9 agora e
+          as notas de cada uma"
+        Removed: 
+        Modified: 
+        KnownBugs: 
       ScriptChangeReport:
         AddedScripts:
         - Assets/Iung/Build Assistant/Editor/Menus/BuildAssistantMenu.cs
@@ -546,4 +566,5 @@ MonoBehaviour:
   runtimeVersionTimestamp: 
   runtimeChangelog: []
   changelogLanguage: en
-  changelogTranslationLanguages: []
+  changelogTranslationLanguages:
+  - pt-BR
