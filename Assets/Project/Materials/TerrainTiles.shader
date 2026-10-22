@@ -26,8 +26,8 @@
 // Transbordo (experimento de 2026-10-22): numa célula vazia (céu ou túnel) com _OverhangMaterialId (grama) embaixo, desenha
 // _OverhangTex (uma célula de altura, _OverhangSize texels de largura, lida no x do mundo) por cima: a grama passa do topo do
 // bloco sem mudar a célula, que continua vazia para a lógica. Usa o tom e a luz do texel de cima do bloco de baixo.
-// Borda lascada (experimento de 2026-10-22): pedaços da beira das faces expostas e das quinas convexas de terra, terra
-// despejada, areia e pedra (cada uma no seu ritmo, ChipStyleOf) são desenhados como a vizinha vazia (ChipFrom); a célula
+// Borda lascada (experimento de 2026-10-22): pedaços da beira das faces expostas e das quinas convexas de terra, grama,
+// terra despejada, areia e pedra (cada uma no seu ritmo, ChipStyleOf) são desenhados como a vizinha vazia (ChipFrom); a célula
 // continua sólida.
 Shader "Incrementant/TerrainTiles"
 {
@@ -62,6 +62,8 @@ Shader "Incrementant/TerrainTiles"
         _ChipSpoil ("Borda lascada, terra despejada (solta e compactada): profundidade, topo, quina, trecho", Vector) = (6, 2, 6, 6)
         _ChipSand ("Borda lascada, areia (solta e compactada): profundidade, topo, quina, trecho", Vector) = (4, 1, 6, 3)
         _ChipRock ("Borda lascada, pedra: profundidade, topo, quina, trecho", Vector) = (6, 1, 10, 12)
+        _ChipGrass ("Borda lascada, grama: profundidade, topo, quina, trecho (topo 0: as folhas do transbordo já quebram a linha)", Vector) = (6, 0, 8, 7)
+        _ChipGrassStyle ("Borda lascada, grama: chance de mordida, inclinação", Vector) = (0.75, 1, 0, 0)
         _ChipChance ("Borda lascada: chance de mordida por trecho (terra, despejada, areia, pedra)", Vector) = (0.75, 0.8, 0.9, 0.5)
         _ChipSlope ("Borda lascada: inclinação da mordida, 1 = degraus de 1 texel, menor = arredondada, maior = reta (terra, despejada, areia, pedra)", Vector) = (1, 0.8, 1, 3)
         [Toggle] _DebugSignedDistance ("Depuração: distância com sinal", Float) = 0
@@ -127,6 +129,8 @@ Shader "Incrementant/TerrainTiles"
                 float4 _ChipSpoil;
                 float4 _ChipSand;
                 float4 _ChipRock;
+                float4 _ChipGrass;
+                float4 _ChipGrassStyle;
                 float4 _ChipChance;
                 float4 _ChipSlope;
             CBUFFER_END
@@ -332,6 +336,11 @@ Shader "Incrementant/TerrainTiles"
                 if (id == 3 || id == 8)          // Sand, PackedSand
                 {
                     style = MakeChipStyle(_ChipSand, _ChipChance.z, _ChipSlope.z);
+                    return true;
+                }
+                if (id == 2)                     // Grass
+                {
+                    style = MakeChipStyle(_ChipGrass, _ChipGrassStyle.x, _ChipGrassStyle.y);
                     return true;
                 }
                 if (id == 4)                     // Rock
