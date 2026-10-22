@@ -176,6 +176,9 @@ namespace Fabula.Incrementant.Upgrades
             Chamber(H, "D5", Deposito, 4, 1600, "D2,D3,D4,L2", isNew: true);
             Chamber(H, "R0", Residuos, 1, 0, "C0", initial: true);
             Chamber(H, "R1", Residuos, 2, 140, "R0");
+            // Fora do documento 39 (por isso sem isNew nem a regra de requisito cruzado dele): pedido do desenvolvedor em
+            // 2026-10-20 (KI-045), upgrade da conversão terra → água da área de resíduos.
+            Chamber(H, "R2", Residuos, 3, 300, "R1");
             Chamber(H, "G0", Orvalho, 1, 0, "T0", initial: true, isNew: true);
             Chamber(H, "G1", Orvalho, 2, 300, "G0,C1", isNew: true);
             Chamber(H, "G2", Orvalho, 3, 900, "G+1:10,J+2:5", isNew: true);
@@ -186,6 +189,12 @@ namespace Fabula.Incrementant.Upgrades
             Chamber(H, "M0", Defesa, 2, 250, "T0", UpgradeCondition.FirstRaid, isNew: true);
             Chamber(H, "M1", Defesa, 3, 900, "M0,B3,N2", UpgradeCondition.FiveRaids, isNew: true);
             Chamber(H, "M2", Defesa, 2, 300, "M0,S0", isNew: true);
+            // Fazenda de pulgões e depósitos de areia e de cogumelos (pedido do desenvolvedor em 2026-10-22, fora do documento
+            // 39; custos assumidos). Os dois depósitos são pincéis livres, como os outros depósitos.
+            Chamber(H, "D6", Deposito, 1, 40, "T0", initial: true);
+            Chamber(H, "D7", Deposito, 1, 40, "T0", initial: true);
+            Chamber(H, "A0", Exterior, 1, 150, "T0");
+            Chamber(H, "A1", Exterior, 2, 300, "A0");
 
             // ---------------- aba Formigueiro: galerias
             Gallery(H, "H+1", Obra, 1, 60, "P0", GalleryType.Physical, 10, 24f, -0.04f);
@@ -205,6 +214,20 @@ namespace Fabula.Incrementant.Upgrades
             Gallery(H, "X+3", Exterior, 2, 100, "X0,F0", GalleryType.Physical, 10, 1f, 0.05f);
             Gallery(H, "M+1", Defesa, 2, 150, "M0", GalleryType.Physical, 10, 0.8f, 0.10f);
             Gallery(H, "M+2", Defesa, 2, 120, "M0", GalleryType.Physical, 8, 8f, 1f, additive: true);
+            // Fora do documento 39: área pintável de cada ambiente (KI-043, pedido do desenvolvedor em 2026-10-21). A base é a
+            // da cena (ColonySettings, "Limites de pintura"); os níveis somam células.
+            Gallery(H, "C+4", Cultivo, 1, 60, "C0", GalleryType.Physical, 10, 150f, 30f, additive: true);
+            Gallery(H, "B+3", Bercario, 1, 60, "C0", GalleryType.Physical, 10, 200f, 40f, additive: true);
+            Gallery(H, "D+3", Deposito, 1, 60, "D0", GalleryType.Physical, 10, 150f, 30f, additive: true);
+            Gallery(H, "R+1", Residuos, 1, 60, "R0", GalleryType.Physical, 10, 120f, 24f, additive: true);
+            Gallery(H, "G+3", Orvalho, 1, 60, "G0", GalleryType.Physical, 10, 100f, 20f, additive: true);
+            // +1 sala não conectada por nível em todos os ambientes (base = ColonySettings.MaxPaintRooms).
+            Gallery(H, "T+3", Obra, 1, 150, "T0", GalleryType.Physical, 3, 2f, 1f, additive: true);
+            // Fazenda de pulgões: limite de pulgões (base = ColonySettings.AphidBaseCap), tempo da ordenha (base =
+            // AphidMilkSeconds) e área pintável (base = FarmRoomCells).
+            Gallery(H, "A+1", Exterior, 2, 120, "A0", GalleryType.Physical, 10, 2f, 1f, additive: true);
+            Gallery(H, "A+2", Exterior, 2, 100, "A0", GalleryType.Physical, 10, 20f, -0.05f);
+            Gallery(H, "A+3", Exterior, 1, 60, "A0", GalleryType.Physical, 10, 120f, 20f, additive: true);
 
             // ---------------- aba Rainha e classes: câmaras (custos dos nós existentes = QueenTree)
             Center(Q, "Q0", Rainha, Colony.QueenNode.Q0);
@@ -241,11 +264,18 @@ namespace Fabula.Incrementant.Upgrades
             Queen("S2", Soldado, 2, "S0", Colony.QueenNode.S2);
             Queen("S3", Soldado, 3, "S1,S2", Colony.QueenNode.S3);
             Chamber(Q, "S4", Soldado, 4, 1500, "S3,M0", isNew: true);
+            // Classes novas do pedido de 2026-10-21 (fora do documento 39): a cuspideira no ramo do soldado, a lixeira no da comum.
+            Queen("K0", Soldado, 2, "S0", Colony.QueenNode.K0, UpgradeCondition.FirstRaid);
+            Queen("W0", Comum, 2, "O0", Colony.QueenNode.W0, UpgradeCondition.FirstRaid);
+            // Fazendeira (pedido de 2026-10-22), no ramo da jardineira: exige a fazenda (A0, portal para a outra aba).
+            Queen("Z0", Jardineira, 1, "O0,A0", Colony.QueenNode.Z0);
+            Queen("Z1", Jardineira, 2, "Z0", Colony.QueenNode.Z1);
 
             // ---------------- aba Rainha e classes: galerias
             Gallery(Q, "Q+1", Rainha, 2, 200, "Q1", GalleryType.Physical, 10, 12f, -0.03f);
             Gallery(Q, "Q+2", Rainha, 1, 150, "Q0,B0", GalleryType.Physical, 15, 1f, -0.02f);
             Gallery(Q, "Q+3", Rainha, 1, 250, "Q0", GalleryType.Physical, 10, 60f, 0.10f, condition: UpgradeCondition.FirstRaid);
+            Gallery(Q, "Q+4", Rainha, 1, 60, "Q0", GalleryType.Physical, 10, 200f, 40f, additive: true); // KI-043, ver C+4
             Gallery(Q, "O+1", Comum, 2, 80, "O2", GalleryType.Physical, 10, 30f, 0.04f);
             Gallery(Q, "O+2", Comum, 1, 150, "O0,B1", GalleryType.Physical, 10, 1f, 0.10f);
             Gallery(Q, "O+3", Comum, 2, 80, "O1", GalleryType.Physical, 10, 1f, -0.03f);
@@ -264,6 +294,7 @@ namespace Fabula.Incrementant.Upgrades
             Gallery(Q, "S+2", Soldado, 3, 200, "S2", GalleryType.Combat, 0, 27f, 0.08f);
             Gallery(Q, "S+3", Soldado, 3, 150, "S0,N0", GalleryType.Physical, 10, 10f, -0.05f);
             Gallery(Q, "S+4", Soldado, 3, 160, "S0", GalleryType.Physical, 10, 1f, 0.05f);
+            Gallery(Q, "Z+1", Jardineira, 2, 100, "Z0", GalleryType.Physical, 10, 22f, 0.04f);
         }
 
         // ---------------------------------------------------------------- consulta

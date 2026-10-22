@@ -4,10 +4,10 @@ Como a árvore da rainha funciona e como mexer nela. Onde estão os arquivos: [R
 
 ## Como funciona
 
-- **Dados.** `QueenTree` (`Colony/QueenTree.cs`) guarda a tabela dos 26 nós (`QueenNodeDef`: id, ramo, nome, efeito em texto para o jogador (regras de escrita no [UpgradesGuide](../Upgrades/UpgradesGuide.md), "Textos dos nós"), custo em nutrientes, pré-requisitos, `Implemented`, `Initial`) e o estado de compra: um bit por nó em `QueenTree.Mask`. **A ordem do enum `QueenNode` é o formato do save**: não reordenar nem remover; nó novo vai no fim.
+- **Dados.** `QueenTree` (`Colony/QueenTree.cs`) guarda a tabela dos 30 nós (os 26 do design mais K0 e W0, de 2026-10-21, e Z0 e Z1, de 2026-10-22) (`QueenNodeDef`: id, ramo, nome, efeito em texto para o jogador (regras de escrita no [UpgradesGuide](../Upgrades/UpgradesGuide.md), "Textos dos nós"), custo em nutrientes, pré-requisitos, `Implemented`, `Initial`) e o estado de compra: um bit por nó em `QueenTree.Mask`. **A ordem do enum `QueenNode` é o formato do save**: não reordenar nem remover; nó novo vai no fim.
 - **Compra.** `AntColony.TryBuy(node)` é o único caminho. Confere (`QueenTree.Check`) já comprado, nó sem sistema no jogo, pré-requisito e saldo, nessa ordem; só então debita `Nutrients` e marca o bit. Recusa não debita nada. Cada nó é comprado uma vez e vale para as formigas existentes e futuras.
 - **Nós iniciais.** Q0 e O0 custam 0 e já vêm adquiridos (a regra "só põe ovo com berçário" já está no ciclo de criação).
-- **Nós sem sistema (`Implemented = false`).** Aparecem na tela como EM BREVE e não podem ser comprados, para não existir bônus invisível. Hoje: L2, J2, N2 e S3 (contenção). S0 a S2 (soldado, mandíbulas, carapaça) existem desde 2026-10-18, mas só podem ser comprados depois do primeiro ataque de cupins (`QueenTree.SoldiersAvailable`, `BuyBlock.NeedsFirstRaid`; ver [RaidGuide](RaidGuide.md)). Quando o sistema existir, troque a flag na tabela e ligue o efeito.
+- **Nós sem sistema (`Implemented = false`).** Aparecem na tela como EM BREVE e não podem ser comprados, para não existir bônus invisível. Hoje: L2, J2, N2 e S3 (contenção). S0 a S2 (soldado, mandíbulas, carapaça) existem desde 2026-10-18, mas só podem ser comprados depois do primeiro ataque de cupins (`QueenTree.SoldiersAvailable`, `BuyBlock.NeedsFirstRaid`; ver [RaidGuide](RaidGuide.md)). K0 (cuspideira, exige S0) e W0 (lixeira) seguem a mesma espera do primeiro ataque (ver [RaidGuide](RaidGuide.md), "Cuspideira" e "Lixeira"); no catálogo da tela Evolução ficam no anel 2 dos ramos do soldado e da comum, fora da soma de custos da seção 28. Quando o sistema existir, troque a flag na tabela e ligue o efeito.
 - **Carga e rocha (2026-10-17).** `QueenTree.MaterialCapacity` (pixels de planta = UM: comum 2/O1 3, carregadora 4/L1 6, escavadora 4, demais 2) e `SoilCapacity` (terra, no décimo da escala do design: comum 3/O1 4, escavadora 6/E1 9, demais 3). `CutTimeFactor` (F1: 3/4 do tempo por pixel, equivalente a 4 UM em 1,5 s contra 2 UM em 1 s) e `CanBreakRock` (E2). Como o corte solta pixels, F1 é modelado como taxa e não como peça maior.
 - **Pausa.** Abrir a árvore não pausa o jogo (regra em aberto no design, seção 34).
 
@@ -21,6 +21,8 @@ Como a árvore da rainha funciona e como mexer nela. Onde estão os arquivos: [R
 | O2 | Comuns 24 → 30 células/s | `QueenTree.SpeedFactor`, em `AntColony` (velocidade) |
 | L3 | Carregadoras 28 → 35 células/s | idem |
 | E1 | Escavadora 32 → 48 células/s ao escavar e pegar material | `QueenTree.DigTimeFactor`, em `AntColony.WorkTimeFactor` |
+| Z0 | Libera a fazendeira; só com a fazenda de pulgões (câmara A0 do formigueiro: `QueenTree.FarmAvailable`, que a colônia liga ao comprar a câmara e ao carregar) | `QueenTree.Check`, `IsRoleUnlocked` ([FarmGuide](FarmGuide.md)) |
+| Z1 | Ordenha da fazendeira ×1,5 | `QueenTree.MilkRate`, em `AntColony.UpdateAphid` |
 
 O que cada classe já fazia antes da árvore (velocidade da classe, escavar em metade do tempo, cortar em metade do tempo) é o valor "depois de L0/F0/E0": a árvore só decide se a rainha pode criá-la.
 

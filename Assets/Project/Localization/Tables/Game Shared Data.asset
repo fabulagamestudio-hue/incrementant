@@ -2207,6 +2207,554 @@ MonoBehaviour:
     m_Key: tree.legend.unlocks
     m_Metadata:
       m_Items: []
+  - m_Id: 781892664291328
+    m_Key: tip.st.waste.mode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781892685262848
+    m_Key: waste.mode.remains
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781892685262849
+    m_Key: waste.mode.leaves
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781892685262850
+    m_Key: waste.mode.dirt
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781892685262851
+    m_Key: waste.mode.remains.tip
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781892685262852
+    m_Key: waste.mode.leaves.tip
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781892685262853
+    m_Key: waste.mode.dirt.tip
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781892689457152
+    m_Key: upgrade.R2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781892689457153
+    m_Key: upgrade.R2.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781912851476480
+    m_Key: waste.mode.remains.U
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781913384153088
+    m_Key: waste.mode.leaves.U
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781913937801216
+    m_Key: waste.mode.dirt.U
+    m_Metadata:
+      m_Items: []
+  - m_Id: 938790323613696
+    m_Key: settings.blockbuild
+    m_Metadata:
+      m_Items: []
+  - m_Id: 966333848219648
+    m_Key: colony.queen.working
+    m_Metadata:
+      m_Items: []
+  - m_Id: 966333852413952
+    m_Key: colony.queen.state.role
+    m_Metadata:
+      m_Items: []
+  - m_Id: 966333852413953
+    m_Key: tip.colony.queen.choose
+    m_Metadata:
+      m_Items: []
+  - m_Id: 966333852413954
+    m_Key: tip.colony.queen.role
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771277692928
+    m_Key: tip.room.area
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771277692929
+    m_Key: tip.room.area.full
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887232
+    m_Key: upgrade.G+3.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887233
+    m_Key: upgrade.G+3.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887234
+    m_Key: upgrade.C+4.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887235
+    m_Key: upgrade.C+4.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887236
+    m_Key: upgrade.B+3.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887237
+    m_Key: upgrade.B+3.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887238
+    m_Key: upgrade.D+3.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887239
+    m_Key: upgrade.D+3.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887240
+    m_Key: upgrade.R+1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887241
+    m_Key: upgrade.R+1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887242
+    m_Key: upgrade.Q+4.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887243
+    m_Key: upgrade.Q+4.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1009555442102272
+    m_Key: upgrade.T+3.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1009555446296576
+    m_Key: upgrade.T+3.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1042029408808960
+    m_Key: settings.bloom
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1046201222950912
+    m_Key: brush.glowmushroom
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1046201222950913
+    m_Key: tip.brush.glowmushroom
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1046223054303232
+    m_Key: brush.glowmushroom.U
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105348362629120
+    m_Key: role.spitter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105348366823424
+    m_Key: role.midden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105348366823425
+    m_Key: tip.role.spitter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105348366823426
+    m_Key: tip.role.midden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105348366823427
+    m_Key: queen.K0.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105348366823428
+    m_Key: queen.K0.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105348366823429
+    m_Key: queen.W0.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105348366823430
+    m_Key: queen.W0.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105374124044288
+    m_Key: role.midden.U
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105374728024064
+    m_Key: role.spitter.U
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943372644352
+    m_Key: brush.farm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943397810176
+    m_Key: brush.sandstore
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943397810177
+    m_Key: role.farmer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943397810178
+    m_Key: raid.obj.aphids
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943397810179
+    m_Key: colony.place.farmroom
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943397810180
+    m_Key: tip.st.mushroom.stock
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943397810181
+    m_Key: tip.brush.sandstore
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943397810182
+    m_Key: tip.brush.farm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004480
+    m_Key: tip.brush.farm.locked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004481
+    m_Key: tip.st.farm.paint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004482
+    m_Key: tip.st.farm.nospot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004483
+    m_Key: tip.st.farm.breeding
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004484
+    m_Key: tip.st.farm.ok
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004485
+    m_Key: tip.st.farm.nofarmer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004486
+    m_Key: tip.role.farmer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004487
+    m_Key: queen.Z0.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004488
+    m_Key: queen.Z0.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004489
+    m_Key: queen.Z1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004490
+    m_Key: queen.Z1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004491
+    m_Key: upgrade.D6.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004492
+    m_Key: upgrade.D6.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004493
+    m_Key: upgrade.A0.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004494
+    m_Key: upgrade.A0.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004495
+    m_Key: upgrade.A1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004496
+    m_Key: upgrade.A1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004497
+    m_Key: upgrade.A+1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004498
+    m_Key: upgrade.A+1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004499
+    m_Key: upgrade.A+2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004500
+    m_Key: upgrade.A+2.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004501
+    m_Key: upgrade.A+3.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004502
+    m_Key: upgrade.A+3.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004503
+    m_Key: upgrade.Z+1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004504
+    m_Key: upgrade.Z+1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308972124598272
+    m_Key: brush.farm.U
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308973739405312
+    m_Key: brush.sandstore.U
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308975454875648
+    m_Key: role.farmer.U
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1310793933123584
+    m_Key: upgrade.P0.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1310793937317888
+    m_Key: upgrade.P0.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1310793937317889
+    m_Key: upgrade.T0.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1310793937317890
+    m_Key: upgrade.T0.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1312784897929216
+    m_Key: brush.mushroomstore
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1312784897929217
+    m_Key: tip.brush.mushroomstore
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1312784902123520
+    m_Key: upgrade.D7.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1312784902123521
+    m_Key: upgrade.D7.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1312804879593472
+    m_Key: brush.mushroomstore.U
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1374681114472448
+    m_Key: tip.rooms.hide
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1374681118666752
+    m_Key: tip.rooms.show
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1407114580979712
+    m_Key: version.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1407114610339840
+    m_Key: version.current
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1407114610339841
+    m_Key: version.added
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1407114610339842
+    m_Key: version.modified
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1407114610339843
+    m_Key: version.removed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1407114610339844
+    m_Key: version.bugs
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1407114610339845
+    m_Key: version.nonotes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1407114610339846
+    m_Key: version.empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372683210752
+    m_Key: tutorial.title.welcome
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182272
+    m_Key: tutorial.title.farewell
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182273
+    m_Key: tutorial.next
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182274
+    m_Key: tutorial.back
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182275
+    m_Key: tutorial.explore
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182276
+    m_Key: tutorial.welcome
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182277
+    m_Key: tutorial.tour.camera.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182278
+    m_Key: tutorial.tour.camera
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182279
+    m_Key: tutorial.tour.nutrients.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182280
+    m_Key: tutorial.tour.nutrients
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182281
+    m_Key: tutorial.tour.ants.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182282
+    m_Key: tutorial.tour.ants
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182283
+    m_Key: tutorial.tour.queencard.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182284
+    m_Key: tutorial.tour.queencard
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182285
+    m_Key: tutorial.tour.tools.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182286
+    m_Key: tutorial.tour.tools
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182287
+    m_Key: tutorial.tour.rooms.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182288
+    m_Key: tutorial.tour.rooms
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182289
+    m_Key: tutorial.tour.queen.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182290
+    m_Key: tutorial.tour.queen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182291
+    m_Key: tutorial.tour.evolution.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182292
+    m_Key: tutorial.tour.evolution
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182293
+    m_Key: tutorial.tour.pause.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182294
+    m_Key: tutorial.tour.pause
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182295
+    m_Key: tutorial.tour.colony.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182296
+    m_Key: tutorial.tour.colony
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182297
+    m_Key: tutorial.tour.bell.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182298
+    m_Key: tutorial.tour.bell
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182299
+    m_Key: tutorial.tour.showrooms.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182300
+    m_Key: tutorial.tour.showrooms
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182301
+    m_Key: tutorial.tour.threats.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182302
+    m_Key: tutorial.tour.threats
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182303
+    m_Key: tutorial.tour.tips.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182304
+    m_Key: tutorial.tour.tips
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182305
+    m_Key: tutorial.farewell
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

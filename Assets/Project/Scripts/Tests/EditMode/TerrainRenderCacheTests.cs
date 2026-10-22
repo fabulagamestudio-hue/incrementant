@@ -126,6 +126,8 @@ namespace Fabula.Incrementant.Tests
             var serialized = new SerializedObject(view);
             int outside = serialized.FindProperty("_outsideLight").intValue;
             int solidCost = serialized.FindProperty("_solidLightCost").intValue;
+            int glow = serialized.FindProperty("_glowMushroomLight").intValue;
+            int glowSolidCost = serialized.FindProperty("_glowSolidLightCost").intValue;
 
             int width = grid.Width, height = grid.Height;
             var level = new int[width * height];
@@ -144,27 +146,46 @@ namespace Fabula.Incrementant.Tests
                     queues[outside].Add(y * width + x);
                 }
             }
-            for (int l = AntFarmView.LightLevels; l > 1; l--)
+            Spread(level, solidCost);
+            // Cogumelos luminosos: propagados à parte, com o custo próprio na terra; fica a maior das duas luzes.
+            var glowLevel = new int[width * height];
+            for (int i = 0; i < width * height; i++)
             {
-                foreach (int i in queues[l])
+                if (grid.Get(i % width, i / width) == CellMaterial.GlowMushroom && glow > 0)
                 {
-                    if (level[i] != l)
-                        continue;
-                    int x = i % width, y = i / width;
-                    for (int dy = -1; dy <= 1; dy++)
-                    for (int dx = -1; dx <= 1; dx++)
+                    glowLevel[i] = glow;
+                    queues[glow].Add(i);
+                }
+            }
+            Spread(glowLevel, glowSolidCost);
+            for (int i = 0; i < width * height; i++)
+                level[i] = Mathf.Max(level[i], glowLevel[i]);
+
+            void Spread(int[] levels, int cost)
+            {
+                for (int l = AntFarmView.LightLevels; l > 1; l--)
+                {
+                    foreach (int i in queues[l])
                     {
-                        int nx = x + dx, ny = y + dy;
-                        if ((dx == 0 && dy == 0) || !grid.InBounds(nx, ny))
+                        if (levels[i] != l)
                             continue;
-                        int n = ny * width + nx;
-                        int next = l - (IsOpen(grid, nx, ny, plantsAsSprites) ? 1 : solidCost);
-                        if (next > level[n])
+                        int x = i % width, y = i / width;
+                        for (int dy = -1; dy <= 1; dy++)
+                        for (int dx = -1; dx <= 1; dx++)
                         {
-                            level[n] = next;
-                            queues[next].Add(n);
+                            int nx = x + dx, ny = y + dy;
+                            if ((dx == 0 && dy == 0) || !grid.InBounds(nx, ny))
+                                continue;
+                            int n = ny * width + nx;
+                            int next = l - (IsOpen(grid, nx, ny, plantsAsSprites) ? 1 : cost);
+                            if (next > levels[n])
+                            {
+                                levels[n] = next;
+                                queues[next].Add(n);
+                            }
                         }
                     }
+                    queues[l].Clear();
                 }
             }
 
@@ -203,8 +224,10 @@ namespace Fabula.Incrementant.Tests
                 // Também fora da janela (o bloco fica velho no cache até a janela chegar lá).
                 int x = Mathf.Clamp(window.x - 40 + rng.Next(window.width + 80), 0, grid.Width - 1);
                 int y = Mathf.Clamp(window.y - 40 + rng.Next(window.height + 80), 0, grid.Height - 1);
-                switch (rng.Next(withPlants ? 15 : 12))
+                switch (rng.Next(withPlants ? 16 : 12))
                 {
+                    // Cogumelo luminoso: fonte de luz que entra e sai com o material.
+                    case 15: grid.Set(x, y, rng.Next(2) == 0 ? CellMaterial.GlowMushroom : CellMaterial.Empty, 128); break;
                     // Sala da rainha: pintura acima da luz.
                     case 14: grid.SetQueenRoom(x, y, rng.Next(2) == 0); break;
                     // Planta trocada por sólido e de volta: não sobe a versão do bloco, mas muda o lado da borda.

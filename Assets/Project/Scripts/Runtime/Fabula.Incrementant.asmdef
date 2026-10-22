@@ -2,8 +2,11 @@
     "name": "Fabula.Incrementant",
     "rootNamespace": "Fabula.Incrementant",
     "references": [
+        "Iung.BuildAssistant.Runtime",
         "Unity.InputSystem",
         "Unity.Localization",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime",
         "Unity.ResourceManager",
         "UnityEngine.UI"
     ],

@@ -1,0 +1,161 @@
+{
+  "date": "2026-10-21",
+  "tool": "image_gen.imagegen (integrado)",
+  "density": 16,
+  "entries": [
+    {
+      "name": "Pebble_00",
+      "prompt": "Edit the supplied existing rock sprite, retaining its recognizable silhouette, aspect ratio, side view and geological identity: small jagged pale gray pebble. The second reference is the game's approved ant art: match its polished crisp pixel-art style, dark one-pixel silhouette outline, confident broad shading clusters, upper-left light and compact readable details. This prop is physically much larger than an ant, so add intermediate-scale faceted planes, subtle weathered chips, sparse mineral inclusions and a few purposeful cracks; avoid noisy speckled texture. Preserve warm earthy woodland ant-colony theme. Flat discrete colors exclusively #1B1815 #382414 #463123 #785A40 #9A7F5E #B9986D #CFB691 #E4D2AE #504D55 #7D7676 #A59685 #BBB29F. No gradients, no smooth painting, no blur, no ant or other animal, no vegetation, no text, no cast shadow, no ground. A single isolated rock, fully visible, tightly centered with small transparent margin, genuine transparent background. Draw with many crisp small square pixels, but keep large graphic readable planes. Improve the art rather than just enlarging the reference.",
+      "references": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_00.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png"
+      ],
+      "generatedFile": "C:\\Users\\arthu\\.codex\\generated_images\\01a16036-8bb2-7981-835c-4703e3f689d1\\exec-3bb770da-07bb-4a56-ad6b-2b1d597597a7.png",
+      "master": "Refined/Pebble_00.png",
+      "layout": "Layouts/Pebble_00.png"
+    },
+    {
+      "name": "Pebble_00_2x",
+      "prompt": "Edit the supplied existing rock sprite, retaining its recognizable silhouette, aspect ratio, side view and geological identity: angular pale gray pebble matching Pebble_00, larger specimen. The second reference is the game's approved ant art: match its polished crisp pixel-art style, dark one-pixel silhouette outline, confident broad shading clusters, upper-left light and compact readable details. This prop is physically much larger than an ant, so add intermediate-scale faceted planes, subtle weathered chips, sparse mineral inclusions and a few purposeful cracks; avoid noisy speckled texture. Preserve warm earthy woodland ant-colony theme. Flat discrete colors exclusively #1B1815 #382414 #463123 #785A40 #9A7F5E #B9986D #CFB691 #E4D2AE #504D55 #7D7676 #A59685 #BBB29F. No gradients, no smooth painting, no blur, no ant or other animal, no vegetation, no text, no cast shadow, no ground. A single isolated rock, fully visible, tightly centered with small transparent margin, genuine transparent background. Draw with many crisp small square pixels, but keep large graphic readable planes. Improve the art rather than just enlarging the reference.",
+      "references": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_00_2x.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png"
+      ],
+      "generatedFile": "C:\\Users\\arthu\\.codex\\generated_images\\01a16036-8bb2-7981-835c-4703e3f689d1\\exec-6723acd6-9e4e-4ccb-9650-e4f61b42d267.png",
+      "master": "Refined/Pebble_00_2x.png",
+      "layout": "Layouts/Pebble_00_2x.png"
+    },
+    {
+      "name": "Pebble_01",
+      "prompt": "Edit the supplied existing rock sprite, retaining its recognizable silhouette, aspect ratio, side view and geological identity: round tan sandstone boulder with a broad lit top plane and one branching crack on lower right. The second reference is the game's approved ant art: match its polished crisp pixel-art style, dark one-pixel silhouette outline, confident broad shading clusters, upper-left light and compact readable details. This prop is physically much larger than an ant, so add intermediate-scale faceted planes, subtle weathered chips, sparse mineral inclusions and a few purposeful cracks; avoid noisy speckled texture. Preserve warm earthy woodland ant-colony theme. Flat discrete colors exclusively #1B1815 #382414 #463123 #785A40 #9A7F5E #B9986D #CFB691 #E4D2AE #504D55 #7D7676 #A59685 #BBB29F. No gradients, no smooth painting, no blur, no ant or other animal, no vegetation, no text, no cast shadow, no ground. A single isolated rock, fully visible, tightly centered with small transparent margin, genuine transparent background. Draw with many crisp small square pixels, but keep large graphic readable planes. Improve the art rather than just enlarging the reference.",
+      "references": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_01.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png"
+      ],
+      "generatedFile": "C:\\Users\\arthu\\.codex\\generated_images\\01a16036-8bb2-7981-835c-4703e3f689d1\\exec-10dcbbd4-9a71-47fb-915d-4d39dc6ec9f5.png",
+      "master": "Refined/Pebble_01.png",
+      "layout": "Layouts/Pebble_01.png"
+    },
+    {
+      "name": "Pebble_02",
+      "prompt": "Edit the supplied existing rock sprite, retaining its recognizable silhouette, aspect ratio, side view and geological identity: low horizontal brown rounded stone with small mineral patches. The second reference is the game's approved ant art: match its polished crisp pixel-art style, dark one-pixel silhouette outline, confident broad shading clusters, upper-left light and compact readable details. This prop is physically much larger than an ant, so add intermediate-scale faceted planes, subtle weathered chips, sparse mineral inclusions and a few purposeful cracks; avoid noisy speckled texture. Preserve warm earthy woodland ant-colony theme. Flat discrete colors exclusively #1B1815 #382414 #463123 #785A40 #9A7F5E #B9986D #CFB691 #E4D2AE #504D55 #7D7676 #A59685 #BBB29F. No gradients, no smooth painting, no blur, no ant or other animal, no vegetation, no text, no cast shadow, no ground. A single isolated rock, fully visible, tightly centered with small transparent margin, genuine transparent background. Draw with many crisp small square pixels, but keep large graphic readable planes. Improve the art rather than just enlarging the reference.",
+      "references": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_02.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png"
+      ],
+      "generatedFile": "C:\\Users\\arthu\\.codex\\generated_images\\01a16036-8bb2-7981-835c-4703e3f689d1\\exec-158e8d3a-4ecf-4f1a-b3de-208dea810296.png",
+      "master": "Refined/Pebble_02.png",
+      "layout": "Layouts/Pebble_02.png"
+    },
+    {
+      "name": "Pebble_03",
+      "prompt": "Edit the supplied existing rock sprite, retaining its recognizable silhouette, aspect ratio, side view and geological identity: low irregular charcoal-gray stone with a softly sloped top. The second reference is the game's approved ant art: match its polished crisp pixel-art style, dark one-pixel silhouette outline, confident broad shading clusters, upper-left light and compact readable details. This prop is physically much larger than an ant, so add intermediate-scale faceted planes, subtle weathered chips, sparse mineral inclusions and a few purposeful cracks; avoid noisy speckled texture. Preserve warm earthy woodland ant-colony theme. Flat discrete colors exclusively #1B1815 #382414 #463123 #785A40 #9A7F5E #B9986D #CFB691 #E4D2AE #504D55 #7D7676 #A59685 #BBB29F. No gradients, no smooth painting, no blur, no ant or other animal, no vegetation, no text, no cast shadow, no ground. A single isolated rock, fully visible, tightly centered with small transparent margin, genuine transparent background. Draw with many crisp small square pixels, but keep large graphic readable planes. Improve the art rather than just enlarging the reference.",
+      "references": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png"
+      ],
+      "generatedFile": "C:\\Users\\arthu\\.codex\\generated_images\\01a16036-8bb2-7981-835c-4703e3f689d1\\exec-d28ac6cb-36c2-4198-bd52-34116b6db7fd.png",
+      "master": "Refined/Pebble_03.png",
+      "layout": "Layouts/Pebble_03.png"
+    },
+    {
+      "name": "Pebble_04",
+      "prompt": "Edit the supplied existing rock sprite, retaining its recognizable silhouette, aspect ratio, side view and geological identity: small squat pale warm-gray rounded pebble. The second reference is the game's approved ant art: match its polished crisp pixel-art style, dark one-pixel silhouette outline, confident broad shading clusters, upper-left light and compact readable details. This prop is physically much larger than an ant, so add intermediate-scale faceted planes, subtle weathered chips, sparse mineral inclusions and a few purposeful cracks; avoid noisy speckled texture. Preserve warm earthy woodland ant-colony theme. Flat discrete colors exclusively #1B1815 #382414 #463123 #785A40 #9A7F5E #B9986D #CFB691 #E4D2AE #504D55 #7D7676 #A59685 #BBB29F. No gradients, no smooth painting, no blur, no ant or other animal, no vegetation, no text, no cast shadow, no ground. A single isolated rock, fully visible, tightly centered with small transparent margin, genuine transparent background. Draw with many crisp small square pixels, but keep large graphic readable planes. Improve the art rather than just enlarging the reference.",
+      "references": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_04.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png"
+      ],
+      "generatedFile": "C:\\Users\\arthu\\.codex\\generated_images\\01a16036-8bb2-7981-835c-4703e3f689d1\\exec-1d536c5b-c1a9-4943-8366-ecc274437557.png",
+      "master": "Refined/Pebble_04.png",
+      "layout": "Layouts/Pebble_04.png"
+    },
+    {
+      "name": "Pebble_05",
+      "prompt": "Edit the supplied existing rock sprite, retaining its recognizable silhouette, aspect ratio, side view and geological identity: tan rounded boulder with a branching dark fissure on lower right. The second reference is the game's approved ant art: match its polished crisp pixel-art style, dark one-pixel silhouette outline, confident broad shading clusters, upper-left light and compact readable details. This prop is physically much larger than an ant, so add intermediate-scale faceted planes, subtle weathered chips, sparse mineral inclusions and a few purposeful cracks; avoid noisy speckled texture. Preserve warm earthy woodland ant-colony theme. Flat discrete colors exclusively #1B1815 #382414 #463123 #785A40 #9A7F5E #B9986D #CFB691 #E4D2AE #504D55 #7D7676 #A59685 #BBB29F. No gradients, no smooth painting, no blur, no ant or other animal, no vegetation, no text, no cast shadow, no ground. A single isolated rock, fully visible, tightly centered with small transparent margin, genuine transparent background. Draw with many crisp small square pixels, but keep large graphic readable planes. Improve the art rather than just enlarging the reference.",
+      "references": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_05.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png"
+      ],
+      "generatedFile": "C:\\Users\\arthu\\.codex\\generated_images\\01a16036-8bb2-7981-835c-4703e3f689d1\\exec-b3167b50-f8d4-4a75-b0a9-ab0c39f466c7.png",
+      "master": "Refined/Pebble_05.png",
+      "layout": "Layouts/Pebble_05.png"
+    },
+    {
+      "name": "Pebble_05_2x",
+      "prompt": "Edit the supplied existing rock sprite, retaining its recognizable silhouette, aspect ratio, side view and geological identity: large tan rounded boulder matching Pebble_05 with broad warm-gray face, pale upper left plane and dark fissure lower right. The second reference is the game's approved ant art: match its polished crisp pixel-art style, dark one-pixel silhouette outline, confident broad shading clusters, upper-left light and compact readable details. This prop is physically much larger than an ant, so add intermediate-scale faceted planes, subtle weathered chips, sparse mineral inclusions and a few purposeful cracks; avoid noisy speckled texture. Preserve warm earthy woodland ant-colony theme. Flat discrete colors exclusively #1B1815 #382414 #463123 #785A40 #9A7F5E #B9986D #CFB691 #E4D2AE #504D55 #7D7676 #A59685 #BBB29F. No gradients, no smooth painting, no blur, no ant or other animal, no vegetation, no text, no cast shadow, no ground. A single isolated rock, fully visible, tightly centered with small transparent margin, genuine transparent background. Draw with many crisp small square pixels, but keep large graphic readable planes. Improve the art rather than just enlarging the reference.",
+      "references": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_05_2x.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png"
+      ],
+      "generatedFile": "C:\\Users\\arthu\\.codex\\generated_images\\01a16036-8bb2-7981-835c-4703e3f689d1\\exec-ca14e3a6-ce39-4272-9ac7-c2de98087a3a.png",
+      "master": "Refined/Pebble_05_2x.png",
+      "layout": "Layouts/Pebble_05_2x.png"
+    },
+    {
+      "name": "Pebble_06",
+      "prompt": "Edit the supplied existing rock sprite, retaining its recognizable silhouette, aspect ratio, side view and geological identity: wide low gray slab with pale upper left plane and angular face on right. The second reference is the game's approved ant art: match its polished crisp pixel-art style, dark one-pixel silhouette outline, confident broad shading clusters, upper-left light and compact readable details. This prop is physically much larger than an ant, so add intermediate-scale faceted planes, subtle weathered chips, sparse mineral inclusions and a few purposeful cracks; avoid noisy speckled texture. Preserve warm earthy woodland ant-colony theme. Flat discrete colors exclusively #1B1815 #382414 #463123 #785A40 #9A7F5E #B9986D #CFB691 #E4D2AE #504D55 #7D7676 #A59685 #BBB29F. No gradients, no smooth painting, no blur, no ant or other animal, no vegetation, no text, no cast shadow, no ground. A single isolated rock, fully visible, tightly centered with small transparent margin, genuine transparent background. Draw with many crisp small square pixels, but keep large graphic readable planes. Improve the art rather than just enlarging the reference.",
+      "references": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_06.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png"
+      ],
+      "generatedFile": "C:\\Users\\arthu\\.codex\\generated_images\\01a16036-8bb2-7981-835c-4703e3f689d1\\exec-9d5352f8-4de0-4453-9364-73ee07620c50.png",
+      "master": "Refined/Pebble_06.png",
+      "layout": "Layouts/Pebble_06.png"
+    },
+    {
+      "name": "Pebble_07",
+      "prompt": "Edit the supplied existing rock sprite, retaining its recognizable silhouette, aspect ratio, side view and geological identity: broad rounded tan-gray layered boulder with diagonal mineral bands. The second reference is the game's approved ant art: match its polished crisp pixel-art style, dark one-pixel silhouette outline, confident broad shading clusters, upper-left light and compact readable details. This prop is physically much larger than an ant, so add intermediate-scale faceted planes, subtle weathered chips, sparse mineral inclusions and a few purposeful cracks; avoid noisy speckled texture. Preserve warm earthy woodland ant-colony theme. Flat discrete colors exclusively #1B1815 #382414 #463123 #785A40 #9A7F5E #B9986D #CFB691 #E4D2AE #504D55 #7D7676 #A59685 #BBB29F. No gradients, no smooth painting, no blur, no ant or other animal, no vegetation, no text, no cast shadow, no ground. A single isolated rock, fully visible, tightly centered with small transparent margin, genuine transparent background. Draw with many crisp small square pixels, but keep large graphic readable planes. Improve the art rather than just enlarging the reference.",
+      "references": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_07.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png"
+      ],
+      "generatedFile": "C:\\Users\\arthu\\.codex\\generated_images\\01a16036-8bb2-7981-835c-4703e3f689d1\\exec-93980b6d-4864-4c7d-8692-b02b621d3145.png",
+      "master": "Refined/Pebble_07.png",
+      "layout": "Layouts/Pebble_07.png"
+    },
+    {
+      "name": "Pebble_08",
+      "prompt": "Edit the supplied existing rock sprite, retaining its recognizable silhouette, aspect ratio, side view and geological identity: round gray pebble with a few subtle warm mineral inclusions. The second reference is the game's approved ant art: match its polished crisp pixel-art style, dark one-pixel silhouette outline, confident broad shading clusters, upper-left light and compact readable details. This prop is physically much larger than an ant, so add intermediate-scale faceted planes, subtle weathered chips, sparse mineral inclusions and a few purposeful cracks; avoid noisy speckled texture. Preserve warm earthy woodland ant-colony theme. Flat discrete colors exclusively #1B1815 #382414 #463123 #785A40 #9A7F5E #B9986D #CFB691 #E4D2AE #504D55 #7D7676 #A59685 #BBB29F. No gradients, no smooth painting, no blur, no ant or other animal, no vegetation, no text, no cast shadow, no ground. A single isolated rock, fully visible, tightly centered with small transparent margin, genuine transparent background. Draw with many crisp small square pixels, but keep large graphic readable planes. Improve the art rather than just enlarging the reference.",
+      "references": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_08.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png"
+      ],
+      "generatedFile": "C:\\Users\\arthu\\.codex\\generated_images\\01a16036-8bb2-7981-835c-4703e3f689d1\\exec-27bff1ff-1116-49f9-9361-adf3c57cf8ec.png",
+      "master": "Refined/Pebble_08.png",
+      "layout": "Layouts/Pebble_08.png"
+    },
+    {
+      "name": "Pebble_09",
+      "prompt": "Edit the supplied existing rock sprite, retaining its recognizable silhouette, aspect ratio, side view and geological identity: small low rounded tan pebble. The second reference is the game's approved ant art: match its polished crisp pixel-art style, dark one-pixel silhouette outline, confident broad shading clusters, upper-left light and compact readable details. This prop is physically much larger than an ant, so add intermediate-scale faceted planes, subtle weathered chips, sparse mineral inclusions and a few purposeful cracks; avoid noisy speckled texture. Preserve warm earthy woodland ant-colony theme. Flat discrete colors exclusively #1B1815 #382414 #463123 #785A40 #9A7F5E #B9986D #CFB691 #E4D2AE #504D55 #7D7676 #A59685 #BBB29F. No gradients, no smooth painting, no blur, no ant or other animal, no vegetation, no text, no cast shadow, no ground. A single isolated rock, fully visible, tightly centered with small transparent margin, genuine transparent background. Draw with many crisp small square pixels, but keep large graphic readable planes. Improve the art rather than just enlarging the reference.",
+      "references": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_09.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png"
+      ],
+      "generatedFile": "C:\\Users\\arthu\\.codex\\generated_images\\01a16036-8bb2-7981-835c-4703e3f689d1\\exec-73320d1f-5823-4f70-8280-95129cf66237.png",
+      "master": "Refined/Pebble_09.png",
+      "layout": "Layouts/Pebble_09.png"
+    },
+    {
+      "name": "Pebble_10",
+      "prompt": "Edit the supplied existing rock sprite, retaining its recognizable silhouette, aspect ratio, side view and geological identity: tiny angular cool gray pebble. The second reference is the game's approved ant art: match its polished crisp pixel-art style, dark one-pixel silhouette outline, confident broad shading clusters, upper-left light and compact readable details. This prop is physically much larger than an ant, so add intermediate-scale faceted planes, subtle weathered chips, sparse mineral inclusions and a few purposeful cracks; avoid noisy speckled texture. Preserve warm earthy woodland ant-colony theme. Flat discrete colors exclusively #1B1815 #382414 #463123 #785A40 #9A7F5E #B9986D #CFB691 #E4D2AE #504D55 #7D7676 #A59685 #BBB29F. No gradients, no smooth painting, no blur, no ant or other animal, no vegetation, no text, no cast shadow, no ground. A single isolated rock, fully visible, tightly centered with small transparent margin, genuine transparent background. Draw with many crisp small square pixels, but keep large graphic readable planes. Improve the art rather than just enlarging the reference.",
+      "references": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_10.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png"
+      ],
+      "generatedFile": "C:\\Users\\arthu\\.codex\\generated_images\\01a16036-8bb2-7981-835c-4703e3f689d1\\exec-ffeafdad-eeca-4c1c-9501-4abe1d3fbe98.png",
+      "master": "Refined/Pebble_10.png",
+      "layout": "Layouts/Pebble_10.png"
+    },
+    {
+      "name": "Pebble_11",
+      "prompt": "Edit the supplied existing rock sprite, retaining its recognizable silhouette, aspect ratio, side view and geological identity: rounded warm tan stone with broad planes. The second reference is the game's approved ant art: match its polished crisp pixel-art style, dark one-pixel silhouette outline, confident broad shading clusters, upper-left light and compact readable details. This prop is physically much larger than an ant, so add intermediate-scale faceted planes, subtle weathered chips, sparse mineral inclusions and a few purposeful cracks; avoid noisy speckled texture. Preserve warm earthy woodland ant-colony theme. Flat discrete colors exclusively #1B1815 #382414 #463123 #785A40 #9A7F5E #B9986D #CFB691 #E4D2AE #504D55 #7D7676 #A59685 #BBB29F. No gradients, no smooth painting, no blur, no ant or other animal, no vegetation, no text, no cast shadow, no ground. A single isolated rock, fully visible, tightly centered with small transparent margin, genuine transparent background. Draw with many crisp small square pixels, but keep large graphic readable planes. Improve the art rather than just enlarging the reference.",
+      "references": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_11.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png"
+      ],
+      "generatedFile": "C:\\Users\\arthu\\.codex\\generated_images\\01a16036-8bb2-7981-835c-4703e3f689d1\\exec-f802855b-4d20-494e-9592-4b339782008f.png",
+      "master": "Refined/Pebble_11.png",
+      "layout": "Layouts/Pebble_11.png"
+    }
+  ]
+}

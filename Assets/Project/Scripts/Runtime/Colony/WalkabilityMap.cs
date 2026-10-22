@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Fabula.Incrementant.World;
+using UnityEngine;
 
 namespace Fabula.Incrementant.Colony
 {
@@ -37,6 +38,7 @@ namespace Fabula.Incrementant.Colony
         {
             PixelGrid grid = Grid;
             int w = grid.Width;
+            var rule = new FastRule(grid);
             for (int cy = 0; cy < grid.ChunkRows; cy++)
             for (int cx = 0; cx < grid.ChunkColumns; cx++)
             {
@@ -54,7 +56,7 @@ namespace Fabula.Incrementant.Colony
                 for (int x = x0; x < x1; x++)
                 {
                     int i = y * w + x;
-                    bool walkable = AntNavigation.IsWalkable(grid, x, y);
+                    bool walkable = rule.WalkableAt(x, y, i);
                     if (_walkable[i] == walkable)
                         continue;
                     _walkable[i] = walkable;
@@ -67,6 +69,65 @@ namespace Fabula.Incrementant.Colony
                     else
                         _changedSurface = true;
                 }
+            }
+        }
+
+        /// <summary>
+        /// O mesmo que <see cref="AntNavigation.IsWalkable"/>, lendo os arrays da grade direto (KI-004: a montagem do cache
+        /// com o mundo inteiro custava ~13 ms com a chamada por célula). Mudou a regra lá, mude aqui também: o teste
+        /// <c>WalkabilityMapTests.FastRule_MatchesAntNavigation_Everywhere</c> compara as duas célula a célula.
+        /// </summary>
+        internal readonly struct FastRule
+        {
+            readonly CellMaterial[] _cells;
+            readonly bool[] _built, _backdrop;
+            readonly int[] _surfaceY;
+            readonly int _width, _height, _xMin, _xMax, _yMin, _yMax;
+
+            public FastRule(PixelGrid grid)
+            {
+                _cells = grid.CellsRaw;
+                _built = grid.BuiltRaw;
+                _backdrop = grid.BackdropRaw;
+                _surfaceY = grid.SurfaceYRaw;
+                _width = grid.Width;
+                _height = grid.Height;
+                RectInt active = grid.Active;
+                _xMin = active.xMin;
+                _xMax = active.xMax;
+                _yMin = active.yMin;
+                _yMax = active.yMax;
+            }
+
+            public bool WalkableAt(int x, int y, int i)
+            {
+                if (x < _xMin || x >= _xMax || y < _yMin || y >= _yMax)
+                    return false;
+                CellMaterial material = _cells[i];
+                int surface = _surfaceY[x];
+                if (material != CellMaterial.Empty)
+                {
+                    // Planta, e acima do solo original a obra e os blocos trazidos pelas formigas (AntNavigation.IsOutdoorWall).
+                    if (CellMaterials.IsPlant(material))
+                        return true;
+                    if (y <= surface)
+                        return false;
+                    return _built[i] || material == CellMaterial.Spoil || material == CellMaterial.PackedSpoil ||
+                           material == CellMaterial.Mud || material == CellMaterial.Sand || material == CellMaterial.PackedSand ||
+                           CellMaterials.IsPlantDebris(material);
+                }
+                if (y <= surface || _backdrop[i])
+                    return true;
+                // TouchesSolid: fora da área ativa é rocha, mas acima do topo do mundo é céu aberto.
+                for (int k = 0; k < 8; k++)
+                {
+                    int nx = x + AntNavigation.Dx[k], ny = y + AntNavigation.Dy[k];
+                    if (ny >= _height)
+                        continue;
+                    if (nx < _xMin || nx >= _xMax || ny < _yMin || ny >= _yMax || _cells[ny * _width + nx] != CellMaterial.Empty)
+                        return true;
+                }
+                return false;
             }
         }
 

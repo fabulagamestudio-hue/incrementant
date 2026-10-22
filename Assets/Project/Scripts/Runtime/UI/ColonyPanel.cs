@@ -11,8 +11,8 @@ namespace Fabula.Incrementant.UI
 {
     /// <summary>
     /// Painel da colônia (botão à esquerda do sino), com duas abas: Estatísticas (formigas por papel, seção de trabalho e
-    /// lugar, e a produção por segundo) e Configurações (ligar, parar e limitar cada seção de trabalho, por "-"/"+" ou slider, e o trabalho da
-    /// rainha). Só lê e muda <see cref="AntColony"/>; quem abre e fecha é o <see cref="AntFarmHud"/>. A hierarquia é
+    /// lugar, e a produção por segundo) e Configurações (ligar, parar e limitar cada seção de trabalho, por "-"/"+" ou slider, e o comportamento da
+    /// rainha: botar ovos ou trabalhar como uma das classes liberadas). Só lê e muda <see cref="AntColony"/>; quem abre e fecha é o <see cref="AntFarmHud"/>. A hierarquia é
     /// montada por <c>Incrementant/Setup/Montar HUD da partida</c>.
     /// </summary>
     public sealed class ColonyPanel : MonoBehaviour
@@ -49,9 +49,17 @@ namespace Fabula.Incrementant.UI
         [SerializeField] Sprite _toggleOn;
         [SerializeField] Sprite _toggleOff;
 
-        [Header("Trabalho da rainha (ordem de QueenJob)")]
+        [Header("Comportamento da rainha: seletor e lista que abre para cima, uma opção por QueenJobs.All")]
+        [SerializeField] Button _queenJobToggle;
+        [SerializeField] Text _queenJobLabel;
+        [SerializeField] Image _queenJobIcon;
+        [SerializeField] RectTransform _queenJobList;
+        [Tooltip("Fundo transparente atrás da lista: clicar fora dela a fecha.")]
+        [SerializeField] Button _queenJobBlocker;
         [SerializeField] Button[] _queenJobs;
         [SerializeField] Image[] _queenJobImages;
+        [SerializeField] Text[] _queenJobLabels;
+        [SerializeField] Image[] _queenJobIcons;
         [SerializeField] Text _queenJobState;
         [SerializeField] Sprite _buttonIdle;
         [SerializeField] Sprite _buttonActive;
@@ -76,8 +84,11 @@ namespace Fabula.Incrementant.UI
 
         int Sections => WorkPolicy.Count;
 
-        /// <summary>Botões do trabalho da rainha, um por valor de <see cref="QueenJob"/>.</summary>
-        public static readonly int QueenJobCount = Enum.GetValues(typeof(QueenJob)).Length;
+        /// <summary>Opções da lista do comportamento da rainha, uma por valor de <see cref="QueenJobs.All"/>.</summary>
+        public static int QueenJobCount => QueenJobs.All.Length;
+
+        /// <summary>Altura de cada opção da lista (botão de 42 px e folga) e a margem em volta; o setup do HUD usa as mesmas medidas.</summary>
+        public const float QueenOptionStep = 46f, QueenOptionHeight = 42f, QueenListPadding = 8f;
 
         void Awake()
         {
@@ -85,8 +96,10 @@ namespace Fabula.Incrementant.UI
             _valid = _game != null && _close != null && _statsTab != null && _settingsTab != null && _statsTabImage != null &&
                      _settingsTabImage != null && _statsPage != null && _settingsPage != null && _antsColumn != null &&
                      _workColumn != null && _placesColumn != null && _reset != null && _queenJobState != null &&
+                     _queenJobToggle != null && _queenJobLabel != null && _queenJobIcon != null && _queenJobList != null && _queenJobBlocker != null &&
                      Has(_toggles, n) && Has(_toggleImages, n) && Has(_sectionLabels, n) && Has(_sectionNow, n) &&
-                     Has(_minus, n) && Has(_plus, n) && Has(_limitSliders, n) && Has(_limits, n) && Has(_queenJobs, QueenJobCount) && Has(_queenJobImages, QueenJobCount);
+                     Has(_minus, n) && Has(_plus, n) && Has(_limitSliders, n) && Has(_limits, n) && Has(_queenJobs, QueenJobCount) && Has(_queenJobImages, QueenJobCount) && Has(_queenJobLabels, QueenJobCount) &&
+                     Has(_queenJobIcons, QueenJobCount);
             if (!_valid)
             {
                 Debug.LogError($"{name}: ColonyPanel com referências faltando (rode Incrementant/Setup/Montar HUD da partida).", this);
@@ -108,7 +121,7 @@ namespace Fabula.Incrementant.UI
             _jobHandlers = new UnityAction[_queenJobs.Length];
             for (int i = 0; i < _jobHandlers.Length; i++)
             {
-                var job = (QueenJob)i;
+                QueenJob job = QueenJobs.All[i];
                 _jobHandlers[i] = () => SetQueenJob(job);
             }
         }
@@ -142,6 +155,8 @@ namespace Fabula.Incrementant.UI
             }
             for (int i = 0; i < _queenJobs.Length; i++)
                 _queenJobs[i].onClick.AddListener(_jobHandlers[i]);
+            _queenJobToggle.onClick.AddListener(ToggleQueenJobList);
+            _queenJobBlocker.onClick.AddListener(CloseQueenJobList);
             ShowPage(_settingsOpen);
         }
 
@@ -162,6 +177,8 @@ namespace Fabula.Incrementant.UI
             }
             for (int i = 0; i < _queenJobs.Length; i++)
                 _queenJobs[i].onClick.RemoveListener(_jobHandlers[i]);
+            _queenJobToggle.onClick.RemoveListener(ToggleQueenJobList);
+            _queenJobBlocker.onClick.RemoveListener(CloseQueenJobList);
         }
 
         /// <summary>Dicas dos controles da aba Configurações (o <see cref="HudTooltips"/> é do HUD).</summary>
@@ -177,9 +194,12 @@ namespace Fabula.Incrementant.UI
                 tooltips.Attach(_plus[i], () => Loc.T("tip.colony.plus"));
                 tooltips.Attach(_limitSliders[i], () => Loc.T("tip.colony.slider"));
             }
-            tooltips.Attach(_queenJobs[(int)QueenJob.Nest], () => Loc.T("tip.colony.queen.nest"));
-            tooltips.Attach(_queenJobs[(int)QueenJob.Forage], () => Loc.T("tip.colony.queen.forage"));
-            tooltips.Attach(_queenJobs[(int)QueenJob.Nutrients], () => Loc.T("tip.colony.queen.nutrients"));
+            tooltips.Attach(_queenJobToggle, () => Loc.T("tip.colony.queen.choose"));
+            for (int i = 0; i < _queenJobs.Length; i++)
+            {
+                QueenJob job = QueenJobs.All[i];
+                tooltips.Attach(_queenJobs[i], () => QueenJobTip(job));
+            }
             tooltips.Attach(_reset, () => Loc.T("tip.colony.reset"));
         }
 
@@ -191,6 +211,7 @@ namespace Fabula.Incrementant.UI
 
         void ShowPage(bool settings)
         {
+            CloseQueenJobList();
             _settingsOpen = settings;
             _statsPage.SetActive(!settings);
             _settingsPage.SetActive(settings);
@@ -266,8 +287,50 @@ namespace Fabula.Incrementant.UI
             if (colony == null)
                 return;
             colony.QueenJob = job;
+            CloseQueenJobList();
             _nextRefresh = 0f;
         }
+
+        void ToggleQueenJobList()
+        {
+            bool open = !_queenJobList.gameObject.activeSelf;
+            AntColony colony = _game.Colony;
+            if (open && colony != null)
+                LayoutQueenJobList(colony);
+            _queenJobList.gameObject.SetActive(open);
+            _queenJobBlocker.gameObject.SetActive(open);
+            _nextRefresh = 0f;
+        }
+
+        void CloseQueenJobList()
+        {
+            _queenJobList.gameObject.SetActive(false);
+            _queenJobBlocker.gameObject.SetActive(false);
+        }
+
+        /// <summary>
+        /// Só as opções oferecidas, empilhadas de cima para baixo. Roda com a lista fechada, ao abrir: o idle do
+        /// <see cref="Juice.ButtonJuice"/> soma deslocamentos ao anchoredPosition, e fechado ele está zerado.
+        /// </summary>
+        void LayoutQueenJobList(AntColony colony)
+        {
+            int shown = 0;
+            for (int i = 0; i < _queenJobs.Length; i++)
+            {
+                bool offered = Offers(colony, QueenJobs.All[i]);
+                _queenJobs[i].gameObject.SetActive(offered);
+                if (!offered)
+                    continue;
+                var rect = (RectTransform)_queenJobs[i].transform;
+                rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, -(QueenListPadding + shown * QueenOptionStep));
+                shown++;
+            }
+            _queenJobList.sizeDelta = new Vector2(_queenJobList.sizeDelta.x, QueenListHeight(shown));
+        }
+
+        /// <summary>A opção aparece na lista: o ninho, as classes já liberadas e a que a rainha já faz.</summary>
+        static bool Offers(AntColony colony, QueenJob job) =>
+            !QueenJobs.TryGetRole(job, out AntRole role) || colony.Tree.IsRoleUnlocked(role) || job == colony.QueenJob;
 
         void Update()
         {
@@ -312,7 +375,7 @@ namespace Fabula.Incrementant.UI
             }
             _text.Append('\n');
             Title(Loc.T("colony.stats.queen"));
-            _text.Append(Loc.T(QueenJobKey(colony.QueenJob))).Append('\n');
+            _text.Append(QueenJobStats(colony.QueenJob)).Append('\n');
             _text.Append(Loc.T(PlaceKey(colony.QueenPlace))).Append('\n');
             if (colony.Recalled)
                 _text.Append('\n').Append(Loc.T("colony.stats.recalled")).Append('\n');
@@ -371,9 +434,29 @@ namespace Fabula.Incrementant.UI
                 slider.SetValueWithoutNotify(limit == WorkPolicy.Unlimited ? total + 1 : Mathf.Min(limit, total));
             }
             _syncingSliders = false;
-            for (int i = 0; i < _queenJobImages.Length; i++)
-                _queenJobImages[i].sprite = i == (int)colony.QueenJob ? _buttonActive : _buttonIdle;
-            _queenJobState.text = Loc.T(QueenJobStateKey(colony.QueenJob), Loc.T(PlaceKey(colony.QueenPlace)));
+            RefreshQueenJob(colony);
+        }
+
+        /// <summary>Seletor com a escolha de agora e, na lista, o destaque e os rótulos de cada opção.</summary>
+        void RefreshQueenJob(AntColony colony)
+        {
+            int current = Array.IndexOf(QueenJobs.All, colony.QueenJob);
+            if (current >= 0)
+            {
+                _queenJobLabel.text = QueenJobLabel(colony.QueenJob);
+                _queenJobIcon.sprite = _queenJobIcons[current].sprite;
+                _queenJobIcon.color = _queenJobIcons[current].color;
+            }
+            for (int i = 0; i < _queenJobs.Length; i++)
+            {
+                QueenJob job = QueenJobs.All[i];
+                _queenJobImages[i].sprite = job == colony.QueenJob ? _buttonActive : _buttonIdle;
+                _queenJobLabels[i].text = QueenJobLabel(job);
+            }
+            string place = Loc.T(PlaceKey(colony.QueenPlace));
+            _queenJobState.text = QueenJobs.TryGetRole(colony.QueenJob, out AntRole role)
+                ? Loc.T("colony.queen.state.role", RoleName(role), place)
+                : Loc.T("colony.queen.state.nest", place);
         }
 
         // ---------------------------------------------------------------- chaves (switch: o teste de chaves lê os literais)
@@ -408,25 +491,21 @@ namespace Fabula.Incrementant.UI
             }
         }
 
-        static string QueenJobKey(QueenJob job)
-        {
-            switch (job)
-            {
-                case QueenJob.Forage: return "colony.queen.foraging";
-                case QueenJob.Nutrients: return "colony.queen.eating";
-                default: return "colony.queen.nesting";
-            }
-        }
+        /// <summary>Altura da lista com <paramref name="options"/> opções.</summary>
+        public static float QueenListHeight(int options) =>
+            2 * QueenListPadding + Mathf.Max(0, options - 1) * QueenOptionStep + QueenOptionHeight;
 
-        static string QueenJobStateKey(QueenJob job)
-        {
-            switch (job)
-            {
-                case QueenJob.Forage: return "colony.queen.state.forage";
-                case QueenJob.Nutrients: return "colony.queen.state.nutrients";
-                default: return "colony.queen.state.nest";
-            }
-        }
+        /// <summary>Rótulo da opção: BOTAR OVOS ou o nome da classe, em maiúsculas.</summary>
+        static string QueenJobLabel(QueenJob job) =>
+            QueenJobs.TryGetRole(job, out AntRole role) ? AntFarmHud.RoleLabel(role) : Loc.T("colony.queen.nest");
+
+        static string QueenJobStats(QueenJob job) =>
+            QueenJobs.TryGetRole(job, out AntRole role) ? Loc.T("colony.queen.working", RoleName(role)) : Loc.T("colony.queen.nesting");
+
+        static string QueenJobTip(QueenJob job) =>
+            QueenJobs.TryGetRole(job, out AntRole role) ? Loc.T("tip.colony.queen.role", RoleName(role)) : Loc.T("tip.colony.queen.nest");
+
+        static string RoleName(AntRole role) => Loc.T(AntFarmHud.RoleKey(role)).ToLowerInvariant();
 
         static string PlaceKey(ColonyPlace place)
         {
@@ -438,6 +517,7 @@ namespace Fabula.Incrementant.UI
                 case ColonyPlace.NutrientRoom: return "colony.place.nutrientroom";
                 case ColonyPlace.DewRoom: return "colony.place.dewroom";
                 case ColonyPlace.WasteRoom: return "colony.place.wasteroom";
+                case ColonyPlace.FarmRoom: return "colony.place.farmroom";
                 default: return "colony.place.tunnels";
             }
         }

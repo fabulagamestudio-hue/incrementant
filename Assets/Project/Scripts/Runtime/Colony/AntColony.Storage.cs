@@ -18,6 +18,14 @@ namespace Fabula.Incrementant.Colony
         Water,
         /// <summary>Item solto fora do depósito dele (depósito apagado, folha do resto de cupim): vai ao destino de sempre.</summary>
         Loose,
+        /// <summary>Pedaço de planta do depósito de alimentos que quem trabalha na sala de nutrientes leva a um canteiro.</summary>
+        BedPlant,
+        /// <summary>Areia (do depósito de areia ou solta) que a fazendeira leva ao cocho de um pulgão.</summary>
+        FarmSand,
+        /// <summary>Água (do depósito de água ou solta) que a fazendeira leva ao cocho de um pulgão.</summary>
+        FarmWater,
+        /// <summary>Cogumelo luminoso (do depósito de construção ou solto) para uma marca do pincel Cogumelo luminoso.</summary>
+        Mushroom,
     }
 
     /// <summary>
@@ -28,11 +36,12 @@ namespace Fabula.Incrementant.Colony
     /// </summary>
     public sealed partial class AntColony
     {
-        const int KindSlots = 4;
+        // Índice = StorageKind (0 sem uso; Waste nunca é pintado, fica parado).
+        const int KindSlots = 7;
         // Por tipo (índice = StorageKind; 0 sem uso): campo até as células livres do depósito e até os itens guardados nele.
         readonly FlowField[] _putFields = new FlowField[KindSlots];
         readonly FlowField[] _takeFields = new FlowField[KindSlots];
-        readonly bool[] _storeFieldIdle = { true, true, true, true };
+        readonly bool[] _storeFieldIdle = { true, true, true, true, true, true, true };
         // Vagas livres e itens guardados (da última rodada de campos), e formigas levando ou indo buscar (recontadas a cada Tick).
         readonly int[] _storeFree = new int[KindSlots];
         readonly int[] _storeStock = new int[KindSlots];
@@ -43,6 +52,9 @@ namespace Fabula.Incrementant.Colony
         bool _looseFieldIdle = true;
         int _looseCount;
         int _loosePlants;
+        // Vagas dos depósitos com dona (Ant.OrderSlot), refeitas a cada passo; o hash pede uma rodada de campos quando mudam.
+        readonly System.Collections.Generic.HashSet<int> _slotClaims = new System.Collections.Generic.HashSet<int>();
+        long _slotClaimHash, _builtSlotClaimHash;
         // Itens soltos com destino, por tipo (planta, água, o resto), da última rodada: a vaga de quem vai buscá-los é limitada
         // pelo que o destino ainda aceita (LooseRoom), não pelo número de itens (relato de 2026-10-19).
         int _looseFoodItems, _looseWaterItems, _looseOtherItems;
@@ -50,6 +62,8 @@ namespace Fabula.Incrementant.Colony
         int _builtStoreVersion = -1;
         // Planta na mão a caminho dos canteiros vinda do depósito de alimentos (com o depósito, a de fora vai para ele).
         int _plantsToBeds;
+        // Parte de _plantsToBeds buscada por quem trabalha na sala de nutrientes (StoreUse.BedPlant): vai só aos canteiros.
+        int _gardenPlants;
 
         /// <summary>Existe depósito pintado do tipo.</summary>
         public bool HasDepot(StorageKind kind) => _grid.StorageRoomCount(kind) > 0;
@@ -82,8 +96,12 @@ namespace Fabula.Incrementant.Colony
             return !_storeFieldIdle[k] && _putFields[k].Get(x, y) != FlowField.Unreachable;
         }
 
-        /// <summary>Pedaços de planta já fora da planta esperando quem os leve: soltos no chão e soltos fora de depósito.</summary>
-        int PlantsWaiting => _grid.PlantDebrisCount + _loosePlants;
+        /// <summary>
+        /// Pedaços de planta já fora da planta esperando quem os leve: soltos no chão ao alcance das formigas
+        /// (<see cref="_reachableDebris"/>) e soltos fora de depósito. O pixel solto que caiu num bolsão fechado não conta,
+        /// senão ocuparia uma vaga para sempre e pararia o corte (KI-011).
+        /// </summary>
+        int PlantsWaiting => _reachableDebris + _loosePlants;
 
         /// <summary>Capacidade de referência da histerese da colheita: o depósito de alimentos inteiro, ou os canteiros.</summary>
         int HarvestCapacity => FoodDepot ? _storeFree[(int)StorageKind.Food] + _storeStock[(int)StorageKind.Food] : _activeBeds;
@@ -100,6 +118,7 @@ namespace Fabula.Incrementant.Colony
             System.Array.Clear(_storeOutgoing, 0, KindSlots);
             _looseTakers = 0;
             _plantsToBeds = 0;
+            _gardenPlants = 0;
         }
 
         /// <summary>Conta quem leva ou busca itens dos depósitos (no começo do Tick, junto das outras contagens).</summary>
@@ -111,6 +130,7 @@ namespace Fabula.Incrementant.Colony
             {
                 ant.StoreTarget = StorageKind.None;
                 ant.FromStore = false;
+                ant.GardenSupply = false;
             }
             if (ant.State == AntState.TakingStored)
             {
@@ -118,15 +138,23 @@ namespace Fabula.Incrementant.Colony
                 {
                     case StoreUse.Loose: _looseTakers++; break;
                     case StoreUse.Plant: _storeOutgoing[(int)StorageKind.Food]++; _plantsToBeds++; break;
+                    case StoreUse.BedPlant: _storeOutgoing[(int)StorageKind.Food]++; _plantsToBeds++; _gardenPlants++; break;
                     case StoreUse.Water: _storeOutgoing[(int)StorageKind.Water]++; _waterCarriers++; break;
                     case StoreUse.Build: _storeOutgoing[(int)StorageKind.Blocks]++; _activeBuilders++; break;
+                    case StoreUse.FarmSand:
+                    case StoreUse.FarmWater:
+                    case StoreUse.Mushroom: break; // a fazenda conta os seus (CountFarm)
                     default: _storeOutgoing[(int)StorageKind.Blocks]++; break; // terra fofa: CountCultivation conta o destino
                 }
                 return;
             }
             if (ant.StoreTarget != StorageKind.None)
-                _storeIncoming[(int)ant.StoreTarget] += Mathf.Max(1, ant.CarriedCount);
+                _storeIncoming[(int)ant.StoreTarget] += LoadOf(ant);
         }
+
+        /// <summary>Itens que a formiga leva agora: os blocos de água na boca ou os pixels na mão (no mínimo 1).</summary>
+        static int LoadOf(Ant ant) =>
+            ant.State == AntState.CarryingWater ? Mathf.Max(1, ant.WaterLoad) : Mathf.Max(1, ant.CarriedCount);
 
         // ---------------------------------------------------------------- campos
 
@@ -137,6 +165,7 @@ namespace Fabula.Incrementant.Colony
         void BuildStorageFields()
         {
             _builtStoreVersion = _grid.StoreVersion;
+            _builtSlotClaimHash = _slotClaimHash;
             for (int kind = 1; kind < KindSlots; kind++)
                 BuildDepotFields((StorageKind)kind);
             BuildLooseField();
@@ -162,6 +191,7 @@ namespace Fabula.Incrementant.Colony
             _takeFields[k] ??= new FlowField(_grid.Width, _grid.Height, _fieldScratch);
             _sources.Clear();
             _buildSources.Clear();
+            int reservedFree = 0;
             RectInt area = _grid.Active;
             int cxMin = area.xMin >> PixelGrid.ChunkShift, cxMax = (area.xMax - 1) >> PixelGrid.ChunkShift;
             int cyMin = area.yMin >> PixelGrid.ChunkShift, cyMax = (area.yMax - 1) >> PixelGrid.ChunkShift;
@@ -187,11 +217,16 @@ namespace Fabula.Incrementant.Colony
                     }
                     else if (IsPutSpot(x, y, kind))
                     {
-                        _sources.Add(_grid.ToIndex(x, y));
+                        // A vaga reservada por uma ordem conta como livre (quem vai a ela está em _storeIncoming), mas sai do
+                        // campo: as outras formigas descem para outra.
+                        if (_slotClaims.Contains(_grid.ToIndex(x, y)))
+                            reservedFree++;
+                        else
+                            _sources.Add(_grid.ToIndex(x, y));
                     }
                 }
             }
-            _storeFree[k] = _sources.Count;
+            _storeFree[k] = _sources.Count + reservedFree;
             _storeStock[k] = _buildSources.Count;
             UpdateField(_putFields[k], _sources);
             UpdateField(_takeFields[k], _buildSources);
@@ -214,7 +249,8 @@ namespace Fabula.Incrementant.Colony
             _looseCount = 0;
             _loosePlants = 0;
             _looseFoodItems = _looseWaterItems = _looseOtherItems = 0;
-            if (_grid.StoredCount(StorageKind.Food) + _grid.StoredCount(StorageKind.Blocks) + _grid.StoredCount(StorageKind.Water) == 0)
+            if (_grid.StoredCount(StorageKind.Food) + _grid.StoredCount(StorageKind.Blocks) + _grid.StoredCount(StorageKind.Water) +
+                _grid.StoredCount(StorageKind.Sand) + _grid.StoredCount(StorageKind.Mushroom) == 0)
             {
                 if (!_looseFieldIdle)
                 {
@@ -265,8 +301,12 @@ namespace Fabula.Incrementant.Colony
 
         bool IsLooseItem(int x, int y, out StorageKind kind)
         {
-            kind = StoredItems.KindOf(_grid.GetStored(x, y));
-            return kind != StorageKind.None && kind != StorageKind.Waste && _grid.GetStorageRoom(x, y) != kind;
+            byte item = _grid.GetStored(x, y);
+            kind = StoredItems.KindOf(item);
+            // A folha ou a terra que a área de resíduos está convertendo fica onde está (modo da área, ver WasteMode), e o que
+            // a fazenda segura (cochos, areia sem depósito de areia, cogumelo sem depósito de cogumelos) também.
+            return kind != StorageKind.None && kind != StorageKind.Waste && _grid.GetStorageRoom(x, y) != kind &&
+                   !IsConversionInput(x, y, item) && !IsFarmHeld(x, y, item);
         }
 
         bool LooseHasDestination(StorageKind kind)
@@ -319,27 +359,180 @@ namespace Fabula.Incrementant.Colony
                 return false;
             ReleaseDumpSide(ant);
             ant.StoreTarget = kind;
-            _storeIncoming[k] += Mathf.Max(1, ant.CarriedCount);
+            _storeIncoming[k] += LoadOf(ant);
             return true;
         }
 
-        /// <summary>Desce o campo das vagas do depósito e guarda o item na célula dela ou numa vizinha. Sem vaga ou caminho, desiste.</summary>
+        /// <summary>
+        /// Leva o item à vaga reservada da ordem (<see cref="Ant.OrderSlot"/>) pelo caminho guardado e o guarda nela. Sem vaga
+        /// reservada, reserva a mais perto pelo campo das vagas; se a vaga deixar de servir no caminho, reserva outra na hora,
+        /// em vez de seguir o campo com o item na mão. Sem vaga nem caminho, desiste do depósito.
+        /// </summary>
         void UpdateStocking(Ant ant)
         {
             StorageKind kind = ant.StoreTarget;
             FlowField field = _putFields[(int)kind];
             int d = field != null && HasDepot(kind) && !_storeFieldIdle[(int)kind] ? field.Get(ant.X, ant.Y) : FlowField.Unreachable;
-            if (d == FlowField.Unreachable)
+            int w = _grid.Width;
+            if (ant.OrderSlot >= 0 && !IsPutSpot(ant.OrderSlot % w, ant.OrderSlot / w, kind))
+                ReleaseSlot(ant);
+            if (ant.OrderSlot < 0)
             {
-                AbandonStock(ant);
+                if (d == FlowField.Unreachable)
+                {
+                    AbandonStock(ant);
+                    return;
+                }
+                if (!ReserveSlot(ant, kind, field))
+                {
+                    // Todas as vagas perto já têm dona: espera o campo ser refeito sem elas.
+                    Hold(ant);
+                    return;
+                }
+            }
+            int sx = ant.OrderSlot % w, sy = ant.OrderSlot / w;
+            if (Mathf.Abs(sx - ant.X) <= 1 && Mathf.Abs(sy - ant.Y) <= 1 && TryPutStored(ant, kind))
+                return;
+            if (StepPath(ant) > 0)
+                return;
+            // Sem caminho (acabou de pegar a água: a vaga foi travada antes de sair) ou caminho cortado: troca a vaga pela
+            // livre mais perto de onde está, com caminho novo. Uma busca longa até a vaga antiga, repetida a cada passo
+            // enquanto falhasse, pesava demais com centenas de formigas.
+            ReleaseSlot(ant);
+            if (d == FlowField.Unreachable || !ReserveSlot(ant, kind, field))
+            {
+                Hold(ant);
                 return;
             }
-            if (d <= 1 && TryPutStored(ant, kind))
+            StepPath(ant);
+        }
+
+        /// <summary>
+        /// Reserva a vaga livre mais perto pelo campo das vagas (sem dona) e guarda o caminho até ela. A célula de chegada do
+        /// campo pode já ter sido reservada neste mesmo passo (o campo é de antes): aí vale uma vizinha livre dela.
+        /// </summary>
+        bool ReserveSlot(Ant ant, StorageKind kind, FlowField field)
+        {
+            if (!TracePath(ant, field, out int x, out int y, out _))
+                return false;
+            for (int k = -1; k < 8; k++)
+            {
+                int tx = k < 0 ? x : x + AntNavigation.Dx[k], ty = k < 0 ? y : y + AntNavigation.Dy[k];
+                if (!_grid.InBounds(tx, ty) || !IsPutSpot(tx, ty, kind) || _slotClaims.Contains(_grid.ToIndex(tx, ty)))
+                    continue;
+                ant.OrderSlot = _grid.ToIndex(tx, ty);
+                ClaimSlot(ant.OrderSlot);
+                return true;
+            }
+            // Várias chegaram juntas ao mesmo ponto do campo (de antes das reservas): a vaga livre mais perto dali.
+            int slot = NearestFreeSlot(x, y, kind);
+            int end = ant.SeekLast >= 0 ? ant.SeekLast : _grid.ToIndex(ant.X, ant.Y);
+            if (slot < 0 || !AppendPathTo(ant, end, slot, SlotSearchLimit))
+            {
+                ant.ClearSeek();
+                return false;
+            }
+            ant.OrderSlot = slot;
+            ClaimSlot(slot);
+            return true;
+        }
+
+        /// <summary>Teto de células da busca local de vaga livre (<see cref="NearestFreeSlot"/>).</summary>
+        const int SlotSearchLimit = 4000;
+
+        /// <summary>Vaga livre e sem dona mais perto de (<paramref name="x"/>, <paramref name="y"/>) andando pelas células caminháveis; -1 = nenhuma.</summary>
+        int NearestFreeSlot(int x, int y, StorageKind kind)
+        {
+            int w = _grid.Width;
+            int start = y * w + x;
+            if (!_walkability.IsWalkableAt(start))
+                return -1;
+            int stamp = ++_floodCounter;
+            int head = 0, tail = 0;
+            _floodStamp[start] = stamp;
+            _floodQueue[tail++] = start;
+            while (head < tail)
+            {
+                int i = _floodQueue[head++];
+                int cx = i % w, cy = i / w;
+                if (IsPutSpot(cx, cy, kind) && !_slotClaims.Contains(i))
+                    return i;
+                for (int k = 0; k < 8; k++)
+                {
+                    int nx = cx + AntNavigation.Dx[k], ny = cy + AntNavigation.Dy[k];
+                    if (!_walkability.IsWalkable(nx, ny))
+                        continue;
+                    int n = ny * w + nx;
+                    if (_floodStamp[n] == stamp || tail >= SlotSearchLimit)
+                        continue;
+                    _floodStamp[n] = stamp;
+                    _floodQueue[tail++] = n;
+                }
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// Vaga livre e sem dona mais perto de (<paramref name="x"/>, <paramref name="y"/>) pelo campo das vagas, sem guardar
+        /// caminho (a formiga ainda vai buscar o item). -1 = nenhuma.
+        /// </summary>
+        int FindFreeSlot(StorageKind kind, int x, int y)
+        {
+            FlowField field = _putFields[(int)kind];
+            if (field == null || _storeFieldIdle[(int)kind])
+                return -1;
+            int d = field.Get(x, y), previous = -1, steps = 0;
+            if (d == FlowField.Unreachable)
+                return -1;
+            while (d > 0 && steps++ < MaxSeekPath)
+            {
+                int k = DownhillDirection(x, y, field, previous);
+                if (k < 0)
+                    return -1;
+                previous = k;
+                x += AntNavigation.Dx[k];
+                y += AntNavigation.Dy[k];
+                d = field.Get(x, y);
+            }
+            for (int k = -1; k < 8; k++)
+            {
+                int tx = k < 0 ? x : x + AntNavigation.Dx[k], ty = k < 0 ? y : y + AntNavigation.Dy[k];
+                if (_grid.InBounds(tx, ty) && IsPutSpot(tx, ty, kind) && !_slotClaims.Contains(_grid.ToIndex(tx, ty)))
+                    return _grid.ToIndex(tx, ty);
+            }
+            return NearestFreeSlot(x, y, kind);
+        }
+
+        /// <summary>Trava a vaga do depósito para a ordem de uma formiga; o campo das vagas a tira na próxima rodada.</summary>
+        void ClaimSlot(int index)
+        {
+            if (_slotClaims.Add(index))
+                _slotClaimHash += index * 2654435761L;
+        }
+
+        /// <summary>Larga a vaga reservada (e o caminho até ela).</summary>
+        void ReleaseSlot(Ant ant)
+        {
+            if (ant.OrderSlot >= 0 && _slotClaims.Remove(ant.OrderSlot))
+                _slotClaimHash -= ant.OrderSlot * 2654435761L;
+            ant.OrderSlot = -1;
+            ant.ClearSeek();
+        }
+
+        /// <summary>
+        /// Refaz a trava da vaga a cada passo, como as outras reservas: vale enquanto a formiga leva (ou vai buscar) algo para
+        /// o depósito; fora disso a ordem acabou e a vaga se solta.
+        /// </summary>
+        void CountSlotOrder(Ant ant)
+        {
+            if (ant.OrderSlot < 0)
                 return;
-            if (d > 0 && StepDownhill(ant, field))
-                return;
-            // Na vaga, mas ela foi tomada: espera o campo ser refeito.
-            Hold(ant);
+            bool onOrder = ant.StoreTarget != StorageKind.None &&
+                           (ant.State == AntState.Carrying || ant.State == AntState.CarryingWater || ant.State == AntState.FetchingWater);
+            if (onOrder)
+                ClaimSlot(ant.OrderSlot);
+            else
+                ant.OrderSlot = -1;
         }
 
         bool TryPutStored(Ant ant, StorageKind kind)
@@ -348,9 +541,14 @@ namespace Fabula.Incrementant.Colony
             {
                 int x = k < 0 ? ant.X : ant.X + AntNavigation.Dx[k];
                 int y = k < 0 ? ant.Y : ant.Y + AntNavigation.Dy[k];
-                if (!IsPutSpot(x, y, kind))
+                if (!_grid.InBounds(x, y) || !IsPutSpot(x, y, kind))
+                    continue;
+                // Com ordem, só a vaga dela; sem ordem, nunca a vaga de outra.
+                int index = _grid.ToIndex(x, y);
+                if (ant.OrderSlot >= 0 ? index != ant.OrderSlot : _slotClaims.Contains(index))
                     continue;
                 byte item = kind == StorageKind.Water ? StoredItems.Water
+                    : kind == StorageKind.Sand ? StoredItems.Sand
                     : StoredItems.Of(kind == StorageKind.Blocks ? CellMaterial.Spoil : ant.Carried);
                 _grid.SetStored(x, y, item, kind == StorageKind.Water ? (byte)128 : ant.CarriedShade);
                 Emit(SfxId.Drop, x, y);
@@ -358,8 +556,16 @@ namespace Fabula.Incrementant.Colony
                 if (x != ant.X)
                     ant.FacingX = x > ant.X ? 1 : -1;
                 ant.Cooldown = _settings.DropSeconds;
+                ReleaseSlot(ant);
                 if (kind == StorageKind.Water)
                 {
+                    // Com mais água na boca (carregadora), segue para outra vaga: UpdateStocking reserva a próxima.
+                    if (ant.WaterLoad > 1)
+                    {
+                        ant.WaterLoad--;
+                        return true;
+                    }
+                    ant.WaterLoad = 0;
                     ant.StoreTarget = StorageKind.None;
                     EndWaterTrip(ant);
                     return true;
@@ -378,6 +584,7 @@ namespace Fabula.Incrementant.Colony
         /// <summary>O depósito deixou de ter vaga ou caminho: entrega o que leva pelo caminho de sempre.</summary>
         void AbandonStock(Ant ant)
         {
+            ReleaseSlot(ant);
             StorageKind kind = ant.StoreTarget;
             ant.StoreTarget = StorageKind.None;
             if (kind == StorageKind.Water)
@@ -386,6 +593,11 @@ namespace Fabula.Incrementant.Colony
             {
                 ant.FromStore = true; // não tenta o depósito de novo: vai aos canteiros
                 ant.State = AntState.Carrying;
+                return;
+            }
+            if (ant.Carried == CellMaterial.GlowMushroom)
+            {
+                ReturnMushroom(ant); // cogumelo não vai ao despejo: fica no chão como item solto
                 return;
             }
             ant.State = AntState.Carrying;
@@ -428,6 +640,7 @@ namespace Fabula.Incrementant.Colony
             {
                 case StoreUse.Loose: _looseTakers++; break;
                 case StoreUse.Plant: _storeOutgoing[(int)StorageKind.Food]++; _plantsToBeds++; break;
+                case StoreUse.BedPlant: _storeOutgoing[(int)StorageKind.Food]++; _plantsToBeds++; _gardenPlants++; break;
                 case StoreUse.Water: _storeOutgoing[(int)StorageKind.Water]++; _waterCarriers++; break;
                 case StoreUse.Build: _storeOutgoing[(int)StorageKind.Blocks]++; _activeBuilders++; break;
                 default:
@@ -446,7 +659,9 @@ namespace Fabula.Incrementant.Colony
         {
             switch (use)
             {
-                case StoreUse.Plant: return StorageKind.Food;
+                case StoreUse.Plant:
+                case StoreUse.BedPlant:
+                    return StorageKind.Food;
                 case StoreUse.Water: return StorageKind.Water;
                 default: return StorageKind.Blocks;
             }
@@ -454,8 +669,8 @@ namespace Fabula.Incrementant.Colony
 
         void UpdateTaking(Ant ant)
         {
-            FlowField field = ant.StoreUse == StoreUse.Loose
-                ? (_looseFieldIdle ? null : _looseField)
+            FlowField field = IsFarmUse(ant.StoreUse) ? FarmTakeField(ant.StoreUse)
+                : ant.StoreUse == StoreUse.Loose ? (_looseFieldIdle ? null : _looseField)
                 : _storeFieldIdle[(int)KindOf(ant.StoreUse)] ? null : _takeFields[(int)KindOf(ant.StoreUse)];
             int d = field != null ? field.Get(ant.X, ant.Y) : FlowField.Unreachable;
             if (d != FlowField.Unreachable && d <= 1 && TryPickStored(ant))
@@ -477,6 +692,21 @@ namespace Fabula.Incrementant.Colony
                 byte item = _grid.GetStored(x, y);
                 if (item == StoredItems.None)
                     continue;
+                if (IsFarmUse(ant.StoreUse))
+                {
+                    // Areia e água para o cocho, cogumelo para a marca: de qualquer lugar (depósito ou solto), fora dos cochos.
+                    if (item != ItemOf(ant.StoreUse) || !TakesFarmItem(item, x, y))
+                        continue;
+                    byte farmShade = _grid.GetStoredShade(x, y);
+                    _grid.SetStored(x, y, StoredItems.None);
+                    Emit(SfxId.Dig, x, y);
+                    if (x != ant.X)
+                        ant.FacingX = x > ant.X ? 1 : -1;
+                    ant.Cooldown = _settings.DropSeconds;
+                    ant.StoreUse = StoreUse.None;
+                    PickFarmItem(ant, item, farmShade, _grid.ToIndex(x, y));
+                    return true;
+                }
                 StorageKind kind = StoredItems.KindOf(item);
                 if (ant.StoreUse == StoreUse.Loose ? !IsLooseItem(x, y, out _) || !LooseHasDestination(kind)
                                                    : kind != KindOf(ant.StoreUse) || _grid.GetStorageRoom(x, y) != kind)
@@ -492,7 +722,10 @@ namespace Fabula.Incrementant.Colony
                 if (kind == StorageKind.Water)
                 {
                     ant.State = AntState.CarryingWater;
+                    ant.WaterLoad = 1;
                     ant.ClearSeek();
+                    if (ant.Role == AntRole.Carrier)
+                        TakeMoreStored(ant, use, kind, item);
                     // Solto e com depósito de água com vaga: vai para o depósito; senão rega um canteiro.
                     if (use == StoreUse.Loose && TryStartStock(ant, StorageKind.Water))
                         return true;
@@ -500,10 +733,14 @@ namespace Fabula.Incrementant.Colony
                     return true;
                 }
                 ant.PickUp(StoredItems.MaterialOf(item), shade, _grid.ToIndex(x, y));
+                if (ant.Role == AntRole.Carrier)
+                    TakeMoreStored(ant, use, kind, item);
                 switch (use)
                 {
                     case StoreUse.Plant:
+                    case StoreUse.BedPlant:
                         ant.FromStore = true;
+                        ant.GardenSupply = use == StoreUse.BedPlant;
                         ant.State = AntState.Carrying;
                         break;
                     case StoreUse.Soil:
@@ -522,18 +759,111 @@ namespace Fabula.Incrementant.Colony
             return false;
         }
 
+        /// <summary>
+        /// A carregadora leva mais de cada item (pedido do desenvolvedor em 2026-10-21): depois do primeiro, recolhe os iguais
+        /// a até <see cref="TakeMoreReach"/> células dela (o depósito guarda um item por célula, lado a lado; encostada só no
+        /// primeiro, os outros ficam a 2) até a carga do papel e só o que o destino ainda pede, para não voltar com sobra. Os
+        /// mais perto vêm primeiro; cada item a mais custa o tempo de mais uma pegada.
+        /// </summary>
+        void TakeMoreStored(Ant ant, StoreUse use, StorageKind kind, byte item)
+        {
+            bool water = kind == StorageKind.Water;
+            int extra = water ? Mathf.Min(WaterCapacity(ant) - 1, ExtraWanted(use, kind))
+                              : Mathf.Min(LoadCapacity(ant) - ant.CarriedCount, ExtraWanted(use, kind));
+            for (int i = 0; i < TakeMoreOffsets.Length && extra > 0; i++)
+            {
+                int x = ant.X + TakeMoreOffsets[i].x, y = ant.Y + TakeMoreOffsets[i].y;
+                if (!_grid.InBounds(x, y) || _grid.GetStored(x, y) != item)
+                    continue;
+                if (use == StoreUse.Loose ? !IsLooseItem(x, y, out _) : _grid.GetStorageRoom(x, y) != kind)
+                    continue;
+                byte shade = _grid.GetStoredShade(x, y);
+                _grid.SetStored(x, y, StoredItems.None);
+                if (water)
+                    ant.WaterLoad++;
+                else
+                    ant.PickUp(StoredItems.MaterialOf(item), shade, _grid.ToIndex(x, y));
+                ant.Cooldown += _settings.DropSeconds;
+                extra--;
+            }
+            // Água para os canteiros: as a mais já contam como levadas, para as outras não buscarem a mesma rega.
+            if (water && use == StoreUse.Water)
+                _waterCarriers += ant.WaterLoad - 1;
+        }
+
+        const int TakeMoreReach = 2;
+
+        /// <summary>Células em volta da formiga até <see cref="TakeMoreReach"/>, das mais perto às mais longe (xadrez, depois reta).</summary>
+        static readonly Vector2Int[] TakeMoreOffsets = BuildTakeMoreOffsets();
+
+        static Vector2Int[] BuildTakeMoreOffsets()
+        {
+            var list = new System.Collections.Generic.List<Vector2Int>();
+            for (int dy = -TakeMoreReach; dy <= TakeMoreReach; dy++)
+            for (int dx = -TakeMoreReach; dx <= TakeMoreReach; dx++)
+                if (dx != 0 || dy != 0)
+                    list.Add(new Vector2Int(dx, dy));
+            list.Sort((a, b) =>
+            {
+                int ca = Mathf.Max(Mathf.Abs(a.x), Mathf.Abs(a.y)), cb = Mathf.Max(Mathf.Abs(b.x), Mathf.Abs(b.y));
+                return ca != cb ? ca.CompareTo(cb) : (Mathf.Abs(a.x) + Mathf.Abs(a.y)).CompareTo(Mathf.Abs(b.x) + Mathf.Abs(b.y));
+            });
+            return list.ToArray();
+        }
+
+        /// <summary>Quantos itens além do primeiro o destino de <paramref name="use"/> ainda aceita (o primeiro já foi contado).</summary>
+        int ExtraWanted(StoreUse use, StorageKind kind)
+        {
+            switch (use)
+            {
+                case StoreUse.BedPlant: return _bedsAwaitingPlant - _gardenPlants;
+                case StoreUse.Water: return _bedsAwaitingWater - _waterCarriers;
+                case StoreUse.Plant: return _dewLeafSpots - (_plantsToBeds - _gardenPlants);
+                case StoreUse.Build: return BuildWorkCount - _activeBuilders;
+                case StoreUse.Loose: return kind == StorageKind.Food || kind == StorageKind.Water ? LooseRoom(kind) : int.MaxValue;
+                default: return 0; // terra para canteiro e teto da sala de orvalho: um bloco por pedido
+            }
+        }
+
         // ---------------------------------------------------------------- pedidos
 
-        /// <summary>Com depósito de alimentos: canteiro (ou folha da sala Gotas de Orvalho) esperando planta que ninguém traz.</summary>
+        /// <summary>
+        /// Com depósito de alimentos: folha da sala Gotas de Orvalho esperando planta que ninguém traz. Os canteiros da sala
+        /// de nutrientes não entram aqui: quem trabalha na sala busca a planta deles (<see cref="TryStartGardenSupply"/>).
+        /// </summary>
         bool TryStartPlantFromDepot(Ant ant) =>
             FoodDepot && (AntRoles.Harvests(ant.TaskRole) || ant.TaskRole == AntRole.Gardener) &&
-            SectionAllows(WorkSection.Harvest, ant) && PlantDemand - _plantsToBeds > 0 &&
+            SectionAllows(WorkSection.Harvest, ant) && _dewLeafSpots - (_plantsToBeds - _gardenPlants) > 0 &&
             _storeField.Get(ant.X, ant.Y) != FlowField.Unreachable && TryStartTake(ant, StoreUse.Plant);
 
-        /// <summary>Com depósito de água: canteiro com planta esperando água que ninguém traz.</summary>
-        bool TryStartWaterFromDepot(Ant ant) =>
-            _bedsAwaitingWater - _waterCarriers > 0 && _waterBedField.Get(ant.X, ant.Y) != FlowField.Unreachable &&
-            TryStartTake(ant, StoreUse.Water);
+        /// <summary>
+        /// Abastecimento da sala de nutrientes pelos depósitos (pedido do desenvolvedor em 2026-10-21): quem trabalha na sala
+        /// (<see cref="AntRoles.Gardens"/>: jardineira e comum) e a carregadora buscam no depósito de água a água dos canteiros com planta e,
+        /// no de alimentos, a planta dos canteiros só com terra. Sem o depósito do tipo nada muda: a água vem do mapa
+        /// (<see cref="TryStartWaterFetch"/>) e a planta, de quem corta.
+        /// </summary>
+        bool TryStartGardenSupply(Ant ant)
+        {
+            // A carregadora também entrega do estoque aos canteiros (pedido do desenvolvedor em 2026-10-21).
+            if (!AntRoles.Gardens(ant.TaskRole) && ant.TaskRole != AntRole.Carrier || !SectionAllows(WorkSection.Garden, ant))
+                return false;
+            if (WaterDepot && _bedsAwaitingWater - _waterCarriers > 0 && _waterBedField.Get(ant.X, ant.Y) != FlowField.Unreachable &&
+                TryStartTake(ant, StoreUse.Water))
+                return true;
+            return FoodDepot && _bedsAwaitingPlant - _gardenPlants > 0 && _bedPlantField.Get(ant.X, ant.Y) != FlowField.Unreachable &&
+                   TryStartTake(ant, StoreUse.BedPlant);
+        }
+
+        /// <summary>Há canteiro esperando planta ou água que um depósito pode abastecer e que ninguém foi buscar.</summary>
+        bool GardenSupplyOpen
+        {
+            get
+            {
+                const int food = (int)StorageKind.Food, water = (int)StorageKind.Water;
+                return WaterDepot && _bedsAwaitingWater - _waterCarriers > 0 && _storeStock[water] - _storeOutgoing[water] > 0 ||
+                       FoodDepot && _bedsAwaitingPlant - _gardenPlants > 0 && _storeStock[food] - _storeOutgoing[food] > 0;
+            }
+        }
 
         /// <summary>
         /// Enche o depósito de água com a água do mapa (laguinho, poças, sala Gotas de Orvalho): vai buscar um bloco se o
@@ -547,13 +877,38 @@ namespace Fabula.Incrementant.Colony
                 _storeFree[k] - _storeIncoming[k] <= 0 || _waterField.Get(ant.X, ant.Y) == FlowField.Unreachable ||
                 _putFields[k] == null || _putFields[k].Get(ant.X, ant.Y) == FlowField.Unreachable)
                 return false;
+            // Água do mapa toda reservada, ou outra formiga já não achou bloco livre neste passo (o campo da água é o mesmo):
+            // nem tenta. Sem isso, com pouca água e depósito grande, centenas de formigas saíam e refaziam o caminho a cada
+            // passo atrás de um bloco que não havia (relato de 2026-10-20: 605 formigas buscando 454 células de água).
+            if (_grid.WaterCount - _waterClaims.Count <= 0 || _waterStockFailedAt == SimulationTime)
+                return false;
+            // A ordem nasce com as duas pontas travadas: a vaga do depósito e o bloco de água.
+            int slot = FindFreeSlot(StorageKind.Water, ant.X, ant.Y);
+            if (slot < 0)
+            {
+                // Sem vaga livre (as do depósito já têm dona): a busca desce o campo e varre as vizinhas, e a das outras
+                // formigas neste passo dá no mesmo (medido em 2026-10-21: ~560 µs por ociosa, ~850 ociosas por tick).
+                _waterStockFailedAt = SimulationTime;
+                return false;
+            }
+            ant.ClearSeek();
+            if (!PlanWaterFetch(ant))
+            {
+                ant.ClearSeek();
+                _waterStockFailedAt = SimulationTime;
+                return false;
+            }
             ant.State = AntState.FetchingWater;
             ant.StoreTarget = StorageKind.Water;
             _storeIncoming[k]++;
-            ant.ClearSeek();
+            ant.OrderSlot = slot;
+            ClaimSlot(slot);
             UpdateFetchingWater(ant);
             return true;
         }
+
+        // Tempo simulado do passo em que uma formiga não achou bloco de água livre para uma ordem de depósito.
+        float _waterStockFailedAt = -1f;
 
         /// <summary>Depósito de construção com vaga livre que ninguém está indo encher.</summary>
         bool BlockRestockWanted
@@ -575,6 +930,7 @@ namespace Fabula.Incrementant.Colony
                 _soilPileField.Get(ant.X, ant.Y) == FlowField.Unreachable)
                 return false;
             ant.DewJob = false;
+            ant.WasteDirtJob = false;
             ant.State = AntState.FetchingSoil;
             ant.StoreTarget = StorageKind.Blocks;
             _storeIncoming[(int)StorageKind.Blocks]++;
@@ -582,9 +938,24 @@ namespace Fabula.Incrementant.Colony
             return true;
         }
 
-        /// <summary>Formiga de transporte ociosa leva um item solto ao destino dele (depósito do tipo ou o de sempre).</summary>
+        /// <summary>
+        /// Trabalho da carregadora que enche os depósitos, na ordem: itens soltos (ao depósito do tipo ou ao destino de sempre),
+        /// água do mapa para o depósito de água e terra da pilha de fora para o depósito de construção.
+        /// </summary>
+        bool TryStockWork(Ant ant) => TryStartLoose(ant) || TryStartWaterStock(ant) || TryStartRestock(ant);
+
+        /// <summary>
+        /// Trabalho da carregadora que esvazia os depósitos para quem consome: planta e água aos canteiros, folha da sala Gotas
+        /// de Orvalho e, com depósito de construção, terra para canteiro novo, teto da sala de orvalho e obra.
+        /// </summary>
+        bool TryDeliverFromStock(Ant ant) =>
+            TryStartGardenSupply(ant) || TryStartPlantFromDepot(ant) ||
+            BlockDepot && (TryStartSoilFetch(ant) || _hasSite && TryBuildWork(ant));
+
+        /// <summary>Formiga de transporte ociosa (comum, carregadora, lixeira) leva um item solto ao destino dele (depósito do tipo ou o de sempre).</summary>
         bool TryStartLoose(Ant ant) =>
-            (ant.TaskRole == AntRole.Worker || ant.TaskRole == AntRole.Carrier) && SectionAllows(WorkSection.Harvest, ant) &&
+            (ant.TaskRole == AntRole.Worker || ant.TaskRole == AntRole.Carrier || ant.TaskRole == AntRole.Midden) &&
+            SectionAllows(WorkSection.Harvest, ant) &&
             TryStartTake(ant, StoreUse.Loose);
     }
 }

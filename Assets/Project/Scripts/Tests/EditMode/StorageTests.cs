@@ -159,6 +159,8 @@ namespace Fabula.Incrementant.Tests
             PaintDepot(grid, StorageKind.Blocks, 30);
             foreach (int x in new[] { 40, 41, 42 })
                 Assert.IsTrue(grid.SetMarked(x, 4, true));
+            // Salas já rebocadas: a construção vem antes das automatizações (decisão de 2026-10-22); o teste mede o que vem depois dela.
+            RoomLiningTests.LineAllRooms(grid);
             AntColony colony = MakeColony(grid);
 
             Assert.IsTrue(TickUntil(colony, () => CountStoredIn(grid, StorageKind.Blocks, 30) == 3, 120f),
@@ -184,6 +186,8 @@ namespace Fabula.Incrementant.Tests
             foreach (int x in new[] { 70, 71, 72 })
                 grid.Set(x, 21, CellMaterial.Spoil);
             PaintDepot(grid, StorageKind.Blocks, 30);
+            // Salas já rebocadas: a construção vem antes das automatizações (decisão de 2026-10-22); o teste mede o que vem depois dela.
+            RoomLiningTests.LineAllRooms(grid);
             AntColony colony = MakeColony(grid);
 
             Assert.IsTrue(TickUntil(colony, () => CountStoredIn(grid, StorageKind.Blocks, 30) == 3, 120f),
@@ -209,6 +213,329 @@ namespace Fabula.Incrementant.Tests
             Assert.IsTrue(TickUntil(colony, () => grid.GetBedStage(62, 1) == BedStage.Growing, 120f),
                           "O canteiro é regado com a água guardada.");
             Assert.AreEqual(3, CountStoredIn(grid, StorageKind.Water, 40));
+        }
+
+        /// <summary>
+        /// Abastecimento da sala de nutrientes (pedido do desenvolvedor em 2026-10-21): com depósito, quem busca a planta e a
+        /// água dos canteiros é quem trabalha na sala (jardineira e comum) e a carregadora, que entrega do estoque (pedido do
+        /// mesmo dia); cortadeira, escavadora e as outras classes não.
+        /// </summary>
+        [Test]
+        public void NutrientRoomWorkersAndCarriers_FetchPlantAndWaterFromTheDepots()
+        {
+            PixelGrid grid = MakeWorld();
+            PaintDepot(grid, StorageKind.Food, 20);
+            PaintDepot(grid, StorageKind.Water, 40);
+            foreach (int x in new[] { 21, 22, 23 })
+            {
+                Assert.IsTrue(grid.SetStored(x, 1, StoredItems.Of(CellMaterial.PlantLeaf)));
+                Assert.IsTrue(grid.SetStored(x + 20, 1, StoredItems.Water));
+            }
+            grid.Set(62, 1, CellMaterial.Spoil);
+            Assert.IsTrue(grid.SetBed(62, 1, BedStage.Soil));
+            AntColony colony = MakeColony(grid);
+            for (int i = 0; i < colony.Ants.Count; i += 2)
+                colony.Ants[i].Role = AntRole.Carrier;
+            colony.SpawnAt(AntRole.Gardener, 70, 1);
+
+            // A carregadora sem trabalho do papel pode virar comum (segunda função, KI-033): aí ela trabalha na sala.
+            bool onlyRoomWorkers = true;
+            Assert.IsTrue(TickUntil(colony, () =>
+            {
+                foreach (Ant ant in colony.Ants)
+                {
+                    bool supplying = ant.State == AntState.TakingStored && (ant.StoreUse == StoreUse.BedPlant || ant.StoreUse == StoreUse.Water) ||
+                                     ant.State == AntState.Carrying && ant.FromStore;
+                    onlyRoomWorkers &= !supplying ||
+                                       (AntRoles.Gardens(ant.TaskRole) || ant.TaskRole == AntRole.Carrier) && (ant.State != AntState.Carrying || ant.GardenSupply);
+                }
+                return grid.GetBedStage(62, 1) == BedStage.Growing;
+            }, 120f), "Quem trabalha na sala busca a planta e a água nos depósitos.");
+            Assert.IsTrue(onlyRoomWorkers, "Só jardineira, comum e carregadora levam o que sai do depósito aos canteiros.");
+            Assert.AreEqual(2, CountStoredIn(grid, StorageKind.Food, 20));
+            Assert.AreEqual(2, CountStoredIn(grid, StorageKind.Water, 40));
+        }
+
+        /// <summary>Tira as formigas iniciais (como se tivessem morrido) e deixa só uma carregadora em (<paramref name="x"/>, 1).</summary>
+        static Ant OnlyACarrier(AntColony colony, int x)
+        {
+            foreach (Ant ant in colony.Ants)
+                ant.Wounds = 1000f;
+            colony.Tick(Dt);
+            Assert.AreEqual(0, colony.Ants.Count);
+            return colony.SpawnAt(AntRole.Carrier, x, 1);
+        }
+
+        /// <summary>
+        /// A carregadora leva mais de cada item (pedido do desenvolvedor em 2026-10-21): o dobro da comum em terra e, no
+        /// depósito, recolhe de uma vez os itens iguais encostados nela, até o que os canteiros pedem.
+        /// </summary>
+        [Test]
+        public void Carrier_CarriesMoreSoil_AndTakesSeveralItemsFromTheDepotInOneTrip()
+        {
+            var tree = new QueenTree();
+            Assert.AreEqual(6, tree.SoilCapacity(AntRole.Carrier), "O dobro das 3 da comum.");
+
+            PixelGrid grid = MakeWorld();
+            PaintDepot(grid, StorageKind.Food, 20);
+            foreach (int x in new[] { 22, 23, 24 })
+                Assert.IsTrue(grid.SetStored(x, 1, StoredItems.Of(CellMaterial.PlantLeaf)));
+            foreach (int x in new[] { 62, 64, 66 })
+            {
+                grid.Set(x, 1, CellMaterial.Spoil);
+                Assert.IsTrue(grid.SetBed(x, 1, BedStage.Soil));
+            }
+            AntColony colony = MakeColony(grid);
+            Ant carrier = OnlyACarrier(colony, 40);
+
+            int most = 0;
+            Assert.IsTrue(TickUntil(colony, () =>
+            {
+                if (carrier.FromStore)
+                    most = Mathf.Max(most, carrier.CarriedCount);
+                return grid.GetBedStage(62, 1) != BedStage.Soil && grid.GetBedStage(64, 1) != BedStage.Soil &&
+                       grid.GetBedStage(66, 1) != BedStage.Soil;
+            }, 120f), "Os três canteiros recebem planta do depósito.");
+            Assert.GreaterOrEqual(most, 2, "Ela sai do depósito com mais de uma planta.");
+            Assert.LessOrEqual(most, 3, "Não pega mais do que os canteiros pedem.");
+        }
+
+        /// <summary>
+        /// A carregadora leva várias águas por viagem (pedido do desenvolvedor em 2026-10-21): do mapa ao depósito, guardando
+        /// uma em cada vaga, e do depósito aos canteiros, regando um por um.
+        /// </summary>
+        [Test]
+        public void Carrier_CarriesSeveralWaterBlocks_FromTheMapToTheDepot_AndFromTheDepotToTheBeds()
+        {
+            PixelGrid grid = MakeWorld();
+            PaintDepot(grid, StorageKind.Water, 40);
+            for (int x = 30; x <= 33; x++)
+                Assert.IsTrue(grid.SetWater(x, 1, true));
+            AntColony colony = MakeColony(grid);
+            Ant carrier = OnlyACarrier(colony, 36);
+
+            int most = 0;
+            Assert.IsTrue(TickUntil(colony, () =>
+            {
+                if (carrier.State == AntState.CarryingWater)
+                    most = Mathf.Max(most, carrier.WaterLoad);
+                return CountStoredIn(grid, StorageKind.Water, 40) == 4;
+            }, 120f), "As quatro águas do mapa vão ao depósito.");
+            Assert.AreEqual(0, grid.WaterCount);
+            Assert.GreaterOrEqual(most, 2, "Ela sai da água com mais de um bloco.");
+
+            foreach (int x in new[] { 62, 64, 66 })
+            {
+                grid.Set(x, 1, CellMaterial.Spoil);
+                Assert.IsTrue(grid.SetBed(x, 1, BedStage.Planted));
+            }
+            most = 0;
+            Assert.IsTrue(TickUntil(colony, () =>
+            {
+                if (carrier.State == AntState.CarryingWater && carrier.StoreTarget == StorageKind.None)
+                    most = Mathf.Max(most, carrier.WaterLoad);
+                return grid.GetBedStage(62, 1) == BedStage.Growing && grid.GetBedStage(64, 1) == BedStage.Growing &&
+                       grid.GetBedStage(66, 1) == BedStage.Growing;
+            }, 120f), "Os três canteiros são regados com a água do depósito.");
+            Assert.GreaterOrEqual(most, 2, "Ela sai do depósito com mais de uma água.");
+            Assert.LessOrEqual(most, 3, "Não pega mais do que os canteiros pedem.");
+            Assert.AreEqual(1, CountStoredIn(grid, StorageKind.Water, 40), "Sobra a quarta água no depósito.");
+        }
+
+        /// <summary>
+        /// Prioridade da carregadora (pedido do desenvolvedor em 2026-10-21): primeiro enche o depósito (a água do mapa),
+        /// depois entrega do depósito (a planta dos canteiros) e, sem nada disso, trabalha como comum (cava).
+        /// </summary>
+        [Test]
+        public void Carrier_StocksFirst_ThenDeliversFromStock_ThenWorksAsACommonWorker()
+        {
+            PixelGrid grid = MakeWorld();
+            PaintDepot(grid, StorageKind.Food, 20);
+            PaintDepot(grid, StorageKind.Water, 40);
+            Assert.IsTrue(grid.SetStored(22, 1, StoredItems.Of(CellMaterial.PlantLeaf)));
+            Assert.IsTrue(grid.SetWater(30, 1, true));
+            grid.Set(62, 1, CellMaterial.Spoil);
+            Assert.IsTrue(grid.SetBed(62, 1, BedStage.Soil));
+            for (int x = 12; x <= 14; x++)
+                grid.SetMarked(x, 4, true);
+            AntColony colony = MakeColony(grid);
+            Ant carrier = OnlyACarrier(colony, 35);
+
+            var order = new System.Collections.Generic.List<string>();
+            Assert.IsTrue(TickUntil(colony, () =>
+            {
+                string step = carrier.State == AntState.FetchingWater && carrier.StoreTarget == StorageKind.Water ? "estoque"
+                    : carrier.State == AntState.TakingStored && carrier.StoreUse == StoreUse.BedPlant ? "entrega"
+                    : carrier.ActingAsWorker && carrier.State != AntState.Idle ? "comum" : null;
+                if (step != null && (order.Count == 0 || order[order.Count - 1] != step))
+                    order.Add(step);
+                return order.Contains("comum");
+            }, 120f), "Sem estoque a mexer, ela trabalha como comum.");
+            CollectionAssert.AreEqual(new[] { "estoque", "entrega", "comum" }, order);
+        }
+
+        /// <summary>
+        /// Ordens de entrega (pedido do desenvolvedor em 2026-10-20): cada formiga que vai encher o depósito sai com a vaga
+        /// travada; duas nunca disputam a mesma vaga e ninguém fica andando com água na boca quando as vagas acabam.
+        /// </summary>
+        [Test]
+        public void WaterOrders_EachAntHasItsOwnSlot_AndNobodyIsLeftHoldingWater()
+        {
+            PixelGrid grid = MakeWorld();
+            PaintDepot(grid, StorageKind.Water, 40);
+            // Só 3 vagas livres: o resto do depósito já está cheio.
+            int free = 0;
+            for (int x = 40; x <= 46; x++)
+            for (int y = 1; y <= 3; y++)
+            {
+                if (free < 3 && y == 1)
+                {
+                    free++;
+                    continue;
+                }
+                Assert.IsTrue(grid.SetStored(x, y, StoredItems.Water));
+            }
+            for (int x = 70; x <= 85; x++)
+                Assert.IsTrue(grid.SetWater(x, 1, true));
+            AntColony colony = MakeColony(grid);
+            for (int i = 0; i < 10; i++)
+                colony.SpawnAt(AntRole.Worker, 75, 2);
+
+            var owners = new System.Collections.Generic.HashSet<int>();
+            for (float t = 0f; t < 90f; t += Dt)
+            {
+                colony.Tick(Dt);
+                owners.Clear();
+                foreach (Ant ant in colony.Ants)
+                {
+                    if (ant.OrderSlot < 0)
+                        continue;
+                    Assert.IsTrue(owners.Add(ant.OrderSlot), $"Duas formigas com a mesma vaga ({ant.OrderSlot}) em t = {t:F1} s.");
+                }
+            }
+            Assert.AreEqual(21, CountStoredIn(grid, StorageKind.Water, 40), "As 3 vagas livres foram ocupadas.");
+            foreach (Ant ant in colony.Ants)
+                Assert.AreNotEqual(AntState.CarryingWater, ant.State, "Sem vaga nem canteiro, ninguém fica com água na boca.");
+            Assert.AreEqual(16 - 3, grid.WaterCount, "Só saiu do mapa a água que tinha vaga.");
+        }
+
+        /// <summary>
+        /// Troca de função no obstáculo (REQ-043, 2026-10-20): a formiga com ordem de água acha o caminho fechado por um bloco
+        /// que outra ia cavar; quem chegou cava e a dona do bloco assume a ordem, com a mesma vaga travada.
+        /// </summary>
+        [Test]
+        public void WaterOrder_BlockedByAMarkedBlock_SwapsWithTheAntThatWasGoingToDigIt()
+        {
+            PixelGrid grid = MakeWorld();
+            PaintDepot(grid, StorageKind.Water, 20);
+            for (int x = 82; x <= 85; x++)
+                Assert.IsTrue(grid.SetWater(x, 1, true));
+            AntColony colony = MakeColony(grid);
+            Ant carrier = null;
+            int carrierIndex = -1;
+            for (float t = 0f; t < 30f && carrier == null; t += Dt)
+            {
+                colony.Tick(Dt);
+                for (int i = 0; i < colony.Ants.Count - 1 && carrier == null; i++)
+                {
+                    Ant a = colony.Ants[i];
+                    if (a.State == AntState.FetchingWater && a.OrderSlot >= 0 && a.SeekPathLength > 3 && !a.SeekArrived)
+                    {
+                        carrier = a;
+                        carrierIndex = i;
+                    }
+                }
+            }
+            Assert.IsNotNull(carrier, "Alguma formiga sai com uma ordem de água.");
+            int cell = carrier.SeekNext;
+            int cx = cell % grid.Width, cy = cell / grid.Width;
+            grid.Set(cx, cy, CellMaterial.Dirt);
+            Assert.IsTrue(grid.SetMarked(cx, cy, true));
+            // A dona do bloco: uma operária ociosa depois dela na lista, que ia cavá-lo.
+            Ant owner = colony.Ants[colony.Ants.Count - 1];
+            Assert.Greater(colony.Ants.Count - 1, carrierIndex);
+            owner.Role = AntRole.Worker;
+            owner.State = AntState.Idle;
+            owner.ClearSeek();
+            owner.SeekTarget = cell;
+            int slot = carrier.OrderSlot;
+
+            colony.Tick(Dt);
+
+            Assert.AreEqual(1, colony.ObstacleSwaps, "As duas trocaram de função.");
+            Assert.AreEqual(AntState.Digging, carrier.State, "Quem chegou cava o bloco.");
+            Assert.AreEqual(cell, carrier.DigY * grid.Width + carrier.DigX);
+            Assert.AreEqual(AntState.FetchingWater, owner.State, "A dona do bloco assume a ordem da água.");
+            Assert.AreEqual(slot, owner.OrderSlot, "Com a mesma vaga travada.");
+        }
+
+        [Test]
+        public void WaterOrder_BlockedByABlockNobodyOwns_DoesNotDigIt()
+        {
+            PixelGrid grid = MakeWorld();
+            PaintDepot(grid, StorageKind.Water, 20);
+            for (int x = 82; x <= 85; x++)
+                Assert.IsTrue(grid.SetWater(x, 1, true));
+            AntColony colony = MakeColony(grid);
+            Ant carrier = null;
+            for (float t = 0f; t < 30f && carrier == null; t += Dt)
+            {
+                colony.Tick(Dt);
+                foreach (Ant a in colony.Ants)
+                    if (carrier == null && a.State == AntState.FetchingWater && a.OrderSlot >= 0 && a.SeekPathLength > 3 && !a.SeekArrived)
+                        carrier = a;
+            }
+            Assert.IsNotNull(carrier);
+            int cell = carrier.SeekNext;
+            grid.Set(cell % grid.Width, cell / grid.Width, CellMaterial.Dirt);
+            Assert.IsTrue(grid.SetMarked(cell % grid.Width, cell / grid.Width, true));
+            foreach (Ant a in colony.Ants)
+                if (a.SeekTarget == cell)
+                    a.ClearSeek();
+
+            colony.Tick(Dt);
+
+            Assert.AreEqual(0, colony.ObstacleSwaps, "Sem dona, não há troca.");
+            Assert.AreNotEqual(AntState.Digging, carrier.State, "E ela não cava o bloco de ninguém.");
+        }
+
+        /// <summary>
+        /// Segunda função (KI-033, 2026-10-20): sem trabalho do papel, a formiga vai à seção mais desatendida que consegue
+        /// atender. Um nutriente pronto (rainha) e muita terra marcada: uma só vai ao nutriente (a falta dele acaba) e as
+        /// outras ficam com a escavação.
+        /// </summary>
+        [Test]
+        public void AntsWithoutRoleWork_TakeTheMostNeededSection()
+        {
+            PixelGrid grid = MakeWorld();
+            AntColony colony = MakeColony(grid);
+            foreach (Ant a in colony.Ants)
+                a.Role = AntRole.Cutter; // sem planta no mapa: a cortadeira não tem trabalho do papel
+            colony.Tick(Dt); // campos montados, nada a fazer
+            for (int x = 30; x <= 44; x++)
+            for (int y = 4; y <= 8; y++)
+                Assert.IsTrue(grid.SetMarked(x, y, true));
+            Assert.IsTrue(grid.SetNutrient(65, 1, true));
+            // 1º passo: a demanda da escavação ainda é a da rodada anterior (zero), então a primeira vai ao nutriente. Depois,
+            // cada uma que vai cavar reserva um bloco e a seguinte espera a rodada de campos sem ele: uma por passo.
+            int mostFeeding = 0, dig = 0;
+            for (int i = 0; i < 20; i++)
+            {
+                colony.Tick(Dt);
+                int feed = 0;
+                dig = 0;
+                foreach (Ant a in colony.Ants)
+                {
+                    if (a.SecondFunction == (int)WorkSection.Dig)
+                        dig++;
+                    else if (a.SecondFunction == (int)WorkSection.QueenFeed)
+                        feed++;
+                }
+                mostFeeding = Mathf.Max(mostFeeding, feed);
+            }
+            Assert.Greater(colony.SectionWanted(WorkSection.Dig), 1);
+            Assert.AreEqual(1, mostFeeding, "Só uma vai ao único nutriente.");
+            Assert.GreaterOrEqual(dig, colony.Ants.Count - 1, "As outras ficam com a escavação.");
         }
 
         /// <summary>

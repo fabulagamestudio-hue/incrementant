@@ -16,6 +16,8 @@ namespace Fabula.Incrementant.AntFarm
         [Tooltip("PNGs de cada elemento (grama, cogumelo, pedra...). Sem ele, ou num elemento vazio, usa a arte procedural.")]
         [SerializeField] SceneryArtSet _art;
         [SerializeField] SurfaceScenerySettings _settings = new SurfaceScenerySettings();
+        [Tooltip("Material com o shader Incrementant/SceneryCells (etapa 10): desenha cada célula da arte em 16x16, com contorno, realce e sombra. Usado nas camadas de perto e da frente e nas plantas colhíveis. Vazio: o pixel da arte chapado, como antes.")]
+        [SerializeField] Material _cellMaterial;
         [SerializeField] Color32 _skyTop = new Color32(120, 170, 215, 255);
         [SerializeField] Color32 _skyBottom = new Color32(190, 220, 235, 255);
         [Tooltip("Ordem de desenho: terreno = 0, formigas = 10.")]
@@ -53,6 +55,7 @@ namespace Fabula.Incrementant.AntFarm
         PlantSprites _plants;
         Vector3 _mapOrigin;
         Vector2 _parallaxAnchor;
+        readonly System.Collections.Generic.List<GameObject> _detailedProps = new();
 
         /// <summary>
         /// Pinta o cenário para o mapa atual. <paramref name="mapOrigin"/> é a posição do canto inferior esquerdo do mapa;
@@ -74,10 +77,43 @@ namespace Fabula.Incrementant.AntFarm
             Apply(ref _sky, "ScenerySky", _skySortingOrder, layers.Sky, SpriteDrawMode.Simple);
             Apply(ref _far, "SceneryFar", _farSortingOrder, layers.Far, SpriteDrawMode.Tiled);
             Apply(ref _mid, "SceneryMid", _midSortingOrder, layers.Mid, SpriteDrawMode.Tiled);
-            Apply(ref _near, "SceneryNear", _nearSortingOrder, layers.Near, SpriteDrawMode.Simple);
-            Apply(ref _front, "SceneryFront", _frontSortingOrder, layers.Front, SpriteDrawMode.Simple);
+            Apply(ref _near, "SceneryNear", _nearSortingOrder, layers.Near, SpriteDrawMode.Simple, _cellMaterial);
+            Apply(ref _front, "SceneryFront", _frontSortingOrder, layers.Front, SpriteDrawMode.Simple, _cellMaterial);
             _near.Renderer.transform.position = mapOrigin + new Vector3(0f, layers.Near.OriginY, 0f);
             _front.Renderer.transform.position = mapOrigin + new Vector3(0f, layers.Front.OriginY, 0f);
+            ClearDetailedProps();
+            DrawDetailedProps(layers.Near, _nearSortingOrder + 1);
+            DrawDetailedProps(layers.Front, _frontSortingOrder + 1);
+        }
+
+        void ClearDetailedProps()
+        {
+            foreach (GameObject prop in _detailedProps)
+            {
+                prop.SetActive(false);
+                Destroy(prop);
+            }
+            _detailedProps.Clear();
+        }
+
+        void DrawDetailedProps(SceneryLayer layer, int sortingOrder)
+        {
+            foreach (var placed in layer.SpriteStamps)
+            {
+                Sprite sprite = placed.Stamp.VisualSprite;
+                var prop = new GameObject(sprite.name);
+                prop.transform.SetParent(transform, false);
+                float ppu = sprite.pixelsPerUnit;
+                float x = placed.Left / (float)layer.PixelsPerCell + sprite.pivot.x / ppu;
+                float y = layer.OriginY + placed.Bottom / (float)layer.PixelsPerCell + sprite.pivot.y / ppu;
+                // A máscara usa outra grade; alinhar o visual ao pixel das formigas.
+                prop.transform.position = _mapOrigin + new Vector3(
+                    Mathf.Round(x * ppu) / ppu, Mathf.Round(y * ppu) / ppu, 0f);
+                var renderer = prop.AddComponent<SpriteRenderer>();
+                renderer.sprite = sprite;
+                renderer.sortingOrder = sortingOrder;
+                _detailedProps.Add(prop);
+            }
         }
 
         void EnsureLibrary()
@@ -89,7 +125,7 @@ namespace Fabula.Incrementant.AntFarm
         PlantSprites Plants()
         {
             EnsureLibrary();
-            return _plants ??= new PlantSprites(transform, _library, _plantSortingOrder);
+            return _plants ??= new PlantSprites(transform, _library, _plantSortingOrder, _cellMaterial);
         }
 
         /// <summary>
@@ -142,7 +178,9 @@ namespace Fabula.Incrementant.AntFarm
             view.Renderer.transform.position = new Vector3(Mathf.Round(left * ppc) / ppc, Mathf.Round(bottom * ppc) / ppc, _mapOrigin.z);
         }
 
-        void Apply(ref LayerView view, string layerName, int sortingOrder, SceneryLayer layer, SpriteDrawMode drawMode)
+        /// <param name="material">Material da camada (null = o padrão de sprite).</param>
+        void Apply(ref LayerView view, string layerName, int sortingOrder, SceneryLayer layer, SpriteDrawMode drawMode,
+                   Material material = null)
         {
             if (view == null)
             {
@@ -150,6 +188,8 @@ namespace Fabula.Incrementant.AntFarm
                 go.transform.SetParent(transform, false);
                 view = new LayerView { Renderer = go.AddComponent<SpriteRenderer>() };
                 view.Renderer.sortingOrder = sortingOrder;
+                if (material != null)
+                    view.Renderer.sharedMaterial = material;
             }
             Release(view);
             view.Layer = layer;

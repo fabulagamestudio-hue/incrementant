@@ -1,5 +1,25 @@
 # Formiga inimiga alada
 
+## Cupins refinados — 2026-10-21 (REQ-050)
+
+Os 16 quadros atuais receberam o tratamento de carapaça segmentada e luz superior esquerda aprovado para as formigas e a Rainha. Mantidas a carapaça carvão/violeta, as patas vinho, os olhos âmbar e as asas claras: somente `1B1815`, `3A1A5C`, `504D55`, `6B1F45`, `D6872F`, `F5EDD9` e `BBB29F`, todas da paleta mestra. Canvas **64×64**, **16 PPU**, filtro Point, sem mipmaps/compressão; alpha exclusivamente 0/255, inclusive nas asas.
+
+Top, Walk, Fly e Land continuam com quatro quadros cada. O enquadramento foi registrado pela carapaça original, sem recentrar o inseto conforme as asas mudam; a carapaça foi estabilizada entre os estados e as asas claras ficam por cima. Land passa de asas erguidas a recolhidas, depois desprendidas e, no quadro 3, ausentes. `Ant_Land_3.png` é igual a `Ant_Walk_0.png`, evitando salto de pose na transição. Pivôs preservados: Top (32,32), demais (32,16). Os caminhos e os 16 `.meta`, incluindo GUIDs e spriteIDs, permaneceram idênticos aos anteriores à tarefa.
+
+Masters em `../Source~/TermiteRefined/`, editados com ImageGen integrado. Prompts em `../Source~/termite-refinement-prompts.json`. Preparação: `normalize-termite.ps1` aplica grade, proporção, sete cores e alpha binário; `fit-termite-layout.ps1` registra o enquadramento; `stabilize-termite-refined.ps1` mantém a carapaça. Para reexportar os masters finais, sem depender do serviço de imagem:
+
+```powershell
+& "Assets/Project/Art/Ants/Source~/bake-termite-refined.ps1"
+```
+
+Validação em 2026-10-21: 16 PNGs e 65.536 pixels conferidos (dimensões, paleta e alpha); quatro quadros distintos por estado; prancha completa inspecionada; importação síncrona dos 16 sprites na Unity 6000.3.11f1 sem divergências de dimensões, PPU, pivôs, Point, compressão, mipmaps ou modo Single; 16 metadados idênticos após importação. [Prancha final](../../../../../Docs/02_World_Art_UI/Cupins_refinados_2026-10-21.png). Reprodução em Play Mode e aprovação visual do conjunto pendentes (ART-015). O console continha mensagens de RenderTexture e atlas associadas a uma execução de testes; sem investigação fora do escopo dos sprites. Nenhuma build gerada.
+
+## Histórico
+
+O gerador procedural citado abaixo sobrescreve este refinamento. Para restaurar a aparência atual, use o exportador dos masters acima.
+
+**Etapa 8 (2026-10-21):** os 16 quadros foram redesenhados em 64 × 64 a 16 px por célula, na paleta mestra, pelo gerador de `../Source~/ant_sprites.py` (ver o [README das formigas](../README.md)). O texto abaixo descreve a arte anterior (144 × 144).
+
 Arte de 2026-10-18 (REQ-027). Mesma linguagem de pixel art das formigas da colônia, com carapaça carvão/índigo, detalhes violáceos, olhos âmbar e asas claras. A mesma formiga chega voando, pousa, perde as asas e continua andando.
 
 | Arquivos | Quadros | Uso |

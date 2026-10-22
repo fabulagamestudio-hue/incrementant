@@ -20,6 +20,9 @@ namespace Fabula.Incrementant.Tests
                 VSync = false,
                 FpsLimit = 144,
                 ShowStats = false,
+                BlockBuildOnRooms = false,
+                Bloom = false,
+                ShowRooms = false,
             };
 
             GameSettingsData read = GameSettingsData.FromJson(data.ToJson());
@@ -34,6 +37,30 @@ namespace Fabula.Incrementant.Tests
             Assert.IsFalse(read.VSync);
             Assert.AreEqual(144, read.FpsLimit);
             Assert.IsFalse(read.ShowStats);
+            Assert.IsFalse(read.BlockBuildOnRooms);
+            Assert.IsFalse(read.Bloom);
+            Assert.IsFalse(read.ShowRooms);
+        }
+
+        [Test]
+        public void BloomIsOnByDefaultAndForOldFiles()
+        {
+            Assert.IsTrue(new GameSettingsData().Bloom);
+            Assert.IsTrue(GameSettingsData.FromJson("{\"MasterVolume\": 0.5}").Bloom);
+        }
+
+        [Test]
+        public void BlockBuildOnRoomsIsOnByDefaultAndForOldFiles()
+        {
+            Assert.IsTrue(new GameSettingsData().BlockBuildOnRooms);
+            Assert.IsTrue(GameSettingsData.FromJson("{\"MasterVolume\": 0.5}").BlockBuildOnRooms);
+        }
+
+        [Test]
+        public void ShowRoomsIsOnByDefaultAndForOldFiles()
+        {
+            Assert.IsTrue(new GameSettingsData().ShowRooms);
+            Assert.IsTrue(GameSettingsData.FromJson("{\"MasterVolume\": 0.5}").ShowRooms);
         }
 
         [Test]

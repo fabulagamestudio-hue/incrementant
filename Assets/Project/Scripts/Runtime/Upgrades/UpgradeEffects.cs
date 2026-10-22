@@ -1,4 +1,5 @@
 using System;
+using Fabula.Incrementant.Colony;
 
 namespace Fabula.Incrementant.Upgrades
 {
@@ -43,6 +44,8 @@ namespace Fabula.Incrementant.Upgrades
         public float DewDropTime, GardenerDewRate, DewYield;
         public int DewRoomWaterBonus;
         public float StorageCapacityFactor, WasteTime;
+        /// <summary>R2: fator sobre o tempo de a terra virar areia e água na área de resíduos.</summary>
+        public float DirtWaterTime;
 
         // ---- obra
         public int DumpOpeningsBonus;
@@ -55,6 +58,36 @@ namespace Fabula.Incrementant.Upgrades
 
         // ---- defesa
         public float WarningBonusSeconds, WallBreakTime,  SoldierDamageFactor, SoldierHealthFactor, SoldierHealTime;
+
+        /// <summary>Células a mais que o pincel pode pintar por ambiente (Q+4, C+4, B+3, R+1, G+3 e D+3 para cada depósito; KI-043).</summary>
+        public int QueenRoomCellsBonus, NutrientRoomCellsBonus, NurseryRoomCellsBonus, WasteRoomCellsBonus, DewRoomCellsBonus, DepotCellsBonus;
+
+        /// <summary>T+3: salas não conectadas a mais em cada ambiente (KI-043).</summary>
+        public int PaintRoomsBonus;
+
+        // ---- fazenda de pulgões
+        /// <summary>A0: a fazenda existe (pincel liberado e a fazendeira pode ser comprada).</summary>
+        public bool FarmUnlocked;
+        /// <summary>A+1: pulgões a mais no limite da fazenda. A+3: células a mais da fazenda.</summary>
+        public int AphidCapBonus, FarmRoomCellsBonus;
+        /// <summary>A1: fator sobre o tempo entre um pulgão novo e o seguinte. A+2: fator sobre o tempo da ordenha.</summary>
+        public float AphidBreedTime, MilkTime;
+        /// <summary>Z+1: velocidade da fazendeira.</summary>
+        public float FarmerSpeedRate;
+
+        public int PaintCellsBonus(PaintRoom room)
+        {
+            switch (room)
+            {
+                case PaintRoom.Queen: return QueenRoomCellsBonus;
+                case PaintRoom.Nutrient: return NutrientRoomCellsBonus;
+                case PaintRoom.Nursery: return NurseryRoomCellsBonus;
+                case PaintRoom.Waste: return WasteRoomCellsBonus;
+                case PaintRoom.Dew: return DewRoomCellsBonus;
+                case PaintRoom.Farm: return FarmRoomCellsBonus;
+                default: return DepotCellsBonus;
+            }
+        }
 
         public UpgradeLevels Levels => _levels;
 
@@ -115,6 +148,7 @@ namespace Fabula.Incrementant.Upgrades
             DewRoomWaterBonus = (int)Math.Round(Extra("G+2"));
             StorageCapacityFactor = (Owns("D1") ? 1.5f : 1f) * M("D+1");
             WasteTime = Owns("R1") ? 0.5f : 1f;
+            DirtWaterTime = Owns("R2") ? 0.5f : 1f;
 
             DumpOpeningsBonus = Owns("T1") ? 2 : 0;
             QueenLaysAnywhere = Owns("Q3");
@@ -125,6 +159,21 @@ namespace Fabula.Incrementant.Upgrades
             SoldierHealthFactor = M("S+2");
             SoldierHealTime = M("S+3");
             SoldierPosting = Owns("M2");
+
+            QueenRoomCellsBonus = (int)Math.Round(Extra("Q+4"));
+            NutrientRoomCellsBonus = (int)Math.Round(Extra("C+4"));
+            NurseryRoomCellsBonus = (int)Math.Round(Extra("B+3"));
+            WasteRoomCellsBonus = (int)Math.Round(Extra("R+1"));
+            DewRoomCellsBonus = (int)Math.Round(Extra("G+3"));
+            DepotCellsBonus = (int)Math.Round(Extra("D+3"));
+            PaintRoomsBonus = (int)Math.Round(Extra("T+3"));
+
+            FarmUnlocked = Owns("A0");
+            AphidCapBonus = (int)Math.Round(Extra("A+1"));
+            FarmRoomCellsBonus = (int)Math.Round(Extra("A+3"));
+            AphidBreedTime = Owns("A1") ? 0.5f : 1f;
+            MilkTime = M("A+2");
+            FarmerSpeedRate = M("Z+1");
         }
     }
 }

@@ -38,6 +38,12 @@ namespace Fabula.Incrementant.World
         /// (<see cref="FallenLeaf"/>) dentro da área.
         /// </summary>
         TermiteRemains = 16,
+        /// <summary>
+        /// Cogumelo luminoso: bloco de uma célula que as formigas encaixam no túnel (pincel Cogumelo luminoso) com um pixel de
+        /// terra como substrato. Fixo, fonte de luz do mapa (<c>AntFarmView</c>); cavado, volta a ser terra solta na mão.
+        /// Arte provisória: um cubo da cor de <see cref="CellMaterials.BaseColor"/>.
+        /// </summary>
+        GlowMushroom = 17,
     }
 
     /// <summary>Regras e cores por material. Tabela fixa enquanto o protótipo não pede dados configuráveis.</summary>
@@ -62,7 +68,8 @@ namespace Fabula.Incrementant.World
             {
                 case CellMaterial.Sand: return CellMaterial.PackedSand;
                 case CellMaterial.Spoil:
-                case CellMaterial.Mud: return CellMaterial.PackedSpoil;
+                case CellMaterial.Mud:
+                case CellMaterial.GlowMushroom: return CellMaterial.PackedSpoil;
                 default: return material;
             }
         }
@@ -101,7 +108,11 @@ namespace Fabula.Incrementant.World
             material == CellMaterial.Dirt || material == CellMaterial.Grass ||
             material == CellMaterial.Sand || material == CellMaterial.Spoil ||
             material == CellMaterial.PackedSpoil || material == CellMaterial.PackedSand ||
-            material == CellMaterial.Mud || material == CellMaterial.Rubble;
+            material == CellMaterial.Mud || material == CellMaterial.Rubble || material == CellMaterial.GlowMushroom;
+
+        /// <summary>O que a formiga leva na mão ao cavar a célula: o cogumelo luminoso volta a ser o substrato (terra solta).</summary>
+        public static CellMaterial ToCarried(CellMaterial dug) =>
+            dug == CellMaterial.GlowMushroom ? CellMaterial.Spoil : dug;
 
         /// <summary>Segundos que uma formiga leva para soltar (ou colher) um pixel deste material.</summary>
         public static float DigSeconds(CellMaterial material)
@@ -120,6 +131,7 @@ namespace Fabula.Incrementant.World
                 case CellMaterial.PlantLeaf: return 0.2f;
                 case CellMaterial.FallenGrass: return 0.15f;
                 case CellMaterial.FallenLeaf: return 0.2f;
+                case CellMaterial.GlowMushroom: return 0.3f;
                 default: return float.PositiveInfinity;
             }
         }
@@ -159,15 +171,19 @@ namespace Fabula.Incrementant.World
                 case CellMaterial.Rubble: return new Color32(132, 96, 66, 255);
                 case CellMaterial.Refuse: return new Color32(92, 80, 70, 255);
                 case CellMaterial.TermiteRemains: return new Color32(112, 66, 58, 255);
+                case CellMaterial.GlowMushroom: return new Color32(240, 214, 130, 255);
                 default: return new Color32(0, 0, 0, 0);
             }
         }
 
         /// <summary>Cor final com a variação de tom da célula (0..255, 128 = neutro).</summary>
-        public static Color32 ShadedColor(CellMaterial material, byte shade)
+        public static Color32 ShadedColor(CellMaterial material, byte shade) => ShadedColor(material, shade, 1f);
+
+        /// <summary>Como <see cref="ShadedColor(CellMaterial, byte)"/>, com a variação de tom reduzida por <paramref name="strength"/> (0 = cor base).</summary>
+        public static Color32 ShadedColor(CellMaterial material, byte shade, float strength)
         {
             Color32 c = BaseColor(material);
-            float f = 0.82f + shade * (0.36f / 255f);
+            float f = 1f + strength * (shade * (0.36f / 255f) - 0.18f);
             return new Color32(Scale(c.r, f), Scale(c.g, f), Scale(c.b, f), 255);
         }
 

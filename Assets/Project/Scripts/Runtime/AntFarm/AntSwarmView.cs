@@ -17,8 +17,12 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField] Sprite[] _walkFrames;
         [Tooltip("Quadros da caminhada vista de cima, virados para a direita, usados no fundo do formigueiro. Vazio = usa os de lado.")]
         [SerializeField] Sprite[] _topFrames;
-        [Tooltip("Arte própria de cada papel (pastas Art/Ants/<Papel>). Papel sem entrada usa os quadros acima; a rainha sempre usa os de cima.")]
+        [Tooltip("Arte própria de cada papel (pastas Art/Ants/<Papel>). Papel sem entrada usa os quadros acima; a rainha usa os dela, abaixo.")]
         [SerializeField] RoleArt[] _roleArt;
+        [Tooltip("Quadros de lado da rainha (Art/Ants/Rainha, 96x64 a 32 px por unidade com Queen Scale 2 = pixel de 1/16 de célula). Vazio = os quadros de cima, ampliados.")]
+        [SerializeField] Sprite[] _queenWalkFrames;
+        [Tooltip("Quadros vista de cima da rainha. Vazio = os de cima, ampliados.")]
+        [SerializeField] Sprite[] _queenTopFrames;
         [Header("Cupins (Art/Ants/InimigaAlada)")]
         [Tooltip("Chegada em voo (4 quadros).")]
         [SerializeField] Sprite[] _termiteFly;
@@ -32,6 +36,19 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField] Color _termiteHitColor = new Color(1f, 0.45f, 0.4f, 1f);
         [Tooltip("Cor do corpo do cupim morto, à espera de ser desmembrado.")]
         [SerializeField] Color _termiteCorpseColor = new Color(0.55f, 0.5f, 0.5f, 1f);
+        [Tooltip("Pulgões da fazenda: caminhada de lado e vista de cima (Art/Aphids), virados para a direita. Sem eles, os pulgões existem mas não aparecem.")]
+        [SerializeField] Sprite[] _aphidWalk;
+        [SerializeField] Sprite[] _aphidTop;
+        [Tooltip("Tinta do pulgão preto (mordido por um cupim, do lado deles).")]
+        [SerializeField] Color _blackAphidColor = new Color(0.16f, 0.14f, 0.18f, 1f);
+        [Header("Cuspe da cuspideira")]
+        [SerializeField] Color _spitColor = new Color(0.72f, 0.86f, 0.25f, 1f);
+        [Tooltip("Lado do cuspe, em células.")]
+        [SerializeField, Range(0.1f, 1f)] float _spitSize = 0.45f;
+        [Tooltip("Altura máxima do arco do cuspe, em células por célula de distância.")]
+        [SerializeField, Range(0f, 0.5f)] float _spitArc = 0.15f;
+        [Tooltip("Papel sem arte própria (pasta em Art/Ants) usa os quadros da operária tingidos com a cor do papel nesta força.")]
+        [SerializeField, Range(0f, 1f)] float _placeholderTint = 0.6f;
         [Tooltip("Quadros de animação trocados por célula andada.")]
         [SerializeField, Min(0.1f)] float _framesPerCell = 1.5f;
         [Tooltip("Quadros por segundo enquanto cava.")]
@@ -57,6 +74,10 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField] Color32 _waterColor = new Color32(84, 150, 220, 235);
         [Tooltip("Cor do ovo que a formiga leva ao berçário (a do ovo desenhado no BroodView).")]
         [SerializeField] Color32 _eggColor = new Color32(240, 222, 190, 255);
+        [Tooltip("Nutriente na boca da formiga (Art/Ants/Item_Nutrient, 1 célula, na paleta). Vazio = quadrado na cor acima.")]
+        [SerializeField] Sprite _nutrientSprite;
+        [Tooltip("Gota de água na boca da formiga (Art/Ants/Item_Water). Vazio = quadrado na cor acima.")]
+        [SerializeField] Sprite _waterSprite;
         [Tooltip("Tamanho da rainha em relação às formigas (mesmos quadros, escalados).")]
         [SerializeField, Min(1f)] float _queenScale = 2f;
 
@@ -98,17 +119,34 @@ namespace Fabula.Incrementant.AntFarm
 
         readonly List<AntVisual> _visuals = new List<AntVisual>();
         readonly List<AntVisual> _termiteVisuals = new List<AntVisual>();
+        readonly List<AntVisual> _aphidVisuals = new List<AntVisual>();
+        readonly List<SpriteRenderer> _spitRenderers = new List<SpriteRenderer>();
         const float HitFlashSeconds = 0.15f;
         AntVisual _queenVisual;
         SpriteRenderer _layBarBack;
         SpriteRenderer _layBarFill;
         Texture2D _pixelTexture;
         Sprite _pixelSprite;
-        // Blocos carregados já montados: material, tom (16 faixas) e posição da célula no ciclo de 4x4 da textura.
+        // Blocos carregados já montados: material, tom (16 faixas) e posição da célula no ciclo de 8x8 do atlas.
         readonly Dictionary<int, Sprite> _blockSprites = new Dictionary<int, Sprite>();
+        TerrainTileAtlas _tileAtlas;
+        float _tileToneStrength = 1f;
 
         BroodCycle _brood;
         BroodView _broodView;
+
+        /// <summary>
+        /// Atlas do terreno (<see cref="AntFarmView.TileAtlas"/>) e força do tom: o bloco carregado mostra a mesma arte do
+        /// terreno. Null: bloco liso na cor do material.
+        /// </summary>
+        public void SetTileAtlas(TerrainTileAtlas atlas, float toneStrength)
+        {
+            if (atlas == _tileAtlas && Mathf.Approximately(toneStrength, _tileToneStrength))
+                return;
+            _tileAtlas = atlas;
+            _tileToneStrength = toneStrength;
+            ClearBlockSprites();
+        }
 
         /// <summary>Liga o ciclo de criação e a arte das crias: a formiga que carrega uma cria a mostra na boca com essa arte.</summary>
         public void SetBrood(BroodCycle brood, BroodView broodView)
@@ -141,15 +179,75 @@ namespace Fabula.Incrementant.AntFarm
             }
         }
 
+        /// <summary>
+        /// Pulgões da fazenda, com os quadros de Art/Aphids (como as formigas: de lado no chão, de cima no fundo do túnel). Sem
+        /// os quadros na cena, não desenha nada. O pulgão preto é desenhado com os cupins (<see cref="RenderTermites"/>).
+        /// </summary>
+        public void RenderAphids(PixelGrid grid, IReadOnlyList<Aphid> aphids, Vector3 origin, float simulationTime, float deltaTime)
+        {
+            int count = HasAll(_aphidWalk) ? aphids.Count : 0;
+            while (_aphidVisuals.Count < count)
+                _aphidVisuals.Add(CreateVisual($"Aphid_{_aphidVisuals.Count:000}", 1f, _sortingOrder - 1));
+            Sprite[] top = HasAll(_aphidTop) ? _aphidTop : _aphidWalk;
+            for (int i = 0; i < count; i++)
+            {
+                UpdateVisual(_aphidVisuals[i], aphids[i].Body, grid, origin, simulationTime, deltaTime, _aphidWalk, top);
+                _aphidVisuals[i].Body.color = Color.white;
+            }
+            for (int i = count; i < _aphidVisuals.Count; i++)
+            {
+                if (_aphidVisuals[i].GameObject.activeSelf)
+                    _aphidVisuals[i].GameObject.SetActive(false);
+                _aphidVisuals[i].Initialized = false;
+            }
+        }
+
+        /// <summary>Cuspes das cuspideiras no ar: um quadrado da cor do ácido em arco, da célula de onde saiu até o cupim.</summary>
+        public void RenderSpits(IReadOnlyList<SpitShot> spits, Vector3 origin)
+        {
+            EnsurePixelSprite();
+            while (_spitRenderers.Count < spits.Count)
+            {
+                var go = new GameObject($"Spit_{_spitRenderers.Count:000}");
+                go.transform.SetParent(transform, false);
+                var renderer = go.AddComponent<SpriteRenderer>();
+                renderer.sprite = _pixelSprite;
+                renderer.sortingOrder = _sortingOrder + 3;
+                _spitRenderers.Add(renderer);
+            }
+            for (int i = 0; i < spits.Count; i++)
+            {
+                SpitShot spit = spits[i];
+                SpriteRenderer renderer = _spitRenderers[i];
+                var from = new Vector2(spit.FromX, spit.FromY);
+                var to = new Vector2(spit.Target.X, spit.Target.Y);
+                float t = spit.Progress;
+                Vector2 cell = Vector2.Lerp(from, to, t) + Vector2.up * (4f * t * (1f - t) * _spitArc * Vector2.Distance(from, to));
+                renderer.transform.position = origin + new Vector3(cell.x + 0.5f, cell.y + 0.5f, 0f);
+                renderer.transform.localScale = new Vector3(_spitSize, _spitSize, 1f);
+                renderer.color = _spitColor;
+                if (!renderer.gameObject.activeSelf)
+                    renderer.gameObject.SetActive(true);
+            }
+            for (int i = spits.Count; i < _spitRenderers.Count; i++)
+            {
+                if (_spitRenderers[i].gameObject.activeSelf)
+                    _spitRenderers[i].gameObject.SetActive(false);
+            }
+        }
+
         void UpdateTermiteVisual(AntVisual visual, Termite termite, PixelGrid grid, Vector3 origin, float time, float deltaTime)
         {
             Ant body = termite.Body;
-            Sprite[] top = HasAll(_termiteTop) ? _termiteTop : _termiteWalk;
+            // O pulgão preto anda com a arte dos pulgões, tingida de preto.
+            bool aphid = termite.Aphid && HasAll(_aphidWalk);
+            Sprite[] walk = aphid ? _aphidWalk : _termiteWalk;
+            Sprite[] top = aphid ? (HasAll(_aphidTop) ? _aphidTop : _aphidWalk) : HasAll(_termiteTop) ? _termiteTop : _termiteWalk;
             switch (termite.Phase)
             {
                 case TermitePhase.Raiding:
                 case TermitePhase.Leaving:
-                    UpdateVisual(visual, body, grid, origin, time, deltaTime, _termiteWalk, top);
+                    UpdateVisual(visual, body, grid, origin, time, deltaTime, walk, top);
                     break;
                 case TermitePhase.Dead:
                     UpdateVisual(visual, body, grid, origin, time, 0f, top, top);
@@ -191,7 +289,8 @@ namespace Fabula.Incrementant.AntFarm
                 }
             }
             bool hit = time - termite.LastHitTime < HitFlashSeconds;
-            visual.Body.color = !termite.Alive ? _termiteCorpseColor : hit ? _termiteHitColor : Color.white;
+            Color alive = termite.Aphid ? _blackAphidColor : Color.white;
+            visual.Body.color = !termite.Alive ? _termiteCorpseColor * alive : hit ? _termiteHitColor : alive;
         }
 
         /// <param name="simulationTime">Tempo simulado atual, incluindo a fração ainda não processada do passo.</param>
@@ -207,7 +306,8 @@ namespace Fabula.Incrementant.AntFarm
                     _queenVisual = CreateVisual("Queen", _queenScale, _sortingOrder - 2);
                     _queenVisual.IsQueen = true;
                 }
-                UpdateVisual(_queenVisual, queen, grid, origin, simulationTime, deltaTime);
+                UpdateVisual(_queenVisual, queen, grid, origin, simulationTime, deltaTime,
+                             HasAll(_queenWalkFrames) ? _queenWalkFrames : null, HasAll(_queenTopFrames) ? _queenTopFrames : null);
                 UpdateLayBar(layProgress, laying);
             }
             else if (_queenVisual != null && _queenVisual.GameObject.activeSelf)
@@ -300,8 +400,12 @@ namespace Fabula.Incrementant.AntFarm
             // girando livre. Dentro da obra e da terra de fora também (anda pela face do bloco, não pelo contorno).
             Sprite[] walkFrames = walkOverride ?? _walkFrames;
             Sprite[] topFrames = topOverride ?? _topFrames;
-            if (!visual.IsQueen && walkOverride == null)
-                ApplyRoleArt(ant.Role, ref walkFrames, ref topFrames);
+            // Papel sem arte própria na cena (pasta em Art/Ants não ligada): quadros da operária tingidos com a cor do papel.
+            Color tint = Color.white;
+            if (!visual.IsQueen && walkOverride == null && !ApplyRoleArt(ant.Role, ref walkFrames, ref topFrames) &&
+                ant.Role != AntRole.Worker)
+                tint = Color.Lerp(Color.white, RoleColor(ant.Role), _placeholderTint);
+            visual.Body.color = tint;
             bool topView = topFrames != null && topFrames.Length > 0 && topFrames[0] != null
                            && (AntNavigation.IsBackground(grid, ant.X, ant.Y) && !AntNavigation.TouchesSolid(grid, ant.X, ant.Y)
                                || AntNavigation.IsOutdoorWall(grid, ant.X, ant.Y));
@@ -327,7 +431,8 @@ namespace Fabula.Incrementant.AntFarm
 
             bool delivering = ant.State == AntState.Delivering;
             bool carryingEgg = ant.State == AntState.CarryingEgg || ant.State == AntState.MovingBrood;
-            bool carryingWater = ant.State == AntState.CarryingWater;
+            bool carryingWater = ant.State == AntState.CarryingWater ||
+                                 ant.State == AntState.FeedingAphid && ant.FarmItem == StoredItems.Water;
             bool carrying = ant.CarriedCount > 0 || delivering || carryingEgg || carryingWater;
             if (visual.Carried.gameObject.activeSelf != carrying)
                 visual.Carried.gameObject.SetActive(carrying);
@@ -339,7 +444,10 @@ namespace Fabula.Incrementant.AntFarm
                     && _brood.TryGet(ant.EggId, out BroodRecord carriedBrood))
                     broodArt = _broodView.FrameOf(carriedBrood);
                 bool block = broodArt == null && !carryingEgg && !delivering && !carryingWater && _carriedAsBlock;
+                // Nutriente e água com a arte da paleta (etapa 9); sem ela, o quadrado tingido de antes.
+                Sprite item = broodArt == null && !carryingEgg ? (delivering ? _nutrientSprite : carryingWater ? _waterSprite : null) : null;
                 visual.Carried.sprite = broodArt != null ? broodArt
+                    : item != null ? item
                     : block ? BlockSprite(ant.Carried, ant.CarriedShade, ant.CarriedFrom >= 0 ? ant.CarriedFrom % grid.Width : ant.X,
                                           ant.CarriedFrom >= 0 ? ant.CarriedFrom / grid.Width : ant.Y)
                     : _pixelSprite;
@@ -347,7 +455,7 @@ namespace Fabula.Incrementant.AntFarm
                 visual.Carried.transform.localScale = broodArt != null
                     ? Vector3.one
                     : new Vector3(_carriedSize, _carriedSize, 1f);
-                if (broodArt != null || block)
+                if (broodArt != null || block || item != null)
                     visual.Carried.color = Color.white;
                 else if (carryingEgg)
                     visual.Carried.color = _eggColor;
@@ -426,10 +534,11 @@ namespace Fabula.Incrementant.AntFarm
         }
 
         /// <summary>Troca os quadros padrão pelos do papel, quando ele tem arte própria completa.</summary>
-        void ApplyRoleArt(AntRole role, ref Sprite[] walk, ref Sprite[] top)
+        /// <summary>Troca os quadros pelos do papel; <c>false</c> = o papel não tem arte própria na cena.</summary>
+        bool ApplyRoleArt(AntRole role, ref Sprite[] walk, ref Sprite[] top)
         {
             if (_roleArt == null)
-                return;
+                return false;
             for (int i = 0; i < _roleArt.Length; i++)
             {
                 RoleArt art = _roleArt[i];
@@ -438,8 +547,9 @@ namespace Fabula.Incrementant.AntFarm
                 walk = art.Walk;
                 if (art.Top != null && art.Top.Length > 0 && art.Top[0] != null)
                     top = art.Top;
-                return;
+                return true;
             }
+            return false;
         }
 
         /// <summary>Cor principal da arte de cada papel (ícones do HUD), a mesma das variantes em Art/Ants/README.md.</summary>
@@ -453,6 +563,9 @@ namespace Fabula.Incrementant.AntFarm
                 case AntRole.Digger: return new Color32(0xD3, 0x63, 0x18, 255);
                 case AntRole.Nurse: return new Color32(0x41, 0x9E, 0xC7, 255);
                 case AntRole.Soldier: return new Color32(0x6F, 0x33, 0x9E, 255);
+                case AntRole.Spitter: return new Color32(0xB3, 0xCF, 0x51, 255);
+                case AntRole.Midden: return new Color32(0x7D, 0x76, 0x76, 255);
+                case AntRole.Farmer: return new Color32(0x9E, 0x65, 0x34, 255);
                 default: return new Color32(0x9E, 0x31, 0x1E, 255);
             }
         }
@@ -490,29 +603,40 @@ namespace Fabula.Incrementant.AntFarm
         }
 
         /// <summary>
-        /// O bloco 16x16 da célula (<paramref name="cellX"/>, <paramref name="cellY"/>) como estava no terreno: a cor do
-        /// material com o tom, vezes a textura do material naquela posição, e o contorno. A textura repete a cada 4
-        /// células e o tom é agrupado em 16 faixas, então há no máximo 16 x 16 sprites por material, montados sob demanda.
+        /// O bloco 16x16 da célula (<paramref name="cellX"/>, <paramref name="cellY"/>) como estava no terreno: o texel do
+        /// atlas naquela posição vezes o tom (a mesma conta do shader, ver <see cref="TerrainTileAtlas"/>), e o contorno.
+        /// O atlas repete a cada 8 células e o tom é agrupado em 16 faixas, então há no máximo 16 x 64 sprites por
+        /// material, montados sob demanda.
         /// </summary>
         Sprite BlockSprite(CellMaterial material, byte shade, int cellX, int cellY)
         {
-            int ox = cellX & 3, oy = cellY & 3;
+            const int cells = CellTileArt.TileCells;
+            int ox = cellX & (cells - 1), oy = cellY & (cells - 1);
             byte band = (byte)(shade & 0xF0 | 0x08);
-            int key = (((int)material * 16 + (shade >> 4)) * 4 + ox) * 4 + oy;
+            int key = (((int)material * 16 + (shade >> 4)) * cells + ox) * cells + oy;
             if (_blockSprites.TryGetValue(key, out Sprite sprite))
                 return sprite;
 
             const int size = CellTileArt.TexelsPerCell;
-            Color32 baseColor = CellMaterials.ShadedColor(material, band);
+            Color cell = ((Color)CellMaterials.ShadedColor(material, band, _tileAtlas != null ? _tileToneStrength : 1f)).linear;
+            var tone = new Vector3(1f, 1f, 1f);
+            if (_tileAtlas != null)
+            {
+                Color reference = ((Color)_tileAtlas.Reference((int)material)).linear;
+                tone = new Vector3(cell.r / Mathf.Max(reference.r, 0.0005f), cell.g / Mathf.Max(reference.g, 0.0005f),
+                                   cell.b / Mathf.Max(reference.b, 0.0005f));
+            }
             var pixels = new Color32[size * size];
             for (int ty = 0; ty < size; ty++)
             for (int tx = 0; tx < size; tx++)
             {
-                float f = CellTileArt.Detail(material, ox, oy, tx, ty);
-                if (tx == 0 || ty == 0 || tx == size - 1 || ty == size - 1)
-                    f *= 1f - _carriedEdgeDarkening;
-                pixels[ty * size + tx] = new Color32((byte)Mathf.Min(255f, baseColor.r * f), (byte)Mathf.Min(255f, baseColor.g * f),
-                                                     (byte)Mathf.Min(255f, baseColor.b * f), 255);
+                Color texel = _tileAtlas != null
+                    ? ((Color)_tileAtlas.Texel((int)material, ox * size + tx, oy * size + ty)).linear
+                    : cell;
+                float edge = tx == 0 || ty == 0 || tx == size - 1 || ty == size - 1 ? 1f - _carriedEdgeDarkening : 1f;
+                if (_tileAtlas != null)
+                    texel = new Color(texel.r * tone.x, texel.g * tone.y, texel.b * tone.z);
+                pixels[ty * size + tx] = new Color(texel.r * edge, texel.g * edge, texel.b * edge, 1f).gamma;
             }
             var texture = new Texture2D(size, size, TextureFormat.RGBA32, false)
             {
@@ -532,6 +656,11 @@ namespace Fabula.Incrementant.AntFarm
                 Destroy(_pixelSprite);
             if (_pixelTexture != null)
                 Destroy(_pixelTexture);
+            ClearBlockSprites();
+        }
+
+        void ClearBlockSprites()
+        {
             foreach (Sprite sprite in _blockSprites.Values)
             {
                 Destroy(sprite.texture);

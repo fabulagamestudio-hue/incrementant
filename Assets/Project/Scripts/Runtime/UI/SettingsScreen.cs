@@ -8,7 +8,7 @@ using UnityEngine.UI;
 namespace Fabula.Incrementant.UI
 {
     /// <summary>
-    /// Tela de configurações (aberta pelo menu do ESC): volumes, efeitos visuais, tela cheia, resolução, VSync, limite de
+    /// Tela de configurações (aberta pelo menu do ESC): volumes, efeitos visuais, brilho (bloom), tela cheia, resolução, VSync, limite de
     /// FPS e o contador do canto. Cada mudança é aplicada na hora por <see cref="GameSettings.NotifyChanged"/>; o arquivo é
     /// gravado ao sair da tela. A hierarquia é montada por <c>Incrementant/Setup/Montar HUD da partida</c>.
     /// </summary>
@@ -26,6 +26,8 @@ namespace Fabula.Incrementant.UI
         [SerializeField] Button _vfxPrevious;
         [SerializeField] Button _vfxNext;
         [SerializeField] Text _vfxValue;
+        [SerializeField] Button _bloom;
+        [SerializeField] Image _bloomImage;
         [SerializeField] Button _fullscreen;
         [SerializeField] Image _fullscreenImage;
         [SerializeField] Button _resolutionPrevious;
@@ -43,6 +45,8 @@ namespace Fabula.Incrementant.UI
         [SerializeField] Text _languageValue;
         [SerializeField] Button _showStats;
         [SerializeField] Image _showStatsImage;
+        [SerializeField] Button _blockBuild;
+        [SerializeField] Image _blockBuildImage;
 
         [Header("Rodapé")]
         [SerializeField] Button _defaults;
@@ -67,7 +71,8 @@ namespace Fabula.Incrementant.UI
                      _resolutionNext != null && _resolutionValue != null && _vsync != null && _vsyncImage != null &&
                      _fpsPrevious != null && _fpsNext != null && _fpsValue != null && _showStats != null &&
                      _showStatsImage != null && _defaults != null && _back != null && _languagePrevious != null &&
-                     _languageNext != null && _languageValue != null;
+                     _languageNext != null && _languageValue != null && _blockBuild != null && _blockBuildImage != null &&
+                     _bloom != null && _bloomImage != null;
             if (!_valid)
             {
                 Debug.LogError($"{name}: SettingsScreen com referências faltando (rode Incrementant/Setup/Montar HUD da partida).", this);
@@ -85,6 +90,7 @@ namespace Fabula.Incrementant.UI
             _sfx.onValueChanged.AddListener(SetSfx);
             _vfxPrevious.onClick.AddListener(PreviousVfx);
             _vfxNext.onClick.AddListener(NextVfx);
+            _bloom.onClick.AddListener(ToggleBloom);
             _fullscreen.onClick.AddListener(ToggleFullscreen);
             _resolutionPrevious.onClick.AddListener(PreviousResolution);
             _resolutionNext.onClick.AddListener(NextResolution);
@@ -92,6 +98,7 @@ namespace Fabula.Incrementant.UI
             _fpsPrevious.onClick.AddListener(PreviousFps);
             _fpsNext.onClick.AddListener(NextFps);
             _showStats.onClick.AddListener(ToggleShowStats);
+            _blockBuild.onClick.AddListener(ToggleBlockBuild);
             _languagePrevious.onClick.AddListener(PreviousLanguage);
             _languageNext.onClick.AddListener(NextLanguage);
             Loc.LanguageChanged += Refresh;
@@ -109,6 +116,7 @@ namespace Fabula.Incrementant.UI
             _sfx.onValueChanged.RemoveListener(SetSfx);
             _vfxPrevious.onClick.RemoveListener(PreviousVfx);
             _vfxNext.onClick.RemoveListener(NextVfx);
+            _bloom.onClick.RemoveListener(ToggleBloom);
             _fullscreen.onClick.RemoveListener(ToggleFullscreen);
             _resolutionPrevious.onClick.RemoveListener(PreviousResolution);
             _resolutionNext.onClick.RemoveListener(NextResolution);
@@ -116,6 +124,7 @@ namespace Fabula.Incrementant.UI
             _fpsPrevious.onClick.RemoveListener(PreviousFps);
             _fpsNext.onClick.RemoveListener(NextFps);
             _showStats.onClick.RemoveListener(ToggleShowStats);
+            _blockBuild.onClick.RemoveListener(ToggleBlockBuild);
             _languagePrevious.onClick.RemoveListener(PreviousLanguage);
             _languageNext.onClick.RemoveListener(NextLanguage);
             Loc.LanguageChanged -= Refresh;
@@ -143,6 +152,8 @@ namespace Fabula.Incrementant.UI
         void PreviousVfx() { S.Vfx = (VfxLevel)Wrap((int)S.Vfx - 1, 3); Changed(); }
 
         void NextVfx() { S.Vfx = (VfxLevel)Wrap((int)S.Vfx + 1, 3); Changed(); }
+
+        void ToggleBloom() { S.Bloom = !S.Bloom; Changed(); }
 
         void ToggleFullscreen() { S.Fullscreen = !S.Fullscreen; Changed(); }
 
@@ -179,6 +190,8 @@ namespace Fabula.Incrementant.UI
 
         void ToggleShowStats() { S.ShowStats = !S.ShowStats; Changed(); }
 
+        void ToggleBlockBuild() { S.BlockBuildOnRooms = !S.BlockBuildOnRooms; Changed(); }
+
         void RestoreDefaults()
         {
             GameSettings.ResetToDefaults();
@@ -206,9 +219,11 @@ namespace Fabula.Incrementant.UI
             _sfxValue.text = Percent(s.SfxVolume);
             _vfxValue.text = Loc.T(s.Vfx == VfxLevel.Full ? "settings.vfx.full" : s.Vfx == VfxLevel.Reduced ? "settings.vfx.reduced" : "settings.vfx.off");
             _languageValue.text = Loc.NativeName(s.Language);
+            _bloomImage.sprite = s.Bloom ? _toggleOn : _toggleOff;
             _fullscreenImage.sprite = s.Fullscreen ? _toggleOn : _toggleOff;
             _vsyncImage.sprite = s.VSync ? _toggleOn : _toggleOff;
             _showStatsImage.sprite = s.ShowStats ? _toggleOn : _toggleOff;
+            _blockBuildImage.sprite = s.BlockBuildOnRooms ? _toggleOn : _toggleOff;
             Vector2Int resolution = _resolutions[ResolutionIndex()];
             _resolutionValue.text = resolution.x <= 0 ? Loc.T("settings.native") : $"{resolution.x}X{resolution.y}";
             _fpsValue.text = s.VSync ? "VSYNC" : s.FpsLimit <= 0 ? Loc.T("settings.nolimit") : s.FpsLimit.ToString();

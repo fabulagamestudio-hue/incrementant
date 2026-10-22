@@ -19,12 +19,10 @@ namespace Fabula.Incrementant.EditorTools.UI
         const float ColonyMinusX = 680f, ColonySliderX = 748f, ColonySliderWidth = 304f, ColonyPlusX = 1064f;
         const float ColonyLimitX = 1132f, ColonyLimitWidth = 228f;
 
-        /// <summary>Botão do painel no canto inferior esquerdo, onde ficava o sino (o sino passa para a direita dele).</summary>
-        static void BuildColonyButton(Transform root, SerializedObject refs)
+        /// <summary>Botão do painel na barra do canto inferior esquerdo, entre a pausa e o sino.</summary>
+        static void BuildColonyButton(Transform bar, int slot, SerializedObject refs)
         {
-            Image panel = BuildSprite(root, "PainelColoniaBotao", "panels/hud_card", new Vector2(0, 0), new Vector2(0, 0),
-                                      new Vector2(108, 16), new Vector2(84, 76));
-            Button button = BuildIconButton(panel.transform, "Botao", 0, "icons/ant", null, out Image image);
+            Button button = BuildIconButton(bar, "Colonia", slot, "icons/ant", null, out Image image);
             SetObject(refs, "_colonyButton", button);
             SetObject(refs, "_colonyImage", image);
         }
@@ -109,21 +107,13 @@ namespace Fabula.Incrementant.EditorTools.UI
 
             float queenTop = ColonyRowTop + n * ColonyRowStep + 16;
             ColonyHeader(settings, "colony.queen.title", 0, 600, TextAnchor.MiddleLeft, queenTop);
-            // Um botão por QueenJob, na ordem do enum (336 px cabem 17 letras depois do ícone).
-            string[] jobKeys = { "colony.queen.nest", "colony.queen.forage", "colony.queen.nutrients" };
-            string[] jobIcons = { "icons/egg", "icons/leaf", "icons/mushroom" };
-            var jobs = new Button[jobKeys.Length];
-            var jobImages = new Image[jobKeys.Length];
-            for (int i = 0; i < jobKeys.Length; i++)
-                jobs[i] = BuildButton(settings, "TrabalhoRainha" + i, new Vector2(0, 1), new Vector2(168 + i * 344, -(queenTop + 32)),
-                                      new Vector2(336, 42), jobIcons[i], LocalizationCatalog.Pt(jobKeys[i]), true, out jobImages[i]);
-            SetArray(so, "_queenJobs", jobs);
-            SetArray(so, "_queenJobImages", jobImages);
             SetObject(so, "_reset", BuildButton(settings, "TudoAtivo", new Vector2(0, 1), new Vector2(1210, -(queenTop + 32)),
                                                 new Vector2(300, 42), "icons/play", LocalizationCatalog.Pt("colony.reset"), true, out _));
             Text jobState = BuildText(settings, "EstadoRainha", "", TextSmall, Ink, TextAnchor.MiddleLeft);
             Place(jobState.rectTransform, new Vector2(0, -(queenTop + 84)), new Vector2(ColonyPanelSize.x - 2 * ColonyPageMargin, 28));
             SetText(so, "_queenJobState", jobState);
+            // Por último na página: a lista aberta fica por cima de tudo.
+            BuildQueenJobSelector(settings, so, queenTop + 32);
             SetObject(so, "_buttonIdle", Load("buttons/button_normal"));
             SetObject(so, "_buttonActive", Load("buttons/button_focus"));
             SetObject(so, "_settingsPage", settings.gameObject);
@@ -132,6 +122,70 @@ namespace Fabula.Incrementant.EditorTools.UI
             so.ApplyModifiedPropertiesWithoutUndo();
             panel.gameObject.SetActive(false);
             return screen;
+        }
+
+        /// <summary>
+        /// Comportamento da rainha: seletor (opção de agora e seta) e a lista que abre para cima por cima das seções, com
+        /// BOTAR OVOS e uma opção por classe (o <see cref="ColonyPanel"/> esconde as travadas e reempilha as demais). Atrás
+        /// da lista, um fundo transparente do tamanho da página fecha-a ao clicar fora.
+        /// </summary>
+        static void BuildQueenJobSelector(RectTransform page, SerializedObject so, float top)
+        {
+            const float width = 520f;
+            Button toggle = BuildButton(page, "ComportamentoRainha", new Vector2(0, 1), new Vector2(width / 2, -top),
+                                        new Vector2(width, 42), "icons/egg", LocalizationCatalog.Pt("colony.queen.nest"), true, out Image toggleImage);
+            Image arrow = BuildSprite(toggleImage.transform, "Seta", "icons/arrow_up", new Vector2(1, 0.5f), new Vector2(1, 0.5f),
+                                      new Vector2(-14, 0), new Vector2(20, 20));
+            arrow.type = Image.Type.Simple;
+            arrow.preserveAspect = true;
+            arrow.raycastTarget = false;
+            arrow.rectTransform.pivot = new Vector2(1, 0.5f);
+            SetObject(so, "_queenJobToggle", toggle);
+            SetText(so, "_queenJobLabel", toggle.transform.Find("Texto").GetComponent<Text>());
+            SetObject(so, "_queenJobIcon", toggle.transform.Find("Icone").GetComponent<Image>());
+
+            // O fundo e a lista vêm depois de tudo na página: desenhados por cima das linhas das seções.
+            Image blocker = BuildPlain(page, "FecharListaRainha", Color.clear);
+            Stretch(blocker.rectTransform);
+            blocker.rectTransform.offsetMin = new Vector2(-ColonyPageMargin, -24);
+            blocker.rectTransform.offsetMax = new Vector2(ColonyPageMargin, ColonyPageTop);
+            blocker.raycastTarget = true;
+            var blockerButton = blocker.gameObject.AddComponent<Button>();
+            blockerButton.targetGraphic = blocker;
+            blockerButton.transition = Selectable.Transition.None;
+            blocker.gameObject.SetActive(false);
+            SetObject(so, "_queenJobBlocker", blockerButton);
+
+            int n = QueenJobs.All.Length;
+            Image list = BuildSprite(page, "ListaRainha", "panels/hud_card", new Vector2(0, 1), new Vector2(0, 1),
+                                     new Vector2(0, -top + 4), new Vector2(width + 2 * ColonyPanel.QueenListPadding, ColonyPanel.QueenListHeight(n)));
+            list.rectTransform.pivot = new Vector2(0, 0);
+            var options = new Button[n];
+            var images = new Image[n];
+            var labels = new Text[n];
+            var icons = new Image[n];
+            for (int i = 0; i < n; i++)
+            {
+                bool isRole = QueenJobs.TryGetRole(QueenJobs.All[i], out AntRole role);
+                string label = isRole ? LocalizationCatalog.Pt(AntFarmHud.RoleKey(role)).ToUpperInvariant() : LocalizationCatalog.Pt("colony.queen.nest");
+                options[i] = BuildButton(list.transform, "Opcao" + i, new Vector2(0, 1),
+                                         new Vector2(ColonyPanel.QueenListPadding + width / 2, -(ColonyPanel.QueenListPadding + i * ColonyPanel.QueenOptionStep)),
+                                         new Vector2(width, ColonyPanel.QueenOptionHeight), "icons/egg", label, true, out images[i]);
+                labels[i] = options[i].transform.Find("Texto").GetComponent<Text>();
+                icons[i] = options[i].transform.Find("Icone").GetComponent<Image>();
+                if (!isRole)
+                    continue;
+                // Mesma arte da classe do submenu da rainha; sem ela, o ícone genérico tingido.
+                Sprite roleArt = Setup.AntFarmSceneSetup.RoleIcon(role);
+                icons[i].sprite = roleArt != null ? roleArt : Load("icons/ant");
+                icons[i].color = roleArt != null ? Color.white : AntSwarmView.RoleColor(role);
+            }
+            list.gameObject.SetActive(false);
+            SetObject(so, "_queenJobList", list.rectTransform);
+            SetArray(so, "_queenJobs", options);
+            SetArray(so, "_queenJobImages", images);
+            SetArray(so, "_queenJobLabels", labels);
+            SetArray(so, "_queenJobIcons", icons);
         }
 
         static RectTransform BuildColonyPage(Transform panel, string name)

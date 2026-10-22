@@ -163,7 +163,7 @@ namespace Fabula.Incrementant.Colony
             }
         }
 
-        void Leave(Ant ant, ref RegionLoad region)
+        void Unjoin(Ant ant, ref RegionLoad region)
         {
             if (ant.TaskRole == AntRole.Worker)
             {
@@ -174,6 +174,11 @@ namespace Fabula.Incrementant.Colony
             {
                 region.Specialists--;
             }
+        }
+
+        void Leave(Ant ant, ref RegionLoad region)
+        {
+            Unjoin(ant, ref region);
             ant.State = AntState.Idle;
             ant.EggId = 0;
             ant.Interacting = false;
@@ -426,6 +431,15 @@ namespace Fabula.Incrementant.Colony
             }
             if (ant.EggId == 0)
             {
+                // Canteiro esperando planta ou água guardada num depósito: quem está na sala vai buscá-la antes de passar
+                // a outro canteiro (pedido do desenvolvedor em 2026-10-21). Ainda em Gardening, a seção Jardim continua dela.
+                if (GardenSupplyOpen)
+                {
+                    Unjoin(ant, ref _garden);
+                    if (TryStartGardenSupply(ant))
+                        return;
+                    Join(ant, ref _garden);
+                }
                 if (!PickGardenTarget(ant, out int px, out int py))
                 {
                     Leave(ant, ref _garden);

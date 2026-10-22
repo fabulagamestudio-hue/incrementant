@@ -130,7 +130,7 @@ namespace Fabula.Incrementant.Tests
             }
             grid.SetWater(5, 1, true);   // encostada na parede de terra
             grid.SetWater(25, 1, true);
-            var water = new WaterSimulation(new WaterSettings(), grid, 1);
+            var water = new WaterSimulation(new WaterSettings { InfiltrationReach = 0 }, grid, 1);
             for (int i = 0; i < 60 * 30; i++)
                 water.Step(grid, Dt);
 
@@ -178,6 +178,8 @@ namespace Fabula.Incrementant.Tests
         public void SharedSoil_IsSplitBetweenTheBedsAndTheDewRoom_NotGivenToTheBedsFirst()
         {
             PixelGrid grid = MakeSharedWorld();
+            // Salas já rebocadas: a construção vem antes das automatizações (decisão de 2026-10-22); o teste mede o que vem depois dela.
+            RoomLiningTests.LineAllRooms(grid);
             var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 4);
             var granular = new GranularSimulation();
             int dewWhenThirdBed = -1;
@@ -236,6 +238,8 @@ namespace Fabula.Incrementant.Tests
         {
             PixelGrid grid = MakeWorld();
             var settings = new ColonySettings();
+            // Salas já rebocadas: a construção vem antes das automatizações (decisão de 2026-10-22); o teste mede o que vem depois dela.
+            RoomLiningTests.LineAllRooms(grid);
             var colony = new AntColony(grid, settings, Layout, seed: 4);
             var granular = new GranularSimulation();
             var water = new WaterSimulation(new WaterSettings(), grid, 4);
@@ -345,8 +349,8 @@ namespace Fabula.Incrementant.Tests
             }
             Assert.IsTrue(colony.DewActive, "Sala com as duas etapas feitas fica pronta.");
             int start = elapsed;
-            // Intervalo padrão de 4 s: cada um dos 8 pontos de queda (uma por coluna) solta a sua gota a cada intervalo.
-            for (int i = 0; i < 60 * 4.5f; i++)
+            // Intervalo padrão de 24 s: cada um dos 8 pontos de queda (uma por coluna) solta a sua gota a cada intervalo.
+            for (int i = 0; i < 60 * 25.5f; i++)
             {
                 colony.Tick(Dt);
                 granular.Step(grid);
@@ -354,19 +358,64 @@ namespace Fabula.Incrementant.Tests
             }
             int slots = RoomX1 - RoomX0 + 1;
             Assert.AreEqual(slots, colony.DewDrops, $"Uma gota por ponto de queda no primeiro intervalo (começou no passo {start}).");
-            for (int i = 0; i < 60 * 18; i++)
+            for (int i = 0; i < 60 * 24; i++)
             {
                 colony.Tick(Dt);
                 granular.Step(grid);
                 water.Step(grid, Dt);
             }
-            Assert.AreEqual(slots * 5, colony.DewDrops, "Cinco intervalos em 22 s, uma gota por ponto de queda em cada.");
+            // Coluna de 7 células: o teto é 40% (2 células), então 8 colunas guardam 16 = 2 gotas por ponto.
+            Assert.AreEqual(slots * 2, colony.DewDrops, "Dois intervalos em 49,5 s, uma gota por ponto de queda em cada.");
+            // O corredor atravessa o pé da sala deste cenário (a água escorre para os lados), então o que vale é o teto dentro dela.
+            int inRoomMax = 0;
+            for (int i = 0; i < 60 * 16; i++)
+            {
+                colony.Tick(Dt);
+                granular.Step(grid);
+                water.Step(grid, Dt);
+                int inRoom = 0;
+                for (int x = RoomX0; x <= RoomX1; x++)
+                for (int y = 1; y <= RoomY1; y++)
+                    inRoom += grid.HasWater(x, y) ? 1 : 0;
+                inRoomMax = Mathf.Max(inRoomMax, inRoom);
+            }
+            Assert.LessOrEqual(inRoomMax, slots * 2, "A água dentro da sala nunca passa de 40% da altura.");
             for (int x = RoomX0; x <= RoomX1; x++)
             for (int y = 1; y <= RoomY1; y++)
             {
                 if (grid.HasWater(x, y))
                     Assert.IsFalse(grid.IsSolid(x, y), "A gota nasce numa célula livre da sala.");
             }
+        }
+
+        /// <summary>Relato de 2026-10-20 (save do jogador): com a seção desligada no painel, a sala pronta seguia pingando.</summary>
+        [Test]
+        public void ReadyRoom_StopsDripping_WhileItsSectionIsTurnedOff_AndResumesWhenTurnedBackOn()
+        {
+            PixelGrid grid = MakeReadyWorld();
+            var settings = new ColonySettings();
+            var colony = new AntColony(grid, settings, Layout, seed: 4);
+            colony.Work.SetEnabled(WorkSection.Dew, false);
+            var granular = new GranularSimulation();
+            var water = new WaterSimulation(new WaterSettings(), grid, 4);
+            void Run(float seconds)
+            {
+                for (int i = 0; i < 60 * seconds; i++)
+                {
+                    colony.Tick(Dt);
+                    granular.Step(grid);
+                    water.Step(grid, Dt);
+                }
+            }
+
+            Run(20f);
+            Assert.IsTrue(colony.DewActive, "A sala continua pronta (terra e folha postas).");
+            Assert.AreEqual(0, colony.DewDrops, "Desligada, a sala não solta gota.");
+            Assert.Less(colony.DewProgress, 0f, "Sem barra de progresso com a seção desligada.");
+
+            colony.Work.SetEnabled(WorkSection.Dew, true);
+            Run(settings.DewDropSeconds + 3f); // uma gota inteira mais folga; o intervalo é balanceamento, não fixo
+            Assert.Greater(colony.DewDrops, 0, "Religada, volta a pingar.");
         }
 
         static PixelGrid MakeReadyWorld()
@@ -382,8 +431,8 @@ namespace Fabula.Incrementant.Tests
             return grid;
         }
 
-        /// <summary>Gotas em 40 s numa sala pronta; sem água acumulando de mais (a sala não enche). Devolve também se alguma jardineira ficou cuidando.</summary>
-        static int DropsIn40Seconds(AntRole role, out bool tended)
+        /// <summary>Gotas em 20 s numa sala pronta; sem água acumulando de mais (a sala não enche). Devolve também se alguma jardineira ficou cuidando.</summary>
+        static int DropsIn20Seconds(AntRole role, out bool tended)
         {
             PixelGrid grid = MakeReadyWorld();
             var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 4);
@@ -396,7 +445,7 @@ namespace Fabula.Incrementant.Tests
             Assert.IsTrue(colony.DewActive);
             int before = colony.DewDrops;
             tended = false;
-            for (int i = 0; i < 60 * 40; i++)
+            for (int i = 0; i < 60 * 20; i++)
             {
                 colony.Tick(Dt);
                 granular.Step(grid);
@@ -410,8 +459,8 @@ namespace Fabula.Incrementant.Tests
         [Test]
         public void Gardeners_TendingTheReadyRoom_SpeedUpTheDrops()
         {
-            int plain = DropsIn40Seconds(AntRole.Worker, out bool workersTended);
-            int tended = DropsIn40Seconds(AntRole.Gardener, out bool gardenersTended);
+            int plain = DropsIn20Seconds(AntRole.Worker, out bool workersTended);
+            int tended = DropsIn20Seconds(AntRole.Gardener, out bool gardenersTended);
             Assert.IsFalse(workersTended, "Só a jardineira cuida da sala pronta.");
             Assert.IsTrue(gardenersTended, "A jardineira ociosa fica ao lado da queda das gotas.");
             Assert.Greater(tended, plain, "Com jardineiras cuidando, caem mais gotas no mesmo tempo.");
@@ -421,6 +470,11 @@ namespace Fabula.Incrementant.Tests
         public void Gardeners_TendOneBlockEach_NoMoreThanTheRoomHas()
         {
             PixelGrid grid = MakeReadyWorld();
+            // Sala da rainha perto do ninho: sem ela, a rainha vaga e a casa das formigas muda com ela, refazendo os pontos
+            // da sala a cada passo (sem a simulação da água, a gota parada no ponto de queda o tiraria da lista).
+            for (int x = 5; x <= 9; x++)
+            for (int y = 1; y <= 3; y++)
+                Assert.IsTrue(grid.SetQueenRoom(x, y, true));
             var settings = new ColonySettings();
             var colony = new AntColony(grid, settings, Layout, seed: 4);
             foreach (Ant ant in colony.Ants)

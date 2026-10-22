@@ -7,6 +7,7 @@ using Fabula.Incrementant.Colony;
 using Fabula.Incrementant.Diagnostics;
 using Fabula.Incrementant.Juice;
 using Fabula.Incrementant.Save;
+using Fabula.Incrementant.Settings;
 using Fabula.Incrementant.UI;
 using Fabula.Incrementant.World;
 using UnityEngine;
@@ -107,12 +108,17 @@ namespace Fabula.Incrementant.AntFarm
         /// a rainha pode ficar ou a sala onde os nutrientes são guardados. Plantas não se marcam: as jardineiras escolhem
         /// sozinhas o que colher. A ordem casa com <see cref="BrushTint"/>.
         /// </summary>
-        enum BrushMode { Dig, Build, QueenRoom, NutrientRoom, NurseryRoom, WasteRoom, Finger, DewRoom, FoodStore, BlockStore, WaterStore }
+        enum BrushMode
+        {
+            Dig, Build, QueenRoom, NutrientRoom, NurseryRoom, WasteRoom, Finger, DewRoom, FoodStore, BlockStore, WaterStore, GlowMushroom,
+            FarmRoom, SandStore, MushroomStore,
+        }
 
         static readonly string[] BrushLabels =
         {
             "Cavar", "Construir", "Sala da rainha", "Sala de nutrientes", "Berçário", "Resíduos", "Dedo", "Gotas de orvalho",
-            "Depósito de alimentos", "Depósito de construção", "Depósito de água",
+            "Depósito de alimentos", "Depósito de construção", "Depósito de água", "Cogumelo luminoso", "Fazenda de pulgões",
+            "Depósito de areia", "Depósito de cogumelos",
         };
         static readonly string[] WeatherLabels = { "Seco", "Chuva leve", "Chuva forte" };
 
@@ -227,7 +233,7 @@ namespace Fabula.Incrementant.AntFarm
             GameAudio.SetLoop(SfxId.Rain, level);
         }
         const float StatsPanelWidth = 430f;
-        const float StatsPanelHeight = 650f;
+        const float StatsPanelHeight = 800f;
         readonly MatchTimer _matchTimer = new MatchTimer();
         bool _gameOverRecorded;
         // Barras de progresso do que é produzido (KI-026); criado ao iniciar, sem referência na cena.
@@ -252,22 +258,13 @@ namespace Fabula.Incrementant.AntFarm
         /// <summary>Sobe a cada mapa novo ou save carregado: quem guarda posições do mundo (tutorial) descarta o que tinha.</summary>
         public int Generation { get; private set; }
 
-        /// <summary>A partida começou de um save (Continuar no menu principal): o tutorial da primeira abertura não roda.</summary>
+        /// <summary>A partida começou de um save (Continuar no menu principal): o tutorial não roda.</summary>
         public bool StartedFromSave { get; private set; }
 
         /// <summary>Vitrine do menu principal: sem jogador, sem HUD de partida.</summary>
         public bool Showcase => _showcase;
 
         // ---------------------------------------------------------------- enquadramento da câmera (tutorial)
-
-        /// <summary>Retângulo em células (origem do mapa) → retângulo em pixels de tela.</summary>
-        public Rect CellsToScreen(Rect cells)
-        {
-            Vector3 origin = _view.transform.position;
-            Vector3 a = _camera.WorldToScreenPoint(origin + new Vector3(cells.xMin, cells.yMin));
-            Vector3 b = _camera.WorldToScreenPoint(origin + new Vector3(cells.xMax, cells.yMax));
-            return Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y), Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
-        }
 
         /// <summary>Meia altura da vista (células) que enquadra <paramref name="cells"/> ocupando <paramref name="fill"/> da tela.</summary>
         float FitHalfHeight(Rect cells, float fill)
@@ -299,16 +296,6 @@ namespace Fabula.Incrementant.AntFarm
             FrameCells(cells, seconds, fill, screenCenter01);
         }
 
-        /// <summary>O retângulo está inteiro na tela e a vista não está muito mais aberta que o enquadramento sugerido.</summary>
-        public bool IsFramed(Rect cells, float fill = 0.5f)
-        {
-            Rect view = LocalViewRect();
-            bool inside = view.Contains(cells.min) && view.Contains(cells.max);
-            return inside && _camera.orthographicSize <= FitHalfHeight(cells, fill) * 2.2f;
-        }
-
-        public bool CameraMoving => _cameraControl.IsMoving;
-
         public static int SpeedCount => SpeedSteps.Length;
         public static int SpeedMultiplier(int index) => SpeedSteps[index];
         public int SpeedIndex => _speedIndex;
@@ -334,7 +321,41 @@ namespace Fabula.Incrementant.AntFarm
         public static string BrushLabel(int index) => BrushLabels[index];
 
         /// <summary>O pincel pinta um dos depósitos (alimentos, construção, água): mora no submenu DEPÓSITO do HUD.</summary>
-        public static bool IsDepotBrush(int index) => index >= (int)BrushMode.FoodStore && index <= (int)BrushMode.WaterStore;
+        /// <summary>
+        /// Modo com que o pincel Resíduos pinta (submenu RESÍDUOS do HUD). Cada área guarda o modo com que foi pintada;
+        /// pintar por cima com outro modo troca o da célula. Não vai para o save (volta ao padrão).
+        /// </summary>
+        public WasteMode WasteBrushMode { get; set; }
+
+        /// <summary>Índice do pincel Resíduos (o HUD abre o submenu do modo da área com ele escolhido).</summary>
+        public const int WasteBrushIndex = (int)BrushMode.WasteRoom;
+
+        public static bool IsDepotBrush(int index) =>
+            index >= (int)BrushMode.FoodStore && index <= (int)BrushMode.WaterStore || index == (int)BrushMode.SandStore ||
+            index == (int)BrushMode.MushroomStore;
+
+        /// <summary>Índice do pincel da fazenda de pulgões (liberado pela câmara A0).</summary>
+        public const int FarmBrushIndex = (int)BrushMode.FarmRoom;
+
+        /// <summary>O ambiente com limite de área (KI-043) que o pincel pinta; false para cavar, construir e dedo.</summary>
+        public static bool TryGetPaintRoom(int index, out PaintRoom room)
+        {
+            switch ((BrushMode)index)
+            {
+                case BrushMode.QueenRoom: room = PaintRoom.Queen; return true;
+                case BrushMode.NutrientRoom: room = PaintRoom.Nutrient; return true;
+                case BrushMode.NurseryRoom: room = PaintRoom.Nursery; return true;
+                case BrushMode.WasteRoom: room = PaintRoom.Waste; return true;
+                case BrushMode.DewRoom: room = PaintRoom.Dew; return true;
+                case BrushMode.FoodStore: room = PaintRoom.FoodStore; return true;
+                case BrushMode.BlockStore: room = PaintRoom.BlockStore; return true;
+                case BrushMode.WaterStore: room = PaintRoom.WaterStore; return true;
+                case BrushMode.FarmRoom: room = PaintRoom.Farm; return true;
+                case BrushMode.SandStore: room = PaintRoom.SandStore; return true;
+                case BrushMode.MushroomStore: room = PaintRoom.MushroomStore; return true;
+                default: room = default; return false;
+            }
+        }
         public int BrushIndex => (int)_brushMode;
 
         /// <summary>O pincel atual é o dedo (o HUD troca o cursor do sistema enquanto ele estiver ativo).</summary>
@@ -343,9 +364,19 @@ namespace Fabula.Incrementant.AntFarm
         /// <summary>O ponteiro está sobre o mapa, e não sobre o HUD, e o input está liberado.</summary>
         public bool PointerOverWorld => _pointerOverWorld;
 
-        /// <summary>O pincel pode ser usado agora: a área de resíduos só depois do primeiro ataque de cupins.</summary>
-        public bool IsBrushUnlocked(int index) =>
-            (BrushMode)index != BrushMode.WasteRoom || _colony != null && _colony.WasteUnlocked;
+        /// <summary>
+        /// O pincel pode ser usado agora: a área de resíduos só depois do primeiro ataque de cupins; a fazenda de pulgões só com
+        /// a câmara A0 comprada.
+        /// </summary>
+        public bool IsBrushUnlocked(int index)
+        {
+            switch ((BrushMode)index)
+            {
+                case BrushMode.WasteRoom: return _colony != null && _colony.WasteUnlocked;
+                case BrushMode.FarmRoom: return _colony != null && _colony.FarmUnlocked;
+                default: return true;
+            }
+        }
 
         public void SetBrush(int index)
         {
@@ -534,6 +565,8 @@ namespace Fabula.Incrementant.AntFarm
                 FrameShowcase(origin);
 
             _view.Initialize(_grid, transparentSky: _scenery != null, skyBaseY: _startArea.yMin, plantsAsSprites: _scenery != null);
+            if (_antsView != null)
+                _antsView.SetTileAtlas(_view.TileAtlas, _view.TileToneStrength);
             if (_scenery != null)
             {
                 // Laguinhos: no procedural vêm do gerador (inclusive os ainda não gerados); na imagem, da água pintada.
@@ -753,6 +786,9 @@ namespace Fabula.Incrementant.AntFarm
             bool spriteAnts = _antsView != null && _antsView.HasFrames;
             RectInt window = AntFarmView.WindowFor(LocalViewRect(), _grid);
             long renderStart = SimProfiler.Now();
+            _view.WasteBrushKind = (byte)WasteBrushMode;
+            // Com "Mostrar ambientes" desligado, a pintura das salas volta enquanto um pincel de ambiente está na mão.
+            _view.ShowRooms = GameSettings.Current.ShowRooms || TryGetPaintRoom((int)_brushMode, out _);
             _view.Render(_grid, _colony.Ants, _colony.DumpStrips,_brushCell, _brushMode == BrushMode.Finger ? _colony.RaidSettings.FingerReach : _brushRadius, _pointerOverWorld, !spriteAnts, window, _rain.Drops,
                          (BrushTint)(int)_brushMode, _colony);
             profiler.Add(ProfileStage.RenderTerrain, renderStart);
@@ -764,6 +800,9 @@ namespace Fabula.Incrementant.AntFarm
                                  _colony.Queen, _colony.Brood.LayProgress, _colony.Breeding == BreedingState.Available);
                 _antsView.RenderTermites(_grid, _colony.Termites, _view.transform.position, _colony.SimulationTime + _accumulator,
                                          Time.deltaTime);
+                _antsView.RenderAphids(_grid, _colony.Aphids, _view.transform.position, _colony.SimulationTime + _accumulator,
+                                       Time.deltaTime);
+                _antsView.RenderSpits(_colony.Spits, _view.transform.position);
             }
             _termiteMarkers.Update(_camera, _view.transform.position, _colony.Termites, _colony.SimulationTime + _accumulator);
             profiler.Add(ProfileStage.RenderAnts, renderStart);
@@ -954,7 +993,10 @@ namespace Fabula.Incrementant.AntFarm
             else if (mouse.leftButton.isPressed)
             {
                 if (mouse.leftButton.wasPressedThisFrame)
+                {
+                    _strokeDenied = false;
                     GameAudio.Play(SfxId.Mark);
+                }
                 PaintMarks(true);
             }
             else if (mouse.rightButton.isPressed && _brushMode != BrushMode.Finger)
@@ -1037,8 +1079,30 @@ namespace Fabula.Incrementant.AntFarm
             return _hudRect.Contains(new Vector2(screen.x, Screen.height - screen.y));
         }
 
+        // O traço atual (botão esquerdo apertado) já foi recusado pelo limite do ambiente: um aviso por traço, não por frame.
+        bool _strokeDenied;
+
         void PaintMarks(bool marked)
         {
+            // Limite do ambiente (KI-043): só ao pintar; apagar é livre.
+            PaintRoom room = default;
+            bool limited = marked && TryGetPaintRoom((int)_brushMode, out room);
+            PaintBudget budget = _colony.PaintBudget;
+            // Sala nova acima do máximo: o traço inteiro é recusado. A falta de área é vista célula a célula (abaixo), para
+            // repintar a área que já existe (o modo dos resíduos) continuar valendo com o limite cheio.
+            if (limited && budget.Check(room, _brushCell.x, _brushCell.y, _brushRadius) == PaintBlock.NoRooms)
+            {
+                Deny();
+                return;
+            }
+            bool denied = false;
+            if (_brushMode == BrushMode.GlowMushroom && marked)
+            {
+                // Um cogumelo por célula, só na mira: o círculo do pincel encheria o túnel de cogumelos.
+                if (!_grid.IsGlowMushroomMarked(_brushCell.x, _brushCell.y) && !_grid.SetGlowMushroomMarked(_brushCell.x, _brushCell.y, true))
+                    Deny();
+                return;
+            }
             int r2 = _brushRadius * _brushRadius;
             for (int dy = -_brushRadius; dy <= _brushRadius; dy++)
             for (int dx = -_brushRadius; dx <= _brushRadius; dx++)
@@ -1046,9 +1110,18 @@ namespace Fabula.Incrementant.AntFarm
                 if (dx * dx + dy * dy > r2)
                     continue;
                 int x = _brushCell.x + dx, y = _brushCell.y + dy;
+                // O traço pode esgotar a área no meio: cada célula nova ainda confere o que sobrou.
+                if (limited && budget.Available(room) <= 0 && !PaintBudget.IsRoom(_grid, room, x, y))
+                {
+                    denied = true;
+                    continue;
+                }
                 switch (_brushMode)
                 {
                     case BrushMode.Build:
+                        // Trava das configurações: não marca obra por cima de sala pintada (apagar a marca continua livre).
+                        if (marked && GameSettings.Current.BlockBuildOnRooms && _grid.IsAnyRoom(x, y))
+                            break;
                         _grid.SetBuildMarked(x, y, marked);
                         break;
                     case BrushMode.QueenRoom:
@@ -1061,7 +1134,7 @@ namespace Fabula.Incrementant.AntFarm
                         _grid.SetNurseryRoom(x, y, marked);
                         break;
                     case BrushMode.WasteRoom:
-                        _grid.SetWasteRoom(x, y, marked);
+                        _grid.SetWasteRoom(x, y, marked, (byte)WasteBrushMode);
                         break;
                     case BrushMode.DewRoom:
                         _grid.SetDewRoom(x, y, marked);
@@ -1075,12 +1148,36 @@ namespace Fabula.Incrementant.AntFarm
                     case BrushMode.WaterStore:
                         _grid.SetStorageRoom(x, y, StorageKind.Water, marked);
                         break;
+                    case BrushMode.SandStore:
+                        _grid.SetStorageRoom(x, y, StorageKind.Sand, marked);
+                        break;
+                    case BrushMode.MushroomStore:
+                        _grid.SetStorageRoom(x, y, StorageKind.Mushroom, marked);
+                        break;
+                    case BrushMode.FarmRoom:
+                        _grid.SetFarmRoom(x, y, marked);
+                        break;
+                    case BrushMode.GlowMushroom:
+                        // Só desmarca (marcar é na mira, acima); a obra comum fica.
+                        _grid.SetGlowMushroomMarked(x, y, false);
+                        break;
                     default:
                         // Cavar não marca plantas: quem as colhe é a jardineira, por conta própria.
                         if (!CellMaterials.IsAnyPlant(_grid.Get(x, y)))
                             _grid.SetMarked(x, y, marked);
                         break;
                 }
+            }
+            if (denied)
+                Deny();
+
+            // Mesmo aviso da rainha sem nutrientes: som de recusa e "!" na mira, uma vez por traço.
+            void Deny()
+            {
+                if (_strokeDenied)
+                    return;
+                _strokeDenied = true;
+                DenyAt(_brushCell);
             }
         }
 
@@ -1104,10 +1201,12 @@ namespace Fabula.Incrementant.AntFarm
             GUILayout.Label($"<b>Nutrientes: {_colony.Nutrients}</b>   (consumidos pela rainha: {_colony.TotalNutrients})", RichLabel());
             GUILayout.Label($"Sala de nutrientes: {NutrientRoomStatus()}");
             GUILayout.Label($"Gotas de orvalho: {DewRoomStatus()}");
+            GUILayout.Label($"Fazenda de pulgões: {FarmStatus()}");
             GUILayout.Label($"Plantas: {_vegetation.PlantCount} · colhidos: {_colony.HarvestedPixels} px · cresceram: {_vegetation.GrownCells} px");
             GUILayout.Label($"Terra retirada: {_colony.TotalDelivered}");
             GUILayout.Label($"Depósitos (guardado/vagas): alimentos {DepotLine(StorageKind.Food)} · construção {DepotLine(StorageKind.Blocks)} · " +
-                            $"água {DepotLine(StorageKind.Water)} · soltos {_colony.LooseItems}");
+                            $"água {DepotLine(StorageKind.Water)} · areia {DepotLine(StorageKind.Sand)} · cogumelos {DepotLine(StorageKind.Mushroom)} · " +
+                            $"soltos {_colony.LooseItems}");
             GUILayout.Label($"Pixels marcados: {_grid.MarkedCount} para cavar · {_grid.BuildMarkedCount} para construir");
             GUILayout.Label($"Rainha: {QueenStatus()}");
             GUILayout.Label($"Cupins  [F4]: {RaidStatus()}");
@@ -1196,6 +1295,14 @@ namespace Fabula.Incrementant.AntFarm
             if (_colony.DewLeafSpots > 0)
                 return $"etapa 2: folha ({_colony.DewLeafSpots} pontos)";
             return _colony.DewActive ? $"pronta · {_colony.DewDrops} gotas" : "sem lugar para terra fofa (cave a sala: 4 de altura)";
+        }
+
+        string FarmStatus()
+        {
+            if (_grid.FarmRoomCount == 0)
+                return _colony.FarmUnlocked ? "nenhuma (pinte uma com o pincel Fazenda de pulgões)" : "bloqueada (câmara A0)";
+            return $"{_colony.Aphids.Count}/{_colony.AphidCap} pulgões · {_colony.StallCount} baias · {_colony.TroughsWaiting} cochos vazios · " +
+                   $"{_colony.AphidMilkings} ordenhas · {_colony.AphidDrips} gotas · cogumelos {_colony.MushroomItems} · pretos {_colony.AphidsCorrupted}";
         }
 
         string RaidStatus()

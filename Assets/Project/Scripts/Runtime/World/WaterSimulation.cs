@@ -13,11 +13,18 @@ namespace Fabula.Incrementant.World
         [Tooltip("Células que a água anda na horizontal por passo, rumo ao lugar mais baixo encontrado.")]
         [Range(1, 8)] public int FlowSpeed = 2;
 
+        [Tooltip("Pressão (KI-007): a água de uma coluna empilhada empurra o topo dela para uma célula lateral mais baixa, " +
+                 "então vasos comunicantes se nivelam (a água sobe pelo outro lado de um U). Desligada, só escorre morro abaixo.")]
+        public bool Pressure = true;
+
         [Header("Erosão (dentro do formigueiro)")]
         [Tooltip("Segundos seguidos encostada na água até a terra fixa (natural ou construída) virar terra mole.")]
         [Min(0.1f)] public float ErosionSeconds = 6f;
         [Tooltip("A cada quantos segundos simulados a erosão é verificada.")]
         [Min(0.02f)] public float CheckInterval = 0.25f;
+        [Tooltip("Infiltração: sempre que a água é absorvida fora da sala Gotas de Orvalho, ela também amolece uma terra fixa a até " +
+                 "tantas células ao redor (a mais alta, depois a mais perto), como se a água subisse pelo solo. 0 desliga.")]
+        [Range(0, 16)] public int InfiltrationReach = 5;
 
         [Header("Evaporação (fora do formigueiro)")]
         [Tooltip("Vida média, em segundos simulados, de um pixel de água da chuva no céu. Só o laguinho original (até o " +
@@ -175,11 +182,66 @@ namespace Fabula.Incrementant.World
             int a = FindDrop(grid, x, y, first);
             int b = FindDrop(grid, x, y, -first);
             if (a == 0 && b == 0)
+            {
+                if (_settings.Pressure)
+                    TryPressure(grid, x, y, first);
                 return;
+            }
             int dir = b == 0 || (a != 0 && a <= b) ? first : -first;
             int distance = dir == first ? a : b;
             int step = Math.Min(distance, Math.Max(1, _settings.FlowSpeed));
             Move(grid, i, grid.ToIndex(x + dir * step, y));
+        }
+
+        /// <summary>
+        /// Pressão (vasos comunicantes): esta célula tem água empilhada em cima. Seguindo a fileira de água dela para um lado
+        /// (até <see cref="WaterSettings.HorizontalReach"/> células), acha a célula livre onde o nível do outro lado é mais
+        /// baixo: ou a que fecha a fileira, ou o topo da coluna em que a fileira termina. Se o topo desta coluna estiver pelo
+        /// menos 2 acima, ele passa para lá. Conserva o volume; os dois lados se nivelam (diferença de até 1) passo a passo.
+        /// </summary>
+        bool TryPressure(PixelGrid grid, int x, int y, int first)
+        {
+            // A sala de orvalho fica de fora: a pressão da água dela escorreria pelos túneis (KI-050).
+            if (!grid.HasWater(x, y + 1) || grid.IsDewRoom(x, y))
+                return false;
+            int top = y + 1;
+            while (grid.HasWater(x, top + 1))
+                top++;
+            if (_moved[grid.ToIndex(x, top)] == _tick)
+                return false;
+            for (int k = 0; k < 2; k++)
+            {
+                int dx = k == 0 ? first : -first;
+                int ex = x, reach = _settings.HorizontalReach;
+                while (reach-- > 0 && grid.HasWater(ex + dx, y))
+                    ex += dx;
+                int cx = ex + dx;
+                int tx, ty;
+                if (grid.IsOpen(cx, y) && !grid.IsOpen(cx, y - 1))
+                {
+                    tx = cx; // a fileira acaba numa célula livre e apoiada
+                    ty = y;
+                }
+                else if (ex != x && !grid.IsOpen(cx, y))
+                {
+                    int le = y;
+                    while (grid.HasWater(ex, le + 1))
+                        le++;
+                    tx = ex; // a fileira acaba numa parede: sobe pela coluna dela até o topo
+                    ty = le + 1;
+                    if (!grid.IsOpen(tx, ty))
+                        continue;
+                }
+                else
+                {
+                    continue;
+                }
+                if (top < ty + 1)
+                    continue;
+                Move(grid, grid.ToIndex(x, top), grid.ToIndex(tx, ty));
+                return true;
+            }
+            return false;
         }
 
         bool TryDiagonal(PixelGrid grid, int x, int y, int dx)
@@ -285,6 +347,7 @@ namespace Fabula.Incrementant.World
                     continue;
                 _soak[n] = 0;
                 grid.SetWater(x, y, false);
+                Infiltrate(grid, x, y);
                 if (erodible)
                 {
                     grid.Set(nx, ny, CellMaterial.Mud, grid.GetShade(nx, ny));
@@ -297,6 +360,46 @@ namespace Fabula.Incrementant.World
                 return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Água absorvida fora da sala Gotas de Orvalho: infiltra e amolece (vira <see cref="CellMaterial.Mud"/>) a terra fixa mais
+        /// alta num raio de <see cref="WaterSettings.InfiltrationReach"/> células, a mais perto em caso de empate. Fica abaixo do
+        /// solo original, para não abrir buracos na superfície, e nunca dentro da sala de orvalho.
+        /// </summary>
+        void Infiltrate(PixelGrid grid, int x, int y)
+        {
+            int reach = _settings.InfiltrationReach;
+            if (reach <= 0)
+                return;
+            int bestX = 0, bestY = 0, bestDist = int.MaxValue;
+            bool found = false;
+            int reachSq = reach * reach;
+            for (int dy = reach; dy >= -reach; dy--)
+            {
+                // Linhas de cima primeiro: a primeira linha com terra fixa ao alcance decide (a água sobe).
+                int ty = y + dy;
+                for (int dx = -reach; dx <= reach; dx++)
+                {
+                    int dist = dx * dx + dy * dy;
+                    if (dist > reachSq || dist >= bestDist)
+                        continue;
+                    int tx = x + dx;
+                    if (!grid.InBounds(tx, ty) || ty >= grid.GetSurfaceY(tx) || grid.IsDewRoom(tx, ty) ||
+                        !CellMaterials.IsErodible(grid.Get(tx, ty)))
+                        continue;
+                    bestX = tx;
+                    bestY = ty;
+                    bestDist = dist;
+                    found = true;
+                }
+                if (found)
+                    break;
+            }
+            if (!found)
+                return;
+            grid.Set(bestX, bestY, CellMaterial.Mud, grid.GetShade(bestX, bestY));
+            ErodedCells++;
         }
     }
 }

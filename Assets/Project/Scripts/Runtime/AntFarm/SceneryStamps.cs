@@ -33,17 +33,20 @@ namespace Fabula.Incrementant.AntFarm
         public readonly Color32[] Pixels;
         public readonly int PivotX;
         public readonly int PivotY;
+        /// <summary>Arte a 16 px/célula, desenhada separadamente da máscara de navegação.</summary>
+        public readonly Sprite VisualSprite;
         /// <summary>Extensão opaca perto da linha do chão (1 célula acima e abaixo do pivô), em pixels relativos ao pivô.</summary>
         public readonly int BaseLeft;
         public readonly int BaseRight;
 
-        public SceneryStamp(int width, int height, Color32[] pixels, int pivotX, int pivotY)
+        public SceneryStamp(int width, int height, Color32[] pixels, int pivotX, int pivotY, Sprite visualSprite = null)
         {
             Width = width;
             Height = height;
             Pixels = pixels;
             PivotX = pivotX;
             PivotY = pivotY;
+            VisualSprite = visualSprite;
 
             int band = SurfaceSceneryPainter.PixelsPerCell;
             int min = int.MaxValue, max = int.MinValue;
@@ -92,10 +95,38 @@ namespace Fabula.Incrementant.AntFarm
                 return null;
             Rect r = sprite.rect;
             int w = Mathf.RoundToInt(r.width), h = Mathf.RoundToInt(r.height);
-            Color[] colors = texture.GetPixels(Mathf.RoundToInt(r.x), Mathf.RoundToInt(r.y), w, h);
-            var pixels = new Color32[colors.Length];
-            for (int i = 0; i < colors.Length; i++)
-                pixels[i] = colors[i];
+            Color32[] colors = texture.GetPixels32();
+            int sourceX = Mathf.RoundToInt(r.x), sourceY = Mathf.RoundToInt(r.y);
+            if (Mathf.Approximately(sprite.pixelsPerUnit, 16f))
+            {
+                // A máscara continua na grade de 6 px/célula; a arte conserva os 16 px/célula.
+                int maskWidth = Mathf.Max(1, Mathf.RoundToInt(w * ArtScale / sprite.pixelsPerUnit));
+                int maskHeight = Mathf.Max(1, Mathf.RoundToInt(h * ArtScale / sprite.pixelsPerUnit));
+                var mask = new Color32[maskWidth * maskHeight];
+                for (int y = 0; y < maskHeight; y++)
+                for (int x = 0; x < maskWidth; x++)
+                {
+                    // Cobertura conservadora: pontas e caules de um texel não desaparecem entre amostras.
+                    int x0 = x * w / maskWidth, x1 = Mathf.Min(w, Mathf.CeilToInt((x + 1f) * w / maskWidth));
+                    int y0 = y * h / maskHeight, y1 = Mathf.Min(h, Mathf.CeilToInt((y + 1f) * h / maskHeight));
+                    bool found = false;
+                    for (int sy = y0; sy < y1 && !found; sy++)
+                    for (int sx = x0; sx < x1; sx++)
+                    {
+                        Color32 color = colors[(sourceY + sy) * texture.width + sourceX + sx];
+                        if (color.a == 0) continue;
+                        mask[y * maskWidth + x] = color;
+                        found = true;
+                        break;
+                    }
+                }
+                return new SceneryStamp(maskWidth, maskHeight, mask,
+                    Mathf.RoundToInt(sprite.pivot.x * ArtScale / sprite.pixelsPerUnit),
+                    Mathf.RoundToInt(sprite.pivot.y * ArtScale / sprite.pixelsPerUnit), sprite);
+            }
+            var pixels = new Color32[w * h];
+            for (int y = 0; y < h; y++)
+                System.Array.Copy(colors, (sourceY + y) * texture.width + sourceX, pixels, y * w, w);
             return new SceneryStamp(w, h, pixels, Mathf.RoundToInt(sprite.pivot.x), Mathf.RoundToInt(sprite.pivot.y)).Scaled(ArtScale);
         }
     }

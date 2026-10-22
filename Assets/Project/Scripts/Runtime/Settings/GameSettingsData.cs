@@ -32,6 +32,8 @@ namespace Fabula.Incrementant.Settings
 
         [Header("Vídeo")]
         public VfxLevel Vfx = VfxLevel.Full;
+        /// <summary>Brilho (bloom) do pós-processamento; vinheta e cor quente não dependem desta opção.</summary>
+        public bool Bloom = true;
         public bool Fullscreen = true;
         /// <summary>Resolução escolhida; 0x0 é a nativa do monitor (ou o tamanho atual da janela).</summary>
         public int ResolutionWidth;
@@ -42,6 +44,10 @@ namespace Fabula.Incrementant.Settings
 
         [Header("Interface")]
         public bool ShowStats = true;
+        /// <summary>Trava de segurança: o pincel de construir não marca células pintadas como sala (qualquer ambiente).</summary>
+        public bool BlockBuildOnRooms = true;
+        /// <summary>Mostra a pintura das salas e depósitos no terreno; desligada, ela só aparece com um pincel de ambiente na mão.</summary>
+        public bool ShowRooms = true;
         /// <summary>Código do idioma (um de <c>Loc.Codes</c>); o padrão é o português do Brasil.</summary>
         public string Language = Texts.Loc.DefaultCode;
 

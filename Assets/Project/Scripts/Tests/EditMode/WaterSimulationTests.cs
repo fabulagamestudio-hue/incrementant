@@ -63,7 +63,7 @@ namespace Fabula.Incrementant.Tests
             // 16 células numa caixa de 18 de largura: uma linha só, quase cheia.
             Assert.AreEqual(16, grid.WaterCount);
 
-            Run(new WaterSimulation(new WaterSettings(), grid, 1), grid, 600);
+            Run(new WaterSimulation(new WaterSettings { InfiltrationReach = 0, EvaporationSeconds = 0f }, grid, 1), grid, 600);
 
             Assert.AreEqual(16, grid.WaterCount, "A água não some nem se duplica ao escorrer.");
             for (int y = 2; y < grid.Height; y++)
@@ -83,7 +83,7 @@ namespace Fabula.Incrementant.Tests
             }
             int total = grid.WaterCount; // 32 = 3 linhas cheias de 10 + 2
 
-            Run(new WaterSimulation(new WaterSettings(), grid, 2), grid, 900);
+            Run(new WaterSimulation(new WaterSettings { InfiltrationReach = 0, EvaporationSeconds = 0f }, grid, 2), grid, 900);
 
             Assert.AreEqual(total, grid.WaterCount);
             for (int y = 1; y <= 3; y++)
@@ -101,7 +101,7 @@ namespace Fabula.Incrementant.Tests
             PixelGrid grid = MakeBox(40, 12);
             for (int x = 3; x < 30; x += 2)
                 grid.SetWater(x, 6, true);
-            var water = new WaterSimulation(new WaterSettings(), grid, 3);
+            var water = new WaterSimulation(new WaterSettings { InfiltrationReach = 0, EvaporationSeconds = 0f }, grid, 3);
             Run(water, grid, 400);
 
             HashSet<int> settled = WaterCells(grid);
@@ -119,7 +119,7 @@ namespace Fabula.Incrementant.Tests
             grid.Set(4, 8, CellMaterial.Sand);
             int total = grid.WaterCount;
 
-            Run(new WaterSimulation(new WaterSettings(), grid, 4), grid, 120, new GranularSimulation());
+            Run(new WaterSimulation(new WaterSettings { InfiltrationReach = 0, EvaporationSeconds = 0f }, grid, 4), grid, 120, new GranularSimulation());
 
             Assert.AreEqual(CellMaterial.Sand, grid.Get(4, 1), "O grão afunda até o fundo.");
             Assert.AreEqual(total, grid.WaterCount, "A água deslocada pelo grão sobe, não some.");
@@ -144,7 +144,7 @@ namespace Fabula.Incrementant.Tests
             grid.SetWater(3, 1, true);
             grid.Set(4, 1, CellMaterial.Dirt);
             grid.Set(4, 2, CellMaterial.PackedSpoil);
-            var settings = new WaterSettings { ErosionSeconds = 1f, CheckInterval = 0.25f };
+            var settings = new WaterSettings { InfiltrationReach = 0, EvaporationSeconds = 0f, ErosionSeconds = 1f, CheckInterval = 0.25f };
             var water = new WaterSimulation(settings, grid, 5);
 
             Run(water, grid, 30); // 0,5 s
@@ -160,13 +160,31 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
+        public void AbsorbedWater_Infiltrates_SofteningTheHighestFixedDirtWithinReach()
+        {
+            PixelGrid grid = MakeBox(16, 16, surfaceY: 15);
+            grid.Set(2, 1, CellMaterial.Rock);
+            grid.SetWater(3, 1, true);
+            grid.Set(4, 1, CellMaterial.Dirt);
+            grid.Set(5, 5, CellMaterial.Dirt); // a 4 células acima: dentro do alcance
+            grid.Set(3, 12, CellMaterial.Dirt); // longe demais
+            var settings = new WaterSettings { InfiltrationReach = 5, ErosionSeconds = 1f, CheckInterval = 0.25f };
+            var water = new WaterSimulation(settings, grid, 5);
+
+            Run(water, grid, 80);
+            Assert.AreEqual(CellMaterial.Mud, grid.Get(5, 5), "A água sobe pelo solo e amolece a terra mais alta ao alcance.");
+            Assert.AreEqual(CellMaterial.Dirt, grid.Get(3, 12), "Além do alcance nada amolece.");
+            Assert.AreEqual(0, grid.WaterCount);
+        }
+
+        [Test]
         public void Water_DoesNotErodeOutsideTheAnthill()
         {
             PixelGrid grid = MakeBox(8, 8, surfaceY: 0); // tudo acima do solo original: é céu
             grid.Set(2, 1, CellMaterial.Rock);
             grid.SetWater(3, 1, true);
             grid.Set(4, 1, CellMaterial.Dirt);
-            var water = new WaterSimulation(new WaterSettings { ErosionSeconds = 0.5f }, grid, 6);
+            var water = new WaterSimulation(new WaterSettings { InfiltrationReach = 0, EvaporationSeconds = 0f, ErosionSeconds = 0.5f }, grid, 6);
 
             Run(water, grid, 300);
 
@@ -192,7 +210,7 @@ namespace Fabula.Incrementant.Tests
                 grid.SetWater(x, 3, true);
             }
             int total = grid.WaterCount;
-            var water = new WaterSimulation(new WaterSettings { ErosionSeconds = 0.5f }, grid, 8);
+            var water = new WaterSimulation(new WaterSettings { InfiltrationReach = 0, EvaporationSeconds = 0f, ErosionSeconds = 0.5f }, grid, 8);
 
             Run(water, grid, 6000); // 100 s
 
@@ -224,7 +242,7 @@ namespace Fabula.Incrementant.Tests
                 grid.Set(x, y, x == 3 ? CellMaterial.Empty : CellMaterial.Dirt);
             for (int y = 1; y <= 5; y++)
                 grid.SetWater(3, y, true);
-            var water = new WaterSimulation(new WaterSettings { ErosionSeconds = 0.5f }, grid, 9);
+            var water = new WaterSimulation(new WaterSettings { InfiltrationReach = 0, EvaporationSeconds = 0f, ErosionSeconds = 0.5f }, grid, 9);
 
             Run(water, grid, 1200, new GranularSimulation());
 
@@ -243,7 +261,7 @@ namespace Fabula.Incrementant.Tests
             for (int x = 1; x < 7; x++)
             for (int y = 2; y <= 3; y++)
                 grid.SetWater(x, y, true);
-            var water = new WaterSimulation(new WaterSettings { ErosionSeconds = 0.5f }, grid, 10);
+            var water = new WaterSimulation(new WaterSettings { InfiltrationReach = 0, EvaporationSeconds = 0f, ErosionSeconds = 0.5f }, grid, 10);
 
             Run(water, grid, 600);
 
@@ -299,7 +317,7 @@ namespace Fabula.Incrementant.Tests
             Assert.Greater(lake.Count, 0);
             Assert.GreaterOrEqual(deepest, settings.LakeDepth.x - 1, "Laguinhos fundos (KI-028).");
 
-            var water = new WaterSimulation(new WaterSettings(), grid, 99);
+            var water = new WaterSimulation(new WaterSettings { InfiltrationReach = 0, EvaporationSeconds = 0f }, grid, 99);
             Run(water, grid, 3600, new GranularSimulation()); // 60 s: o laguinho não seca com o tempo
             foreach (int i in lake)
                 Assert.IsTrue(grid.HasWater(i % grid.Width, i / grid.Width), "O laguinho gerado já nasce assentado e contido.");
@@ -329,7 +347,7 @@ namespace Fabula.Incrementant.Tests
             }
             Assert.Greater(pockets.Count, 0, "O mapa padrão deveria ter bolsões de água subterrâneos.");
 
-            var water = new WaterSimulation(new WaterSettings(), grid, 99);
+            var water = new WaterSimulation(new WaterSettings { InfiltrationReach = 0, EvaporationSeconds = 0f }, grid, 99);
             Run(water, grid, 1800, new GranularSimulation());
             foreach (int i in pockets)
                 Assert.IsTrue(grid.HasWater(i % grid.Width, i / grid.Width), "A água do bolsão fechado não some nem escorre.");

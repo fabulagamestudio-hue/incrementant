@@ -56,6 +56,35 @@ namespace Fabula.Incrementant.Diagnostics
         Count,
     }
 
+    /// <summary>Um passo de formiga que passou de <see cref="SlowStepLog.ThresholdMs"/>: quem era e o que fazia.</summary>
+    public struct SlowStep
+    {
+        public float Ms;
+        public int Before, After, Role, Task, Second, Mark, X, Y;
+        public float SimTime;
+    }
+
+    /// <summary>Últimos passos de formiga lentos (anel, sem alocação). <c>Mark</c> diz até onde da decisão o passo chegou.</summary>
+    public sealed class SlowStepLog
+    {
+        public const float ThresholdMs = 3f;
+        public const int Size = 8;
+        readonly SlowStep[] _ring = new SlowStep[Size];
+        public int Total { get; private set; }
+
+        public void Add(in SlowStep step) => _ring[Total++ % Size] = step;
+
+        /// <summary>0 = o mais recente.</summary>
+        public bool TryGet(int back, out SlowStep step)
+        {
+            step = default;
+            if (back >= Size || back >= Total)
+                return false;
+            step = _ring[(Total - 1 - back) % Size];
+            return true;
+        }
+    }
+
     /// <summary>
     /// Cronômetro leve por etapa: soma o tempo de cada etapa dentro do frame (vários ticks somam), e a cada
     /// <see cref="EndFrame"/> atualiza a média suavizada e o pico da janela de <see cref="PeakWindowSeconds"/>.
@@ -76,12 +105,31 @@ namespace Fabula.Incrementant.Diagnostics
         readonly float[] _counterRate = new float[CounterCount];
         float _windowTime;
 
+        /// <summary>Quantos estados de formiga a medição por estado comporta (o enum <c>AntState</c> cabe com folga).</summary>
+        public const int StateSlots = 32;
+        // Tempo gasto em UpdateAnt, por estado da formiga ANTES do passo (quem decide o que fazer conta em Idle).
+        readonly long[] _stateFrame = new long[StateSlots];
+        readonly float[] _stateAverage = new float[StateSlots];
+        readonly float[] _stateWindowPeak = new float[StateSlots];
+        readonly float[] _statePeak = new float[StateSlots];
+
         public static long Now() => Stopwatch.GetTimestamp();
+
+        public static float ToMs(long ticks) => (float)(ticks * TicksToMs);
 
         /// <summary>Soma ao frame o tempo desde <paramref name="start"/> (de <see cref="Now"/>) na etapa.</summary>
         public void Add(ProfileStage stage, long start) => _frame[(int)stage] += Stopwatch.GetTimestamp() - start;
 
         public void Count(ProfileCounter counter) => _counterAccum[(int)counter]++;
+
+        /// <summary>Soma ao frame o tempo desde <paramref name="start"/> no estado de formiga <paramref name="state"/>.</summary>
+        public void AddState(int state, long start) => _stateFrame[state] += Stopwatch.GetTimestamp() - start;
+
+        /// <summary>Tempo médio (ms por frame) gasto em passos de formigas que estavam no estado.</summary>
+        public float StateAverageMs(int state) => _stateAverage[state];
+
+        /// <summary>Maior tempo (ms num frame) do estado na última janela de <see cref="PeakWindowSeconds"/>.</summary>
+        public float StatePeakMs(int state) => _statePeak[state];
 
         /// <summary>Fecha o frame: <paramref name="deltaSeconds"/> é o tempo real (sem escala) que ele durou.</summary>
         public void EndFrame(float deltaSeconds)
@@ -99,6 +147,18 @@ namespace Fabula.Incrementant.Diagnostics
                     continue;
                 _peak[i] = _windowPeak[i];
                 _windowPeak[i] = 0f;
+            }
+            for (int i = 0; i < StateSlots; i++)
+            {
+                float ms = (float)(_stateFrame[i] * TicksToMs);
+                _stateFrame[i] = 0;
+                _stateAverage[i] += (ms - _stateAverage[i]) * 0.1f;
+                if (ms > _stateWindowPeak[i])
+                    _stateWindowPeak[i] = ms;
+                if (!rollWindow)
+                    continue;
+                _statePeak[i] = _stateWindowPeak[i];
+                _stateWindowPeak[i] = 0f;
             }
             if (!rollWindow)
                 return;

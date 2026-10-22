@@ -63,6 +63,7 @@ namespace Fabula.Incrementant.EditorTools.Setup
             camera.backgroundColor = new Color(0.08f, 0.06f, 0.05f);
             camera.nearClipPlane = 0.1f;
             camera.farClipPlane = 50f;
+            PostProcessSetup.Build(scene, camera);
 
             GameObject root = FindOrCreate(scene, RootName);
             AntFarmGame game = GetOrAdd<AntFarmGame>(root);
@@ -156,11 +157,15 @@ namespace Fabula.Incrementant.EditorTools.Setup
             var serialized = new SerializedObject(view);
             SerializedProperty property = serialized.FindProperty("_tileMaterial");
             if (property.objectReferenceValue == null)
-            {
                 property.objectReferenceValue = material;
-                serialized.ApplyModifiedPropertiesWithoutUndo();
-            }
+            // Atlas desenhado da etapa 5 (documento 40); vazio no campo = atlas gerado por código.
+            SerializedProperty atlas = serialized.FindProperty("_tileAtlas");
+            if (atlas.objectReferenceValue == null)
+                atlas.objectReferenceValue = AssetDatabase.LoadAssetAtPath<Texture2D>(TileAtlasPath);
+            serialized.ApplyModifiedPropertiesWithoutUndo();
         }
+
+        const string TileAtlasPath = "Assets/Project/Art/Terrain/TerrainAtlas.png";
 
         static void EnsureInBuildSettings()
         {
@@ -183,8 +188,20 @@ namespace Fabula.Incrementant.EditorTools.Setup
             SetSprites(serialized.FindProperty("_walkFrames"), AntSpriteGenerator.Generate(overwrite: false));
             SetSprites(serialized.FindProperty("_topFrames"), AntSpriteGenerator.GenerateTop(overwrite: false));
             AssignRoleArt(serialized.FindProperty("_roleArt"));
+            AssignQueenArt(serialized);
             AssignTermiteArt(serialized);
             serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>Quadros próprios da rainha (Art/Ants/Rainha, etapa 8 do documento 40) e os itens carregados (etapa 9).</summary>
+        static void AssignQueenArt(SerializedObject antsView)
+        {
+            antsView.FindProperty("_nutrientSprite").objectReferenceValue =
+                AssetDatabase.LoadAssetAtPath<Sprite>($"{AntSpriteImporter.AntsFolder}{AntSpriteImporter.ItemPrefix}Nutrient.png");
+            antsView.FindProperty("_waterSprite").objectReferenceValue =
+                AssetDatabase.LoadAssetAtPath<Sprite>($"{AntSpriteImporter.AntsFolder}{AntSpriteImporter.ItemPrefix}Water.png");
+            SetSprites(antsView.FindProperty("_queenWalkFrames"), LoadFrames(AntSpriteImporter.QueenFolder, "Ant_Walk_"));
+            SetSprites(antsView.FindProperty("_queenTopFrames"), LoadFrames(AntSpriteImporter.QueenFolder, AntSpriteImporter.TopViewPrefix));
         }
 
         /// <summary>Pasta dos cupins (a arte "formiga inimiga alada" do REQ-027).</summary>
@@ -198,9 +215,12 @@ namespace Fabula.Incrementant.EditorTools.Setup
             SetSprites(antsView.FindProperty("_termiteLand"), LoadFrames(folder, "Ant_Land_"));
             SetSprites(antsView.FindProperty("_termiteWalk"), LoadFrames(folder, "Ant_Walk_"));
             SetSprites(antsView.FindProperty("_termiteTop"), LoadFrames(folder, AntSpriteImporter.TopViewPrefix));
+            // Pulgões da fazenda (e o pulgão preto, tingido): Art/Aphids, importados pelo AphidSpriteImporter.
+            SetSprites(antsView.FindProperty("_aphidWalk"), LoadFrames(AphidSpriteImporter.Folder, "Aphid_Walk_"));
+            SetSprites(antsView.FindProperty("_aphidTop"), LoadFrames(AphidSpriteImporter.Folder, "Aphid_Top_"));
         }
 
-        /// <summary>Papel → pasta de arte em Art/Ants (a rainha fica de fora: usa os quadros da raiz).</summary>
+        /// <summary>Papel → pasta de arte em Art/Ants (a rainha fica de fora: tem os quadros dela, ver AssignQueenArt).</summary>
         static readonly (AntRole role, string folder)[] RoleArtFolders =
         {
             (AntRole.Worker, "Operaria"),
@@ -210,6 +230,9 @@ namespace Fabula.Incrementant.EditorTools.Setup
             (AntRole.Digger, "Escavadora"),
             (AntRole.Nurse, "Cuidadora"),
             (AntRole.Soldier, "Soldado"),
+            (AntRole.Spitter, "Cuspideira"),
+            (AntRole.Midden, "Lixeira"),
+            (AntRole.Farmer, "Fazendeira"),
         };
 
         /// <summary>Atualiza só a arte por papel do AntSwarmView na cena já pronta, sem refazer o resto (HUD, mapa, cenário).</summary>
@@ -227,6 +250,7 @@ namespace Fabula.Incrementant.EditorTools.Setup
             }
             var serialized = new SerializedObject(antsView);
             AssignRoleArt(serialized.FindProperty("_roleArt"));
+            AssignQueenArt(serialized);
             AssignTermiteArt(serialized);
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorSceneManager.MarkSceneDirty(scene);
@@ -249,7 +273,7 @@ namespace Fabula.Incrementant.EditorTools.Setup
             for (int i = 0; i < RoleArtFolders.Length; i++)
             {
                 SerializedProperty entry = list.GetArrayElementAtIndex(i);
-                entry.FindPropertyRelative("Role").enumValueIndex = (int)RoleArtFolders[i].role; // valores 0..6 contíguos
+                entry.FindPropertyRelative("Role").enumValueIndex = (int)RoleArtFolders[i].role; // valores 0..9 contíguos
                 string folder = $"{AntSpriteImporter.AntsFolder}{RoleArtFolders[i].folder}/";
                 SetSprites(entry.FindPropertyRelative("Walk"), LoadFrames(folder, "Ant_Walk_"));
                 SetSprites(entry.FindPropertyRelative("Top"), LoadFrames(folder, AntSpriteImporter.TopViewPrefix));
@@ -281,7 +305,29 @@ namespace Fabula.Incrementant.EditorTools.Setup
         {
             var serialized = new SerializedObject(scenery);
             serialized.FindProperty("_art").objectReferenceValue = SceneryArtExporter.EnsureArt();
+            SerializedProperty cells = serialized.FindProperty("_cellMaterial");
+            if (cells.objectReferenceValue == null)
+                cells.objectReferenceValue = EnsureSceneryCellMaterial();
             serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        const string SceneryCellMaterialPath = "Assets/Project/Materials/SceneryCells.mat";
+
+        /// <summary>Material do detalhe por célula do cenário (etapa 10 do documento 40): cria se faltar.</summary>
+        static Material EnsureSceneryCellMaterial()
+        {
+            var material = AssetDatabase.LoadAssetAtPath<Material>(SceneryCellMaterialPath);
+            if (material != null)
+                return material;
+            Shader shader = Shader.Find("Incrementant/SceneryCells");
+            if (shader == null)
+            {
+                Debug.LogError("[AntFarmSceneSetup] Shader Incrementant/SceneryCells não encontrado (Assets/Project/Materials/SceneryCells.shader); o cenário fica com o pixel da arte chapado.");
+                return null;
+            }
+            material = new Material(shader) { name = "SceneryCells" };
+            AssetDatabase.CreateAsset(material, SceneryCellMaterialPath);
+            return material;
         }
 
         static void SetSprites(SerializedProperty list, Sprite[] sprites)

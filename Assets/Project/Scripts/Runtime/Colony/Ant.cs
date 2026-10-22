@@ -55,6 +55,16 @@ namespace Fabula.Incrementant.Colony
         TakingStored,
         /// <summary>Indo tirar uma companheira soterrada (<see cref="Ant.RescueTarget"/>) ou já cavando por ela. Valor novo: não renumerar; não vai para o save.</summary>
         Rescuing,
+        /// <summary>
+        /// Fazendeira levando areia ou água (<see cref="Ant.FarmItem"/>) ao cocho reservado de um pulgão (<see cref="Ant.TargetX"/>,
+        /// <see cref="Ant.TargetY"/>). Valor novo: não renumerar; não vai para o save (volta ociosa).
+        /// </summary>
+        FeedingAphid,
+        /// <summary>
+        /// Fazendeira ordenhando um pulgão (<see cref="Ant.EggId"/> = id do pulgão): vai até ele e fica ao lado. Valor novo: não
+        /// renumerar; não vai para o save (volta ociosa).
+        /// </summary>
+        TendingAphid,
     }
 
     /// <summary>
@@ -73,7 +83,10 @@ namespace Fabula.Incrementant.Colony
     /// <summary>
     /// Papel de gameplay da formiga (valores gravados no save: não renumerar). Quem corta plantas está em
     /// <see cref="AntRoles.Harvests"/>. A jardineira cuida da sala de nutrientes (o cultivo). O soldado
-    /// só ataca: libera-se depois do primeiro ataque de cupins (nó S0 da árvore da rainha).
+    /// só ataca: libera-se depois do primeiro ataque de cupins (nó S0 da árvore da rainha). A cuspideira também luta, mas
+    /// de longe (cospe ácido; nó K0); a lixeira cuida dos resíduos (corpos, itens soltos, terra da área; nó W0). As duas
+    /// vieram do pedido do desenvolvedor de 2026-10-21. A fazendeira (nó Z0, pedido de 2026-10-22) enche os cochos dos
+    /// pulgões e os ordenha na fazenda.
     /// </summary>
     public enum AntRole : byte
     {
@@ -84,6 +97,9 @@ namespace Fabula.Incrementant.Colony
         Digger = 4,
         Nurse = 5,
         Soldier = 6,
+        Spitter = 7,
+        Midden = 8,
+        Farmer = 9,
     }
 
     /// <summary>Números por papel, vindos da seção 15 do design (velocidade e custo alimentar) e do que cada papel muda hoje no jogo.</summary>
@@ -91,7 +107,10 @@ namespace Fabula.Incrementant.Colony
     {
         /// <summary>Papéis que a rainha sabe criar, na ordem de exibição.</summary>
         public static readonly AntRole[] All =
-            { AntRole.Worker, AntRole.Carrier, AntRole.Cutter, AntRole.Digger, AntRole.Gardener, AntRole.Nurse, AntRole.Soldier };
+            {
+                AntRole.Worker, AntRole.Carrier, AntRole.Cutter, AntRole.Digger, AntRole.Gardener, AntRole.Farmer, AntRole.Nurse,
+                AntRole.Midden, AntRole.Soldier, AntRole.Spitter,
+            };
 
         const float BaseSpeed = 24f; // células/s da operária comum no design
 
@@ -103,7 +122,9 @@ namespace Fabula.Incrementant.Colony
                 case AntRole.Carrier: return 28f / BaseSpeed;
                 case AntRole.Cutter: return 26f / BaseSpeed;
                 case AntRole.Gardener: return 22f / BaseSpeed;
-                case AntRole.Nurse: return 26f / BaseSpeed;
+                case AntRole.Nurse:
+                case AntRole.Midden: return 26f / BaseSpeed;
+                case AntRole.Farmer: return 22f / BaseSpeed;
                 default: return 1f;
             }
         }
@@ -145,19 +166,34 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Busca água no mapa para regar os canteiros: a comum, a jardineira (o cultivo é dela) e a carregadora.</summary>
         public static bool CarriesWater(AntRole role) => role == AntRole.Worker || role == AntRole.Gardener || role == AntRole.Carrier;
 
-        /// <summary>Leva nutrientes prontos à rainha: a escavadora não (ela prioriza obras), nem o soldado.</summary>
-        public static bool FetchesNutrients(AntRole role) => role != AntRole.Digger && role != AntRole.Nurse && role != AntRole.Soldier;
+        /// <summary>Leva nutrientes prontos à rainha: a escavadora não (ela prioriza obras), nem as guerreiras e a lixeira.</summary>
+        public static bool FetchesNutrients(AntRole role) =>
+            role != AntRole.Digger && role != AntRole.Nurse && !IsWarrior(role) && role != AntRole.Midden && role != AntRole.Farmer;
 
-        /// <summary>Desmembra corpos de cupim e leva as partes (design 08/21: comuns retiram corpos), além do soldado.</summary>
-        public static bool ClearsCorpses(AntRole role) => role == AntRole.Worker || role == AntRole.Carrier || role == AntRole.Soldier;
+        /// <summary>Cuida da fazenda de pulgões (enche os cochos e ordenha): só a fazendeira.</summary>
+        public static bool Farms(AntRole role) => role == AntRole.Farmer;
 
-        /// <summary>Vida (pontos de dano) da tabela 15 do design: comum, cortadeira, jardineira e cuidadora 6; carregadora e escavadora 8; soldado 18.</summary>
+        /// <summary>Desmembra corpos de cupim e leva as partes (design 08/21: comuns retiram corpos), além das guerreiras e da lixeira.</summary>
+        public static bool ClearsCorpses(AntRole role) =>
+            role == AntRole.Worker || role == AntRole.Carrier || IsWarrior(role) || role == AntRole.Midden;
+
+        /// <summary>Guerreiras: caçam os cupins da superfície, vão aos postos de guarda e, fora do ataque, só tiram corpos.</summary>
+        public static bool IsWarrior(AntRole role) => role == AntRole.Soldier || role == AntRole.Spitter;
+
+        /// <summary>A cuspideira ataca de longe (<see cref="RaidSettings.SpitRange"/>) em vez de morder.</summary>
+        public static bool Spits(AntRole role) => role == AntRole.Spitter;
+
+        /// <summary>
+        /// Vida (pontos de dano) da tabela 15 do design: comum, cortadeira, jardineira e cuidadora 6; carregadora e escavadora 8;
+        /// soldado 18. Cuspideira 8 (frágil: luta de longe) e lixeira 6 são valores assumidos (2026-10-21).
+        /// </summary>
         public static float BaseHealth(AntRole role)
         {
             switch (role)
             {
                 case AntRole.Carrier:
-                case AntRole.Digger: return 8f;
+                case AntRole.Digger:
+                case AntRole.Spitter: return 8f;
                 case AntRole.Soldier: return 18f;
                 default: return 6f;
             }
@@ -177,6 +213,9 @@ namespace Fabula.Incrementant.Colony
                 case AntRole.Gardener:
                 case AntRole.Nurse: return 26;
                 case AntRole.Soldier: return 34;
+                case AntRole.Spitter: return 30;
+                case AntRole.Midden: return 20;
+                case AntRole.Farmer: return 24;
                 default: return 18;
             }
         }
@@ -190,7 +229,11 @@ namespace Fabula.Incrementant.Colony
                 case AntRole.Digger:
                 case AntRole.Gardener: return 15f;
                 case AntRole.Nurse:
-                case AntRole.Soldier: return 10f;
+                case AntRole.Midden:
+                case AntRole.Soldier:
+                case AntRole.Spitter: return 10f;
+                // Poucas bastam: uma fazendeira por pulgão (a fazenda cria de 2 a 12).
+                case AntRole.Farmer: return 5f;
                 default: return 20f;
             }
         }
@@ -205,6 +248,9 @@ namespace Fabula.Incrementant.Colony
                 case AntRole.Gardener: return "Jardineira";
                 case AntRole.Nurse: return "Cuidadora";
                 case AntRole.Soldier: return "Soldado";
+                case AntRole.Spitter: return "Cuspideira";
+                case AntRole.Midden: return "Lixeira";
+                case AntRole.Farmer: return "Fazendeira";
                 default: return "Operária";
             }
         }
@@ -240,6 +286,12 @@ namespace Fabula.Incrementant.Colony
         /// ociosa de novo, quando volta a olhar primeiro o trabalho do papel. Não vai para o save.
         /// </summary>
         public bool ActingAsWorker;
+        /// <summary>
+        /// Segunda função (KI-033, pedido do desenvolvedor em 2026-10-20): a seção que a colônia mais precisava quando o papel
+        /// da formiga ficou sem trabalho (<see cref="WorkSection"/> como int; -1 = nenhuma, faz o da operária). Escolhida pela
+        /// necessidade, não fixa por papel. Não vai para o save.
+        /// </summary>
+        public int SecondFunction = -1;
         /// <summary>Papel cujas regras de tarefa a formiga segue agora. Velocidade, carga, vida e ritmos seguem sempre <see cref="Role"/>.</summary>
         public AntRole TaskRole => ActingAsWorker ? AntRole.Worker : Role;
         public int X;
@@ -338,6 +390,8 @@ namespace Fabula.Incrementant.Colony
         /// vale, as outras não o escolhem e ele sai dos campos de escavação. Não vai para o save.
         /// </summary>
         public int SeekTarget = -1;
+        /// <summary>Tempo de simulação antes do qual a busca de escavação não é refeita (a última chegou e não achou pixel livre). Não vai para o save.</summary>
+        public float SeekRetryAt;
         /// <summary>Pedido aceito e ainda a caminho (corte, obra). Some quando ela muda de estado ou desiste; não vai para o save.</summary>
         public AntErrand Errand;
         /// <summary>A reserva em <see cref="SeekTarget"/> é de rocha (campo da escavadora), não de terra/planta solta.</summary>
@@ -354,12 +408,17 @@ namespace Fabula.Incrementant.Colony
         int _seekStep;
 
         public int SeekPathLength => _seekLength;
+        /// <summary>Passos que faltam até a célula de onde pega o pixel reservado.</summary>
+        public int SeekRemaining => _seekLength - _seekStep;
         /// <summary>Já percorreu o caminho: está na célula de onde pega o pixel reservado.</summary>
         public bool SeekArrived => _seekStep >= _seekLength;
         /// <summary>Próxima célula do caminho (válido só sem <see cref="SeekArrived"/>).</summary>
         public int SeekNext => _seekPath[_seekStep];
 
         public void AdvanceSeek() => _seekStep++;
+
+        /// <summary>Última célula do caminho guardado (-1 = sem caminho).</summary>
+        public int SeekLast => _seekLength > 0 ? _seekPath[_seekLength - 1] : -1;
 
         /// <summary>Começa um caminho novo, ainda sem reserva.</summary>
         public void BeginSeekPath()
@@ -403,15 +462,46 @@ namespace Fabula.Incrementant.Colony
         public bool DewJob;
 
         /// <summary>
+        /// A terra que a formiga busca na pilha de fora (<see cref="AntState.FetchingSoil"/>/<see cref="AntState.GatheringSoil"/>)
+        /// é para a área de resíduos no modo terra → água. Não vai para o save.
+        /// </summary>
+        public bool WasteDirtJob;
+
+        /// <summary>Modo (<see cref="WasteMode"/>) da área de resíduos para onde a formiga leva a carga (<see cref="AntState.CarryingWaste"/>). Não vai para o save.</summary>
+        public byte WasteTarget;
+
+        /// <summary>
         /// Depósito para onde a formiga leva o que tem na mão (<see cref="AntState.Carrying"/>, <see cref="AntState.CarryingWater"/>)
         /// ou o que foi buscar (<see cref="AntState.FetchingWater"/>, <see cref="AntState.FetchingSoil"/>); None = o destino de sempre.
         /// Não vai para o save.
         /// </summary>
         public StorageKind StoreTarget;
+        /// <summary>
+        /// Vaga do depósito (<see cref="StoreTarget"/>) reservada para esta entrega: índice da célula, -1 = nenhuma. A ordem
+        /// nasce com o destino travado e a formiga vai até essa vaga, não à mais perto do momento (relato de 2026-10-20:
+        /// várias formigas iam à mesma vaga e as que perdiam saíam andando com o item). Não vai para o save.
+        /// </summary>
+        public int OrderSlot = -1;
         /// <summary>Para que a formiga foi pegar um item guardado em <see cref="AntState.TakingStored"/>. Não vai para o save.</summary>
         public StoreUse StoreUse;
         /// <summary>A planta na mão saiu do depósito de alimentos: vai aos canteiros, não volta ao depósito. Não vai para o save.</summary>
         public bool FromStore;
+        /// <summary>
+        /// Item (<see cref="StoredItems"/>) que a fazendeira busca ou leva ao cocho em <see cref="AntState.FeedingAphid"/>:
+        /// <see cref="StoredItems.Sand"/> ou <see cref="StoredItems.Water"/>. Não vai para o save.
+        /// </summary>
+        public byte FarmItem;
+        /// <summary>
+        /// Blocos de água na boca em <see cref="AntState.CarryingWater"/>: 1, ou mais na carregadora (pedido do desenvolvedor em
+        /// 2026-10-21). Cada vaga do depósito e cada canteiro recebe um; a formiga segue até a última. Não vai para o save
+        /// (0 conta como 1).
+        /// </summary>
+        public int WaterLoad;
+        /// <summary>
+        /// A planta do depósito foi buscada por quem trabalha na sala de nutrientes (<see cref="StoreUse.BedPlant"/>): vai só
+        /// aos canteiros, não à folha da sala Gotas de Orvalho. Não vai para o save.
+        /// </summary>
+        public bool GardenSupply;
 
         /// <summary>Presa na terra (KI-025): sem colisão, parada e fora de combate até abrir espaço ou ser resgatada. Não vai para o save (volta a ser detectada ao carregar).</summary>
         public bool Buried;

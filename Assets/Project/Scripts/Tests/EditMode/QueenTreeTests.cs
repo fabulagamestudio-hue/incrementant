@@ -57,10 +57,15 @@ namespace Fabula.Incrementant.Tests
             var tree = new QueenTree();
             Assert.IsTrue(tree.Owns(QueenNode.Q0) && tree.Owns(QueenNode.O0), "Postura inicial e comum já vêm adquiridas.");
             Assert.IsTrue(tree.IsRoleUnlocked(AntRole.Worker));
-            foreach (AntRole role in new[] { AntRole.Carrier, AntRole.Cutter, AntRole.Digger, AntRole.Gardener, AntRole.Nurse })
+            foreach (AntRole role in new[]
+                     {
+                         AntRole.Carrier, AntRole.Cutter, AntRole.Digger, AntRole.Gardener, AntRole.Nurse, AntRole.Spitter, AntRole.Midden,
+                         AntRole.Farmer,
+                     })
                 Assert.IsFalse(tree.IsRoleUnlocked(role), $"{role} só depois de comprar o nó.");
             Assert.AreEqual(0, QueenTree.Def(QueenNode.Q0).Cost);
-            Assert.AreEqual(26, QueenTree.All.Count);
+            // 26 do design + cuspideira e lixeira (2026-10-21) + fazendeira e ordenha cuidadosa (2026-10-22)
+            Assert.AreEqual(30, QueenTree.All.Count);
         }
 
         [Test]
@@ -73,13 +78,13 @@ namespace Fabula.Incrementant.Tests
             CollectionAssert.AreEquivalent(new[] { QueenNode.S1, QueenNode.S2 }, QueenTree.Def(QueenNode.S3).Requires);
             CollectionAssert.AreEqual(new[] { QueenNode.L0 }, QueenTree.Def(QueenNode.L3).Requires, "L3 exige só L0 (proposta do design).");
             CollectionAssert.AreEqual(new[] { QueenNode.O0 }, QueenTree.Def(QueenNode.O3).Requires, "As melhorias da comum são independentes.");
-            // Custo total por ramo (seção 28).
+            // Custo total por ramo (seção 28); a cuspideira (K0), a lixeira (W0) e a fazendeira (Z0, Z1) vieram depois, fora dela.
             int[] totals = { 600, 440, 800, 380, 780, 720, 760, 1160 };
             for (int b = 0; b < QueenTree.BranchCount; b++)
             {
                 int sum = 0;
                 foreach (QueenNodeDef d in QueenTree.NodesOf((QueenBranch)b))
-                    sum += d.Cost;
+                    sum += d.Node >= QueenNode.K0 ? 0 : d.Cost;
                 Assert.AreEqual(totals[b], sum, QueenTree.BranchLabel((QueenBranch)b));
             }
         }
@@ -264,7 +269,8 @@ namespace Fabula.Incrementant.Tests
             legacy.Restore(QueenTree.LegacyMask);
             foreach (AntRole role in AntRoles.All)
             {
-                if (role != AntRole.Nurse && role != AntRole.Soldier) // cuidadora e soldado não existiam nesses saves
+                // não existiam nesses saves
+                if (role != AntRole.Nurse && !AntRoles.IsWarrior(role) && role != AntRole.Midden && role != AntRole.Farmer)
                     Assert.IsTrue(legacy.IsRoleUnlocked(role), $"{role} liberada num save antigo.");
             }
         }

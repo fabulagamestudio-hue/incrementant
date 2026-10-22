@@ -15,6 +15,13 @@ namespace Fabula.Incrementant.World
         Water = 3,
         /// <summary>Resíduo depositado na área de resíduos (entulho e resto de cupim).</summary>
         Waste = 4,
+        /// <summary>Areia: a comida dos pulgões da fazenda (pedido do desenvolvedor em 2026-10-22).</summary>
+        Sand = 5,
+        /// <summary>
+        /// Cogumelos luminosos colhidos dos pulgões, o material do pincel Cogumelo luminoso (pedido do desenvolvedor em
+        /// 2026-10-22: depósito separado do de construção).
+        /// </summary>
+        Mushroom = 6,
     }
 
     /// <summary>Item guardado numa célula (<see cref="PixelGrid.GetStored"/>): o valor do material, ou <see cref="Water"/>.</summary>
@@ -23,6 +30,13 @@ namespace Fabula.Incrementant.World
         public const byte None = 0;
         /// <summary>Bloco de água guardado (não é material da grade).</summary>
         public const byte Water = 255;
+        /// <summary>Grão de areia guardado (depósito de areia, cocho dos pulgões, saída da área de resíduos).</summary>
+        public const byte Sand = (byte)CellMaterial.Sand;
+        /// <summary>
+        /// Cogumelo luminoso colhido dos pulgões: material do pincel Cogumelo luminoso. Fica no depósito de cogumelos (ou
+        /// solto onde a ordenha o deixou, sem ele).
+        /// </summary>
+        public const byte Mushroom = (byte)CellMaterial.GlowMushroom;
 
         public static byte Of(CellMaterial material) => (byte)material;
 
@@ -38,6 +52,10 @@ namespace Fabula.Incrementant.World
             CellMaterial m = (CellMaterial)item;
             if (CellMaterials.IsPlant(m))
                 return StorageKind.Food;
+            if (m == CellMaterial.Sand)
+                return StorageKind.Sand;
+            if (m == CellMaterial.GlowMushroom)
+                return StorageKind.Mushroom;
             return CellMaterials.IsDepositedWaste(m) ? StorageKind.Waste : StorageKind.Blocks;
         }
     }
@@ -48,7 +66,7 @@ namespace Fabula.Incrementant.World
     /// </summary>
     public sealed partial class PixelGrid
     {
-        const int StorageKinds = 5;
+        const int StorageKinds = 7;
         byte[] _storageRoom;
         byte[] _stored;
         byte[] _storedShade;
@@ -109,7 +127,7 @@ namespace Fabula.Incrementant.World
                 ChangeStorageRoom(i, StorageKind.None);
                 return true;
             }
-            if (current != 0 || y > GetSurfaceY(x) || _queenRoom[i] || _nutrientRoom[i] || _nurseryRoom[i] || _wasteRoom[i] || _dewRoom[i])
+            if (current != 0 || y > GetSurfaceY(x) || _queenRoom[i] || _nutrientRoom[i] || _nurseryRoom[i] || _wasteRoom[i] || _dewRoom[i] || _farmRoom[i])
                 return false;
             ChangeStorageRoom(i, kind);
             return true;
@@ -177,6 +195,12 @@ namespace Fabula.Incrementant.World
             }
             StoreVersion++;
         }
+
+        /// <summary>
+        /// Avisa que a regra de quais itens são soltos mudou sem nenhum item mudar (modo da área de resíduos): os campos dos
+        /// itens são refeitos na próxima rodada.
+        /// </summary>
+        public void TouchStore() => StoreVersion++;
 
         /// <summary>Material sólido entrou na célula: o item guardado ali se perde.</summary>
         void LoseStoredAt(int index)

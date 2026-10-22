@@ -62,6 +62,16 @@ namespace Fabula.Incrementant.Colony
         [Tooltip("Postos de guarda (upgrade M2): distância (células, no eixo X) de uma entrada do formigueiro em que um cupim libera o grupo de soldados dela para caçar.")]
         [SerializeField, Min(1)] int _guardRange = 30;
 
+        [Header("Cuspideira")]
+        [Tooltip("Distância (células, em xadrez) até onde a cuspideira acerta um cupim, com a linha até ele livre de blocos sólidos.")]
+        [SerializeField, Range(3, 20)] int _spitRange = 8;
+        [Tooltip("Segundos entre dois cuspes da cuspideira.")]
+        [SerializeField, Min(0.1f)] float _spitSeconds = 1.5f;
+        [Tooltip("Dano de cada cuspe que acerta (o soldado tira 3 por mordida).")]
+        [SerializeField, Min(0f)] float _spitDamage = 2f;
+        [Tooltip("Velocidade do cuspe no ar (células/s): o dano entra quando ele chega.")]
+        [SerializeField, Min(1f)] float _spitSpeed = 30f;
+
         [Header("Rainha e dedo")]
         [Tooltip("Vida da rainha: se os cupins a levarem a zero, é game over.")]
         [SerializeField, Min(1f)] float _queenHealth = 60f;
@@ -85,6 +95,10 @@ namespace Fabula.Incrementant.Colony
         [SerializeField, Min(1f)] float _wasteDecaySeconds = 120f;
         [Tooltip("Folhas soltas (pixels de planta para os canteiros) em que cada resto de cupim se transforma ao se decompor na área de resíduos.")]
         [SerializeField, Min(0)] int _remainsLeaves = 3;
+        [Tooltip("Modo folhas → água da área de resíduos: segundos para cada folha guardada na área virar um bloco de água (o R1 corta pela metade).")]
+        [SerializeField, Min(1f)] float _leafWaterSeconds = 60f;
+        [Tooltip("Modo terra → água da área de resíduos: segundos para cada terra guardada na área virar um bloco de areia e um de água (o R2 corta pela metade).")]
+        [SerializeField, Min(1f)] float _dirtWaterSeconds = 60f;
 
         public int MinAnts => _minAnts;
         public float MinIntervalMinutes => _minIntervalMinutes;
@@ -115,6 +129,10 @@ namespace Fabula.Incrementant.Colony
         public float HealDelaySeconds => _healDelaySeconds;
         public int MaxAttackersPerTermite => _maxAttackersPerTermite;
         public int GuardRange => _guardRange;
+        public int SpitRange => _spitRange;
+        public float SpitSeconds => _spitSeconds;
+        public float SpitDamage => _spitDamage;
+        public float SpitSpeed => _spitSpeed;
         public float QueenHealth => _queenHealth;
         public float QueenDamageFactor => _queenDamageFactor;
         public bool HuntQueen { get => _huntQueen; set => _huntQueen = value; }
@@ -125,5 +143,7 @@ namespace Fabula.Incrementant.Colony
         public float DismemberSeconds => _dismemberSeconds;
         public float WasteDecaySeconds => _wasteDecaySeconds;
         public int RemainsLeaves => _remainsLeaves;
+        public float LeafWaterSeconds => _leafWaterSeconds;
+        public float DirtWaterSeconds => _dirtWaterSeconds;
     }
 }

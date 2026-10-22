@@ -117,37 +117,72 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
-        public void NutrientQueen_GoesToTheNutrientRoom_StaysThere_AndEatsWhatIsReady()
+        public void GardenerQueen_FetchesTheReadyNutrient_AndBackInTheNestGoesHome()
         {
-            var (grid, layout) = MakeWorld(2, 400f);
+            // Sem canteiro brotando: a jardineira cuidaria deles antes de buscar nutriente.
+            var (grid, layout) = MakeWorld(0, 400f);
             for (int x = 50; x <= 53; x++)
             for (int y = 1; y <= 2; y++)
                 Assert.IsTrue(grid.SetQueenRoom(x, y, true));
             var colony = new AntColony(grid, new ColonySettings(), layout, seed: 2);
-            // Sem a seção de alimentar a rainha, nenhuma formiga leva o nutriente: só ela come.
-            colony.Work.SetEnabled(WorkSection.QueenFeed, false);
-            colony.QueenJob = QueenJob.Nutrients;
-
-            for (float t = 0f; t < 60f && colony.QueenPlace != ColonyPlace.NutrientRoom; t += Dt)
-                colony.Tick(Dt);
-            Assert.AreEqual(ColonyPlace.NutrientRoom, colony.QueenPlace, "A rainha vai à sala de nutrientes.");
-            for (float t = 0f; t < 20f; t += Dt)
-            {
-                colony.Tick(Dt);
-                Assert.AreEqual(ColonyPlace.NutrientRoom, colony.QueenPlace, "Sem nutriente pronto, ela espera lá dentro.");
-            }
+            // Limite 0 em alimentar a rainha: nenhuma formiga leva o nutriente; só ela (que não segue limites) o busca.
+            colony.Work.SetLimit(WorkSection.QueenFeed, 0);
+            colony.QueenJob = QueenJob.Gardener;
 
             int before = colony.TotalNutrients;
             grid.SetNutrient(38, 1, true);
-            for (float t = 0f; t < 30f && colony.TotalNutrients == before; t += Dt)
+            bool visited = false;
+            for (float t = 0f; t < 60f && colony.TotalNutrients == before; t += Dt)
+            {
                 colony.Tick(Dt);
-            Assert.AreEqual(before + 1, colony.TotalNutrients, "O nutriente pronto vai direto para a rainha.");
-            Assert.AreEqual(ColonyPlace.NutrientRoom, colony.QueenPlace, "E ela continua na sala.");
+                visited |= colony.QueenPlace == ColonyPlace.NutrientRoom;
+            }
+            Assert.AreEqual(before + 1, colony.TotalNutrients, "A rainha jardineira busca o nutriente pronto e o come.");
+            Assert.IsTrue(visited, "Ela foi à sala de nutrientes.");
 
             colony.QueenJob = QueenJob.Nest;
             for (float t = 0f; t < 30f && !colony.QueenInRoom; t += Dt)
                 colony.Tick(Dt);
             Assert.IsTrue(colony.QueenInRoom, "De volta ao ninho, ela vai para a sala dela.");
+        }
+
+        [Test]
+        public void GardenerQueen_RespectsAStoppedFeedingSection()
+        {
+            var (grid, layout) = MakeWorld(0, 400f);
+            for (int x = 50; x <= 53; x++)
+            for (int y = 1; y <= 2; y++)
+                Assert.IsTrue(grid.SetQueenRoom(x, y, true));
+            var colony = new AntColony(grid, new ColonySettings(), layout, seed: 2);
+            colony.Work.SetEnabled(WorkSection.QueenFeed, false);
+            colony.QueenJob = QueenJob.Gardener;
+
+            int before = colony.TotalNutrients;
+            grid.SetNutrient(38, 1, true);
+            for (float t = 0f; t < 60f; t += Dt)
+            {
+                colony.Tick(Dt);
+                Assert.AreNotEqual(AntState.Fetching, colony.Queen.State, "Alimentar a rainha parada: nem ela busca o nutriente.");
+            }
+            Assert.AreEqual(before, colony.TotalNutrients);
+        }
+
+        [Test]
+        public void QueenJobs_ListTheNestAndEveryRole_AndOldSaveValuesBecomeWorkerAndGardener()
+        {
+            Assert.AreEqual(QueenJob.Nest, QueenJobs.All[0]);
+            Assert.AreEqual(1 + AntRoles.All.Length, QueenJobs.All.Length);
+            for (int i = 0; i < AntRoles.All.Length; i++)
+            {
+                Assert.IsTrue(QueenJobs.TryGetRole(QueenJobs.All[i + 1], out AntRole role));
+                Assert.AreEqual(AntRoles.All[i], role);
+            }
+            Assert.IsFalse(QueenJobs.TryGetRole(QueenJob.Nest, out _));
+            // Saves de antes do seletor: 1 = COLETAR RECURSOS, 2 = COLETAR NUTRIENTE.
+            Assert.IsTrue(QueenJobs.TryGetRole((QueenJob)1, out AntRole forage));
+            Assert.AreEqual(AntRole.Worker, forage);
+            Assert.IsTrue(QueenJobs.TryGetRole((QueenJob)2, out AntRole nutrients));
+            Assert.AreEqual(AntRole.Gardener, nutrients);
         }
 
         [Test]
@@ -173,7 +208,7 @@ namespace Fabula.Incrementant.Tests
             colony.Work.SetEnabled(WorkSection.Build, false);
             colony.Work.SetLimit(WorkSection.Nursery, 3);
             colony.Work.SetLimit(WorkSection.Waste, 0);
-            colony.QueenJob = QueenJob.Forage;
+            colony.QueenJob = QueenJob.Cutter;
 
             var rain = new RainSimulation(new RainSettings(), 99);
             var water = new WaterSimulation(new WaterSettings(), grid, 99);
@@ -188,7 +223,7 @@ namespace Fabula.Incrementant.Tests
             var colony2 = new AntColony(grid2, new ColonySettings(), layout2, 99);
             loaded.ApplyTo(colony2);
 
-            Assert.AreEqual(QueenJob.Forage, colony2.QueenJob);
+            Assert.AreEqual(QueenJob.Cutter, colony2.QueenJob);
             Assert.IsFalse(colony2.Work.IsEnabled(WorkSection.Build));
             Assert.IsTrue(colony2.Work.IsEnabled(WorkSection.Dig));
             Assert.AreEqual(3, colony2.Work.LimitOf(WorkSection.Nursery));

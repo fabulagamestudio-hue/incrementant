@@ -45,6 +45,9 @@ namespace Fabula.Incrementant.Colony
         // o teto de água da sala vem das duas, então a sala larga guarda mais.
         int _dewMaxHeight;
         int _dewDropColumns;
+        // Soma, por coluna da sala, de DewMaxWaterShare da altura (arredondado para baixo): o teto vertical da água, que nem os
+        // upgrades passam (a água acima disso escorreria pela entrada, KI-050).
+        int _dewWaterCeiling;
         int _dewSoilPlaced;
         int _dewLeavesPlaced;
         int _dewSoilSpots;
@@ -109,6 +112,7 @@ namespace Fabula.Incrementant.Colony
             _dewActive = false;
             _dewMaxHeight = 0;
             _dewDropColumns = 0;
+            _dewWaterCeiling = 0;
             if (_grid.DewRoomCount == 0)
             {
                 if (!_dewFieldIdle)
@@ -215,6 +219,7 @@ namespace Fabula.Incrementant.Colony
                 CollectDewStale(x, 0, -1);
                 return 0;
             }
+            _dewWaterCeiling += Mathf.FloorToInt(height * _settings.DewMaxWaterShare + 0.001f);
             int band = Mathf.Clamp(Mathf.CeilToInt(height * _settings.DewSoilShare - 0.001f), 1, height - 1);
             int covered = 0;
             for (int j = 0; j < band; j++)
@@ -309,7 +314,10 @@ namespace Fabula.Incrementant.Colony
         // ---------------------------------------------------------------- gota
 
         /// <summary>Quanto falta (0 a 1) para a próxima gota; -1 sem sala pronta. Para a barra de progresso.</summary>
-        public float DewProgress => _dewActive && _dewDropCells.Count > 0 ? Mathf.Clamp01(_dewTimer / Mathf.Max(0.01f, _settings.DewDropSeconds)) : -1f;
+        public float DewProgress => DewDripping && _dewDropCells.Count > 0 ? Mathf.Clamp01(_dewTimer / Mathf.Max(0.01f, _settings.DewDropSeconds)) : -1f;
+
+        /// <summary>A sala está pronta e a seção Gotas de Orvalho está ligada no painel da colônia: só assim cai gota.</summary>
+        bool DewDripping => _dewActive && Work.IsEnabled(WorkSection.Dew);
 
         /// <summary>A sala esperava as formigas levarem a água (cheia) na última gota.</summary>
         public bool DewBlocked => _dewBlocked;
@@ -326,7 +334,9 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Conta o tempo da sala pronta e solta uma gota a cada <see cref="ColonySettings.DewDropSeconds"/>.</summary>
         void TickDew(float deltaTime)
         {
-            if (!_dewActive)
+            // Seção desligada no painel: a sala para de produzir, não só de receber formigas (relato de 2026-10-20: desligada,
+            // ela seguia pingando e as formigas drenavam a água para o depósito sem fim).
+            if (!DewDripping)
             {
                 _dewTimer = 0f;
                 return;
@@ -340,8 +350,9 @@ namespace Fabula.Incrementant.Colony
             _dewTimer = 0f;
             // Teto por coluna com ponto de queda (pedido do desenvolvedor em 2026-10-20: antes só a altura contava, e a sala larga
             // enchia em dois intervalos e parava); acima dele, só as células livres da sala limitam a gota.
-            int room = _settings.DewWaterPerHeight * _dewMaxHeight * _dewDropColumns + Effects.DewRoomWaterBonus -
-                       (_dewDropCells.Count == 0 ? int.MaxValue : CountDewWater());
+            // O teto vertical (_dewWaterCeiling, 40% da altura) vale por cima do bônus do G+2.
+            int cap = Mathf.Min(_settings.DewWaterPerHeight * _dewMaxHeight * _dewDropColumns + Effects.DewRoomWaterBonus, _dewWaterCeiling);
+            int room = cap - (_dewDropCells.Count == 0 ? int.MaxValue : CountDewWater());
             _dewBlocked = room <= 0;
             if (_dewBlocked)
                 return;

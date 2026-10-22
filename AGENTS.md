@@ -10,6 +10,7 @@ A prioridade é entregar alterações completas, verificadas e fáceis de manter
 - Renderização: URP `17.3.0` (conforme `Packages/manifest.json`). Respeite o pipeline existente; não introduza materiais ou shaders de outro pipeline sem uma migração deliberada.
 - Entrada: Input System `1.19.0`. Não introduzir o Input Manager legado.
 - Código e conteúdo próprios ficam sob `Assets/Project`.
+- Ferramentas do estúdio importadas de outros projetos ficam em `Assets/Iung` (hoje o Build Assistant, em `Assets/Iung/Build Assistant`, cujo caminho é fixo no código). Elas têm guias próprios (`BuildAssist Guide.md`) e não seguem a organização de `Assets/Project`; o changelog e a versão das builds seguem a skill `build-assist-changelog`.
 - Documentos de design, arte, narrativa, produção e planilhas de valores (`.docx`/`.xlsx`) ficam em `Docs/`, na raiz, fora de `Assets`; o índice é `Docs/README.md`. Não crie documentos desse tipo dentro de `Assets`.
 - Cenas no build (ordem): `Assets/Project/Scenes/AntFarm.unity` (protótipo do formigário, gerada por `Incrementant/Setup/Criar cena AntFarm`), `Assets/Scenes/SampleScene.unity` (cena de template, a substituir).
 - A serialização de assets está em Force Text. Ainda assim, cenas, prefabs e outros YAMLs da Unity exigem cuidado especial.

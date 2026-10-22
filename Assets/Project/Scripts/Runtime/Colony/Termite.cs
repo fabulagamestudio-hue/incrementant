@@ -19,6 +19,8 @@ namespace Fabula.Incrementant.Colony
     public enum RaidObjective : byte
     {
         Brood,
+        /// <summary>Os pulgões da fazenda (pedido do desenvolvedor em 2026-10-22): o pulgão mordido fica preto e muda de lado.</summary>
+        Aphids,
         Farms,
         /// <summary>Todo bloco sólido dentro da área pintada dos setores (antes das paredes em volta).</summary>
         Sectors,
@@ -71,6 +73,11 @@ namespace Fabula.Incrementant.Colony
         public int Workers;
         /// <summary>Formigas mordendo este cupim (recontado a cada Tick, e +1 na hora em que uma começa): as demais escolhem outro alvo.</summary>
         public int Attackers;
+        /// <summary>
+        /// Pulgão preto (pedido do desenvolvedor em 2026-10-22): o pulgão da fazenda que um cupim mordeu muda de lado e ataca as
+        /// formigas até morrer. Usa o corpo e o combate dos cupins, mas não segue o objetivo do ataque nem vai embora.
+        /// </summary>
+        public bool Aphid;
 
         public bool Alive => Phase != TermitePhase.Dead;
 
@@ -79,5 +86,29 @@ namespace Fabula.Incrementant.Colony
 
         public int X => Body.X;
         public int Y => Body.Y;
+    }
+
+    /// <summary>
+    /// Cuspe de uma cuspideira a caminho do cupim (pedido do desenvolvedor em 2026-10-21). Segue o alvo: o desenho vai da
+    /// célula de onde saiu até a posição atual dele. Não vai para o save.
+    /// </summary>
+    public sealed class SpitShot
+    {
+        public readonly int FromX, FromY;
+        public readonly Termite Target;
+        /// <summary>Segundos no ar até acertar (distância ÷ <see cref="RaidSettings.SpitSpeed"/>).</summary>
+        public readonly float Duration;
+        public float Elapsed;
+
+        public SpitShot(int fromX, int fromY, Termite target, float duration)
+        {
+            FromX = fromX;
+            FromY = fromY;
+            Target = target;
+            Duration = duration;
+        }
+
+        /// <summary>Fração do caminho já feita (0 a 1).</summary>
+        public float Progress => Duration > 0f ? UnityEngine.Mathf.Clamp01(Elapsed / Duration) : 1f;
     }
 }

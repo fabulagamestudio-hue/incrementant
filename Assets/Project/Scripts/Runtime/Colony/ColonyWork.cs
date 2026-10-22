@@ -26,15 +26,50 @@ namespace Fabula.Incrementant.Colony
         Waste = 7,
     }
 
-    /// <summary>O que a rainha faz (pedido do desenvolvedor em 2026-10-19): fica no ninho pondo ovos ou sai para coletar.</summary>
+    /// <summary>
+    /// Comportamento da rainha (pedido do desenvolvedor em 2026-10-21): fica no ninho pondo ovos ou trabalha como uma das
+    /// classes que ela cria (a mesma IA da formiga daquele papel). Gravado no save como 1 + <see cref="AntRole"/>: os
+    /// valores antigos 1 (COLETAR RECURSOS) e 2 (COLETAR NUTRIENTE) viram operária e jardineira. Não renumerar.
+    /// </summary>
     public enum QueenJob : byte
     {
         /// <summary>Fica na sala dela pondo ovos (o comportamento de sempre).</summary>
         Nest = 0,
-        /// <summary>Sai para coletar: come o nutriente guardado e corta e carrega plantas como uma operária. Fora da sala, não põe ovos.</summary>
-        Forage = 1,
-        /// <summary>Só nutriente: fica na sala de nutrientes e come cada nutriente pronto (pedido do desenvolvedor em 2026-10-19). Não põe ovos.</summary>
-        Nutrients = 2,
+        // 1 + AntRole.
+        Worker = 1,
+        Gardener = 2,
+        Carrier = 3,
+        Cutter = 4,
+        Digger = 5,
+        Nurse = 6,
+        Soldier = 7,
+        Spitter = 8,
+        Midden = 9,
+        Farmer = 10,
+    }
+
+    public static class QueenJobs
+    {
+        /// <summary>Opções do comportamento da rainha, na ordem do painel: ninho e depois as classes de <see cref="AntRoles.All"/>.</summary>
+        public static readonly QueenJob[] All = BuildAll();
+
+        static QueenJob[] BuildAll()
+        {
+            var all = new QueenJob[1 + AntRoles.All.Length];
+            all[0] = QueenJob.Nest;
+            for (int i = 0; i < AntRoles.All.Length; i++)
+                all[i + 1] = Of(AntRoles.All[i]);
+            return all;
+        }
+
+        public static QueenJob Of(AntRole role) => (QueenJob)(1 + (int)role);
+
+        /// <summary>Papel que a rainha imita; <c>false</c> no ninho.</summary>
+        public static bool TryGetRole(QueenJob job, out AntRole role)
+        {
+            role = job == QueenJob.Nest ? AntRole.Worker : (AntRole)((int)job - 1);
+            return job != QueenJob.Nest;
+        }
     }
 
     /// <summary>

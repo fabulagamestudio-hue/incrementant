@@ -1077,7 +1077,7 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 22553245786112
     m_Localized: "Salas do formigueiro. Pinte onde ficam a rainha, o cultivo, as
-      crias, o lixo, o orvalho e os dep\xF3sitos."
+      crias, o lixo, o orvalho, os pulg\xF5es e os dep\xF3sitos."
     m_Metadata:
       m_Items: []
   - m_Id: 22553245786113
@@ -1174,8 +1174,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 22553245786133
-    m_Localized: "Carregadora: a mais r\xE1pida; leva ovos e carrega mais material
-      por viagem."
+    m_Localized: "Carregadora: a mais r\xE1pida; leva o dobro por viagem, enche os
+      dep\xF3sitos e entrega o que est\xE1 neles."
     m_Metadata:
       m_Items: []
   - m_Id: 22553245786134
@@ -1395,11 +1395,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 316986955370502
-    m_Localized: TRABALHO DA RAINHA
+    m_Localized: COMPORTAMENTO DA RAINHA
     m_Metadata:
       m_Items: []
   - m_Id: 316986955370503
-    m_Localized: "NINHO: P\xD4R OVOS"
+    m_Localized: BOTAR OVOS
     m_Metadata:
       m_Items: []
   - m_Id: 316986955370504
@@ -1656,9 +1656,9 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 332726722859011
-    m_Localized: "Dep\xF3sitos de alimentos, de constru\xE7\xE3o e de \xE1gua. O
-      que as formigas trazem de fora fica guardado ali, sem fechar a passagem, e
-      \xE9 usado de l\xE1 primeiro."
+    m_Localized: "Dep\xF3sitos de alimentos, de constru\xE7\xE3o, de \xE1gua, de
+      areia e de cogumelos. O que as formigas trazem de fora fica guardado ali, sem
+      fechar a passagem, e \xE9 usado de l\xE1 primeiro."
     m_Metadata:
       m_Items: []
   - m_Id: 332726722859012
@@ -2297,6 +2297,616 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 688793124466690
     m_Localized: O QUE ELA LIBERA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781892664291328
+    m_Localized: "O pincel pinta: {0}. Cada \xE1rea guarda o pr\xF3prio modo."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781892685262848
+    m_Localized: Restos em folhas
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781892685262849
+    m_Localized: "Folhas em \xE1gua"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781892685262850
+    m_Localized: "Terra em areia e \xE1gua"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781892685262851
+    m_Localized: "Pinta uma \xE1rea para entulho e restos de cupim. O entulho some;
+      os restos viram folhas, que as formigas levam ao dep\xF3sito de alimentos ou
+      aos canteiros."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781892685262852
+    m_Localized: "Pinta uma \xE1rea s\xF3 para restos de cupim. As folhas deles ficam
+      na \xE1rea e viram \xE1gua (1 folha, 1 \xE1gua). A \xE1gua vai ao dep\xF3sito
+      de \xE1gua ou aos canteiros."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781892685262853
+    m_Localized: "Pinta uma \xE1rea s\xF3 para terra: as formigas trazem a terra
+      solta de fora e a cavada que iria ao despejo, e ela vira areia e \xE1gua (1
+      terra, 1 areia e 1 \xE1gua). A areia vai ao dep\xF3sito de areia (ou ao despejo);
+      a \xE1gua, ao dep\xF3sito de \xE1gua ou aos canteiros."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781892689457152
+    m_Localized: Filtragem da terra
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781892689457153
+    m_Localized: "A terra vira areia e \xE1gua 2\xD7 mais r\xE1pido na \xE1rea de
+      res\xEDduos"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781912851476480
+    m_Localized: RESTOS EM FOLHAS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781913384153088
+    m_Localized: "FOLHAS EM \xC1GUA"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781913937801216
+    m_Localized: "TERRA EM AREIA E \xC1GUA"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 938790323613696
+    m_Localized: BLOQUEAR OBRA EM SALAS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 966333848219648
+    m_Localized: Trabalhando como {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 966333852413952
+    m_Localized: "A rainha trabalha como {0} e n\xE3o p\xF5e ovos fora da sala. Agora:
+      {1}."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 966333852413953
+    m_Localized: "Escolha o que a rainha faz: botar ovos ou trabalhar como uma das
+      classes j\xE1 liberadas."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 966333852413954
+    m_Localized: "A rainha trabalha como {0}, com o mesmo comportamento dessa classe
+      (sem trabalho dela, faz o da oper\xE1ria). Respeita as se\xE7\xF5es paradas,
+      mas n\xE3o os limites. Fora da sala, n\xE3o p\xF5e ovos."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771277692928
+    m_Localized: "\xC1rea: {0}/{1} c\xE9lulas \xB7 salas: {2}/{3}."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771277692929
+    m_Localized: "Sem \xE1rea livre: apague uma parte ou compre mais \xE1rea na Evolu\xE7\xE3o."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887232
+    m_Localized: Sala de orvalho ampla
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887233
+    m_Localized: "Pode pintar +20 c\xE9lulas de sala de orvalho por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887234
+    m_Localized: Sala de nutrientes ampla
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887235
+    m_Localized: "Pode pintar +30 c\xE9lulas de sala de nutrientes por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887236
+    m_Localized: "Ber\xE7\xE1rio amplo"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887237
+    m_Localized: "Pode pintar +40 c\xE9lulas de ber\xE7\xE1rio por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887238
+    m_Localized: "Dep\xF3sitos amplos"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887239
+    m_Localized: "Pode pintar +30 c\xE9lulas de cada dep\xF3sito por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887240
+    m_Localized: "\xC1rea de res\xEDduos ampla"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887241
+    m_Localized: "Pode pintar +24 c\xE9lulas de \xE1rea de res\xEDduos por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887242
+    m_Localized: Sala real ampla
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887243
+    m_Localized: "Pode pintar +40 c\xE9lulas de sala da rainha por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1009555442102272
+    m_Localized: Salas extras
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1009555446296576
+    m_Localized: "Cada ambiente pode ter +1 sala separada por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1042029408808960
+    m_Localized: BRILHO (BLOOM)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1046201222950912
+    m_Localized: Cogumelo luminoso
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1046201222950913
+    m_Localized: "Cogumelo luminoso: clique numa c\xE9lula do t\xFAnel encostada
+      na terra. Uma formiga leva at\xE9 l\xE1 um cogumelo colhido dos pulg\xF5es
+      e o planta; ele ilumina os t\xFAneis em volta. Bot\xE3o direito desmarca; para
+      tirar um cogumelo, cave-o."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1046223054303232
+    m_Localized: COGUMELO LUMINOSO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105348362629120
+    m_Localized: Cuspideira
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105348366823424
+    m_Localized: Lixeira
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105348366823425
+    m_Localized: "Cuspideira: cospe \xE1cido nos cupins de longe, sem chegar perto
+      da mordida deles."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105348366823426
+    m_Localized: "Lixeira: tira os corpos dos cupins, leva os itens soltos e abastece
+      a \xE1rea de res\xEDduos."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105348366823427
+    m_Localized: Cuspideira
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105348366823428
+    m_Localized: "Nova classe, depois do primeiro ataque de cupins: cospe \xE1cido
+      nos cupins a at\xE9 8 c\xE9lulas"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105348366823429
+    m_Localized: Lixeira
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105348366823430
+    m_Localized: "Nova classe, depois do primeiro ataque de cupins: tira os corpos,
+      leva os itens soltos e abastece a \xE1rea de res\xEDduos antes de tudo"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105374124044288
+    m_Localized: LIXEIRA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105374728024064
+    m_Localized: CUSPIDEIRA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943372644352
+    m_Localized: "Fazenda de pulg\xF5es"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943397810176
+    m_Localized: "Dep\xF3sito de areia"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943397810177
+    m_Localized: Fazendeira
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943397810178
+    m_Localized: "ATR\xC1S DOS PULG\xD5ES"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943397810179
+    m_Localized: Fazenda
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943397810180
+    m_Localized: "Cogumelos guardados: {0}. Eles v\xEAm da ordenha dos pulg\xF5es
+      na fazenda e ficam no dep\xF3sito de cogumelos."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943397810181
+    m_Localized: "Dep\xF3sito de areia: guarda a areia cavada e a que sai da fazenda
+      e dos res\xEDduos. \xC9 a comida dos pulg\xF5es."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943397810182
+    m_Localized: "Fazenda de pulg\xF5es: os pulg\xF5es nascem nas baias do ch\xE3o,
+      cada uma com um cocho de areia e um de \xE1gua. Sozinhos, s\xF3 pingam \xE1gua;
+      ordenhados pela fazendeira, comem e d\xE3o areia, folhas, \xE1gua e \xE0s vezes
+      cogumelos luminosos."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004480
+    m_Localized: "Fazenda de pulg\xF5es: bloqueada at\xE9 voc\xEA comprar a c\xE2mara
+      Fazenda de pulg\xF5es em Evolu\xE7\xE3o."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004481
+    m_Localized: "Falta: pintar a fazenda (Ambientes > Fazenda de pulg\xF5es)."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004482
+    m_Localized: "Falta: espa\xE7o para baias. Cave a fazenda com ch\xE3o reto de
+      pelo menos {0} c\xE9lulas."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004483
+    m_Localized: "O primeiro pulg\xE3o nasce em {0} s."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004484
+    m_Localized: "Pulg\xF5es: {0}/{1} em {2} baias; {3} cochos vazios."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004485
+    m_Localized: "Sem fazendeira, os pulg\xF5es s\xF3 pingam \xE1gua."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004486
+    m_Localized: "Fazendeira: enche os cochos dos pulg\xF5es com areia e \xE1gua
+      e os ordenha na fazenda."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004487
+    m_Localized: Fazendeira
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004488
+    m_Localized: "Nova classe, com a fazenda de pulg\xF5es: enche os cochos de areia
+      e \xE1gua e ordenha os pulg\xF5es, que ent\xE3o d\xE3o areia, folhas e \xE1gua"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004489
+    m_Localized: Ordenha cuidadosa
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004490
+    m_Localized: "Fazendeiras ordenham os pulg\xF5es 50% mais r\xE1pido"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004491
+    m_Localized: "Dep\xF3sito de areia"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004492
+    m_Localized: "Libera o pincel do dep\xF3sito de areia, a comida dos pulg\xF5es"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004493
+    m_Localized: "Fazenda de pulg\xF5es"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004494
+    m_Localized: "Libera o pincel da fazenda: os pulg\xF5es nascem nas baias e, ordenhados,
+      d\xE3o areia, folhas, \xE1gua e cogumelos luminosos"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004495
+    m_Localized: "Ninhada de pulg\xF5es"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004496
+    m_Localized: "Os pulg\xF5es nascem 2\xD7 mais r\xE1pido"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004497
+    m_Localized: Rebanho
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004498
+    m_Localized: "A fazenda cria +1 pulg\xE3o por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004499
+    m_Localized: Ordenha
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004500
+    m_Localized: "A ordenha dos pulg\xF5es fica 5% mais r\xE1pida por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004501
+    m_Localized: Fazenda ampla
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004502
+    m_Localized: "Pode pintar +20 c\xE9lulas de fazenda por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004503
+    m_Localized: Passo de pastora
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004504
+    m_Localized: "Fazendeiras andam 4% mais r\xE1pido por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308972124598272
+    m_Localized: "FAZENDA DE PULG\xD5ES"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308973739405312
+    m_Localized: "DEP\xD3SITO DE AREIA"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308975454875648
+    m_Localized: FAZENDEIRA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1310793933123584
+    m_Localized: Postura
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1310793937317888
+    m_Localized: "A sala da rainha, onde ela p\xF5e os ovos"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1310793937317889
+    m_Localized: "T\xFAnel comum"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1310793937317890
+    m_Localized: "Os t\xFAneis do formigueiro"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1312784897929216
+    m_Localized: "Dep\xF3sito de cogumelos"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1312784897929217
+    m_Localized: "Dep\xF3sito de cogumelos: guarda os cogumelos luminosos que os
+      pulg\xF5es d\xE3o na ordenha. O pincel Cogumelo luminoso busca os cogumelos
+      daqui."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1312784902123520
+    m_Localized: "Dep\xF3sito de cogumelos"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1312784902123521
+    m_Localized: "Libera o pincel do dep\xF3sito de cogumelos, onde ficam os cogumelos
+      luminosos dos pulg\xF5es"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1312804879593472
+    m_Localized: "DEP\xD3SITO DE COGUMELOS"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1374681114472448
+    m_Localized: "Esconder ambientes: a pintura das salas e dos dep\xF3sitos some
+      do terreno. Com um pincel de ambiente na m\xE3o, ela volta a aparecer."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1374681118666752
+    m_Localized: "Mostrar ambientes: a pintura das salas e dos dep\xF3sitos volta
+      a aparecer no terreno."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1407114580979712
+    m_Localized: "VERS\xD5ES"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1407114610339840
+    m_Localized: ATUAL
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1407114610339841
+    m_Localized: NOVIDADES
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1407114610339842
+    m_Localized: "AJUSTES E CORRE\xC7\xD5ES"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1407114610339843
+    m_Localized: REMOVIDO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1407114610339844
+    m_Localized: BUGS CONHECIDOS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1407114610339845
+    m_Localized: "Esta vers\xE3o n\xE3o tem notas."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1407114610339846
+    m_Localized: "Nenhuma vers\xE3o publicada ainda."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372683210752
+    m_Localized: Bem-vindo ao formigueiro
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182272
+    m_Localized: "Agora \xE9 com voc\xEA!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182273
+    m_Localized: "Pr\xF3ximo"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182274
+    m_Localized: Voltar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182275
+    m_Localized: Explorar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182276
+    m_Localized: "Aqui voc\xEA n\xE3o controla cada formiga: voc\xEA marca onde cavar
+      e construir, decide para que serve cada sala e as formigas fazem o resto. Vamos
+      conhecer a tela. O jogo fica pausado durante o tour e voc\xEA pode clicar em
+      tudo enquanto isso."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182277
+    m_Localized: "C\xE2mera"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182278
+    m_Localized: "Mova a vista com WASD, as setas ou arrastando com o bot\xE3o do
+      meio do mouse. Role o mouse (ou Q/E) para aproximar e afastar. O formigueiro
+      \xE9 a terra embaixo; a rainha est\xE1 no abrigo."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182279
+    m_Localized: Nutrientes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182280
+    m_Localized: "A moeda da col\xF4nia. As formigas cultivam canteiros na sala de
+      nutrientes; a rainha come nutrientes para p\xF4r ovos e voc\xEA os gasta na
+      Evolu\xE7\xE3o."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182281
+    m_Localized: Formigas
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182282
+    m_Localized: "Adultas / vagas de adulta e as crias (ovos, larvas e pupas). As
+      vagas v\xEAm da \xE1rea escavada: cavar mais abre espa\xE7o para mais formigas."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182283
+    m_Localized: Rainha
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182284
+    m_Localized: "O estado da rainha. Para p\xF4r ovos ela precisa da pr\xF3pria
+      sala, de um ber\xE7\xE1rio, de vaga e de nutrientes; o cart\xE3o diz o que
+      est\xE1 faltando."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182285
+    m_Localized: Ferramenta
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182286
+    m_Localized: "Pinc\xE9is do mapa. Cavar marca a terra que as formigas tiram;
+      Construir marca onde elas p\xF5em terra; Cogumelo luminoso ilumina os t\xFAneis;
+      o Dedo fere cupins. Bot\xE3o esquerdo marca, direito desmarca."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182287
+    m_Localized: Ambientes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182288
+    m_Localized: "Pinte o espa\xE7o escavado para dar uma fun\xE7\xE3o a ele: sala
+      da rainha, de nutrientes, ber\xE7\xE1rio, res\xEDduos, orvalho, pulg\xF5es
+      e dep\xF3sitos. A barra embaixo de cada bot\xE3o mostra a \xE1rea que ainda
+      d\xE1 para pintar. Bot\xF5es apagados ainda n\xE3o foram liberados."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182289
+    m_Localized: Menu da rainha
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182290
+    m_Localized: "Escolha o tipo da pr\xF3xima formiga (ou deixe no autom\xE1tico),
+      pause a postura de ovos e decida se a rainha se defende ou ataca os cupins."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182291
+    m_Localized: "Evolu\xE7\xE3o"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182292
+    m_Localized: "Gaste nutrientes em novas classes de formiga e em melhorias. Arraste
+      para mover a \xE1rvore, role para aproximar e clique num n\xF3 para ver efeito,
+      custo e requisitos."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182293
+    m_Localized: Pausa
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182294
+    m_Localized: "Pausa e retoma o jogo (tecla P). Pausado, voc\xEA ainda pode marcar
+      e pintar. As teclas 1, 2 e 3 trocam a velocidade."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182295
+    m_Localized: "Painel da col\xF4nia"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182296
+    m_Localized: "Estat\xEDsticas das formigas e da produ\xE7\xE3o, e quais trabalhos
+      ficam ativos. Ali voc\xEA para uma se\xE7\xE3o ou limita quantas formigas trabalham
+      nela."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182297
+    m_Localized: Sino
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182298
+    m_Localized: "Chama as formigas de volta ao formigueiro: elas terminam o que
+      carregam e param. Toque de novo para mand\xE1-las de volta ao trabalho."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182299
+    m_Localized: Mostrar ambientes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182300
+    m_Localized: "Esconde ou mostra a pintura das salas no terreno. As salas continuam
+      funcionando; \xE9 s\xF3 para ver melhor a terra e as formigas."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182301
+    m_Localized: Cupins
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182302
+    m_Localized: "De tempos em tempos os cupins atacam. Um alerta aparece no alto
+      da tela e cada cupim ganha um c\xEDrculo vermelho (ou uma seta na borda). Se
+      matarem a rainha, a partida acaba."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182303
+    m_Localized: Dicas
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182304
+    m_Localized: "Pare o mouse sobre qualquer bot\xE3o ou cart\xE3o para ver o que
+      ele faz e o que est\xE1 faltando. O ESC abre o menu: salvar, carregar e configura\xE7\xF5es."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182305
+    m_Localized: "O jogo volta a correr quando voc\xEA fechar esta janela. Uma boa
+      primeira jogada: cave uma c\xE2mara ligada ao abrigo e pinte nela uma sala
+      de nutrientes. Depois, explore \xE0 vontade!"
     m_Metadata:
       m_Items: []
   references:

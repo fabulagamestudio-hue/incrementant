@@ -87,6 +87,8 @@ namespace Fabula.Incrementant.AntFarm
                 t.Append(peak >= 8f ? $"<color=#ff7060>{row}</color>\n" : $"{row}\n");
             }
 
+            AppendStateTimes(t, p);
+            AppendSlowSteps(t, colony.SlowSteps);
             CountAnts(colony);
             t.Append($"\n<b>Formigas: {colony.Ants.Count}</b> (máx {colony.MaxAnts})\n");
             AppendCounts(t, _byRole, typeof(AntRole));
@@ -101,6 +103,33 @@ namespace Fabula.Incrementant.AntFarm
                      $"{grid.GrowingBedCount} brotando · pontos livres {colony.BedSpots}\n");
             t.Append($"Água {grid.WaterCount} px · cria {colony.Brood.Count} · colheita {(colony.HarvestPaused ? "PAUSADA" : "ativa")}\n");
             _cached = t.ToString();
+        }
+
+        /// <summary>Onde o tempo de UpdateAnt vai, por estado da formiga antes do passo; só os estados que pesam.</summary>
+        void AppendStateTimes(StringBuilder t, SimProfiler p)
+        {
+            string[] names = System.Enum.GetNames(typeof(AntState));
+            t.Append("\n<b>formigas por estado (ms/frame)</b>\n");
+            int shown = 0;
+            for (int i = 0; i < names.Length && i < SimProfiler.StateSlots; i++)
+            {
+                float avg = p.StateAverageMs(i), peak = p.StatePeakMs(i);
+                if (avg < 0.05f && peak < 1f)
+                    continue;
+                string row = $"  {names[i],-24} {avg,6:0.00}  {peak,6:0.00}";
+                t.Append(peak >= 8f ? $"<color=#ff7060>{row}</color>\n" : $"{row}\n");
+                shown++;
+            }
+            if (shown == 0)
+                t.Append("  (tudo abaixo de 0,05 ms)\n");
+        }
+
+        /// <summary>Últimos passos de uma formiga acima de 3 ms: estado antes → depois, papel, tarefa e marca (ver AntColony._stepMark).</summary>
+        static void AppendSlowSteps(StringBuilder t, SlowStepLog log)
+        {
+            t.Append($"\n<b>passos lentos (>{SlowStepLog.ThresholdMs:0} ms): {log.Total}</b>\n");
+            for (int i = 0; i < 5 && log.TryGet(i, out SlowStep s); i++)
+                t.Append($"  {s.Ms,5:0}ms {(AntState)s.Before}→{(AntState)s.After} {(AntRole)s.Role}/{(AntRole)s.Task} m{s.Mark} f{s.Second} ({s.X},{s.Y})\n");
         }
 
         void CountAnts(AntColony colony)

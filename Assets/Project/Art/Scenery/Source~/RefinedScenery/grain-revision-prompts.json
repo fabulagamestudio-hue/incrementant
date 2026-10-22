@@ -1,0 +1,102 @@
+{
+  "reason": "Reforçar leitura de alimento; remover aparência mineral da primeira geração.",
+  "tool": "image_gen.imagegen integrado",
+  "entries": [
+    {
+      "Family": "Grains",
+      "Name": "Grain_00",
+      "Width": 8,
+      "Height": 7,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Grains\\Grain_00.png",
+      "prompt": "Edit the original food-grain/crumb sprite into an irregular golden bread crumb, toasted brown crust and pale porous interior. This is edible cereal or bread food for ants, unmistakably organic, NOT rock, stone, dirt, ore or mineral. Keep the original compact silhouette, size proportions and warm original colors. Match the ant reference's polished crisp pixel-art style: confident discrete shading clusters, dark one-pixel silhouette edge, light from upper left, flat warm colors. Make the kernel crease or crumb pores readable, avoid mineral facets, stone cracks, crystalline flecks, metallic surfaces, gray patches or rock texture. Only warm palette #1B1815 #382414 #463123 #623E23 #785A40 #9A7F5E #B9986D #DEB06D #823A10 #7B4F2E #9E6534 #C5833E #D6872F #CFB691 #E4D2AE #F5EDD9. No gradients, blur, glow, cast shadow, text, ground, animal or extra objects. A single small isolated food item, fully visible, tightly centered on genuine transparent background. Preserve the game woodland ant-colony theme.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Grains/Grain_00.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png"
+      ]
+    },
+    {
+      "Family": "Grains",
+      "Name": "Grain_01",
+      "Width": 6,
+      "Height": 5,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Grains\\Grain_01.png",
+      "prompt": "Edit the original food-grain/crumb sprite into a plump tan oat kernel with one clear longitudinal groove. This is edible cereal or bread food for ants, unmistakably organic, NOT rock, stone, dirt, ore or mineral. Keep the original compact silhouette, size proportions and warm original colors. Match the ant reference's polished crisp pixel-art style: confident discrete shading clusters, dark one-pixel silhouette edge, light from upper left, flat warm colors. Make the kernel crease or crumb pores readable, avoid mineral facets, stone cracks, crystalline flecks, metallic surfaces, gray patches or rock texture. Only warm palette #1B1815 #382414 #463123 #623E23 #785A40 #9A7F5E #B9986D #DEB06D #823A10 #7B4F2E #9E6534 #C5833E #D6872F #CFB691 #E4D2AE #F5EDD9. No gradients, blur, glow, cast shadow, text, ground, animal or extra objects. A single small isolated food item, fully visible, tightly centered on genuine transparent background. Preserve the game woodland ant-colony theme.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Grains/Grain_01.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png"
+      ]
+    },
+    {
+      "Family": "Grains",
+      "Name": "Grain_02",
+      "Width": 6,
+      "Height": 5,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Grains\\Grain_02.png",
+      "prompt": "Edit the original food-grain/crumb sprite into a pale broken cereal kernel with a creamy starchy interior. This is edible cereal or bread food for ants, unmistakably organic, NOT rock, stone, dirt, ore or mineral. Keep the original compact silhouette, size proportions and warm original colors. Match the ant reference's polished crisp pixel-art style: confident discrete shading clusters, dark one-pixel silhouette edge, light from upper left, flat warm colors. Make the kernel crease or crumb pores readable, avoid mineral facets, stone cracks, crystalline flecks, metallic surfaces, gray patches or rock texture. Only warm palette #1B1815 #382414 #463123 #623E23 #785A40 #9A7F5E #B9986D #DEB06D #823A10 #7B4F2E #9E6534 #C5833E #D6872F #CFB691 #E4D2AE #F5EDD9. No gradients, blur, glow, cast shadow, text, ground, animal or extra objects. A single small isolated food item, fully visible, tightly centered on genuine transparent background. Preserve the game woodland ant-colony theme.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Grains/Grain_02.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png"
+      ]
+    },
+    {
+      "Family": "Grains",
+      "Name": "Grain_03",
+      "Width": 6,
+      "Height": 5,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Grains\\Grain_03.png",
+      "prompt": "Edit the original food-grain/crumb sprite into a small dark toasted bread crumb, warm brown crust and a few pale crumb pores. This is edible cereal or bread food for ants, unmistakably organic, NOT rock, stone, dirt, ore or mineral. Keep the original compact silhouette, size proportions and warm original colors. Match the ant reference's polished crisp pixel-art style: confident discrete shading clusters, dark one-pixel silhouette edge, light from upper left, flat warm colors. Make the kernel crease or crumb pores readable, avoid mineral facets, stone cracks, crystalline flecks, metallic surfaces, gray patches or rock texture. Only warm palette #1B1815 #382414 #463123 #623E23 #785A40 #9A7F5E #B9986D #DEB06D #823A10 #7B4F2E #9E6534 #C5833E #D6872F #CFB691 #E4D2AE #F5EDD9. No gradients, blur, glow, cast shadow, text, ground, animal or extra objects. A single small isolated food item, fully visible, tightly centered on genuine transparent background. Preserve the game woodland ant-colony theme.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Grains/Grain_03.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png"
+      ]
+    },
+    {
+      "Family": "Grains",
+      "Name": "Grain_04",
+      "Width": 6,
+      "Height": 5,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Grains\\Grain_04.png",
+      "prompt": "Edit the original food-grain/crumb sprite into a pale golden bread flake with a thin toasted edge. This is edible cereal or bread food for ants, unmistakably organic, NOT rock, stone, dirt, ore or mineral. Keep the original compact silhouette, size proportions and warm original colors. Match the ant reference's polished crisp pixel-art style: confident discrete shading clusters, dark one-pixel silhouette edge, light from upper left, flat warm colors. Make the kernel crease or crumb pores readable, avoid mineral facets, stone cracks, crystalline flecks, metallic surfaces, gray patches or rock texture. Only warm palette #1B1815 #382414 #463123 #623E23 #785A40 #9A7F5E #B9986D #DEB06D #823A10 #7B4F2E #9E6534 #C5833E #D6872F #CFB691 #E4D2AE #F5EDD9. No gradients, blur, glow, cast shadow, text, ground, animal or extra objects. A single small isolated food item, fully visible, tightly centered on genuine transparent background. Preserve the game woodland ant-colony theme.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Grains/Grain_04.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png"
+      ]
+    },
+    {
+      "Family": "Grains",
+      "Name": "Grain_05",
+      "Width": 4,
+      "Height": 4,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Grains\\Grain_05.png",
+      "prompt": "Edit the original food-grain/crumb sprite into a tiny compact cereal seed fragment, simple shape and one crease. This is edible cereal or bread food for ants, unmistakably organic, NOT rock, stone, dirt, ore or mineral. Keep the original compact silhouette, size proportions and warm original colors. Match the ant reference's polished crisp pixel-art style: confident discrete shading clusters, dark one-pixel silhouette edge, light from upper left, flat warm colors. Make the kernel crease or crumb pores readable, avoid mineral facets, stone cracks, crystalline flecks, metallic surfaces, gray patches or rock texture. Only warm palette #1B1815 #382414 #463123 #623E23 #785A40 #9A7F5E #B9986D #DEB06D #823A10 #7B4F2E #9E6534 #C5833E #D6872F #CFB691 #E4D2AE #F5EDD9. No gradients, blur, glow, cast shadow, text, ground, animal or extra objects. A single small isolated food item, fully visible, tightly centered on genuine transparent background. Preserve the game woodland ant-colony theme.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Grains/Grain_05.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png"
+      ]
+    },
+    {
+      "Family": "Grains",
+      "Name": "Grain_06",
+      "Width": 6,
+      "Height": 5,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Grains\\Grain_06.png",
+      "prompt": "Edit the original food-grain/crumb sprite into an irregular light-golden bread crumb with two or three readable pores. This is edible cereal or bread food for ants, unmistakably organic, NOT rock, stone, dirt, ore or mineral. Keep the original compact silhouette, size proportions and warm original colors. Match the ant reference's polished crisp pixel-art style: confident discrete shading clusters, dark one-pixel silhouette edge, light from upper left, flat warm colors. Make the kernel crease or crumb pores readable, avoid mineral facets, stone cracks, crystalline flecks, metallic surfaces, gray patches or rock texture. Only warm palette #1B1815 #382414 #463123 #623E23 #785A40 #9A7F5E #B9986D #DEB06D #823A10 #7B4F2E #9E6534 #C5833E #D6872F #CFB691 #E4D2AE #F5EDD9. No gradients, blur, glow, cast shadow, text, ground, animal or extra objects. A single small isolated food item, fully visible, tightly centered on genuine transparent background. Preserve the game woodland ant-colony theme.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Grains/Grain_06.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png"
+      ]
+    },
+    {
+      "Family": "Grains",
+      "Name": "Grain_07",
+      "Width": 10,
+      "Height": 7,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Grains\\Grain_07.png",
+      "prompt": "Edit the original food-grain/crumb sprite into a larger elongated oat kernel with a groove and one chipped end. This is edible cereal or bread food for ants, unmistakably organic, NOT rock, stone, dirt, ore or mineral. Keep the original compact silhouette, size proportions and warm original colors. Match the ant reference's polished crisp pixel-art style: confident discrete shading clusters, dark one-pixel silhouette edge, light from upper left, flat warm colors. Make the kernel crease or crumb pores readable, avoid mineral facets, stone cracks, crystalline flecks, metallic surfaces, gray patches or rock texture. Only warm palette #1B1815 #382414 #463123 #623E23 #785A40 #9A7F5E #B9986D #DEB06D #823A10 #7B4F2E #9E6534 #C5833E #D6872F #CFB691 #E4D2AE #F5EDD9. No gradients, blur, glow, cast shadow, text, ground, animal or extra objects. A single small isolated food item, fully visible, tightly centered on genuine transparent background. Preserve the game woodland ant-colony theme.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Grains/Grain_07.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png"
+      ]
+    }
+  ]
+}

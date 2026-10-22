@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Fabula.Incrementant.Colony;
+using Fabula.Incrementant.Settings;
 using Fabula.Incrementant.World;
 using UnityEngine;
 
@@ -20,6 +21,10 @@ namespace Fabula.Incrementant.AntFarm
         FoodStore,
         BlockStore,
         WaterStore,
+        GlowMushroom,
+        FarmRoom,
+        SandStore,
+        MushroomStore,
     }
 
     /// <summary>
@@ -49,6 +54,9 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField] Color32 _nurseryRoomColor = new Color32(240, 160, 190, 255);
         [Tooltip("Cor da área de resíduos pintada e do pincel no modo área de resíduos.")]
         [SerializeField] Color32 _wasteRoomColor = new Color32(170, 150, 90, 255);
+        [Tooltip("Cor da área de resíduos no modo folhas em água (as outras: Waste Room Color = restos em folhas, Waste Dirt Color = terra em areia e água).")]
+        [SerializeField] Color32 _wasteLeavesColor = new Color32(90, 170, 150, 255);
+        [SerializeField] Color32 _wasteDirtColor = new Color32(190, 120, 70, 255);
         [Tooltip("Cor da sala Gotas de Orvalho pintada e do pincel no modo sala Gotas de Orvalho.")]
         [SerializeField] Color32 _dewRoomColor = new Color32(90, 190, 230, 255);
         [Tooltip("Cor do depósito de alimentos pintado e do pincel no modo depósito de alimentos.")]
@@ -57,6 +65,12 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField] Color32 _blockStoreColor = new Color32(220, 140, 70, 255);
         [Tooltip("Cor do depósito de água pintado e do pincel no modo depósito de água.")]
         [SerializeField] Color32 _waterStoreColor = new Color32(70, 120, 235, 255);
+        [Tooltip("Cor do depósito de areia pintado e do pincel no modo depósito de areia.")]
+        [SerializeField] Color32 _sandStoreColor = new Color32(230, 200, 110, 255);
+        [Tooltip("Cor do depósito de cogumelos pintado e do pincel no modo depósito de cogumelos.")]
+        [SerializeField] Color32 _mushroomStoreColor = new Color32(200, 150, 220, 255);
+        [Tooltip("Cor da fazenda de pulgões pintada e do pincel no modo fazenda.")]
+        [SerializeField] Color32 _farmRoomColor = new Color32(140, 200, 120, 255);
         [Tooltip("Quanto o item guardado (depósitos e resíduos) mistura a cor dele com o fundo do túnel: 1 = a cor do material.")]
         [SerializeField, Range(0f, 1f)] float _storedStrength = 0.8f;
         [Tooltip("Força da tinta da sala de nutrientes; células ainda maciças ficam com metade.")]
@@ -72,10 +86,18 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField, Range(0, LightLevels)] int _outsideLight = LightLevels;
         [Tooltip("Níveis que a luz perde ao entrar numa célula de terra (no túnel perde 1).")]
         [SerializeField, Range(1, 8)] int _solidLightCost = 4;
-        [Tooltip("Brilho mínimo do túnel no breu, longe das entradas (0 = preto). A terra longe da luz fica sempre preta.")]
-        [SerializeField, Range(0f, 0.3f)] float _interiorAmbient = 0.08f;
-        [Tooltip("Degraus de brilho entre o preto e a luz cheia (pixel art: sem degradê).")]
-        [SerializeField, Range(2, 8)] int _lightSteps = 5;
+        [Tooltip("Brilho mínimo do túnel longe da luz: a penumbra do formigueiro (0 = preto). A terra longe da luz fica sempre preta.")]
+        [SerializeField, Range(0f, 0.5f)] float _interiorAmbient = 0.22f;
+        [Tooltip("Nível de luz do cogumelo luminoso (0 a 16, o teto da regra de limite): espalha pela mesma regra da luz de fora, perdendo 1 por célula de túnel e Solid Light Cost por célula de terra.")]
+        [SerializeField, Range(0, LightLevels)] int _glowMushroomLight = LightLevels;
+        [Tooltip("Níveis que a luz do cogumelo perde ao entrar numa célula de terra (a de fora perde Solid Light Cost). Menor = a luz entra mais nas paredes.")]
+        [SerializeField, Range(1, 8)] int _glowSolidLightCost = 4;
+        [Tooltip("Multiplicador da cor do cogumelo luminoso no shader (acima de 1 = HDR): é o que o bloom do pós-processamento pega. Só com Tile Material.")]
+        [SerializeField, Range(1f, 8f)] float _glowMushroomEmission = 2.5f;
+        [Tooltip("Cor do cogumelo luminoso: o cubo, a marca do pincel, o contorno do pincel e o tom da luz que sai dele.")]
+        [SerializeField] Color32 _glowMushroomColor = new Color32(240, 214, 130, 255);
+        [Tooltip("Quanto a cor do cogumelo tinge a luz em volta (0 = luz branca, 1 = multiplica a cor inteira, com o canal mais forte em 1 para não passar do branco e entrar no bloom). Só com Tile Material.")]
+        [SerializeField, Range(0f, 1f)] float _glowColorStrength = 1f;
         [Header("Chuva")]
         [SerializeField] Color32 _lightDropColor = new Color32(225, 238, 252, 255);
         [SerializeField] Color32 _heavyDropColor = new Color32(205, 225, 250, 255);
@@ -92,9 +114,11 @@ namespace Fabula.Incrementant.AntFarm
         [Header("Tiles 16x16")]
         [Tooltip("Material com o shader Incrementant/TerrainTiles. Vazio: 1 célula = 1 texel liso, como antes.")]
         [SerializeField] Material _tileMaterial;
-        [Tooltip("Atlas desenhado (64 x 64 por material, empilhados na vertical na ordem de CellMaterial, cinza 128 = sem mudança). Vazio: gerado por código (CellTileArt).")]
+        [Tooltip("Atlas RGB desenhado: 128 x 128 por linha, empilhadas de baixo para cima na ordem de CellMaterial, com a parede de fundo do túnel por último; Read/Write ligado. Vazio: gerado por código (CellTileArt).")]
         [SerializeField] Texture2D _tileAtlas;
         [SerializeField, Range(0f, 2f)] float _tileDetail = 1f;
+        [Tooltip("Quanto do tom de cada célula (variação de cor por posição) passa por cima do atlas: 1 = o tom inteiro, 0 = só a arte do atlas.")]
+        [SerializeField, Range(0f, 1f)] float _tileToneStrength = 0.5f;
         [Tooltip("Depuração: pinta cada célula pela distância com sinal até a borda terra/vazio (quente = terra, frio = vazio, claro = perto da borda). Só com Tile Material.")]
         [SerializeField] bool _debugSignedDistance;
 
@@ -121,12 +145,14 @@ namespace Fabula.Incrementant.AntFarm
         Texture2D _materialTexture;
         byte[] _materialIds;
         Material _tileInstance;
-        Texture2D _generatedAtlas;
+        TerrainTileAtlas _atlas;
         static readonly int WindowOriginId = Shader.PropertyToID("_WindowOrigin");
         static readonly int CellMaterialsId = Shader.PropertyToID("_CellMaterials");
         static readonly int DebugSignedDistanceId = Shader.PropertyToID("_DebugSignedDistance");
-        static readonly int LightStepsId = Shader.PropertyToID("_LightSteps");
         static readonly int InteriorAmbientId = Shader.PropertyToID("_InteriorAmbient");
+        static readonly int GlowMaterialId = Shader.PropertyToID("_GlowMaterialId");
+        static readonly int GlowEmissionId = Shader.PropertyToID("_GlowEmission");
+        static readonly int GlowLightTintId = Shader.PropertyToID("_GlowLightTint");
         Color32[] _skyRows;
         int _width;
         int _height;
@@ -145,8 +171,18 @@ namespace Fabula.Incrementant.AntFarm
         // Luz de cada célula no último desenho do bloco dela (só muda com a forma do terreno e com as fontes, que sobem a
         // versão do bloco: PixelGrid.DirtyShape).
         byte[] _cellLight;
+        // A luz da célula veio de um cogumelo luminoso (no último desenho do bloco dela), para o canal A da textura.
+        bool[] _cellGlowLight;
         int[] _drawnVersion;
         long _renderLogSeen;
+        // Valor de ShowRooms com que o cache foi desenhado: mudou, refaz tudo.
+        bool _drawnRooms = true;
+
+        /// <summary>
+        /// Desenha a pintura das salas e depósitos (opção "Mostrar ambientes"). Desligada, as salas continuam valendo, só não
+        /// aparecem; as marcas de cavar e de obra seguem visíveis.
+        /// </summary>
+        public bool ShowRooms { get; set; } = true;
 
         /// <summary>Blocos redesenhados no último <see cref="Render"/> e blocos da janela (diagnóstico do painel F11).</summary>
         public int LastRedrawnChunks { get; private set; }
@@ -186,16 +222,43 @@ namespace Fabula.Incrementant.AntFarm
         {
             if (_tileMaterial == null)
                 return null;
-            Texture atlas = _tileAtlas;
-            if (atlas == null)
-                atlas = _generatedAtlas = CellTileArt.CreateAtlas();
+            _atlas = TerrainTileAtlas.Create(_tileAtlas, TileReferences(), this);
             _tileInstance = new Material(_tileMaterial) { name = "TerrainTiles (instância)", hideFlags = HideFlags.DontSave };
-            _tileInstance.SetTexture("_TileAtlas", atlas);
-            _tileInstance.SetFloat("_TileCount", CellTileArt.TileCount);
+            _tileInstance.SetTexture("_TileAtlas", _atlas.Texture);
+            _tileInstance.SetTexture("_MaterialColors", _atlas.Colors);
+            _tileInstance.SetFloat("_TileCount", CellTileArt.RowCount);
+            _tileInstance.SetFloat("_BackTileId", CellTileArt.BackgroundRow);
             _tileInstance.SetFloat("_TileSize", CellTileArt.TileSize);
             _tileInstance.SetFloat("_TexelsPerCell", CellTileArt.TexelsPerCell);
             _tileInstance.SetFloat("_DetailStrength", _tileDetail);
             return _tileInstance;
+        }
+
+        /// <summary>Atlas do terreno em uso (null sem Tile Material): o bloco carregado lê o mesmo.</summary>
+        public TerrainTileAtlas TileAtlas => _atlas;
+
+        /// <summary>Força do tom da célula sobre o atlas (<see cref="CellMaterials.ShadedColor(CellMaterial, byte, float)"/>).</summary>
+        public float TileToneStrength => _tileToneStrength;
+
+        /// <summary>
+        /// Cor de referência de cada linha do atlas: a que <see cref="ComputeCell"/> grava numa célula do material sem tom
+        /// nem marca (o cogumelo usa a própria cor; a parede de fundo, a do túnel). Salas construídas (REQ-058, ainda sem
+        /// lógica): o bloco é terra posta pelas formigas, então usa a cor da terra; o fundo da sala, a do túnel.
+        /// </summary>
+        Color32[] TileReferences()
+        {
+            var references = new Color32[CellTileArt.RowCount];
+            for (int row = 0; row < CellTileArt.MaterialCount; row++)
+                references[row] = CellMaterials.BaseColor((CellMaterial)row);
+            references[(int)CellMaterial.Empty] = _tunnelColor;
+            references[(int)CellMaterial.GlowMushroom] = _glowMushroomColor;
+            references[CellTileArt.BackgroundRow] = _tunnelColor;
+            for (int style = 0; style < CellTileArt.RoomStyleCount; style++)
+            {
+                references[CellTileArt.RoomBlockRow((RoomStyle)style)] = CellMaterials.BaseColor(CellMaterial.Dirt);
+                references[CellTileArt.RoomBackRow((RoomStyle)style)] = _tunnelColor;
+            }
+            return references;
         }
 
         /// <summary>Recorte da grade (em células) que cobre <paramref name="view"/> (retângulo local ao mapa) com folga.</summary>
@@ -230,8 +293,10 @@ namespace Fabula.Incrementant.AntFarm
             {
                 _tileInstance.SetVector(WindowOriginId, new Vector4(_originX, _originY, _width, _height));
                 _tileInstance.SetFloat(DebugSignedDistanceId, _debugSignedDistance ? 1f : 0f);
-                _tileInstance.SetFloat(LightStepsId, _lightSteps);
                 _tileInstance.SetFloat(InteriorAmbientId, _interiorAmbient);
+                _tileInstance.SetFloat(GlowMaterialId, (float)CellMaterial.GlowMushroom);
+                _tileInstance.SetFloat(GlowEmissionId, _glowMushroomEmission);
+                _tileInstance.SetColor(GlowLightTintId, GlowLightTint());
             }
 
             RefreshCells(grid, colony, window);
@@ -257,6 +322,12 @@ namespace Fabula.Incrementant.AntFarm
             }
         }
 
+        /// <summary>Modo (<c>WasteMode</c> como byte) com que o pincel Resíduos pinta: dá a cor do contorno do pincel.</summary>
+        public byte WasteBrushKind { get; set; }
+
+        /// <summary>Cor da área de resíduos por modo (0 restos em folhas, 1 folhas em água, 2 terra em areia e água).</summary>
+        Color32 WasteColor(byte kind) => kind == 1 ? _wasteLeavesColor : kind == 2 ? _wasteDirtColor : _wasteRoomColor;
+
         Color32 BrushColor(BrushTint brush)
         {
             switch (brush)
@@ -265,11 +336,15 @@ namespace Fabula.Incrementant.AntFarm
                 case BrushTint.QueenRoom: return _queenRoomColor;
                 case BrushTint.NutrientRoom: return _nutrientRoomColor;
                 case BrushTint.NurseryRoom: return _nurseryRoomColor;
-                case BrushTint.WasteRoom: return _wasteRoomColor;
+                case BrushTint.WasteRoom: return WasteColor((byte)WasteBrushKind);
                 case BrushTint.DewRoom: return _dewRoomColor;
                 case BrushTint.FoodStore: return _foodStoreColor;
                 case BrushTint.BlockStore: return _blockStoreColor;
                 case BrushTint.WaterStore: return _waterStoreColor;
+                case BrushTint.GlowMushroom: return _glowMushroomColor;
+                case BrushTint.FarmRoom: return _farmRoomColor;
+                case BrushTint.SandStore: return _sandStoreColor;
+                case BrushTint.MushroomStore: return _mushroomStoreColor;
                 default: return _brushColor;
             }
         }
@@ -316,15 +391,18 @@ namespace Fabula.Incrementant.AntFarm
                 _cellColors = new Color32[grid.Width * grid.Height];
                 _cellTiles = tiles ? new byte[TileBytes * grid.Width * grid.Height] : null;
                 _cellLight = new byte[grid.Width * grid.Height];
+                _cellGlowLight = new bool[grid.Width * grid.Height];
                 _drawnVersion = new int[grid.ChunkColumns * grid.ChunkRows];
                 for (int i = 0; i < _drawnVersion.Length; i++)
                     _drawnVersion[i] = -1;
                 _renderLogSeen = grid.RenderLogCount;
                 fresh = true;
             }
-            // Mudanças demais desde o último frame para o registro circular: o que não foi lido se perdeu, refaz tudo.
-            if (grid.RenderLogCount - _renderLogSeen > PixelGrid.RenderLogCapacity)
+            // Mudanças demais desde o último frame para o registro circular (o que não foi lido se perdeu) ou a pintura das
+            // salas ligou/desligou: refaz tudo.
+            if (grid.RenderLogCount - _renderLogSeen > PixelGrid.RenderLogCapacity || _drawnRooms != ShowRooms)
             {
+                _drawnRooms = ShowRooms;
                 for (int i = 0; i < _drawnVersion.Length; i++)
                     _drawnVersion[i] = -1;
                 _renderLogSeen = grid.RenderLogCount;
@@ -393,7 +471,7 @@ namespace Fabula.Incrementant.AntFarm
             if (_cellTiles != null)
             {
                 _cellTiles[TileBytes * index] = tileId;
-                _cellTiles[TileBytes * index + 3] = lit ? (byte)255 : (byte)0;
+                _cellTiles[TileBytes * index + 3] = LightFlags(lit, _cellGlowLight[index]);
             }
             LastRedrawnCells++;
         }
@@ -430,6 +508,7 @@ namespace Fabula.Incrementant.AntFarm
                     int x = x0 + lx;
                     byte light = LightAt(lx, ly, w);
                     _cellLight[row + lx] = light;
+                    _cellGlowLight[row + lx] = GlowLightAt(lx, ly, w);
                     _cellColors[row + lx] = ComputeCell(grid, colony, x, y, light, out byte tileId, out bool lit);
                     if (tiles)
                     {
@@ -437,7 +516,7 @@ namespace Fabula.Incrementant.AntFarm
                         _cellTiles[t] = tileId;
                         _cellTiles[t + 1] = (byte)(SignedDistanceZero + SignedDistance(lx, ly, w));
                         _cellTiles[t + 2] = LightByte(light);
-                        _cellTiles[t + 3] = lit ? (byte)255 : (byte)0;
+                        _cellTiles[t + 3] = LightFlags(lit, _cellGlowLight[row + lx]);
                     }
                 }
             }
@@ -543,25 +622,17 @@ namespace Fabula.Incrementant.AntFarm
                     // depósito), a luz sai daqui e a pintura vem depois dela, para ficar visível no breu.
                     int n = ((x * 73856093) ^ (y * 19349663)) & 15;
                     color = new Color32((byte)(_tunnelColor.r + n), (byte)(_tunnelColor.g + n / 2), (byte)(_tunnelColor.b + n / 3), 255);
-                    tunnelPaint = HasTunnelPaint(grid, x, y);
+                    tunnelPaint = grid.IsBuildMarked(x, y) || (_drawnRooms && HasRoomPaint(grid, x, y));
                     tunnelLight = _cellTiles == null || tunnelPaint ? LightFactor(light, true) : 1f;
                     color = Darken(color, tunnelLight);
                     if (grid.IsBuildMarked(x, y))
-                        color = Color32.Lerp(color, _buildMarkColor, _markStrength);
-                    if (grid.IsQueenRoom(x, y))
-                        color = Color32.Lerp(color, _queenRoomColor,
-                                             colony != null && colony.IsQueenArea(x, y) ? _queenRoomStrength : faintRoom);
-                    if (grid.IsNutrientRoom(x, y))
-                        color = Color32.Lerp(color, _nutrientRoomColor, _nutrientRoomStrength);
-                    if (grid.IsNurseryRoom(x, y))
-                        color = Color32.Lerp(color, _nurseryRoomColor, _nutrientRoomStrength);
-                    if (grid.IsWasteRoom(x, y))
-                        color = Color32.Lerp(color, _wasteRoomColor, _nutrientRoomStrength);
-                    if (grid.IsDewRoom(x, y))
-                        color = Color32.Lerp(color, _dewRoomColor, _nutrientRoomStrength);
-                    StorageKind store = grid.GetStorageRoom(x, y);
-                    if (store != StorageKind.None)
-                        color = Color32.Lerp(color, StoreColor(store), _nutrientRoomStrength);
+                        color = Color32.Lerp(color, grid.IsGlowMushroomMarked(x, y) ? _glowMushroomColor : _buildMarkColor, _markStrength);
+                    if (_drawnRooms)
+                        color = PaintRooms(color, grid, x, y,
+                                           colony != null && colony.IsQueenArea(x, y) ? _queenRoomStrength : faintRoom, _nutrientRoomStrength);
+                    // Sala pronta (REQ-058): o vão desenha o fundo do ambiente; a cor continua a do túnel (a referência da linha).
+                    if (_cellTiles != null && grid.IsRoomFinished(x, y) && PaintBudget.TryGetRoomAt(grid, x, y, out PaintRoom room))
+                        tileId = (byte)CellTileArt.RoomBackRow(CellTileArt.StyleOf(room));
                 }
                 if (grid.HasNutrient(x, y))
                     color = Darken(NutrientAt(x, y), tunnelLight);
@@ -573,47 +644,61 @@ namespace Fabula.Incrementant.AntFarm
             }
             else
             {
-                color = CellMaterials.ShadedColor(material, grid.GetShade(x, y));
+                color = material == CellMaterial.GlowMushroom ? _glowMushroomColor
+                    : CellMaterials.ShadedColor(material, grid.GetShade(x, y), _cellTiles != null ? _tileToneStrength : 1f);
+                // Reboco de sala construída: o bloco do ambiente, sobre a cor da terra (a referência da linha).
+                if (_cellTiles != null && RoomLining.TryGetRoom(grid.GetLining(x, y), out PaintRoom lined))
+                {
+                    tileId = (byte)CellTileArt.RoomBlockRow(CellTileArt.StyleOf(lined));
+                    color = CellMaterials.ShadedColor(CellMaterial.Dirt, grid.GetShade(x, y), _tileToneStrength);
+                }
                 byte wetness = grid.GetWetness(x, y);
                 if (wetness != 0)
                     color = Darken(color, Mathf.Max(0.4f, 1f - wetness * _wetDarkening));
                 solid = true;
             }
-            bool overlay = solid && HasSolidOverlay(grid, x, y);
-            lit = _cellTiles != null && (overlay || tunnelPaint);
-            if (solid && (_cellTiles == null || overlay))
+            // O cogumelo luminoso brilha com a própria cor: sai daqui já "iluminado" e o shader não o escurece.
+            bool glow = material == CellMaterial.GlowMushroom;
+            bool overlay = solid && (grid.IsMarked(x, y) || (_drawnRooms && HasRoomPaint(grid, x, y)));
+            lit = _cellTiles != null && (overlay || tunnelPaint || glow);
+            if (solid && !glow && (_cellTiles == null || overlay))
                 color = Darken(color, LightFactor(light, false));
             // A marca de cavar e a pintura de sala vêm depois da luz: não escurecem com ela.
             if (overlay)
             {
                 if (grid.IsMarked(x, y))
                     color = Color32.Lerp(color, _markColor, _markStrength);
-                if (grid.IsQueenRoom(x, y))
-                    color = Color32.Lerp(color, _queenRoomColor, faintRoom);
-                if (grid.IsNutrientRoom(x, y))
-                    color = Color32.Lerp(color, _nutrientRoomColor, _nutrientRoomStrength * 0.5f);
-                if (grid.IsNurseryRoom(x, y))
-                    color = Color32.Lerp(color, _nurseryRoomColor, _nutrientRoomStrength * 0.5f);
-                if (grid.IsWasteRoom(x, y))
-                    color = Color32.Lerp(color, _wasteRoomColor, _nutrientRoomStrength * 0.5f);
-                if (grid.IsDewRoom(x, y))
-                    color = Color32.Lerp(color, _dewRoomColor, _nutrientRoomStrength * 0.5f);
-                StorageKind store = grid.GetStorageRoom(x, y);
-                if (store != StorageKind.None)
-                    color = Color32.Lerp(color, StoreColor(store), _nutrientRoomStrength * 0.5f);
+                if (_drawnRooms)
+                    color = PaintRooms(color, grid, x, y, faintRoom, _nutrientRoomStrength * 0.5f);
             }
             return color;
         }
 
-        /// <summary>Túnel com marca de obra ou pintura de sala/depósito (o que <see cref="ComputeCell"/> desenha depois da luz).</summary>
-        static bool HasTunnelPaint(PixelGrid grid, int x, int y) =>
-            grid.IsBuildMarked(x, y) || grid.IsQueenRoom(x, y) || grid.IsNutrientRoom(x, y) || grid.IsNurseryRoom(x, y) ||
-            grid.IsWasteRoom(x, y) || grid.IsDewRoom(x, y) || grid.GetStorageRoom(x, y) != StorageKind.None;
+        /// <summary>Pintura das salas e depósitos por cima da cor: <paramref name="queen"/> é a força da sala da rainha, <paramref name="other"/> a dos demais.</summary>
+        Color32 PaintRooms(Color32 color, PixelGrid grid, int x, int y, float queen, float other)
+        {
+            if (grid.IsQueenRoom(x, y))
+                color = Color32.Lerp(color, _queenRoomColor, queen);
+            if (grid.IsNutrientRoom(x, y))
+                color = Color32.Lerp(color, _nutrientRoomColor, other);
+            if (grid.IsNurseryRoom(x, y))
+                color = Color32.Lerp(color, _nurseryRoomColor, other);
+            if (grid.IsWasteRoom(x, y))
+                color = Color32.Lerp(color, WasteColor(grid.GetWasteKind(x, y)), other);
+            if (grid.IsDewRoom(x, y))
+                color = Color32.Lerp(color, _dewRoomColor, other);
+            if (grid.IsFarmRoom(x, y))
+                color = Color32.Lerp(color, _farmRoomColor, other);
+            StorageKind store = grid.GetStorageRoom(x, y);
+            if (store != StorageKind.None)
+                color = Color32.Lerp(color, StoreColor(store), other);
+            return color;
+        }
 
-        /// <summary>Terra com marca de cavar ou pintura de sala/depósito por cima (o que <see cref="ComputeCell"/> desenha depois da luz).</summary>
-        static bool HasSolidOverlay(PixelGrid grid, int x, int y) =>
-            grid.IsMarked(x, y) || grid.IsQueenRoom(x, y) || grid.IsNutrientRoom(x, y) || grid.IsNurseryRoom(x, y) ||
-            grid.IsWasteRoom(x, y) || grid.IsDewRoom(x, y) || grid.GetStorageRoom(x, y) != StorageKind.None;
+        /// <summary>Célula pintada como sala ou depósito (qualquer ambiente).</summary>
+        static bool HasRoomPaint(PixelGrid grid, int x, int y) =>
+            grid.IsQueenRoom(x, y) || grid.IsNutrientRoom(x, y) || grid.IsNurseryRoom(x, y) ||
+            grid.IsWasteRoom(x, y) || grid.IsDewRoom(x, y) || grid.IsFarmRoom(x, y) || grid.GetStorageRoom(x, y) != StorageKind.None;
 
         Color32 StoreColor(StorageKind kind)
         {
@@ -621,6 +706,8 @@ namespace Fabula.Incrementant.AntFarm
             {
                 case StorageKind.Food: return _foodStoreColor;
                 case StorageKind.Blocks: return _blockStoreColor;
+                case StorageKind.Sand: return _sandStoreColor;
+                case StorageKind.Mushroom: return _mushroomStoreColor;
                 default: return _waterStoreColor;
             }
         }
@@ -781,8 +868,7 @@ namespace Fabula.Incrementant.AntFarm
             ReleaseTexture();
             if (_tileInstance != null)
                 Destroy(_tileInstance);
-            if (_generatedAtlas != null)
-                Destroy(_generatedAtlas);
+            _atlas?.Destroy();
         }
 
         void ReleaseTexture()

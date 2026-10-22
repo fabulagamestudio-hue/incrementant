@@ -18,6 +18,7 @@ namespace Fabula.Incrementant.Colony
     public sealed partial class AntColony
     {
         readonly List<Termite> _termites = new List<Termite>();
+        readonly List<SpitShot> _spits = new List<SpitShot>();
         // Índices espaciais das buscas de alcance (sem eles, cada cupim varria todas as formigas e cada formiga em combate
         // todos os cupins: ~50 ms por frame com 500 cupins e 1300 formigas, print de 2026-10-20). Valem só enquanto o lado
         // indexado está parado: os cupins durante a rainha e as formigas, as formigas durante UpdateTermites.
@@ -106,6 +107,9 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Cupins do ataque em curso, vivos e mortos (corpos).</summary>
         public IReadOnlyList<Termite> Termites => _termites;
 
+        /// <summary>Cuspes das cuspideiras ainda no ar (desenho; não vão para o save).</summary>
+        public IReadOnlyList<SpitShot> Spits => _spits;
+
         /// <summary>Cupins vivos (voando ou no chão).</summary>
         public int LiveTermites
         {
@@ -154,6 +158,7 @@ namespace Fabula.Incrementant.Colony
             Tree.SoldiersAvailable = RaidsSurvived > 0;
             _raidTimer = Mathf.Max(0f, secondsToNextRaid);
             _termites.Clear();
+            _spits.Clear();
             RaidState = RaidState.Calm;
             _raidDirty = true;
         }
@@ -280,6 +285,7 @@ namespace Fabula.Incrementant.Colony
             foreach (Ant ant in _ants)
             {
                 Termite target = ant.CombatTarget;
+                // A cuspideira não ocupa vaga de mordida (CombatTarget fica nulo enquanto cospe).
                 if (ant.State == AntState.Fighting && ant.Biting && target != null && target.OnGround)
                     target.Attackers++;
             }
@@ -339,7 +345,7 @@ namespace Fabula.Incrementant.Colony
             }
             foreach (Ant ant in _ants)
             {
-                if (ant.Role == AntRole.Soldier && ant.OnGuard && ant.GuardGroup >= 0 && ant.GuardGroup < groups)
+                if (AntRoles.IsWarrior(ant.Role) && ant.OnGuard && ant.GuardGroup >= 0 && ant.GuardGroup < groups)
                     _guardCount[ant.GuardGroup]++;
             }
             _postingActive = true;
@@ -491,7 +497,8 @@ namespace Fabula.Incrementant.Colony
                 {
                     for (int i = _termites.Count - 1; i >= 0; i--)
                     {
-                        if (!_termites[i].Alive)
+                        // O pulgão preto não vai embora: fica até as formigas o matarem.
+                        if (!_termites[i].Alive || _termites[i].Aphid)
                             continue;
                         _termites.RemoveAt(i);
                         TermitesEscaped++;
@@ -546,7 +553,7 @@ namespace Fabula.Incrementant.Colony
                 t.WorkBrood = -1;
                 t.DiggingPath = false;
                 StopTunnel(t);
-                if (objective == RaidObjective.Leave && t.Phase == TermitePhase.Raiding)
+                if (objective == RaidObjective.Leave && t.Phase == TermitePhase.Raiding && !t.Aphid)
                     t.Phase = TermitePhase.Leaving;
             }
         }
@@ -556,6 +563,7 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Movimento, mordidas e destruição dos cupins no chão; tira as formigas mortas em combate. Depois das formigas.</summary>
         void UpdateTermites(float deltaTime)
         {
+            TickSpits(deltaTime);
             IndexAnts();
             for (int i = _termites.Count - 1; i >= 0; i--)
             {
@@ -653,6 +661,11 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Um passo de um cupim vivo no chão. <c>true</c> = saiu do mapa.</summary>
         bool UpdateTermite(Termite t, float deltaTime)
         {
+            if (t.Aphid)
+            {
+                UpdateBlackAphid(t, deltaTime);
+                return false;
+            }
             Ant body = t.Body;
             int x = body.X, y = body.Y;
             if (UpdateSupport(body, deltaTime))
@@ -684,6 +697,26 @@ namespace Fabula.Incrementant.Colony
                     Emit(SfxId.AntHurt, victim.X, victim.Y);
                     EmitFx(FxId.AntHurt, victim.X, victim.Y);
                     victim.LastHitTime = SimulationTime;
+                }
+                return false;
+            }
+            // Pulgão saudável ao alcance (pedido do desenvolvedor em 2026-10-22): a mordida o deixa preto e do lado dos cupins.
+            Aphid prey = _aphids.Count > 0 ? AphidInReach(body.X, body.Y, RaidSettings.AttackReach) : null;
+            if (prey != null)
+            {
+                t.WorkCell = -1;
+                t.WorkBrood = -1;
+                body.State = AntState.Digging;
+                body.DigX = prey.X;
+                body.DigY = prey.Y;
+                if (prey.X != body.X)
+                    body.FacingX = prey.X > body.X ? 1 : -1;
+                _raidProgress = true;
+                if (t.AttackTimer <= 0f)
+                {
+                    t.AttackTimer = RaidSettings.AttackSeconds;
+                    CorruptAphid(prey);
+                    _stallTimer = 0f;
                 }
                 return false;
             }
@@ -899,9 +932,13 @@ namespace Fabula.Incrementant.Colony
             t.Body.State = AntState.Idle;
             t.WorkCell = -1;
             t.WorkBrood = -1;
-            t.LeavesLeft = RaidSettings.CorpseLeaves;
+            // O pulgão preto deixa um corpo menor: uma folha e um resto.
+            t.LeavesLeft = t.Aphid ? 1 : RaidSettings.CorpseLeaves;
             t.RemainsLeft = RaidSettings.CorpseRemains;
-            TermitesKilled++;
+            if (t.Aphid)
+                CountAphidKilled();
+            else
+                TermitesKilled++;
             _raidDirty = true;
         }
 
@@ -911,7 +948,8 @@ namespace Fabula.Incrementant.Colony
             bool any = false;
             foreach (Termite t in _termites)
             {
-                if (!t.Alive)
+                // O pulgão preto vive no formigueiro: a chuva não o alcança.
+                if (!t.Alive || t.Aphid)
                     continue;
                 KillTermite(t);
                 any = true;
@@ -927,8 +965,8 @@ namespace Fabula.Incrementant.Colony
         {
             Ant body = t.Body;
             int cell = -1, brood = -1;
-            if (RaidObjective == RaidObjective.Queen)
-                return false; // a rainha não se destrói: ela é mordida
+            if (RaidObjective == RaidObjective.Queen || RaidObjective == RaidObjective.Aphids)
+                return false; // a rainha e os pulgões não se destroem: são mordidos
             switch (RaidObjective)
             {
                 case RaidObjective.Brood:
@@ -1461,6 +1499,9 @@ namespace Fabula.Incrementant.Colony
                         AddRaidStand(bx, by);
                     }
                     break;
+                case RaidObjective.Aphids:
+                    any = CollectAphidSources();
+                    break;
                 case RaidObjective.Farms:
                     for (int k = 0; k < _grid.BedCount; k++)
                     {
@@ -1681,8 +1722,8 @@ namespace Fabula.Incrementant.Colony
         {
             bool wasBiting = ant.Biting;
             ant.Biting = false;
-            bool hunter = ant.Role == AntRole.Soldier || _nestIntruders > 0;
-            if (ant.Role == AntRole.Soldier && _postingActive && !ant.GuardReleased && UpdateGuarding(ant))
+            bool hunter = AntRoles.IsWarrior(ant.Role) || _nestIntruders > 0;
+            if (AntRoles.IsWarrior(ant.Role) && _postingActive && !ant.GuardReleased && UpdateGuarding(ant))
                 return;
             if (_groundTermites == 0)
             {
@@ -1694,6 +1735,9 @@ namespace Fabula.Incrementant.Colony
                 return;
             }
             ant.OnGuard = false;
+            // A cuspideira cospe de longe antes de morder: só morde (autodefesa) o cupim colado nela com a linha fechada.
+            if (AntRoles.Spits(ant.Role) && TrySpit(ant))
+                return;
             Termite target = TermiteToBite(ant, hunter, wasBiting);
             if (target != null)
             {
@@ -1712,10 +1756,17 @@ namespace Fabula.Incrementant.Colony
                 return;
             }
             ant.CombatTarget = null;
-            // Fora a defesa de quem foi mordido, só o soldado caça cupim na superfície; com invasor dentro, todas caçam.
+            // Fora a defesa de quem foi mordido, só as guerreiras caçam cupim na superfície; com invasor dentro, todas caçam.
             if (!hunter)
             {
                 ant.State = AntState.Idle;
+                return;
+            }
+            // A cuspideira sem linha livre não cola no cupim (pedido do desenvolvedor em 2026-10-21): para uma célula antes do
+            // alcance da mordida e espera a linha abrir (o cupim anda ou derruba o que estava no meio).
+            if (AntRoles.Spits(ant.Role) && TermiteInReach(ant.X, ant.Y, RaidSettings.AttackReach + 1) != null)
+            {
+                Hold(ant);
                 return;
             }
             int d = _combatField != null ? _combatField.Get(ant.X, ant.Y) : FlowField.Unreachable;
@@ -1789,6 +1840,90 @@ namespace Fabula.Incrementant.Colony
             bestLoad = t.Attackers;
             bestDistance = distance;
             return false;
+        }
+
+        // ---------------------------------------------------------------- cuspideira
+
+        /// <summary>
+        /// Cospe no cupim mais perto a até <see cref="RaidSettings.SpitRange"/> células, com a linha até ele livre de blocos
+        /// sólidos. O dano entra quando o cuspe chega (<see cref="TickSpits"/>). <c>false</c> = nenhum cupim à vista: ela segue
+        /// o campo do combate como o soldado.
+        /// </summary>
+        bool TrySpit(Ant ant)
+        {
+            Termite target = SpitTarget(ant);
+            if (target == null)
+                return false;
+            ant.CombatTarget = null; // não ocupa vaga de mordida (KI-041): as mordedoras seguem se dividindo entre os cupins
+            ant.Biting = true;       // anima como quem trabalha, virada para o alvo
+            ant.DigX = target.X;
+            ant.DigY = target.Y;
+            if (target.X != ant.X)
+                ant.FacingX = target.X > ant.X ? 1 : -1;
+            float distance = Mathf.Sqrt((target.X - ant.X) * (target.X - ant.X) + (target.Y - ant.Y) * (target.Y - ant.Y));
+            _spits.Add(new SpitShot(ant.X, ant.Y, target, distance / RaidSettings.SpitSpeed));
+            ant.Cooldown = RaidSettings.SpitSeconds;
+            return true;
+        }
+
+        /// <summary>O cupim no chão mais perto (em xadrez) dentro do alcance do cuspe e à vista; no empate, o de menor índice.</summary>
+        Termite SpitTarget(Ant ant)
+        {
+            int range = RaidSettings.SpitRange;
+            Termite best = null;
+            int bestDistance = int.MaxValue;
+            foreach (Termite t in _termites)
+            {
+                if (!t.OnGround)
+                    continue;
+                int distance = Mathf.Max(Mathf.Abs(t.X - ant.X), Mathf.Abs(t.Y - ant.Y));
+                if (distance > range || distance >= bestDistance || !ClearLine(ant.X, ant.Y, t.X, t.Y))
+                    continue;
+                best = t;
+                bestDistance = distance;
+            }
+            return best;
+        }
+
+        /// <summary>Nenhuma célula sólida entre as duas pontas (Bresenham, sem contar as pontas).</summary>
+        bool ClearLine(int x0, int y0, int x1, int y1)
+        {
+            int dx = Mathf.Abs(x1 - x0), dy = -Mathf.Abs(y1 - y0);
+            int sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
+            int err = dx + dy;
+            int x = x0, y = y0;
+            while (x != x1 || y != y1)
+            {
+                int e2 = 2 * err;
+                if (e2 >= dy)
+                {
+                    err += dy;
+                    x += sx;
+                }
+                if (e2 <= dx)
+                {
+                    err += dx;
+                    y += sy;
+                }
+                if ((x != x1 || y != y1) && _grid.IsSolid(x, y))
+                    return false;
+            }
+            return true;
+        }
+
+        /// <summary>Leva os cuspes no ar; o que chega fere o alvo se ele ainda estiver vivo no chão (senão se perde).</summary>
+        void TickSpits(float deltaTime)
+        {
+            for (int i = _spits.Count - 1; i >= 0; i--)
+            {
+                SpitShot spit = _spits[i];
+                spit.Elapsed += deltaTime;
+                if (spit.Elapsed < spit.Duration)
+                    continue;
+                _spits.RemoveAt(i);
+                if (spit.Target.OnGround)
+                    HitTermite(spit.Target, RaidSettings.SpitDamage);
+            }
         }
 
         /// <summary>

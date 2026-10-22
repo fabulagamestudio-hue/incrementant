@@ -179,7 +179,7 @@ namespace Fabula.Incrementant.Menu
                 _buttonsPanel.SetActive(true);
 
             Keyboard keyboard = Keyboard.current;
-            if (keyboard == null || !keyboard.escapeKey.wasPressedThisFrame)
+            if (keyboard == null || !keyboard.escapeKey.wasPressedThisFrame || VersionHistoryScreen.BlocksEscape)
                 return;
             if (_settings.gameObject.activeSelf)
                 _settings.Close();

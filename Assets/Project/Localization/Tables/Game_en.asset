@@ -1069,7 +1069,7 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 22553245786112
     m_Localized: Anthill rooms. Paint where the queen, the farm, the brood, the waste,
-      the dew and the storage go.
+      the dew, the aphids and the storage go.
     m_Metadata:
       m_Items: []
   - m_Id: 22553245786113
@@ -1165,8 +1165,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 22553245786133
-    m_Localized: 'Carrier: the fastest; carries eggs and hauls more material per
-      trip.'
+    m_Localized: 'Carrier: the fastest; hauls twice as much per trip, fills the depots
+      and delivers from them.'
     m_Metadata:
       m_Items: []
   - m_Id: 22553245786134
@@ -1383,11 +1383,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 316986955370502
-    m_Localized: QUEEN'S JOB
+    m_Localized: QUEEN'S BEHAVIOR
     m_Metadata:
       m_Items: []
   - m_Id: 316986955370503
-    m_Localized: 'NEST: LAY EGGS'
+    m_Localized: LAY EGGS
     m_Metadata:
       m_Items: []
   - m_Id: 316986955370504
@@ -1644,8 +1644,9 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 332726722859011
-    m_Localized: Food, building and water storage. What the ants bring from outside
-      is kept there, without blocking the way, and is used from there first.
+    m_Localized: Food, building, water, sand and mushroom storage. What the ants
+      bring from outside is kept there, without blocking the way, and is used from
+      there first.
     m_Metadata:
       m_Items: []
   - m_Id: 332726722859012
@@ -2278,6 +2279,605 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 688793124466690
     m_Localized: WHAT IT UNLOCKS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781892664291328
+    m_Localized: 'The brush paints: {0}. Each area keeps its own mode.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781892685262848
+    m_Localized: Scraps to leaves
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781892685262849
+    m_Localized: Leaves to water
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781892685262850
+    m_Localized: Soil to sand and water
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781892685262851
+    m_Localized: Paints an area for rubble and termite scraps. Rubble disappears;
+      scraps become leaves, which the ants carry to food storage or to the beds.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781892685262852
+    m_Localized: Paints an area only for termite scraps. Their leaves stay in the
+      area and turn into water (1 leaf, 1 water). The water goes to water storage
+      or to the beds.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781892685262853
+    m_Localized: 'Paints an area only for soil: ants bring loose soil from outside
+      and dug soil that would go to the dump, and it turns into sand and water (1
+      soil, 1 sand and 1 water). The sand goes to sand storage (or the dump); the
+      water to water storage or to the beds.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781892689457152
+    m_Localized: Soil filtering
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781892689457153
+    m_Localized: "Soil turns into sand and water 2\xD7 faster in the waste area"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781912851476480
+    m_Localized: SCRAPS TO LEAVES
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781913384153088
+    m_Localized: LEAVES TO WATER
+    m_Metadata:
+      m_Items: []
+  - m_Id: 781913937801216
+    m_Localized: SOIL TO SAND AND WATER
+    m_Metadata:
+      m_Items: []
+  - m_Id: 938790323613696
+    m_Localized: BLOCK BUILDING ON ROOMS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 966333848219648
+    m_Localized: Working as a {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 966333852413952
+    m_Localized: 'The queen works as a {0} and lays no eggs outside her room. Now:
+      {1}.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 966333852413953
+    m_Localized: 'Choose what the queen does: lay eggs or work as one of the classes
+      already unlocked.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 966333852413954
+    m_Localized: The queen works as a {0}, with the same behavior as that class (with
+      nothing of its own to do, she does the worker's job). She respects stopped
+      sections, but not limits. Outside her room, she lays no eggs.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771277692928
+    m_Localized: "Area: {0}/{1} cells \xB7 rooms: {2}/{3}."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771277692929
+    m_Localized: 'No free area: erase some or buy more area in Evolution.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887232
+    m_Localized: Wide dew room
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887233
+    m_Localized: You can paint +20 more dew room cells per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887234
+    m_Localized: Wide nutrient room
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887235
+    m_Localized: You can paint +30 more nutrient room cells per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887236
+    m_Localized: Wide nursery
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887237
+    m_Localized: You can paint +40 more nursery cells per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887238
+    m_Localized: Wide storages
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887239
+    m_Localized: You can paint +30 more cells of each storage per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887240
+    m_Localized: Wide waste area
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887241
+    m_Localized: You can paint +24 more waste area cells per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887242
+    m_Localized: Wide royal room
+    m_Metadata:
+      m_Items: []
+  - m_Id: 981771281887243
+    m_Localized: You can paint +40 more queen room cells per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1009555442102272
+    m_Localized: Extra rooms
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1009555446296576
+    m_Localized: Each room type can have +1 separate room per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1042029408808960
+    m_Localized: BLOOM
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1046201222950912
+    m_Localized: Glowing mushroom
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1046201222950913
+    m_Localized: 'Glowing mushroom: click a tunnel cell next to the soil. An ant
+      brings a mushroom harvested from the aphids and plants it; it lights the tunnels
+      around it. Right button unmarks; to remove a mushroom, dig it.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1046223054303232
+    m_Localized: GLOWING MUSHROOM
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105348362629120
+    m_Localized: Spitter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105348366823424
+    m_Localized: Midden worker
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105348366823425
+    m_Localized: 'Spitter: spits acid at termites from afar, out of reach of their
+      bite.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105348366823426
+    m_Localized: 'Midden worker: clears termite bodies, hauls loose items and supplies
+      the waste area.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105348366823427
+    m_Localized: Spitter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105348366823428
+    m_Localized: 'New class, after the first termite attack: spits acid at termites
+      up to 8 cells away'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105348366823429
+    m_Localized: Midden worker
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105348366823430
+    m_Localized: 'New class, after the first termite attack: clears bodies, hauls
+      loose items and supplies the waste area before anything else'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105374124044288
+    m_Localized: MIDDEN WORKER
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1105374728024064
+    m_Localized: SPITTER
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943372644352
+    m_Localized: Aphid farm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943397810176
+    m_Localized: Sand storage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943397810177
+    m_Localized: Farmer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943397810178
+    m_Localized: AFTER THE APHIDS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943397810179
+    m_Localized: Farm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943397810180
+    m_Localized: 'Mushrooms stored: {0}. They come from milking the aphids on the
+      farm and are kept in mushroom storage.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943397810181
+    m_Localized: 'Sand storage: keeps the dug sand and the sand from the farm and
+      the waste area. It is the aphids'' food.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943397810182
+    m_Localized: 'Aphid farm: aphids are born in the stalls on the floor, each with
+      a sand trough and a water trough. On their own they only drip water; milked
+      by the farmer, they eat and give sand, leaves, water and sometimes glowing
+      mushrooms.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004480
+    m_Localized: 'Aphid farm: locked until you buy the Aphid farm chamber in Evolution.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004481
+    m_Localized: 'Missing: paint the farm (Environments > Aphid farm).'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004482
+    m_Localized: 'Missing: room for stalls. Dig the farm with a flat floor at least
+      {0} cells wide.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004483
+    m_Localized: The first aphid is born in {0} s.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004484
+    m_Localized: 'Aphids: {0}/{1} in {2} stalls; {3} empty troughs.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004485
+    m_Localized: Without a farmer, the aphids only drip water.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004486
+    m_Localized: 'Farmer: fills the aphids'' troughs with sand and water and milks
+      them on the farm.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004487
+    m_Localized: Farmer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004488
+    m_Localized: 'New class, with the aphid farm: fills the sand and water troughs
+      and milks the aphids, which then give sand, leaves and water'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004489
+    m_Localized: Careful milking
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004490
+    m_Localized: Farmers milk the aphids 50% faster
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004491
+    m_Localized: Sand storage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004492
+    m_Localized: Unlocks the sand storage brush, the aphids' food
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004493
+    m_Localized: Aphid farm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004494
+    m_Localized: 'Unlocks the farm brush: aphids are born in the stalls and, when
+      milked, give sand, leaves, water and glowing mushrooms'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004495
+    m_Localized: Aphid brood
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004496
+    m_Localized: "Aphids are born 2\xD7 faster"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004497
+    m_Localized: Herd
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004498
+    m_Localized: The farm raises +1 aphid per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004499
+    m_Localized: Milking
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004500
+    m_Localized: Milking the aphids is 5% faster per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004501
+    m_Localized: Wide farm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004502
+    m_Localized: You can paint +20 more farm cells per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004503
+    m_Localized: Herder's stride
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308943402004504
+    m_Localized: Farmers walk 4% faster per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308972124598272
+    m_Localized: APHID FARM
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308973739405312
+    m_Localized: SAND STORAGE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1308975454875648
+    m_Localized: FARMER
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1310793933123584
+    m_Localized: Laying
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1310793937317888
+    m_Localized: The queen room, where she lays her eggs
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1310793937317889
+    m_Localized: Common tunnel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1310793937317890
+    m_Localized: The anthill tunnels
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1312784897929216
+    m_Localized: Mushroom storage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1312784897929217
+    m_Localized: 'Mushroom storage: keeps the glowing mushrooms the aphids give when
+      milked. The Glowing mushroom brush takes them from here.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1312784902123520
+    m_Localized: Mushroom storage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1312784902123521
+    m_Localized: Unlocks the mushroom storage brush, where the aphids' glowing mushrooms
+      are kept
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1312804879593472
+    m_Localized: MUSHROOM STORAGE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1374681114472448
+    m_Localized: 'Hide rooms: the room and storage paint disappears from the ground.
+      With a room brush in hand, it shows again.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1374681118666752
+    m_Localized: 'Show rooms: the room and storage paint shows on the ground again.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1407114580979712
+    m_Localized: VERSIONS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1407114610339840
+    m_Localized: CURRENT
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1407114610339841
+    m_Localized: NEW
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1407114610339842
+    m_Localized: CHANGES AND FIXES
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1407114610339843
+    m_Localized: REMOVED
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1407114610339844
+    m_Localized: KNOWN BUGS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1407114610339845
+    m_Localized: This version has no notes.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1407114610339846
+    m_Localized: No version released yet.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372683210752
+    m_Localized: Welcome to the anthill
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182272
+    m_Localized: Now it's up to you!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182273
+    m_Localized: Next
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182274
+    m_Localized: Back
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182275
+    m_Localized: Explore
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182276
+    m_Localized: 'Here you don''t control each ant: you mark where to dig and build,
+      decide what each room is for, and the ants do the rest. Let''s get to know
+      the screen. The game stays paused during the tour, and you can click anything
+      along the way.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182277
+    m_Localized: Camera
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182278
+    m_Localized: Move the view with WASD, the arrow keys or by dragging with the
+      middle mouse button. Scroll (or Q/E) to zoom in and out. The anthill is the
+      soil below; the queen is in the shelter.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182279
+    m_Localized: Nutrients
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182280
+    m_Localized: The colony's currency. Ants grow beds in the nutrient room; the
+      queen eats nutrients to lay eggs, and you spend them on Evolution.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182281
+    m_Localized: Ants
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182282
+    m_Localized: 'Adults / adult slots, and the brood (eggs, larvae and pupae). Slots
+      come from the dug area: digging more makes room for more ants.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182283
+    m_Localized: Queen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182284
+    m_Localized: The queen's state. To lay eggs she needs her own room, a nursery,
+      a free slot and nutrients; the card says what is missing.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182285
+    m_Localized: Tools
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182286
+    m_Localized: Map brushes. Dig marks the soil the ants remove; Build marks where
+      they place soil; Glowing mushroom lights the tunnels; the Finger hurts termites.
+      Left button marks, right button unmarks.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182287
+    m_Localized: Rooms
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182288
+    m_Localized: 'Paint the dug space to give it a purpose: queen''s room, nutrient
+      room, nursery, waste, dew, aphids and storage. The bar under each button shows
+      how much area you can still paint. Greyed-out buttons are not unlocked yet.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182289
+    m_Localized: Queen menu
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182290
+    m_Localized: Choose the type of the next ant (or leave it on automatic), pause
+      egg laying, and decide whether the queen defends or attacks the termites.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182291
+    m_Localized: Evolution
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182292
+    m_Localized: Spend nutrients on new ant classes and upgrades. Drag to move the
+      tree, scroll to zoom, and click a node to see its effect, cost and requirements.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182293
+    m_Localized: Pause
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182294
+    m_Localized: Pauses and resumes the game (P key). While paused you can still
+      mark and paint. Keys 1, 2 and 3 change the speed.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182295
+    m_Localized: Colony panel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182296
+    m_Localized: Ant and production statistics, and which jobs stay active. There
+      you can stop a section or limit how many ants work in it.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182297
+    m_Localized: Bell
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182298
+    m_Localized: 'Calls the ants back to the nest: they finish what they carry and
+      stop. Ring again to send them back to work.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182299
+    m_Localized: Show rooms
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182300
+    m_Localized: Hides or shows the room paint on the ground. The rooms keep working;
+      it is just to see the soil and the ants better.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182301
+    m_Localized: Termites
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182302
+    m_Localized: From time to time termites attack. An alert shows at the top of
+      the screen and each termite gets a red circle (or an arrow on the edge). If
+      they kill the queen, the game is over.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182303
+    m_Localized: Tips
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182304
+    m_Localized: 'Rest the mouse over any button or card to see what it does and
+      what is missing. ESC opens the menu: save, load and settings.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1415372704182305
+    m_Localized: 'The game resumes when you close this window. A good first move:
+      dig a chamber connected to the shelter and paint a nutrient room in it. Then
+      explore freely!'
     m_Metadata:
       m_Items: []
   references:

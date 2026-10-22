@@ -91,5 +91,96 @@ namespace Fabula.Incrementant.Tests
             }
             Assert.AreEqual(1, colony.TotalDelivered);
         }
+
+        // ---- Troca de função (pedido do desenvolvedor em 2026-10-21): quem chega primeiro a um pixel marcado fica com ele e
+        // a formiga que o reservou e ainda está longe larga a reserva e procura outro trabalho.
+
+        const int StealTargetX = 4;
+
+        static ColonySettings StealSettings(bool steal)
+        {
+            var settings = new ColonySettings();
+            typeof(ColonySettings).GetField("_stealDigReservations", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                .SetValue(settings, steal);
+            return settings;
+        }
+
+        /// <summary>Um pixel marcado em (4, 1); uma formiga longe o reserva, e só então chega uma perto.</summary>
+        static (AntColony colony, PixelGrid grid, Ant far, Ant near, GranularSimulation sim) StealSetup(bool steal)
+        {
+            var (grid, layout) = MakeWorld(0);
+            grid.Set(StealTargetX, 1, CellMaterial.Dirt);
+            Assert.IsTrue(grid.SetMarked(StealTargetX, 1, true));
+            var colony = new AntColony(grid, StealSettings(steal), layout, seed: 3);
+            var sim = new GranularSimulation();
+            // As formigas iniciais ficam paradas: só as duas do teste disputam o pixel.
+            foreach (Ant initial in colony.Ants)
+                initial.Cooldown = 1e9f;
+            Ant far = colony.Spawn(AntRole.Worker);
+            far.X = 70;
+            far.Y = 1;
+            int target = grid.ToIndex(StealTargetX, 1);
+            for (int i = 0; i < 60 * 20 && far.SeekTarget != target; i++)
+            {
+                sim.Step(grid);
+                colony.Tick(Dt);
+            }
+            Assert.AreEqual(target, far.SeekTarget, "A formiga longe deve reservar o único pixel marcado.");
+            Ant near = colony.Spawn(AntRole.Worker);
+            near.X = 10;
+            near.Y = 1;
+            near.Cooldown = 0f;
+            return (colony, grid, far, near, sim);
+        }
+
+        [Test]
+        public void NearerAnt_TakesThePixel_FromAFartherReserver()
+        {
+            var (colony, grid, far, near, sim) = StealSetup(steal: true);
+            int target = grid.ToIndex(StealTargetX, 1);
+            bool nearHadIt = false;
+            for (int i = 0; i < 60 * 60 && colony.TotalDelivered < 1; i++)
+            {
+                sim.Step(grid);
+                colony.Tick(Dt);
+                bool nearHolds = near.SeekTarget == target || near.State == AntState.Digging && grid.ToIndex(near.DigX, near.DigY) == target;
+                bool farHolds = far.SeekTarget == target || far.State == AntState.Digging && grid.ToIndex(far.DigX, far.DigY) == target;
+                nearHadIt |= nearHolds;
+                Assert.IsFalse(nearHolds && farHolds, $"As duas formigas seguraram o mesmo pixel no passo {i}.");
+            }
+
+            Assert.IsTrue(nearHadIt, "A formiga mais perto deve tomar o pixel da que ainda está longe.");
+            Assert.AreEqual(1, colony.TotalDelivered, "O pixel é cavado e levado.");
+        }
+
+        [Test]
+        public void WithTheStealSettingOff_TheFirstReserverKeepsThePixel()
+        {
+            var (colony, grid, far, near, sim) = StealSetup(steal: false);
+            int target = grid.ToIndex(StealTargetX, 1);
+            for (int i = 0; i < 60 * 60 && colony.TotalDelivered < 1; i++)
+            {
+                sim.Step(grid);
+                colony.Tick(Dt);
+                if (far.SeekTarget == target || far.State == AntState.Digging)
+                    Assert.AreNotEqual(target, near.SeekTarget, $"Sem a troca, quem reservou primeiro fica com o pixel (passo {i}).");
+            }
+
+            Assert.AreEqual(1, colony.TotalDelivered);
+        }
+
+        [Test]
+        public void FartherAnt_DropsItsReservation_AfterLosingThePixel()
+        {
+            var (colony, grid, far, near, sim) = StealSetup(steal: true);
+            int target = grid.ToIndex(StealTargetX, 1);
+            for (int i = 0; i < 60 * 30 && near.SeekTarget != target && near.State != AntState.Digging; i++)
+            {
+                sim.Step(grid);
+                colony.Tick(Dt);
+            }
+
+            Assert.AreNotEqual(target, far.SeekTarget, "A formiga que perdeu o pixel larga a reserva.");
+        }
     }
 }

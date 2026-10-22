@@ -1,89 +1,106 @@
 using System;
+using Fabula.Incrementant.Colony;
 using Fabula.Incrementant.World;
 using UnityEngine;
 
 namespace Fabula.Incrementant.AntFarm
 {
     /// <summary>
-    /// Atlas das texturas de material usadas pelo shader <c>Incrementant/TerrainTiles</c>: uma textura repetível de
-    /// <see cref="TileSize"/>² texels por material, empilhadas na vertical (linha = valor de <see cref="CellMaterial"/>).
-    /// Os texels são cinza em volta de 128 (= cor da célula sem mudança): o shader multiplica a cor da célula por
-    /// texel × 2. Gerado por código enquanto não há arte; um atlas desenhado com o mesmo layout pode substituí-lo
-    /// (<c>AntFarmView</c> → <b>Tile Atlas</b>).
+    /// Visual de sala construída (REQ-058): cada família tem no atlas um bloco (a terra que as formigas põem nos slots do
+    /// ambiente) e uma parede de fundo. Os cinco depósitos dividem <see cref="Store"/> (decisão de 2026-10-22).
+    /// </summary>
+    public enum RoomStyle { Queen, Nutrient, Nursery, Waste, Dew, Farm, Store }
+
+    /// <summary>
+    /// Formato do atlas RGB do terreno (etapa 4 do documento 40) e o atlas gerado por código usado enquanto não há arte.
+    /// Uma textura repetível de <see cref="TileSize"/>² texels por linha, empilhadas na vertical, de baixo para cima: as
+    /// linhas 0..<see cref="MaterialCount"/>-1 seguem a ordem de <see cref="CellMaterial"/>, depois vem a parede de fundo
+    /// do túnel (<see cref="BackgroundRow"/>) e, por último, um par de linhas por <see cref="RoomStyle"/> (bloco e fundo da
+    /// sala construída, <see cref="RoomBlockRow"/> e <see cref="RoomBackRow"/>). Cada texel é a cor final do material
+    /// (RGB, sRGB); o tom da célula entra no shader como ajuste (ver <see cref="TerrainTileAtlas"/>). Um atlas desenhado no
+    /// mesmo formato substitui este (<c>AntFarmView</c> → <b>Tile Atlas</b>).
     /// </summary>
     public static class CellTileArt
     {
         /// <summary>Texels por célula da grade (a célula vira um bloco de 16x16 na tela).</summary>
         public const int TexelsPerCell = 16;
 
-        /// <summary>Lado da textura repetível de cada material: 4x4 células.</summary>
-        public const int TileSize = 64;
+        /// <summary>Lado da textura repetível de cada linha: 8x8 células.</summary>
+        public const int TileSize = 128;
+
+        /// <summary>Células por lado da textura repetível (o padrão se repete a cada tantas células).</summary>
+        public const int TileCells = TileSize / TexelsPerCell;
 
         /// <summary>Valor gravado na textura de materiais para células de céu (sem textura).</summary>
         public const byte SkyId = 255;
 
-        public static int TileCount => Enum.GetValues(typeof(CellMaterial)).Length;
+        public static int MaterialCount => Enum.GetValues(typeof(CellMaterial)).Length;
 
-        static byte[] _pixels;
+        /// <summary>Linha do atlas com a parede de fundo do túnel, logo depois dos materiais.</summary>
+        public static int BackgroundRow => MaterialCount;
 
-        /// <summary>Texels do atlas (linha a linha, de baixo para cima), gerados uma vez e guardados.</summary>
-        static byte[] Pixels
+        public static int RoomStyleCount => Enum.GetValues(typeof(RoomStyle)).Length;
+
+        /// <summary>Linha do bloco construído da sala (sólido), logo depois da parede de fundo; o fundo da sala vem em seguida.</summary>
+        public static int RoomBlockRow(RoomStyle style) => BackgroundRow + 1 + 2 * (int)style;
+
+        /// <summary>Linha da parede de fundo da sala construída (o vazio dentro dela).</summary>
+        public static int RoomBackRow(RoomStyle style) => RoomBlockRow(style) + 1;
+
+        public static int RowCount => MaterialCount + 1 + 2 * RoomStyleCount;
+
+        /// <summary>Família visual do ambiente pintado: os cinco depósitos usam a mesma.</summary>
+        public static RoomStyle StyleOf(PaintRoom room)
         {
-            get
+            switch (room)
             {
-                if (_pixels != null)
-                    return _pixels;
-                int count = TileCount;
-                _pixels = new byte[TileSize * TileSize * count];
-                for (int id = 0; id < count; id++)
-                    Paint((CellMaterial)id, _pixels, id * TileSize * TileSize);
-                return _pixels;
+                case PaintRoom.Queen: return RoomStyle.Queen;
+                case PaintRoom.Nutrient: return RoomStyle.Nutrient;
+                case PaintRoom.Nursery: return RoomStyle.Nursery;
+                case PaintRoom.Waste: return RoomStyle.Waste;
+                case PaintRoom.Dew: return RoomStyle.Dew;
+                case PaintRoom.Farm: return RoomStyle.Farm;
+                default: return RoomStyle.Store;
             }
         }
 
+        /// <summary>Verdadeiro nas linhas de bloco de sala construída (sólidas); as de fundo são vazias como a parede do túnel.</summary>
+        static bool IsRoomBlockRow(int row) => row > BackgroundRow && (row - BackgroundRow) % 2 == 1;
+
         /// <summary>
-        /// Fator de brilho do texel (<paramref name="tx"/>, <paramref name="ty"/>) do bloco 16x16 da célula
-        /// (<paramref name="cellX"/>, <paramref name="cellY"/>): o mesmo que o shader aplica a ela no terreno.
+        /// Texels do atlas gerado (linha a linha, de baixo para cima): o padrão de cada material sobre a cor de referência
+        /// da linha (<paramref name="references"/>, uma por linha). Com a cor da célula igual à referência, o shader mostra o
+        /// texel como está.
         /// </summary>
-        public static float Detail(CellMaterial material, int cellX, int cellY, int tx, int ty)
+        public static Color32[] Generate(Color32[] references)
         {
-            int px = (cellX * TexelsPerCell + tx) % TileSize;
-            int py = (cellY * TexelsPerCell + ty) % TileSize;
-            return Pixels[((int)material * TileSize + py) * TileSize + px] / 128f;
-        }
-
-        public static Texture2D CreateAtlas()
-        {
-            int count = TileCount;
-            byte[] pixels = Pixels;
-
-            var texture = new Texture2D(TileSize, TileSize * count, TextureFormat.R8, false, true)
+            int rows = RowCount;
+            var pixels = new Color32[TileSize * TileSize * rows];
+            for (int row = 0; row < rows; row++)
             {
-                name = "TerrainTileAtlas",
-                filterMode = FilterMode.Point,
-                wrapMode = TextureWrapMode.Clamp,
-                hideFlags = HideFlags.DontSave,
-            };
-            texture.SetPixelData(pixels, 0);
-            texture.Apply(false, true);
-            return texture;
+                Color linear = ((Color)references[row]).linear;
+                int seed = 7919 * (row + 1);
+                int offset = row * TileSize * TileSize;
+                for (int y = 0; y < TileSize; y++)
+                for (int x = 0; x < TileSize; x++)
+                {
+                    float factor = row < BackgroundRow ? Shade((CellMaterial)row, x, y, seed)
+                        : IsRoomBlockRow(row) ? Bricks(x, y, seed) : Dirt(x, y, seed, 0.12f);
+                    factor = Mathf.Clamp(1f + (factor - 1f) * Contrast, 0f, 2f);
+                    Color c = new Color(linear.r * factor, linear.g * factor, linear.b * factor, 1f).gamma;
+                    pixels[offset + y * TileSize + x] = c;
+                }
+            }
+            return pixels;
         }
 
-        static void Paint(CellMaterial material, byte[] pixels, int offset)
-        {
-            int seed = 7919 * ((int)material + 1);
-            for (int y = 0; y < TileSize; y++)
-            for (int x = 0; x < TileSize; x++)
-                pixels[offset + y * TileSize + x] = ToByte(Shade(material, x, y, seed));
-        }
-
-        /// <summary>Fator de brilho do texel (1 = cor da célula).</summary>
+        /// <summary>Fator de brilho do texel (1 = cor de referência).</summary>
         static float Shade(CellMaterial material, int x, int y, int seed)
         {
             switch (material)
             {
                 case CellMaterial.Empty:
-                    // Fundo do túnel: granulado suave e manchas largas.
+                    // Não aparece (o vazio usa a parede de fundo), mas fica preenchida.
                     return 1f + 0.06f * Noise(x, y, 16, seed) + 0.04f * (Hash(x, y, seed) - 0.5f);
                 case CellMaterial.Dirt:
                 case CellMaterial.Grass:
@@ -100,9 +117,9 @@ namespace Fabula.Incrementant.AntFarm
                     // Compactado pela chuva: camadas horizontais.
                     return Dirt(x, y, seed, 0.08f) + 0.07f * Mathf.Sin((y + 3f * Noise(x, y, 16, seed + 2)) * Mathf.PI / 4f);
                 case CellMaterial.Rock:
-                    return Stones(x, y, seed, 6, 1f);
+                    return Stones(x, y, seed, 12, 1f);
                 case CellMaterial.Bedrock:
-                    return Stones(x, y, seed, 3, 0.85f);
+                    return Stones(x, y, seed, 6, 0.85f);
                 default:
                     // Plantas e restos: só um granulado leve.
                     return 1f + 0.08f * (Hash(x, y, seed) - 0.5f) + 0.06f * Noise(x, y, 16, seed);
@@ -112,6 +129,20 @@ namespace Fabula.Incrementant.AntFarm
         static float Dirt(int x, int y, int seed, float amount) =>
             1f + amount * Noise(x, y, 16, seed) + 0.5f * amount * Noise(x, y, 8, seed + 3) +
             Speck(x, y, seed + 5, 0.035f, -0.3f) + Speck(x, y, seed + 6, 0.02f, 0.22f);
+
+        /// <summary>
+        /// Bloco de sala construída no atlas gerado: tijolos de meia célula alinhados à grade, junta escura e face um pouco
+        /// mais clara, para a média ficar perto da referência.
+        /// </summary>
+        static float Bricks(int x, int y, int seed)
+        {
+            int course = y / (TexelsPerCell / 2);
+            int bx = x + (course % 2) * (TexelsPerCell / 2);
+            bool joint = y % (TexelsPerCell / 2) == 0 || bx % TexelsPerCell == 0;
+            if (joint)
+                return 0.8f;
+            return 1.05f + 0.06f * (Hash(bx / TexelsPerCell % TileCells, course, seed) - 0.5f) + 0.03f * (Hash(x, y, seed + 1) - 0.5f);
+        }
 
         static float Clumps(int x, int y, int seed)
         {
@@ -195,7 +226,5 @@ namespace Fabula.Incrementant.AntFarm
 
         /// <summary>Amplia o desvio de cada texel em volta de 1: os padrões acima são desenhados suaves e ajustados aqui.</summary>
         const float Contrast = 1.8f;
-
-        static byte ToByte(float factor) => (byte)Mathf.Clamp(Mathf.RoundToInt((1f + (factor - 1f) * Contrast) * 128f), 0, 255);
     }
 }

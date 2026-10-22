@@ -16,6 +16,8 @@ namespace Fabula.Incrementant.Colony
         J0, J1, J2,
         N0, N1, N2,
         S0, S1, S2, S3,
+        K0, W0,
+        Z0, Z1,
     }
 
     /// <summary>Ramo (coluna) da árvore da rainha.</summary>
@@ -103,6 +105,15 @@ namespace Fabula.Incrementant.Colony
             new QueenNodeDef(QueenNode.S1, QueenBranch.Soldier, "Mandíbulas fortes", "Soldados causam 50% mais dano", 220, true, false, QueenNode.S0),
             new QueenNodeDef(QueenNode.S2, QueenBranch.Soldier, "Carapaça resistente", "Soldados têm 50% mais vida", 220, true, false, QueenNode.S0),
             new QueenNodeDef(QueenNode.S3, QueenBranch.Soldier, "Contenção", "Soldados empurram os cupins para trás a cada 3 s", 500, false, false, QueenNode.S1, QueenNode.S2),
+
+            // Pedido do desenvolvedor em 2026-10-21; custos assumidos. As duas classes esperam o primeiro ataque (como o soldado).
+            new QueenNodeDef(QueenNode.K0, QueenBranch.Soldier, "Cuspideira", "Nova classe, depois do primeiro ataque de cupins: cospe ácido nos cupins a até 8 células", 260, true, false, QueenNode.S0),
+            new QueenNodeDef(QueenNode.W0, QueenBranch.Common, "Lixeira", "Nova classe, depois do primeiro ataque de cupins: tira os corpos, leva os itens soltos e abastece a área de resíduos antes de tudo", 160, true),
+
+            // Fazenda de pulgões (pedido do desenvolvedor em 2026-10-22); custos assumidos. A fazendeira espera a câmara A0
+            // do formigueiro (a fazenda), como o soldado espera o primeiro ataque.
+            new QueenNodeDef(QueenNode.Z0, QueenBranch.Gardener, "Fazendeira", "Nova classe, com a fazenda de pulgões: enche os cochos de areia e água e ordenha os pulgões, que então dão areia, folhas e água", 200, true),
+            new QueenNodeDef(QueenNode.Z1, QueenBranch.Gardener, "Ordenha cuidadosa", "Fazendeiras ordenham os pulgões 50% mais rápido", 260, true, false, QueenNode.Z0),
         };
 
         static readonly string[] BranchLabels =
@@ -150,10 +161,16 @@ namespace Fabula.Incrementant.Colony
         public bool Owns(QueenNode node) => (_mask & Bit(node)) != 0;
 
         /// <summary>
-        /// O ramo do soldado só abre depois que a colônia sobreviveu ao primeiro ataque de cupins (a colônia liga isto; vai
+        /// O ramo do soldado (com a cuspideira) e a lixeira só abrem depois que a colônia sobreviveu ao primeiro ataque de cupins (a colônia liga isto; vai
         /// para o save junto com o estado dos ataques).
         /// </summary>
         public bool SoldiersAvailable { get; set; }
+
+        /// <summary>
+        /// A colônia já tem a fazenda de pulgões (câmara A0 do formigueiro): só então a fazendeira (Z0) pode ser comprada. A
+        /// colônia liga isto ao comprar a câmara e ao carregar o save.
+        /// </summary>
+        public bool FarmAvailable { get; set; }
 
         /// <summary>Substitui o que foi comprado (os nós iniciais sempre contam; bits fora da tabela são descartados).</summary>
         public void Restore(ulong mask)
@@ -185,8 +202,10 @@ namespace Fabula.Incrementant.Colony
                 return BuyBlock.Owned;
             if (!d.Implemented)
                 return BuyBlock.NotAvailableYet;
-            if (d.Branch == QueenBranch.Soldier && !SoldiersAvailable)
+            if ((d.Branch == QueenBranch.Soldier || node == QueenNode.W0) && !SoldiersAvailable)
                 return BuyBlock.NeedsFirstRaid;
+            if (node == QueenNode.Z0 && !FarmAvailable)
+                return BuyBlock.MissingRequirement;
             foreach (QueenNode req in d.Requires)
             {
                 if (!Owns(req))
@@ -217,6 +236,9 @@ namespace Fabula.Incrementant.Colony
                 case AntRole.Gardener: return Owns(QueenNode.J0);
                 case AntRole.Nurse: return Owns(QueenNode.N0);
                 case AntRole.Soldier: return Owns(QueenNode.S0);
+                case AntRole.Spitter: return Owns(QueenNode.K0);
+                case AntRole.Midden: return Owns(QueenNode.W0);
+                case AntRole.Farmer: return Owns(QueenNode.Z0);
                 default: return true;
             }
         }
@@ -232,6 +254,9 @@ namespace Fabula.Incrementant.Colony
                 case AntRole.Gardener: return QueenNode.J0;
                 case AntRole.Nurse: return QueenNode.N0;
                 case AntRole.Soldier: return QueenNode.S0;
+                case AntRole.Spitter: return QueenNode.K0;
+                case AntRole.Midden: return QueenNode.W0;
+                case AntRole.Farmer: return QueenNode.Z0;
                 default: return null;
             }
         }
@@ -269,12 +294,15 @@ namespace Fabula.Incrementant.Colony
 
         /// <summary>
         /// Pixels de terra por viagem, no décimo da escala do design (32/64 células: o formigueiro do protótipo é cerca de
-        /// dez vezes menor, como nas vagas): comum 3 (O1: 4), escavadora 6 (E1: 9), as demais 3.
+        /// dez vezes menor, como nas vagas): comum 3 (O1: 4), escavadora 6 (E1: 9), carregadora 6 (o dobro da comum, como na
+        /// planta; pedido do desenvolvedor em 2026-10-21), as demais 3.
         /// </summary>
         public int SoilCapacity(AntRole role)
         {
             if (role == AntRole.Digger)
                 return Owns(QueenNode.E1) ? 9 : 6;
+            if (role == AntRole.Carrier)
+                return 6;
             if (role == AntRole.Worker && Owns(QueenNode.O1))
                 return 4;
             return 3;
@@ -291,6 +319,9 @@ namespace Fabula.Incrementant.Colony
 
         /// <summary>Ritmo da cura na área que o papel atende: ×1; a jardineira com J1, ×1,3.</summary>
         public float GardenRate(AntRole role) => role == AntRole.Gardener && Owns(QueenNode.J1) ? 1.3f : 1f;
+
+        /// <summary>Ritmo da ordenha da fazendeira: ×1; com Z1, ×1,5.</summary>
+        public float MilkRate(AntRole role) => role == AntRole.Farmer && Owns(QueenNode.Z1) ? 1.5f : 1f;
 
         /// <summary>F1 da cortadeira: 4 UM em 1,5 s em vez de 2 UM em 1 s, ou seja, cada pixel leva 3/4 do tempo.</summary>
         public float CutTimeFactor(AntRole role) =>

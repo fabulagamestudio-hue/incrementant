@@ -1,5 +1,11 @@
 # Elementos de cenário — pixel art
 
+## Atualização de 2026-10-21 — Pebbles
+
+As 14 [pedras](Pebbles/README.md) foram refinadas a 16 pixels por célula, com tamanho físico preservado, no estilo das formigas. São desenhadas como sprites separados da máscara de navegação, sem ampliar a camada inteira. Fontes, prompts e reexportação em `Source~/Pebbles`. O restante desta página descreve a entrega anterior e as famílias que continuam no caminho legado.
+
+## Entrega de 2026-10-18
+
 Arte revisada em 2026-10-18 (REQ-026), usando `image_gen.imagegen` integrado e os PNGs anteriores como referência. [Prompts e processamento](../PixelArtGeneration.json).
 
 | Pasta | PNGs | Detalhes |

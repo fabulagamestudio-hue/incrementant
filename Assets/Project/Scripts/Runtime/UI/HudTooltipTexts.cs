@@ -2,6 +2,7 @@ using Fabula.Incrementant.AntFarm;
 using Fabula.Incrementant.Colony;
 using Fabula.Incrementant.Texts;
 using Fabula.Incrementant.World;
+using UnityEngine;
 
 namespace Fabula.Incrementant.UI
 {
@@ -13,12 +14,27 @@ namespace Fabula.Incrementant.UI
     {
         // Índices de AntFarmGame.BrushLabels (os mesmos de AntFarmGame.BrushMode).
         const int BrushDig = 0, BrushBuild = 1, BrushQueenRoom = 2, BrushNutrientRoom = 3, BrushNursery = 4, BrushWaste = 5,
-            BrushFinger = 6, BrushDew = 7, BrushFoodStore = 8, BrushBlockStore = 9, BrushWaterStore = 10;
+            BrushFinger = 6, BrushDew = 7, BrushFoodStore = 8, BrushBlockStore = 9, BrushWaterStore = 10, BrushGlowMushroom = 11,
+            BrushFarm = 12, BrushSandStore = 13, BrushMushroomStore = 14;
 
         static string Join(string description, string status) =>
             string.IsNullOrEmpty(status) ? description : description + "\n\n" + status;
 
+        /// <summary>Dica do pincel; nos ambientes, com a área usada e as salas (limite do KI-043) no fim.</summary>
         public static string Brush(AntFarmGame game, int index)
+        {
+            string text = BrushDescription(game, index);
+            AntColony colony = game.Colony;
+            if (text == null || colony == null || !game.IsBrushUnlocked(index) || !AntFarmGame.TryGetPaintRoom(index, out PaintRoom room))
+                return text;
+            PaintBudget budget = colony.PaintBudget;
+            string area = Loc.T("tip.room.area", budget.Used(room), budget.Limit(room), budget.Rooms(room), budget.MaxRooms);
+            if (budget.Available(room) <= 0)
+                area += " " + Loc.T("tip.room.area.full");
+            return Join(text, area);
+        }
+
+        static string BrushDescription(AntFarmGame game, int index)
         {
             AntColony colony = game.Colony;
             PixelGrid grid = game.Grid;
@@ -27,17 +43,25 @@ namespace Fabula.Incrementant.UI
                 case BrushDig: return Loc.T("tip.brush.dig");
                 case BrushBuild: return Loc.T("tip.brush.build");
                 case BrushFinger: return Loc.T("tip.brush.finger");
+                case BrushGlowMushroom: return Join(Loc.T("tip.brush.glowmushroom"), MushroomStatus(colony));
                 case BrushQueenRoom: return Join(Loc.T("tip.brush.queenroom") + " " + Loc.T("tip.room.paint"), QueenRoomStatus(colony, grid));
                 case BrushNutrientRoom: return Join(Loc.T("tip.brush.nutrientroom") + " " + Loc.T("tip.room.paint"), NutrientRoomStatus(colony, grid));
                 case BrushNursery: return Join(Loc.T("tip.brush.nursery") + " " + Loc.T("tip.room.paint"), NurseryStatus(colony, grid));
                 case BrushWaste:
                     return colony != null && !colony.WasteUnlocked
                         ? Loc.T("tip.brush.waste.locked")
-                        : Join(Loc.T("tip.brush.waste") + " " + Loc.T("tip.room.paint"), WasteStatus(colony, grid));
+                        : Join(Loc.T("tip.brush.waste") + " " + Loc.T("tip.room.paint"), WasteStatus(colony, grid, game.WasteBrushMode));
                 case BrushDew: return Join(Loc.T("tip.brush.dew") + " " + Loc.T("tip.room.paint"), DewStatus(colony, grid));
                 case BrushFoodStore: return Join(Loc.T("tip.brush.foodstore") + " " + Loc.T("tip.room.paint"), DepotStatus(colony, StorageKind.Food));
                 case BrushBlockStore: return Join(Loc.T("tip.brush.blockstore") + " " + Loc.T("tip.room.paint"), DepotStatus(colony, StorageKind.Blocks));
                 case BrushWaterStore: return Join(Loc.T("tip.brush.waterstore") + " " + Loc.T("tip.room.paint"), DepotStatus(colony, StorageKind.Water));
+                case BrushSandStore: return Join(Loc.T("tip.brush.sandstore") + " " + Loc.T("tip.room.paint"), DepotStatus(colony, StorageKind.Sand));
+                case BrushMushroomStore:
+                    return Join(Loc.T("tip.brush.mushroomstore") + " " + Loc.T("tip.room.paint"), DepotStatus(colony, StorageKind.Mushroom));
+                case BrushFarm:
+                    return colony != null && !colony.FarmUnlocked
+                        ? Loc.T("tip.brush.farm.locked")
+                        : Join(Loc.T("tip.brush.farm") + " " + Loc.T("tip.room.paint"), FarmStatus(colony, grid));
                 default: return null;
             }
         }
@@ -76,6 +100,9 @@ namespace Fabula.Incrementant.UI
         public static string Mode(QueenMode mode) =>
             Loc.T(mode == QueenMode.Automatic ? "tip.mode.automatic" : mode == QueenMode.Specific ? "tip.mode.specific" : "tip.mode.paused");
 
+        /// <summary>Dica de um botão do submenu RESÍDUOS (modo de conversão da área).</summary>
+        public static string WasteMode(WasteMode mode) => Loc.T(AntFarmHud.WasteModeKey(mode) + ".tip");
+
         public static string Stance(QueenStance stance) =>
             Loc.T(stance == QueenStance.Offensive ? "tip.stance.offensive" : "tip.stance.defensive");
 
@@ -89,6 +116,9 @@ namespace Fabula.Incrementant.UI
                 case AntRole.Gardener: return "tip.role.gardener";
                 case AntRole.Nurse: return "tip.role.nurse";
                 case AntRole.Soldier: return "tip.role.soldier";
+                case AntRole.Spitter: return "tip.role.spitter";
+                case AntRole.Midden: return "tip.role.midden";
+                case AntRole.Farmer: return "tip.role.farmer";
                 default: return "tip.role.worker";
             }
         }
@@ -142,7 +172,27 @@ namespace Fabula.Incrementant.UI
             return Loc.T("tip.st.depot.ok", colony.DepotStock(kind), colony.DepotFree(kind));
         }
 
-        static string WasteStatus(AntColony colony, PixelGrid grid)
+        /// <summary>Estado da fazenda de pulgões (mesmas regras de <c>AntFarmGame.FarmStatus</c>, no painel F2).</summary>
+        static string FarmStatus(AntColony colony, PixelGrid grid)
+        {
+            if (colony == null)
+                return null;
+            if (grid.FarmRoomCount == 0)
+                return Loc.T("tip.st.farm.paint");
+            if (colony.StallCount == 0)
+                return Loc.T("tip.st.farm.nospot", AntColony.StallWidth);
+            if (colony.Aphids.Count == 0)
+                return Loc.T("tip.st.farm.breeding", Mathf.CeilToInt(Mathf.Max(0f, colony.SecondsToNextAphid)));
+            string status = Loc.T("tip.st.farm.ok", colony.Aphids.Count, colony.AphidCap, colony.StallCount, colony.TroughsWaiting);
+            if (!colony.Tree.IsRoleUnlocked(AntRole.Farmer) || colony.CountOf(AntRole.Farmer) == 0)
+                status += " " + Loc.T("tip.st.farm.nofarmer");
+            return status;
+        }
+
+        static string MushroomStatus(AntColony colony) =>
+            colony == null ? null : Loc.T("tip.st.mushroom.stock", colony.MushroomItems);
+
+        static string WasteStatus(AntColony colony, PixelGrid grid, WasteMode brushMode)
         {
             if (colony == null)
                 return null;
@@ -150,7 +200,8 @@ namespace Fabula.Incrementant.UI
                 return Loc.T("tip.st.waste.paint");
             if (colony.WasteSpots == 0 && colony.WasteCells == 0)
                 return Loc.T("tip.st.waste.nospot");
-            return Loc.T("tip.st.waste.ok", colony.WasteSpots, colony.WasteCells, colony.WasteDeposited);
+            return Loc.T("tip.st.waste.ok", colony.WasteSpots, colony.WasteCells, colony.WasteDeposited) + " " +
+                   Loc.T("tip.st.waste.mode", Loc.T(AntFarmHud.WasteModeKey(brushMode)));
         }
 
         static string DewStatus(AntColony colony, PixelGrid grid)

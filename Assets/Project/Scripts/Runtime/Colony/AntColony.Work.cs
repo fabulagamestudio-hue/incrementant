@@ -1,18 +1,19 @@
 using System;
+using Fabula.Incrementant.Diagnostics;
 using Fabula.Incrementant.World;
 
 namespace Fabula.Incrementant.Colony
 {
     /// <summary>
     /// Painel da colônia (pedido do desenvolvedor em 2026-10-19): seções de trabalho que o jogador liga, desliga e limita,
-    /// o que a rainha faz (ninho ou coleta), o retrato das formigas (por seção, papel e lugar) e o ritmo de produção.
+    /// o que a rainha faz (ninho ou o trabalho de uma classe), o retrato das formigas (por seção, papel e lugar) e o ritmo de produção.
     /// </summary>
     public sealed partial class AntColony
     {
         /// <summary>Seções ativas e limites de formigas por seção. Vai para o save (versão 16).</summary>
         public WorkPolicy Work { get; } = new WorkPolicy();
 
-        /// <summary>Ninho (põe ovos), coleta (come o nutriente guardado, corta e carrega plantas) ou só nutriente (fica na sala de nutrientes). Vai para o save (versão 16).</summary>
+        /// <summary>Ninho (põe ovos) ou o trabalho de uma das classes (<see cref="QueenJobs"/>). Vai para o save (versão 16).</summary>
         public QueenJob QueenJob { get; set; }
 
         /// <summary>Ritmo de produção (nutrientes, plantas, terra) por segundo de jogo.</summary>
@@ -21,10 +22,7 @@ namespace Fabula.Incrementant.Colony
         // Formigas em cada seção, recontadas no começo do Tick e acertadas a cada formiga que muda de seção no passo.
         readonly int[] _sectionCounts = new int[WorkPolicy.Count];
 
-        /// <summary>Até onde (passos do campo de escavação) a rainha coletora vai buscar um pedaço de planta solto.</summary>
-        const int QueenPickupRange = 24;
-
-        /// <summary>Formigas trabalhando na seção agora (a rainha coletora não conta).</summary>
+        /// <summary>Formigas trabalhando na seção agora (a rainha trabalhando não conta).</summary>
         public int WorkersIn(WorkSection section) => _sectionCounts[(int)section];
 
         /// <summary>Seção do que a formiga está fazendo; <c>false</c> se ela está ociosa, vagando ou lutando.</summary>
@@ -58,11 +56,17 @@ namespace Fabula.Incrementant.Colony
                     return ant.StoreTarget == StorageKind.Water ? -1 : (int)WorkSection.Garden;
                 case AntState.Gardening:
                     return (int)WorkSection.Garden;
+                case AntState.TakingStored:
+                    // Planta e água do depósito para os canteiros: trabalho de quem cuida da sala de nutrientes.
+                    return ant.StoreUse == StoreUse.BedPlant || ant.StoreUse == StoreUse.Water ? (int)WorkSection.Garden : -1;
                 case AntState.TendingDew:
                     return (int)WorkSection.Dew;
                 case AntState.BringingSoil:
                 case AntState.FetchingSoil:
                 case AntState.GatheringSoil:
+                    // Terra da pilha para a área de resíduos (modo terra → água): mesma seção da reposição do depósito.
+                    if (ant.WasteDirtJob)
+                        return (int)WorkSection.Dig;
                     return (int)(ant.DewJob ? WorkSection.Dew : WorkSection.Garden);
                 case AntState.Gathering:
                 case AntState.Hauling:
@@ -70,7 +74,7 @@ namespace Fabula.Incrementant.Colony
                     return (int)WorkSection.Build;
                 case AntState.Carrying:
                     if (CellMaterials.IsPlant(ant.Carried))
-                        return (int)WorkSection.Harvest;
+                        return (int)(ant.GardenSupply ? WorkSection.Garden : WorkSection.Harvest);
                     return (int)(ant.ReturningSoil ? WorkSection.Build : WorkSection.Dig);
                 case AntState.Digging:
                     return (int)(IsPlantCell(ant.DigX, ant.DigY) ? WorkSection.Harvest : WorkSection.Dig);
@@ -97,18 +101,117 @@ namespace Fabula.Incrementant.Colony
 
         /// <summary>
         /// A formiga pode começar (ou seguir em) um trabalho da seção: ela está ativa e ainda tem vaga, ou a formiga já é
-        /// dela. A rainha não segue os limites (ela só trabalha sozinha ou coletando, por escolha do jogador).
+        /// dela. A rainha respeita a seção parada, mas não os limites (ela não entra na contagem por seção; pedido do
+        /// desenvolvedor em 2026-10-21).
         /// </summary>
         bool SectionAllows(WorkSection section, Ant ant)
         {
-            if (ant == Queen)
-                return true;
             if (!Work.IsEnabled(section))
                 return false;
+            if (ant == Queen)
+                return true;
             return SectionIndex(ant) == (int)section || Work.HasRoom(section, _sectionCounts[(int)section]);
         }
 
         void ClearSectionCounts() => Array.Clear(_sectionCounts, 0, _sectionCounts.Length);
+
+        // ---------------------------------------------------------------- segunda função (KI-033)
+
+        // Formigas que cada seção poderia ocupar agora (a demanda dela), recontadas no começo do Tick.
+        readonly int[] _sectionWanted = new int[WorkPolicy.Count];
+        readonly bool[] _sectionTried = new bool[WorkPolicy.Count];
+        // Células de onde se cava alguma marca (origens do campo de escavação), da última rodada de campos.
+        int _digSpots;
+
+        /// <summary>Quantas formigas a seção poderia ocupar agora (para a necessidade da segunda função).</summary>
+        public int SectionWanted(WorkSection section) => _sectionWanted[(int)section];
+
+        /// <summary>
+        /// Demanda de cada seção em formigas, com o que a colônia já conta: berçário (ovo esperando e blocos de cria),
+        /// sala de nutrientes (canteiros esperando água e blocos que brotam), rainha (nutrientes prontos), escavação
+        /// (pontos de onde cavar), obra (marcas), coleta (planta que os canteiros ou o depósito ainda pedem), gotas de orvalho
+        /// (pontos de terra e de folha e, pronta e ligada, os blocos de cuidado) e resíduos (partes de cupim no chão).
+        /// </summary>
+        void UpdateSectionWanted()
+        {
+            _sectionWanted[(int)WorkSection.Nursery] = (_brood.HasEggToCarry ? 1 : 0) + Desired(_nursery.Blocks);
+            _sectionWanted[(int)WorkSection.Garden] = _bedsAwaitingWater + (FoodDepot ? _bedsAwaitingPlant : 0) + Desired(_garden.Blocks);
+            _sectionWanted[(int)WorkSection.QueenFeed] = UnityEngine.Mathf.Min(_grid.NutrientCount, MaxFetchers);
+            _sectionWanted[(int)WorkSection.Dig] = _grid.MarkedCount > 0 ? _digSpots : 0;
+            _sectionWanted[(int)WorkSection.Build] = BuildWorkCount;
+            _sectionWanted[(int)WorkSection.Harvest] = _harvestPaused ? 0 : UnityEngine.Mathf.Max(0, PlantSupplyDemand - _plantsInFlight - PlantsWaiting);
+            _sectionWanted[(int)WorkSection.Dew] = _dewSoilSpots + _dewLeafSpots + (DewDripping ? DewBlockCount : 0);
+            _sectionWanted[(int)WorkSection.Waste] = _corpsePieces;
+        }
+
+        /// <summary>
+        /// Segunda função: com o papel sem trabalho, a formiga vai à seção mais desatendida (maior fração da demanda sem
+        /// formiga; empate, a de maior demanda) que ela consegue atender como operária. Quem aceita entra na contagem da
+        /// seção no mesmo passo (<see cref="UpdateAnt"/>), então as que decidem depois veem a falta menor. <c>false</c> = nenhuma
+        /// seção com falta tinha trabalho para ela; segue a ordem fixa da operária.
+        /// </summary>
+        bool TrySecondFunction(Ant ant)
+        {
+            Array.Clear(_sectionTried, 0, _sectionTried.Length);
+            for (int round = 0; round < WorkPolicy.Count; round++)
+            {
+                int best = -1;
+                float bestShare = 0f;
+                for (int s = 0; s < WorkPolicy.Count; s++)
+                {
+                    int wanted = _sectionWanted[s];
+                    if (_sectionTried[s] || wanted <= 0 || !Work.IsEnabled((WorkSection)s))
+                        continue;
+                    int missing = wanted - _sectionCounts[s];
+                    if (missing <= 0)
+                        continue;
+                    float share = missing / (float)wanted;
+                    if (best < 0 || share > bestShare || share == bestShare && wanted > _sectionWanted[best])
+                    {
+                        best = s;
+                        bestShare = share;
+                    }
+                }
+                if (best < 0)
+                    return false;
+                _sectionTried[best] = true;
+                _stepMark = 30 + best;
+                if (TrySectionWork(ant, (WorkSection)best))
+                {
+                    ant.SecondFunction = best;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>Tenta o trabalho de uma seção só (cada TryStart* confere papel, limite da seção e alcance).</summary>
+        bool TrySectionWork(Ant ant, WorkSection section)
+        {
+            switch (section)
+            {
+                case WorkSection.Nursery:
+                    return AntRoles.CarriesEggs(ant.TaskRole) && TryStartEggFetch(ant) || TryStartCare(ant);
+                case WorkSection.Garden:
+                    return TryStartGardenSupply(ant) || AntRoles.CarriesWater(ant.TaskRole) && TryStartWaterFetch(ant) ||
+                           TryStartSoilFetch(ant) || TryStartCare(ant);
+                case WorkSection.QueenFeed:
+                    return AntRoles.FetchesNutrients(ant.TaskRole) && _grid.NutrientCount > 0 && TryStartFetch(ant);
+                case WorkSection.Dig:
+                    return _grid.MarkedCount > 0 && SectionAllows(WorkSection.Dig, ant) &&
+                           SeekWork(ant, _digField, rock: false, FlowField.Unreachable);
+                case WorkSection.Build:
+                    return _hasSite && TryBuildWork(ant);
+                case WorkSection.Harvest:
+                    return TryStartLoose(ant) || AntRoles.Harvests(ant.TaskRole) && TryCutWork(ant);
+                case WorkSection.Dew:
+                    return TryStartSoilFetch(ant, dewOnly: true) || TryStartDewCare(ant);
+                case WorkSection.Waste:
+                    return TryStartDismember(ant);
+                default:
+                    return false;
+            }
+        }
 
         void CountSection(Ant ant)
         {
@@ -121,7 +224,19 @@ namespace Fabula.Incrementant.Colony
         void UpdateAnt(Ant ant, float deltaTime)
         {
             int before = SectionIndex(ant);
+            int state = (int)ant.State;
+            long start = SimProfiler.Now();
+            _stepMark = 0;
             StepAnt(ant, deltaTime);
+            long elapsed = SimProfiler.Now() - start;
+            Profiler.AddState(state, start);
+            float stepMs = SimProfiler.ToMs(elapsed);
+            if (stepMs >= SlowStepLog.ThresholdMs)
+                SlowSteps.Add(new SlowStep
+                {
+                    Ms = stepMs, Before = state, After = (int)ant.State, Role = (int)ant.Role, Task = (int)ant.TaskRole,
+                    Second = ant.SecondFunction, Mark = _stepMark, X = ant.X, Y = ant.Y, SimTime = SimulationTime,
+                });
             int after = SectionIndex(ant);
             if (before == after)
                 return;
@@ -133,7 +248,8 @@ namespace Fabula.Incrementant.Colony
 
         /// <summary>
         /// Quem só cuida (berçário, sala de nutrientes, gotas de orvalho) não tem o que terminar: com a seção desligada ou
-        /// acima do limite, sai na hora. As demais terminam a viagem e só depois deixam de voltar à seção.
+        /// acima do limite, sai na hora. As demais terminam a viagem e só depois deixam de voltar à seção. A rainha sai só
+        /// com a seção desligada (ela não segue os limites).
         /// </summary>
         bool QuitStoppedSection(Ant ant)
         {
@@ -146,7 +262,7 @@ namespace Fabula.Incrementant.Colony
                 default: return false;
             }
             // Ela própria já está na contagem: cabe se as outras (contagem - 1) ainda estão abaixo do limite.
-            if (Work.IsEnabled(section) && Work.HasRoom(section, _sectionCounts[(int)section] - 1))
+            if (Work.IsEnabled(section) && (ant == Queen || Work.HasRoom(section, _sectionCounts[(int)section] - 1)))
                 return false;
             if (section == WorkSection.Nursery)
                 Leave(ant, ref _nursery);
@@ -157,98 +273,49 @@ namespace Fabula.Incrementant.Colony
             return true;
         }
 
-        // ---------------------------------------------------------------- rainha coletora
+        // ---------------------------------------------------------------- rainha trabalhando
+
+        /// <summary>A rainha trabalha neste passo (ou termina o que tem nas mãos) e entra nas contas do passo como uma formiga.</summary>
+        bool QueenWorks => QueenJob != QueenJob.Nest || Queen.State != AntState.Idle || Queen.CarriedCount > 0;
 
         /// <summary>
-        /// Rainha fora do ninho. Coletora: come o nutriente guardado, corta plantas e leva os pedaços aos canteiros, como uma
-        /// operária. Só nutriente: vai à sala de nutrientes, fica lá e come cada nutriente pronto. Ao voltar ao ninho (ou com
-        /// o sino), termina o que tem nas mãos antes. Devolve true se o passo foi gasto nisso.
+        /// Rainha fora do ninho: faz o trabalho da classe escolhida com a mesma IA da formiga daquele papel (sem trabalho do
+        /// papel, o da comum), respeitando as seções paradas do painel, mas não os limites. Ao voltar ao ninho (ou com o
+        /// sino), termina o que tem nas mãos antes. Devolve true se o passo foi gasto nisso.
         /// </summary>
         bool TickQueenWork(Ant queen)
         {
+            bool home = QueenJob == QueenJob.Nest || Recalled;
+            // Cuidado não tem o que terminar: de volta ao ninho, ela sai na hora.
+            if (home)
+                LeaveQueenCare(queen);
+            else if (QuitStoppedSection(queen))
+                return true;
             bool busy = queen.State != AntState.Idle || queen.CarriedCount > 0;
-            if (!busy && (QueenJob == QueenJob.Nest || Recalled))
+            if (!busy && home)
             {
+                queen.ActingAsWorker = false;
                 queen.Errand = AntErrand.None;
                 queen.ClearSeek();
                 return false;
             }
-            if (queen.State != AntState.Idle)
-            {
-                RunState(queen);
-                return true;
-            }
-            _seekKept = false;
-            _errandKept = false;
-            if (queen.CarriedCount > 0)
-                UpdateLoadedIdle(queen);
-            else if (QueenJob == QueenJob.Nutrients)
-                StayAtNutrients(queen);
-            else if (!TryQueenEatNutrient(queen) &&
-                     !(IsOutdoor(queen.X, queen.Y) && SeekWork(queen, _digField, rock: false, QueenPickupRange)) &&
-                     !TryCutWork(queen))
-                WanderHome(queen);
-            if (!_seekKept)
-                queen.ClearSeek();
-            if (!_errandKept)
-                queen.Errand = AntErrand.None;
+            RunState(queen);
             return true;
         }
 
-        /// <summary>
-        /// Rainha só de nutriente: come o nutriente pronto mais perto; sem nenhum, vai à sala de nutrientes pelo campo de
-        /// algum canteiro (crescendo, à espera de planta ou de água, ou ponto livre) e espera lá dentro o próximo brotar.
-        /// </summary>
-        void StayAtNutrients(Ant queen)
+        void LeaveQueenCare(Ant queen)
         {
-            if (TryQueenEatNutrient(queen))
-                return;
-            if (_grid.IsNutrientRoom(queen.X, queen.Y))
+            switch (queen.State)
             {
-                queen.Cooldown = QueenNutrientWaitSeconds;
-                return;
+                case AntState.Gardening: Leave(queen, ref _garden); break;
+                case AntState.TendingDew: LeaveDewCare(queen); break;
+                case AntState.TendingAphid: LeaveAphid(queen); break;
+                // O berçário da rainha sozinha (sem adultas) segue no TickLoneQueenBrood.
+                case AntState.Tending:
+                    if (_ants.Count > 0)
+                        Leave(queen, ref _nursery);
+                    break;
             }
-            FlowField[] fields = { _curingField, _storeField, _waterBedField, _bedSpotField };
-            foreach (FlowField field in fields)
-            {
-                int d = field.Get(queen.X, queen.Y);
-                if (d == FlowField.Unreachable)
-                    continue;
-                if (d == 0)
-                    queen.Cooldown = QueenNutrientWaitSeconds;
-                else if (!StepDownhill(queen, field))
-                    continue;
-                return;
-            }
-            WanderHome(queen);
-        }
-
-        /// <summary>Espera da rainha só de nutriente parada na sala, entre uma olhada e outra.</summary>
-        const float QueenNutrientWaitSeconds = 0.5f;
-
-        /// <summary>Reservas e pedidos da rainha coletora entram nas contas do passo, como os das formigas.</summary>
-        void CountQueenWork()
-        {
-            Ant queen = Queen;
-            if (queen.State == AntState.Digging)
-            {
-                ClaimTarget(queen);
-                if (CellMaterials.IsPlant(_grid.Get(queen.DigX, queen.DigY)))
-                    _cutters++;
-            }
-            if (queen.SeekTarget >= 0)
-            {
-                if (queen.State == AntState.Idle)
-                    Claim(queen.SeekTarget);
-                else
-                    queen.ClearSeek();
-            }
-            if (queen.State != AntState.Idle)
-                queen.Errand = AntErrand.None;
-            else if (queen.Errand == AntErrand.Cut)
-                _cutters++;
-            if (IsHarvesting(queen))
-                _plantsInFlight += queen.CarriedCount;
         }
 
         // ---------------------------------------------------------------- retrato
@@ -287,6 +354,8 @@ namespace Fabula.Incrementant.Colony
                 return ColonyPlace.DewRoom;
             if (_grid.IsWasteRoom(x, y))
                 return ColonyPlace.WasteRoom;
+            if (_grid.IsFarmRoom(x, y))
+                return ColonyPlace.FarmRoom;
             return ColonyPlace.Tunnels;
         }
 
@@ -306,6 +375,7 @@ namespace Fabula.Incrementant.Colony
         NutrientRoom,
         DewRoom,
         WasteRoom,
+        FarmRoom,
     }
 
     /// <summary>Retrato das formigas adultas: por seção de trabalho, sem trabalho, lutando, por papel e por lugar.</summary>

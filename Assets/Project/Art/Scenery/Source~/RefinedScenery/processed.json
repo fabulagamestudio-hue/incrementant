@@ -1,0 +1,512 @@
+﻿[
+    {
+        "Family":  "Clovers",
+        "Name":  "Clover_00",
+        "Width":  1344,
+        "Height":  1264,
+        "WorldWidth":  84,
+        "WorldHeight":  79,
+        "OriginalWidth":  84,
+        "OriginalHeight":  79
+    },
+    {
+        "Family":  "Clovers",
+        "Name":  "Clover_01",
+        "Width":  1344,
+        "Height":  1472,
+        "WorldWidth":  84,
+        "WorldHeight":  92,
+        "OriginalWidth":  84,
+        "OriginalHeight":  92
+    },
+    {
+        "Family":  "Clovers",
+        "Name":  "Clover_02",
+        "Width":  1344,
+        "Height":  1152,
+        "WorldWidth":  84,
+        "WorldHeight":  72,
+        "OriginalWidth":  84,
+        "OriginalHeight":  72
+    },
+    {
+        "Family":  "Clovers",
+        "Name":  "Clover_03",
+        "Width":  1344,
+        "Height":  1664,
+        "WorldWidth":  84,
+        "WorldHeight":  104,
+        "OriginalWidth":  84,
+        "OriginalHeight":  104
+    },
+    {
+        "Family":  "Clovers",
+        "Name":  "Clover_04",
+        "Width":  1344,
+        "Height":  1424,
+        "WorldWidth":  84,
+        "WorldHeight":  89,
+        "OriginalWidth":  84,
+        "OriginalHeight":  89
+    },
+    {
+        "Family":  "Clovers",
+        "Name":  "Clover_05",
+        "Width":  1344,
+        "Height":  1248,
+        "WorldWidth":  84,
+        "WorldHeight":  78,
+        "OriginalWidth":  84,
+        "OriginalHeight":  78
+    },
+    {
+        "Family":  "DryLeaves",
+        "Name":  "DryLeaf_00",
+        "Width":  2048,
+        "Height":  288,
+        "WorldWidth":  128,
+        "WorldHeight":  18,
+        "OriginalWidth":  180,
+        "OriginalHeight":  25
+    },
+    {
+        "Family":  "DryLeaves",
+        "Name":  "DryLeaf_01",
+        "Width":  2048,
+        "Height":  304,
+        "WorldWidth":  128,
+        "WorldHeight":  19,
+        "OriginalWidth":  200,
+        "OriginalHeight":  29
+    },
+    {
+        "Family":  "DryLeaves",
+        "Name":  "DryLeaf_02",
+        "Width":  2016,
+        "Height":  352,
+        "WorldWidth":  126,
+        "WorldHeight":  22,
+        "OriginalWidth":  126,
+        "OriginalHeight":  22
+    },
+    {
+        "Family":  "DryLeaves",
+        "Name":  "DryLeaf_03",
+        "Width":  2048,
+        "Height":  192,
+        "WorldWidth":  128,
+        "WorldHeight":  12,
+        "OriginalWidth":  198,
+        "OriginalHeight":  19
+    },
+    {
+        "Family":  "DryLeaves",
+        "Name":  "DryLeaf_04",
+        "Width":  2048,
+        "Height":  336,
+        "WorldWidth":  128,
+        "WorldHeight":  21,
+        "OriginalWidth":  192,
+        "OriginalHeight":  31
+    },
+    {
+        "Family":  "DryLeaves",
+        "Name":  "DryLeaf_05",
+        "Width":  2048,
+        "Height":  320,
+        "WorldWidth":  128,
+        "WorldHeight":  20,
+        "OriginalWidth":  176,
+        "OriginalHeight":  28
+    },
+    {
+        "Family":  "Flowers",
+        "Name":  "Flower_00",
+        "Width":  832,
+        "Height":  2048,
+        "WorldWidth":  52,
+        "WorldHeight":  128,
+        "OriginalWidth":  111,
+        "OriginalHeight":  271
+    },
+    {
+        "Family":  "Flowers",
+        "Name":  "Flower_01",
+        "Width":  1008,
+        "Height":  2048,
+        "WorldWidth":  63,
+        "WorldHeight":  128,
+        "OriginalWidth":  126,
+        "OriginalHeight":  255
+    },
+    {
+        "Family":  "Flowers",
+        "Name":  "Flower_02",
+        "Width":  944,
+        "Height":  2048,
+        "WorldWidth":  59,
+        "WorldHeight":  128,
+        "OriginalWidth":  131,
+        "OriginalHeight":  285
+    },
+    {
+        "Family":  "Flowers",
+        "Name":  "Flower_03",
+        "Width":  976,
+        "Height":  2048,
+        "WorldWidth":  61,
+        "WorldHeight":  128,
+        "OriginalWidth":  105,
+        "OriginalHeight":  220
+    },
+    {
+        "Family":  "Grains",
+        "Name":  "Grain_00",
+        "Width":  128,
+        "Height":  112,
+        "WorldWidth":  8,
+        "WorldHeight":  7,
+        "OriginalWidth":  8,
+        "OriginalHeight":  7
+    },
+    {
+        "Family":  "Grains",
+        "Name":  "Grain_01",
+        "Width":  96,
+        "Height":  80,
+        "WorldWidth":  6,
+        "WorldHeight":  5,
+        "OriginalWidth":  6,
+        "OriginalHeight":  5
+    },
+    {
+        "Family":  "Grains",
+        "Name":  "Grain_02",
+        "Width":  96,
+        "Height":  80,
+        "WorldWidth":  6,
+        "WorldHeight":  5,
+        "OriginalWidth":  6,
+        "OriginalHeight":  5
+    },
+    {
+        "Family":  "Grains",
+        "Name":  "Grain_03",
+        "Width":  96,
+        "Height":  80,
+        "WorldWidth":  6,
+        "WorldHeight":  5,
+        "OriginalWidth":  6,
+        "OriginalHeight":  5
+    },
+    {
+        "Family":  "Grains",
+        "Name":  "Grain_04",
+        "Width":  96,
+        "Height":  80,
+        "WorldWidth":  6,
+        "WorldHeight":  5,
+        "OriginalWidth":  6,
+        "OriginalHeight":  5
+    },
+    {
+        "Family":  "Grains",
+        "Name":  "Grain_05",
+        "Width":  64,
+        "Height":  64,
+        "WorldWidth":  4,
+        "WorldHeight":  4,
+        "OriginalWidth":  4,
+        "OriginalHeight":  4
+    },
+    {
+        "Family":  "Grains",
+        "Name":  "Grain_06",
+        "Width":  96,
+        "Height":  80,
+        "WorldWidth":  6,
+        "WorldHeight":  5,
+        "OriginalWidth":  6,
+        "OriginalHeight":  5
+    },
+    {
+        "Family":  "Grains",
+        "Name":  "Grain_07",
+        "Width":  160,
+        "Height":  112,
+        "WorldWidth":  10,
+        "WorldHeight":  7,
+        "OriginalWidth":  10,
+        "OriginalHeight":  7
+    },
+    {
+        "Family":  "Grass",
+        "Name":  "Grass_00",
+        "Width":  528,
+        "Height":  2048,
+        "WorldWidth":  33,
+        "WorldHeight":  128,
+        "OriginalWidth":  103,
+        "OriginalHeight":  398
+    },
+    {
+        "Family":  "Grass",
+        "Name":  "Grass_01",
+        "Width":  624,
+        "Height":  2048,
+        "WorldWidth":  39,
+        "WorldHeight":  128,
+        "OriginalWidth":  127,
+        "OriginalHeight":  413
+    },
+    {
+        "Family":  "Grass",
+        "Name":  "Grass_02",
+        "Width":  1024,
+        "Height":  2048,
+        "WorldWidth":  64,
+        "WorldHeight":  128,
+        "OriginalWidth":  203,
+        "OriginalHeight":  403
+    },
+    {
+        "Family":  "Grass",
+        "Name":  "Grass_03",
+        "Width":  544,
+        "Height":  2048,
+        "WorldWidth":  34,
+        "WorldHeight":  128,
+        "OriginalWidth":  102,
+        "OriginalHeight":  388
+    },
+    {
+        "Family":  "Grass",
+        "Name":  "Grass_04",
+        "Width":  464,
+        "Height":  2048,
+        "WorldWidth":  29,
+        "WorldHeight":  128,
+        "OriginalWidth":  94,
+        "OriginalHeight":  411
+    },
+    {
+        "Family":  "Grass",
+        "Name":  "Grass_05",
+        "Width":  1136,
+        "Height":  2048,
+        "WorldWidth":  71,
+        "WorldHeight":  128,
+        "OriginalWidth":  165,
+        "OriginalHeight":  297
+    },
+    {
+        "Family":  "Grass",
+        "Name":  "Grass_06",
+        "Width":  624,
+        "Height":  2048,
+        "WorldWidth":  39,
+        "WorldHeight":  128,
+        "OriginalWidth":  126,
+        "OriginalHeight":  413
+    },
+    {
+        "Family":  "Grass",
+        "Name":  "Grass_07",
+        "Width":  704,
+        "Height":  2048,
+        "WorldWidth":  44,
+        "WorldHeight":  128,
+        "OriginalWidth":  127,
+        "OriginalHeight":  369
+    },
+    {
+        "Family":  "Grass",
+        "Name":  "Grass_08",
+        "Width":  640,
+        "Height":  2048,
+        "WorldWidth":  40,
+        "WorldHeight":  128,
+        "OriginalWidth":  130,
+        "OriginalHeight":  419
+    },
+    {
+        "Family":  "Grass",
+        "Name":  "Grass_09",
+        "Width":  448,
+        "Height":  2048,
+        "WorldWidth":  28,
+        "WorldHeight":  128,
+        "OriginalWidth":  86,
+        "OriginalHeight":  398
+    },
+    {
+        "Family":  "Mushrooms",
+        "Name":  "Mushroom_00",
+        "Width":  832,
+        "Height":  1232,
+        "WorldWidth":  52,
+        "WorldHeight":  77,
+        "OriginalWidth":  52,
+        "OriginalHeight":  77
+    },
+    {
+        "Family":  "Mushrooms",
+        "Name":  "Mushroom_01",
+        "Width":  896,
+        "Height":  1056,
+        "WorldWidth":  56,
+        "WorldHeight":  66,
+        "OriginalWidth":  56,
+        "OriginalHeight":  66
+    },
+    {
+        "Family":  "Mushrooms",
+        "Name":  "Mushroom_02",
+        "Width":  608,
+        "Height":  688,
+        "WorldWidth":  38,
+        "WorldHeight":  43,
+        "OriginalWidth":  38,
+        "OriginalHeight":  43
+    },
+    {
+        "Family":  "Mushrooms",
+        "Name":  "Mushroom_03",
+        "Width":  800,
+        "Height":  1008,
+        "WorldWidth":  50,
+        "WorldHeight":  63,
+        "OriginalWidth":  50,
+        "OriginalHeight":  63
+    },
+    {
+        "Family":  "Mushrooms",
+        "Name":  "Mushroom_04",
+        "Width":  992,
+        "Height":  1296,
+        "WorldWidth":  62,
+        "WorldHeight":  81,
+        "OriginalWidth":  62,
+        "OriginalHeight":  81
+    },
+    {
+        "Family":  "Mushrooms",
+        "Name":  "Mushroom_05",
+        "Width":  864,
+        "Height":  1232,
+        "WorldWidth":  54,
+        "WorldHeight":  77,
+        "OriginalWidth":  54,
+        "OriginalHeight":  77
+    },
+    {
+        "Family":  "Mushrooms",
+        "Name":  "Mushroom_06",
+        "Width":  1504,
+        "Height":  1952,
+        "WorldWidth":  94,
+        "WorldHeight":  122,
+        "OriginalWidth":  94,
+        "OriginalHeight":  122
+    },
+    {
+        "Family":  "Mushrooms",
+        "Name":  "Mushroom_07",
+        "Width":  736,
+        "Height":  1216,
+        "WorldWidth":  46,
+        "WorldHeight":  76,
+        "OriginalWidth":  46,
+        "OriginalHeight":  76
+    },
+    {
+        "Family":  "Tufts",
+        "Name":  "Tuft_00",
+        "Width":  496,
+        "Height":  992,
+        "WorldWidth":  31,
+        "WorldHeight":  62,
+        "OriginalWidth":  31,
+        "OriginalHeight":  62
+    },
+    {
+        "Family":  "Tufts",
+        "Name":  "Tuft_01",
+        "Width":  544,
+        "Height":  944,
+        "WorldWidth":  34,
+        "WorldHeight":  59,
+        "OriginalWidth":  34,
+        "OriginalHeight":  59
+    },
+    {
+        "Family":  "Tufts",
+        "Name":  "Tuft_02",
+        "Width":  288,
+        "Height":  960,
+        "WorldWidth":  18,
+        "WorldHeight":  60,
+        "OriginalWidth":  18,
+        "OriginalHeight":  60
+    },
+    {
+        "Family":  "Tufts",
+        "Name":  "Tuft_03",
+        "Width":  512,
+        "Height":  928,
+        "WorldWidth":  32,
+        "WorldHeight":  58,
+        "OriginalWidth":  32,
+        "OriginalHeight":  58
+    },
+    {
+        "Family":  "Tufts",
+        "Name":  "Tuft_04",
+        "Width":  480,
+        "Height":  1136,
+        "WorldWidth":  30,
+        "WorldHeight":  71,
+        "OriginalWidth":  30,
+        "OriginalHeight":  71
+    },
+    {
+        "Family":  "Tufts",
+        "Name":  "Tuft_05",
+        "Width":  416,
+        "Height":  1120,
+        "WorldWidth":  26,
+        "WorldHeight":  70,
+        "OriginalWidth":  26,
+        "OriginalHeight":  70
+    },
+    {
+        "Family":  "Tufts",
+        "Name":  "Tuft_06",
+        "Width":  592,
+        "Height":  1136,
+        "WorldWidth":  37,
+        "WorldHeight":  71,
+        "OriginalWidth":  37,
+        "OriginalHeight":  71
+    },
+    {
+        "Family":  "Tufts",
+        "Name":  "Tuft_07",
+        "Width":  288,
+        "Height":  1152,
+        "WorldWidth":  18,
+        "WorldHeight":  72,
+        "OriginalWidth":  18,
+        "OriginalHeight":  72
+    },
+    {
+        "Family":  "Twigs",
+        "Name":  "Twig_00",
+        "Width":  2048,
+        "Height":  592,
+        "WorldWidth":  128,
+        "WorldHeight":  37,
+        "OriginalWidth":  212,
+        "OriginalHeight":  62
+    }
+]

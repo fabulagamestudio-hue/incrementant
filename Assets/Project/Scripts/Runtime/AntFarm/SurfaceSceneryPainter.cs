@@ -37,6 +37,8 @@ namespace Fabula.Incrementant.AntFarm
         public readonly int PixelsPerCell;
         public readonly bool WrapX;
         public readonly Color32[] Pixels;
+        /// <summary>Props detalhados: a posição usa pixels desta camada, com origem inferior esquerda.</summary>
+        public readonly List<(SceneryStamp Stamp, int Left, int Bottom)> SpriteStamps = new();
 
         public SceneryLayer(int width, int height, int originY, int pixelsPerCell, bool wrapX = false)
         {
@@ -125,8 +127,13 @@ namespace Fabula.Incrementant.AntFarm
     /// </summary>
     public static class SurfaceSceneryPainter
     {
-        /// <summary>Igual à arte das formigas (AntSpriteImporter.PixelsPerCell).</summary>
+        /// <summary>
+        /// Texels por célula das camadas de perto e da frente e das plantas: cada pixel dos PNGs (1 célula) vira um bloco
+        /// destes. Na tela, o shader Incrementant/SceneryCells desenha cada célula a 16 texels (etapa 10 do documento 40).
+        /// </summary>
         public const int PixelsPerCell = 6;
+        /// <summary>Texels por célula das faixas de grama distante, pintadas por código: a densidade do mundo (documento 40).</summary>
+        public const int BandPixelsPerCell = 16;
         /// <summary>Células abaixo do solo mais baixo incluídas nas camadas, para as bases ficarem enterradas atrás do terreno.</summary>
         const int Embed = 3;
         /// <summary>Células de céu acima do topo do mapa quando quem chama não informa a folga da câmera.</summary>
@@ -236,6 +243,18 @@ namespace Fabula.Incrementant.AntFarm
                         covered[cellRow + px / PixelsPerCell] = true;
                 }
             }
+            foreach (var placed in layer.SpriteStamps)
+            {
+                SceneryStamp stamp = placed.Stamp;
+                for (int y = 0; y < stamp.Height; y++)
+                for (int x = 0; x < stamp.Width; x++)
+                {
+                    int px = placed.Left + x, py = placed.Bottom + y;
+                    if ((uint)px < (uint)layer.Width && (uint)py < (uint)layer.Height &&
+                        stamp.Pixels[y * stamp.Width + x].a != 0)
+                        covered[(py / PixelsPerCell) * cellColumns + px / PixelsPerCell] = true;
+                }
+            }
             return covered;
         }
 
@@ -338,7 +357,7 @@ namespace Fabula.Incrementant.AntFarm
                                         float minHeight, float maxHeight, float minStep, float maxStep)
         {
             int heightCells = BandFill + Mathf.CeilToInt(maxHeight) + 4;
-            var band = new SceneryLayer(BandTileCells * PixelsPerCell, heightCells * PixelsPerCell, horizon - BandFill, PixelsPerCell, wrapX: true);
+            var band = new SceneryLayer(BandTileCells * BandPixelsPerCell, heightCells * BandPixelsPerCell, horizon - BandFill, BandPixelsPerCell, wrapX: true);
             band.Fill(Clear);
 
             // Ondulação com período que divide o ladrilho, para emendar sem costura.
@@ -351,7 +370,7 @@ namespace Fabula.Incrementant.AntFarm
             Color32 field = Color32.Lerp(Color32.Lerp(Greens[0], hazeColor, haze), Black, 0.06f);
             for (int px = 0; px < band.Width; px++)
             {
-                int top = Mathf.FloorToInt((Ground((px + 0.5f) / PixelsPerCell) - 1f) * PixelsPerCell);
+                int top = Mathf.FloorToInt((Ground((px + 0.5f) / BandPixelsPerCell) - 1f) * BandPixelsPerCell);
                 for (int py = 0; py < top && py < band.Height; py++)
                     band.Pixels[py * band.Width + px] = field;
             }
@@ -569,9 +588,10 @@ namespace Fabula.Incrementant.AntFarm
         {
             readonly Func<float, float> _ground;
             readonly int _originY;
-            const float P = PixelsPerCell;
-
             public SceneryLayer Target;
+
+            /// <summary>Texels por célula da camada de destino (as faixas distantes têm mais que as de perto).</summary>
+            float P => Target != null ? Target.PixelsPerCell : PixelsPerCell;
 
             /// <summary>Colunas onde nada é carimbado (pivô nelas). Opcional.</summary>
             public Func<int, bool> Skip;
@@ -613,6 +633,11 @@ namespace Fabula.Incrementant.AntFarm
                 float ground = MinGround(x + stamp.BaseLeft / P, x + stamp.BaseRight / P) - sink;
                 int left = PxX(x) - stamp.PivotX;
                 int bottom = PxY(ground) - stamp.PivotY;
+                if (stamp.VisualSprite != null)
+                {
+                    Target.SpriteStamps.Add((stamp, left, bottom));
+                    return;
+                }
                 for (int y = 0; y < stamp.Height; y++)
                 for (int sx = 0; sx < stamp.Width; sx++)
                 {

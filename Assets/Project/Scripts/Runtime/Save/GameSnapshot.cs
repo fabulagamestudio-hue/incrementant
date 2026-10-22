@@ -58,17 +58,31 @@ namespace Fabula.Incrementant.Save
         /// 16: painel da colônia: trabalho da rainha (<see cref="QueenJob"/>) e seções ativas e limites (<see cref="WorkEnabled"/>, <see cref="WorkLimits"/>).
         /// 17: depósitos (<see cref="StorageRoom"/>) e itens guardados (<see cref="Stored"/>, <see cref="StoredShades"/>), inclusive os resíduos.
         /// 18: níveis das galerias do catálogo de melhorias, por id textual (<see cref="GalleryIds"/>, <see cref="GalleryLevels"/>).
+        /// 19: feromônio por célula (sistema removido em 2026-10-20: o bloco é lido e descartado).
+        /// 20: sem o bloco do feromônio.
+        /// 21: modo de conversão da área de resíduos, um só para todas (<see cref="WasteMode"/>).
+        /// 22: modo por célula da área de resíduos (bits 3-4 de <see cref="NurseryRoom"/>); sem o byte da versão 21.
+        /// 23: cogumelo luminoso (material 17) e a marca dele (3 em <see cref="Marked"/>); o formato não muda.
+        /// 24: fazenda de pulgões (bit 5 de <see cref="NurseryRoom"/>), os pulgões (<see cref="Aphids"/>) e o relógio do próximo
+        /// (<see cref="AphidBreedTimer"/>); o depósito de areia (5 em <see cref="StorageRoom"/>) e os itens areia e cogumelo não mudam o formato.
+        /// 25: reboco de sala construída (<c>PixelGrid.GetLining</c>, <c>RoomLining</c>) nos bits 3-6 de <see cref="Marked"/>.
+        /// 26: fome de cada pulgão (<see cref="AphidFed"/>), um bool por pulgão depois de <see cref="AphidBreedTimer"/>.
         /// </summary>
-        public const int CurrentVersion = 18;
+        public const int CurrentVersion = 26;
         /// <summary>
         /// Versão mais antiga que ainda carrega (a 2 volta sem sala pintada e com a rainha no ninho; a 2 e a 3 voltam sem
         /// sala de nutrientes e com 0 nutrientes).
         /// </summary>
         const int OldestReadableVersion = 2;
         const int Magic = 0x544E4349;
-        /// <summary>Em <see cref="Marked"/>: os 2 bits de baixo são a marca (1 = escavar, 2 = construir); o bit 4 é obra (versão 11).</summary>
+        /// <summary>
+        /// Em <see cref="Marked"/>: os 2 bits de baixo são a marca (1 = escavar, 2 = construir, 3 = cogumelo luminoso, versão 23);
+        /// o bit 4 é obra (versão 11); os bits 3-6 são o reboco de sala construída (versão 25; antes sempre 0).
+        /// </summary>
         const int MarkMask = 3;
         const int BuiltBit = 4;
+        const int LiningShift = 3;
+        const int LiningMask = 15;
 
         /// <summary>Origem do mapa (<c>MapSource</c> como int): um save não carrega em outro modo.</summary>
         public int MapSource;
@@ -110,7 +124,10 @@ namespace Fabula.Incrementant.Save
         public byte[] QueenRoom = Array.Empty<byte>();
         /// <summary>Por célula: bit 0 = sala de nutrientes pintada, bit 1 = nutriente guardado.</summary>
         public byte[] NutrientRoom = Array.Empty<byte>();
-        /// <summary>Por célula: bit 0 berçário, bit 1 área de resíduos, bit 2 sala Gotas de Orvalho. Vazio antes da versão 8.</summary>
+        /// <summary>
+        /// Por célula: bit 0 berçário, bit 1 área de resíduos, bit 2 sala Gotas de Orvalho, bits 3-4 modo da área de resíduos,
+        /// bit 5 fazenda de pulgões (versão 24). Vazio antes da versão 8.
+        /// </summary>
         public byte[] NurseryRoom = Array.Empty<byte>();
         /// <summary><see cref="QueenMode"/> e o papel do modo específico (versão 8).</summary>
         public byte QueenMode, QueenTarget;
@@ -154,6 +171,17 @@ namespace Fabula.Incrementant.Save
         public int[] GalleryLevels = Array.Empty<int>();
         public bool[] WorkEnabled = Array.Empty<bool>();
         public int[] WorkLimits = Array.Empty<int>();
+        /// <summary>
+        /// Só na versão 21: o modo único de todas as áreas de resíduos (<see cref="Colony.WasteMode"/>), aplicado a cada célula da
+        /// área ao carregar. Desde a 22 o modo vai por célula no <see cref="NurseryRoom"/>.
+        /// </summary>
+        public byte WasteMode;
+        /// <summary>Versão 24: célula de cada pulgão saudável (o pulgão preto, como os cupins, não vai). Vazio antes: sem pulgões.</summary>
+        public Vector2Int[] Aphids = Array.Empty<Vector2Int>();
+        /// <summary>Versão 24: segundos já contados para o próximo pulgão nascer.</summary>
+        public float AphidBreedTimer;
+        /// <summary>Versão 26: o pulgão de mesmo índice em <see cref="Aphids"/> já comeu (<c>Aphid.Fed</c>). Vazio antes: todos com fome.</summary>
+        public bool[] AphidFed = Array.Empty<bool>();
 
         public static GameSnapshot Capture(PixelGrid grid, AntColony colony, RainSimulation rain, WaterSimulation water,
                                            int mapSource, int seed, double matchSeconds, VegetationSimulation vegetation = null)
@@ -214,6 +242,14 @@ namespace Fabula.Incrementant.Save
             };
             colony.Work.CopyTo(snapshot.WorkEnabled, snapshot.WorkLimits);
             colony.Galleries.Export(out snapshot.GalleryIds, out snapshot.GalleryLevels);
+            snapshot.Aphids = new Vector2Int[colony.Aphids.Count];
+            snapshot.AphidFed = new bool[colony.Aphids.Count];
+            for (int a = 0; a < colony.Aphids.Count; a++)
+            {
+                snapshot.Aphids[a] = new Vector2Int(colony.Aphids[a].X, colony.Aphids[a].Y);
+                snapshot.AphidFed[a] = colony.Aphids[a].Fed;
+            }
+            snapshot.AphidBreedTimer = colony.AphidBreedTimer;
 
             int i = 0;
             for (int y = area.yMin; y < area.yMax; y++)
@@ -221,14 +257,16 @@ namespace Fabula.Incrementant.Save
             {
                 snapshot.Cells[i] = (byte)grid.Get(x, y);
                 snapshot.Shades[i] = grid.GetShade(x, y);
-                int mark = grid.IsMarked(x, y) ? 1 : grid.IsBuildMarked(x, y) ? 2 : 0;
-                snapshot.Marked[i] = (byte)(mark | (grid.IsBuilt(x, y) ? BuiltBit : 0));
+                int mark = grid.IsMarked(x, y) ? 1 : grid.IsGlowMushroomMarked(x, y) ? 3 : grid.IsBuildMarked(x, y) ? 2 : 0;
+                snapshot.Marked[i] = (byte)(mark | (grid.IsBuilt(x, y) ? BuiltBit : 0) | (grid.GetLining(x, y) & LiningMask) << LiningShift);
                 snapshot.Wetness[i] = grid.GetWetness(x, y);
                 snapshot.Water[i] = grid.HasWater(x, y) ? (byte)1 : (byte)0;
                 snapshot.QueenRoom[i] = grid.IsQueenRoom(x, y) ? (byte)1 : (byte)0;
-                // Bit 0 berçário, bit 1 área de resíduos (versão 13), bit 2 sala Gotas de Orvalho (saves antigos têm 0: sem sala).
+                // Bit 0 berçário, bit 1 área de resíduos (versão 13), bit 2 sala Gotas de Orvalho (saves antigos têm 0: sem sala),
+                // bits 3-4 modo da área de resíduos (versão 22).
                 snapshot.NurseryRoom[i] = (byte)((grid.IsNurseryRoom(x, y) ? 1 : 0) | (grid.IsWasteRoom(x, y) ? 2 : 0) |
-                                                 (grid.IsDewRoom(x, y) ? 4 : 0));
+                                                 (grid.IsDewRoom(x, y) ? 4 : 0) | (grid.GetWasteKind(x, y) & 3) << 3 |
+                                                 (grid.IsFarmRoom(x, y) ? 32 : 0));
                 snapshot.Behind[i] = (byte)grid.GetBehind(x, y);
                 snapshot.BehindShades[i] = grid.GetBehindShade(x, y);
                 // Bits 2-7 eram a cura que faltava (até a versão 11); hoje vão sempre 0 e são ignorados ao ler.
@@ -295,8 +333,13 @@ namespace Fabula.Incrementant.Save
                     grid.SetMarked(x, y, true);
                 else if (mark == 2)
                     grid.SetBuildMarked(x, y, true);
+                else if (mark == 3)
+                    grid.SetGlowMushroomMarked(x, y, true, skipPlacementCheck: true);
                 if ((Marked[i] & BuiltBit) != 0)
                     grid.SetBuilt(x, y, true);
+                int lining = (Marked[i] >> LiningShift) & LiningMask;
+                if (lining != 0)
+                    grid.SetLining(x, y, (byte)lining);
                 if (Wetness[i] != 0)
                     grid.SetWetness(x, y, Wetness[i]);
                 // Sobrescreve também a água que o gerador pôs (laguinhos) ou que Set empurrou para cima.
@@ -312,8 +355,11 @@ namespace Fabula.Incrementant.Save
                 if (NurseryRoom.Length != 0)
                 {
                     grid.SetNurseryRoom(x, y, (NurseryRoom[i] & 1) != 0);
-                    grid.SetWasteRoom(x, y, (NurseryRoom[i] & 2) != 0);
+                    // Bits 3-4: modo da área (versão 22); na 21 o modo era um só para todas.
+                    int wasteKind = (NurseryRoom[i] >> 3) & 3;
+                    grid.SetWasteRoom(x, y, (NurseryRoom[i] & 2) != 0, (byte)(wasteKind != 0 ? wasteKind : WasteMode));
                     grid.SetDewRoom(x, y, (NurseryRoom[i] & 4) != 0);
+                    grid.SetFarmRoom(x, y, (NurseryRoom[i] & 32) != 0);
                 }
                 // Depósitos e itens: troca o que o mapa tinha pelo do save (item só entra em célula sem material).
                 StorageKind room = grid.GetStorageRoom(x, y);
@@ -358,6 +404,7 @@ namespace Fabula.Incrementant.Save
             // Valor desconhecido (save de versão futura ou corrompido): rainha no ninho.
             colony.QueenJob = Enum.IsDefined(typeof(QueenJob), (QueenJob)QueenJob) ? (QueenJob)QueenJob : Colony.QueenJob.Nest;
             colony.Work.Restore(WorkEnabled, WorkLimits);
+            colony.RestoreFarm(Aphids, AphidBreedTimer, AphidFed);
         }
 
         /// <summary>Linhas enterradas das plantas (chame depois de <c>MarkPopulated</c>; as células já vêm da grade).</summary>
@@ -457,6 +504,14 @@ namespace Fabula.Incrementant.Save
                 {
                     w.Write(GalleryIds[i]); w.Write(GalleryLevels[i]);
                 }
+                w.Write(Aphids.Length);
+                foreach (Vector2Int aphid in Aphids)
+                {
+                    w.Write(aphid.x); w.Write(aphid.y);
+                }
+                w.Write(AphidBreedTimer);
+                for (int i = 0; i < Aphids.Length; i++)
+                    w.Write(i < AphidFed.Length && AphidFed[i]);
             }
         }
 
@@ -616,6 +671,26 @@ namespace Fabula.Incrementant.Save
                         {
                             s.GalleryIds[i] = r.ReadString();
                             s.GalleryLevels[i] = r.ReadInt32();
+                        }
+                    }
+                    if (version == 19)
+                        ReadBlock(r, count); // feromônio por célula, sistema removido: descartado
+                    if (version == 21)
+                        s.WasteMode = r.ReadByte();
+                    if (version >= 24)
+                    {
+                        int aphids = r.ReadInt32();
+                        if (aphids < 0 || aphids > 100000)
+                            throw new InvalidDataException("O save tem uma contagem de pulgões inválida.");
+                        s.Aphids = new Vector2Int[aphids];
+                        for (int i = 0; i < aphids; i++)
+                            s.Aphids[i] = new Vector2Int(r.ReadInt32(), r.ReadInt32());
+                        s.AphidBreedTimer = r.ReadSingle();
+                        if (version >= 26)
+                        {
+                            s.AphidFed = new bool[aphids];
+                            for (int i = 0; i < aphids; i++)
+                                s.AphidFed[i] = r.ReadBoolean();
                         }
                     }
                     return s;

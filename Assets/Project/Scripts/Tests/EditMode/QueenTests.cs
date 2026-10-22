@@ -88,6 +88,44 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
+        public void Queen_WalksAtWorkerSpeed()
+        {
+            // 20 células até a sala: na velocidade antiga da rainha (4 células/s) eram 5 s; como operária (20/s), cerca de 1 s.
+            PixelGrid grid = MakeCorridor(60, 12, 11);
+            PaintRoom(grid, 40, 46, 1, 3);
+            var layout = new TerrainLayout(20, new Vector2Int(20, 1), 30, 35);
+            var colony = new AntColony(grid, new ColonySettings(), layout, seed: 3);
+
+            float t = 0f;
+            for (; t < 10f && !colony.QueenInRoom; t += Dt)
+                colony.Tick(Dt);
+            Assert.IsTrue(colony.QueenInRoom);
+            Assert.Less(t, 2.5f, "A rainha anda na velocidade da operária.");
+        }
+
+        [Test]
+        public void QueenWithoutARoom_WandersTheAnthill_WithoutGoingOutside()
+        {
+            // Sem sala da rainha, ela não fica parada: anda pelo formigueiro como uma formiga ociosa, sem sair pelo poço.
+            const int surface = 10;
+            PixelGrid grid = MakeCorridor(80, 20, surface);
+            for (int y = 1; y <= surface; y++)
+                grid.Set(40, y, CellMaterial.Empty);
+            var layout = new TerrainLayout(40, new Vector2Int(40, 1), 50, 60);
+            var colony = new AntColony(grid, new ColonySettings(), layout, seed: 9);
+
+            int farthest = 0;
+            for (int i = 0; i < 60 * 30; i++)
+            {
+                colony.Tick(Dt);
+                Ant queen = colony.Queen;
+                Assert.LessOrEqual(queen.Y, surface, $"A rainha saiu do formigueiro: ({queen.X},{queen.Y}).");
+                farthest = Mathf.Max(farthest, Mathf.Abs(queen.X - 40));
+            }
+            Assert.Greater(farthest, 10, "Sem sala, a rainha anda pelo formigueiro.");
+        }
+
+        [Test]
         public void Queen_MovesToANewLargerRoom_WhenItIsDug()
         {
             PixelGrid grid = MakeCorridor(60, 12, 11);

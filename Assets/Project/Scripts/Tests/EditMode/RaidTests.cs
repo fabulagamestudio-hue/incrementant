@@ -56,6 +56,16 @@ namespace Fabula.Incrementant.Tests
 
         static AntColony MakeColony(PixelGrid grid, bool raids = true)
         {
+            // Mundo sem sala da rainha: uma sala fechada onde ela é posta, longe dos cupins (sem sala, ela vagaria até eles).
+            if (grid.QueenRoomCount == 0)
+            {
+                for (int x = 93; x <= 97; x++)
+                for (int y = 1; y <= 3; y++)
+                {
+                    grid.Set(x, y, CellMaterial.Empty);
+                    Assert.IsTrue(grid.SetQueenRoom(x, y, true));
+                }
+            }
             var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 3) { RaidsEnabled = raids };
             // Os testes antigos não tratam da caça à rainha (ela mora longe e morreria no meio da ordem dos objetivos).
             colony.RaidSettings.HuntQueen = false;
@@ -270,6 +280,8 @@ namespace Fabula.Incrementant.Tests
         public void TheQueenDying_IsGameOver_AndTheSimulationStops()
         {
             AntColony colony = MakeColony(MakeWorld());
+            // MakeColony desliga a caça à rainha; sem ela o cupim morde uma vez e segue para as paredes (KI-022).
+            colony.RaidSettings.HuntQueen = true;
             colony.RestoreState(0, 0, colony.SimulationTime, new Ant[0]);
             Termite killer = colony.SpawnTermite(colony.Queen.X, colony.Queen.Y);
             killer.Health = 100000f;
@@ -597,7 +609,6 @@ namespace Fabula.Incrementant.Tests
             for (int x = 47; x <= 48; x++)
             for (int y = 10; y <= 20; y++)
                 grid.Set(x, y, CellMaterial.Empty);
-
             AntColony colony = MakeColony(grid);
             RemoveAllAnts(colony);
             for (int i = 0; i < 6; i++)

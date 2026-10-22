@@ -178,50 +178,58 @@ namespace Fabula.Incrementant.EditorTools.UI
             string[] brushIcons =
             {
                 "icons/shovel", "icons/crate", "icons/crown", "icons/mushroom", "icons/egg", "icons/close", "icons/hand_index_up", "icons/leaf",
-                "icons/leaf", "icons/crate", "icons/arrow_down",
+                "icons/leaf", "icons/crate", "icons/arrow_down", "icons/mushroom", "icons/ant", "icons/crate", "icons/mushroom",
             };
-            int[] paintBrushes = { 0, 1, 6 };       // Cavar, Construir, Dedo
-            int[] environmentBrushes = { 2, 3, 4, 5, 7 }; // Sala da rainha, Sala de nutrientes, Berçário, Resíduos, Gotas de orvalho
-            int[] depotBrushes = { 8, 9, 10 };      // Depósitos de alimentos, de construção e de água (submenu DEPÓSITO)
+            int[] paintBrushes = { 0, 1, 11, 6 };   // Cavar, Construir, Cogumelo luminoso, Dedo
+            // Sala da rainha, Sala de nutrientes, Berçário, Resíduos, Gotas de orvalho, Fazenda de pulgões
+            int[] environmentBrushes = { 2, 3, 4, 5, 7, 12 };
+            // Depósitos de alimentos, de construção, de água, de areia e de cogumelos (submenu DEPÓSITO)
+            int[] depotBrushes = { 8, 9, 10, 13, 14 };
             var brushButtons = new Button[brushCount];
             var brushImages = new Image[brushCount];
-            Image paint = BuildBrushPanel(root, "SubmenuFerramenta", "FERRAMENTA", paintBrushes, brushIcons, brushButtons, brushImages);
+            var brushFills = new Image[brushCount];
+            Image paint = BuildBrushPanel(root, "SubmenuFerramenta", "FERRAMENTA", paintBrushes, brushIcons, brushButtons, brushImages, brushFills);
             Image environment = BuildBrushPanel(root, "SubmenuAmbientes", "AMBIENTES", environmentBrushes, brushIcons, brushButtons, brushImages,
-                                                extraRows: 1);
+                                                brushFills, extraRows: 1);
             // Última linha do Ambientes: DEPÓSITO abre o submenu dos depósitos, à direita do painel.
             Button depotButton = BuildButton(environment.transform, "Deposito", new Vector2(0.5f, 1),
                                              new Vector2(0, -56 - environmentBrushes.Length * 50), new Vector2(368, 42), "icons/crate",
                                              "DEPÓSITO", interactable: true, out Image depotImage);
             // Mais largo: "DEPÓSITO DE CONSTRUÇÃO" tem 22 letras de 16 px.
             Image depot = BuildBrushPanel(root, "SubmenuDeposito", "DEPÓSITO", depotBrushes, brushIcons, brushButtons, brushImages,
-                                          width: 456);
+                                          brushFills, width: 456);
             depot.rectTransform.anchoredPosition = new Vector2(696, -214 - environmentBrushes.Length * 50);
             SetObject(refs, "_paintPanel", paint.gameObject);
             SetObject(refs, "_environmentPanel", environment.gameObject);
             SetObject(refs, "_depotButton", depotButton);
             SetObject(refs, "_depotButtonImage", depotImage);
             SetObject(refs, "_depotPanel", depot.gameObject);
+            BuildWastePanel(root, refs);
             SetArray(refs, "_brushButtons", brushButtons);
             SetArray(refs, "_brushImages", brushImages);
+            SetArray(refs, "_brushFills", brushFills);
 
             BuildQueenPanel(root, refs);
             BuildRaidAlert(root, refs);
 
-            // --- canto inferior esquerdo, em linha: pausa, painel da colônia (estatísticas) e sino (recolhe as formigas ao
-            // formigueiro / manda de volta ao trabalho). Sem botões de acelerar o tempo (as teclas 1/2/3 seguem valendo).
-            Image pausePanel = BuildSprite(root, "Pausa", "panels/hud_card", new Vector2(0, 0), new Vector2(0, 0),
-                                           new Vector2(16, 16), new Vector2(84, 76));
+            // --- canto inferior esquerdo, num cartão só: pausa, painel da colônia (estatísticas), sino (recolhe as formigas
+            // ao formigueiro / manda de volta ao trabalho) e mostrar ambientes. Sem botões de acelerar o tempo (as teclas
+            // 1/2/3 seguem valendo).
+            Image bottomBar = BuildSprite(root, "BarraInferior", "panels/hud_card", new Vector2(0, 0), new Vector2(0, 0),
+                                          new Vector2(16, 16), new Vector2(14 + 4 * 64 - 8 + 14, 76));
             Sprite iconIdle = Load("buttons/icon_button");
-            Button pause = BuildIconButton(pausePanel.transform, "Pausa", 0, "icons/pause", null, out Image pauseImage);
+            Button pause = BuildIconButton(bottomBar.transform, "Pausa", 0, "icons/pause", null, out Image pauseImage);
             SetObject(refs, "_pauseButton", pause);
             SetObject(refs, "_pauseImage", pauseImage);
 
-            BuildColonyButton(root, refs);
-            Image recallPanel = BuildSprite(root, "Sino", "panels/hud_card", new Vector2(0, 0), new Vector2(0, 0),
-                                            new Vector2(200, 16), new Vector2(84, 76));
-            Button recall = BuildIconButton(recallPanel.transform, "SinoBotao", 0, "icons/bell", null, out Image recallImage);
+            BuildColonyButton(bottomBar.transform, 1, refs);
+            Button recall = BuildIconButton(bottomBar.transform, "Sino", 2, "icons/bell", null, out Image recallImage);
             SetObject(refs, "_recallButton", recall);
             SetObject(refs, "_recallImage", recallImage);
+            // Mesmo ícone do menu AMBIENTES; aceso enquanto a pintura das salas aparece no terreno.
+            Button rooms = BuildIconButton(bottomBar.transform, "Ambientes", 3, "icons/mushroom", null, out Image roomsImage);
+            SetObject(refs, "_roomsButton", rooms);
+            SetObject(refs, "_roomsImage", roomsImage);
 
             // --- dica no rodapé
             Text hint = BuildText(root, "Dica", "", TextSmall, Cream, TextAnchor.MiddleCenter);
@@ -283,8 +291,9 @@ namespace Fabula.Incrementant.EditorTools.UI
 
         /// <summary>Painel de pincéis ao lado do menu Colônia, com um botão por índice de <paramref name="brushes"/>; começa escondido.</summary>
         /// <param name="extraRows">Linhas a mais no fim do painel para botões que não são pincel (quem chama os põe).</param>
+        /// <param name="fills">Recebe, nos pincéis de ambiente (com limite de área, KI-043), o preenchimento da barra de área livre.</param>
         static Image BuildBrushPanel(Transform root, string name, string title, int[] brushes, string[] icons, Button[] buttons, Image[] images,
-                                     int extraRows = 0, int width = 400)
+                                     Image[] fills, int extraRows = 0, int width = 400)
         {
             Image panel = BuildPanelWithHeader(root, name, new Vector2(0, 1), new Vector2(286, -214),
                                                new Vector2(width, 62 + (brushes.Length + extraRows) * 50 + 12), title);
@@ -294,9 +303,56 @@ namespace Fabula.Incrementant.EditorTools.UI
                 buttons[brush] = BuildButton(panel.transform, "Pincel" + brush, new Vector2(0.5f, 1), new Vector2(0, -56 - row * 50),
                                              new Vector2(width - 32, 42), icons[brush % icons.Length],
                                              AntFarmGame.BrushLabel(brush).ToUpperInvariant(), interactable: true, out images[brush]);
+                if (AntFarmGame.TryGetPaintRoom(brush, out _))
+                    fills[brush] = BuildAreaBar(buttons[brush].transform);
             }
             panel.gameObject.SetActive(false);
             return panel;
+        }
+
+        /// <summary>
+        /// Barra horizontal fina no pé do botão do ambiente: quanto do limite de área ainda dá para pintar (KI-043). O HUD
+        /// encolhe o preenchimento pela âncora; sem raycast, para o clique continuar no botão.
+        /// </summary>
+        static Image BuildAreaBar(Transform button)
+        {
+            Image track = BuildPlain(button, "AreaLivre", new Color(0f, 0f, 0f, 0.35f));
+            RectTransform rect = track.rectTransform;
+            rect.anchorMin = new Vector2(0, 0);
+            rect.anchorMax = new Vector2(1, 0);
+            rect.pivot = new Vector2(0.5f, 0);
+            rect.offsetMin = new Vector2(50, 5);
+            rect.offsetMax = new Vector2(-12, 10);
+            Image fill = BuildPlain(track.transform, "Preenchimento", Green);
+            fill.rectTransform.anchorMin = Vector2.zero;
+            fill.rectTransform.anchorMax = Vector2.one;
+            fill.rectTransform.offsetMin = Vector2.zero;
+            fill.rectTransform.offsetMax = Vector2.zero;
+            return fill;
+        }
+
+        /// <summary>
+        /// Submenu RESÍDUOS: o modo de conversão da área (um por vez). À direita do Ambientes, no alto, para não cobrir o
+        /// submenu DEPÓSITO (que abre mais abaixo). O HUD o mostra só com o pincel Resíduos escolhido.
+        /// </summary>
+        static void BuildWastePanel(Transform root, SerializedObject refs)
+        {
+            WasteMode[] modes = AntFarmHud.WasteModes;
+            string[] icons = { "icons/leaf", "icons/arrow_down", "icons/shovel" };
+            // Mais largo: "TERRA EM AREIA E ÁGUA" tem 21 letras de 16 px.
+            const int width = 456;
+            Image panel = BuildPanelWithHeader(root, "SubmenuResiduos", new Vector2(0, 1), new Vector2(696, -214),
+                                               new Vector2(width, 62 + modes.Length * 50 + 12), "RESÍDUOS");
+            var buttons = new Button[modes.Length];
+            var images = new Image[modes.Length];
+            for (int i = 0; i < modes.Length; i++)
+                buttons[i] = BuildButton(panel.transform, "Modo" + i, new Vector2(0.5f, 1), new Vector2(0, -56 - i * 50),
+                                         new Vector2(width - 32, 42), icons[i],
+                                         LocalizationCatalog.Pt(AntFarmHud.WasteModeKey(modes[i])).ToUpperInvariant(), true, out images[i]);
+            panel.gameObject.SetActive(false);
+            SetObject(refs, "_wastePanel", panel.gameObject);
+            SetArray(refs, "_wasteModeButtons", buttons);
+            SetArray(refs, "_wasteModeImages", images);
         }
 
         /// <summary>Submenu da rainha: modo (automático, específico, pausado), tipo, o que vem a seguir e o botão de criar.</summary>
@@ -370,10 +426,10 @@ namespace Fabula.Incrementant.EditorTools.UI
         // ---------------------------------------------------------------- tutorial
 
         /// <summary>
-        /// Pop-ups do tutorial da primeira abertura: central (abertura e despedida, com fundo que bloqueia cliques), lateral
-        /// (instruções ao lado do alvo) e os botões "Ver objetivo" e "Pular tutorial". Tudo começa escondido; o
-        /// <see cref="TutorialDirector"/> posiciona, preenche e liga conforme o roteiro. Destaques, contorno das câmaras e o
-        /// marcador da entrada o diretor cria em código.
+        /// Pop-ups do tutorial de todo jogo novo (tour da interface): central (boas-vindas e despedida, com fundo que bloqueia
+        /// cliques), lateral (título, texto, contador e os botões Voltar e Próximo, sem fundo: o HUD segue clicável) e o botão
+        /// "Pular tutorial". Tudo começa escondido; o <see cref="TutorialDirector"/> posiciona, preenche e liga conforme o
+        /// roteiro. A moldura de destaque o diretor cria em código.
         /// </summary>
         static TutorialDirector BuildTutorial(Transform root, AntFarmGame game, AntFarmHud hud)
         {
@@ -408,33 +464,38 @@ namespace Fabula.Incrementant.EditorTools.UI
             SetObject(so, "_modalButton", modalButton);
             SetText(so, "_modalButtonLabel", modalLabel);
 
-            // --- pop-up lateral
+            // --- pop-up lateral: título e contador na primeira linha, texto, Voltar e Próximo embaixo.
             Image sidePanel = BuildSprite(go.transform, "PopupLateral", "panels/panel_plain", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-                                          Vector2.zero, new Vector2(520, 220));
+                                          Vector2.zero, new Vector2(600, 260));
             sidePanel.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            Text sideTitle = BuildText(sidePanel.transform, "Titulo", "", TextMedium, Ink, TextAnchor.UpperLeft);
+            PlaceStretchTop(sideTitle.rectTransform, 28, 32, 28);
+            Text counter = BuildText(sidePanel.transform, "Contador", "", TextSmall, Ink, TextAnchor.UpperRight);
+            PlaceStretchTop(counter.rectTransform, 32, 24, 28);
             Text sideText = BuildText(sidePanel.transform, "Texto", "", TextSmall, Ink, TextAnchor.UpperLeft);
             sideText.horizontalOverflow = HorizontalWrapMode.Wrap;
             sideText.lineSpacing = 1.5f;
-            PlaceStretchTop(sideText.rectTransform, 28, 300, 28);
-            Button sideButton = BuildActionButton(sidePanel.transform, "Botao", new Vector2(240, 48), TextSmall, out Text sideLabel);
-            SetBottomCenter((RectTransform)sideButton.transform, 28f);
+            PlaceStretchTop(sideText.rectTransform, 68, 400, 28);
+            Button back = BuildActionButton(sidePanel.transform, "Voltar", new Vector2(200, 48), TextSmall, out Text backLabel);
+            LocalizationSetup.Bind(backLabel, "Voltar");
+            var backRect = (RectTransform)back.transform;
+            backRect.anchorMin = backRect.anchorMax = backRect.pivot = new Vector2(0f, 0f);
+            backRect.anchoredPosition = new Vector2(28f, 28f);
+            Button next = BuildActionButton(sidePanel.transform, "Proximo", new Vector2(240, 48), TextSmall, out Text nextLabel);
+            var nextRect = (RectTransform)next.transform;
+            nextRect.anchorMin = nextRect.anchorMax = nextRect.pivot = new Vector2(1f, 0f);
+            nextRect.anchoredPosition = new Vector2(-28f, 28f);
             sidePanel.gameObject.SetActive(false);
             SetObject(so, "_side", sidePanel.gameObject);
             SetObject(so, "_sidePanel", sidePanel.rectTransform);
+            SetText(so, "_sideTitle", sideTitle);
             SetText(so, "_sideText", sideText);
-            SetObject(so, "_sideButton", sideButton);
-            SetText(so, "_sideButtonLabel", sideLabel);
+            SetText(so, "_sideCounter", counter);
+            SetObject(so, "_nextButton", next);
+            SetText(so, "_nextLabel", nextLabel);
+            SetObject(so, "_backButton", back);
 
-            // --- "Ver objetivo" (acima da dica do rodapé) e "Pular tutorial" (canto inferior direito)
-            Button viewGoal = BuildActionButton(go.transform, "VerObjetivo", new Vector2(340, 52), TextSmall, out Text viewLabel);
-            LocalizationSetup.Bind(viewLabel, "Ver objetivo");
-            var viewRect = (RectTransform)viewGoal.transform;
-            viewRect.anchorMin = viewRect.anchorMax = new Vector2(0.5f, 0f);
-            viewRect.pivot = new Vector2(0.5f, 0f);
-            viewRect.anchoredPosition = new Vector2(0f, 76f);
-            viewGoal.gameObject.SetActive(false);
-            SetObject(so, "_viewGoalButton", viewGoal);
-
+            // --- "Pular tutorial" (canto inferior direito)
             Image skipImage = BuildSprite(go.transform, "Pular", "buttons/button_normal", new Vector2(1, 0), new Vector2(1, 0),
                                           new Vector2(-16, 16), new Vector2(330, 44));
             skipImage.rectTransform.pivot = new Vector2(1, 0);
@@ -586,9 +647,9 @@ namespace Fabula.Incrementant.EditorTools.UI
         {
             string[] rows =
             {
-                "VOLUME GERAL", "MÚSICA", "EFEITOS SONOROS", "EFEITOS VISUAIS", "TELA CHEIA", "RESOLUÇÃO", "VSYNC",
+                "VOLUME GERAL", "MÚSICA", "EFEITOS SONOROS", "EFEITOS VISUAIS", "BRILHO (BLOOM)", "TELA CHEIA", "RESOLUÇÃO", "VSYNC",
                 "LIMITE DE FPS", "MOSTRAR FPS E TEMPO",
-                "IDIOMA",
+                "IDIOMA", "BLOQUEAR OBRA EM SALAS",
             };
             Image panel = BuildPanelWithHeader(parent, "TelaConfiguracoes", new Vector2(0.5f, 0.5f), Vector2.zero,
                                                new Vector2(SettingsWidth, SettingsTop + rows.Length * SettingsRow + 84), "CONFIGURAÇÕES");
@@ -612,12 +673,14 @@ namespace Fabula.Incrementant.EditorTools.UI
             BuildSliderRow(t, 1, so, "_music", "_musicValue");
             BuildSliderRow(t, 2, so, "_sfx", "_sfxValue");
             BuildCyclerRow(t, 3, so, "_vfxPrevious", "_vfxNext", "_vfxValue");
-            BuildToggleRow(t, 4, so, "_fullscreen", "_fullscreenImage");
-            BuildCyclerRow(t, 5, so, "_resolutionPrevious", "_resolutionNext", "_resolutionValue");
-            BuildToggleRow(t, 6, so, "_vsync", "_vsyncImage");
-            BuildCyclerRow(t, 7, so, "_fpsPrevious", "_fpsNext", "_fpsValue");
-            BuildToggleRow(t, 8, so, "_showStats", "_showStatsImage");
-            BuildCyclerRow(t, 9, so, "_languagePrevious", "_languageNext", "_languageValue");
+            BuildToggleRow(t, 4, so, "_bloom", "_bloomImage");
+            BuildToggleRow(t, 5, so, "_fullscreen", "_fullscreenImage");
+            BuildCyclerRow(t, 6, so, "_resolutionPrevious", "_resolutionNext", "_resolutionValue");
+            BuildToggleRow(t, 7, so, "_vsync", "_vsyncImage");
+            BuildCyclerRow(t, 8, so, "_fpsPrevious", "_fpsNext", "_fpsValue");
+            BuildToggleRow(t, 9, so, "_showStats", "_showStatsImage");
+            BuildCyclerRow(t, 10, so, "_languagePrevious", "_languageNext", "_languageValue");
+            BuildToggleRow(t, 11, so, "_blockBuild", "_blockBuildImage");
 
             float footer = RowTop(rows.Length) + 16;
             Button defaults = BuildButton(t, "Padrao", new Vector2(0.5f, 1), new Vector2(-150, -footer), new Vector2(280, 48),

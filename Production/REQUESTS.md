@@ -1,7 +1,7 @@
 # Solicitações do desenvolvedor
 
 **Projeto:** Incrementant
-**Última atualização:** 2026-10-21
+**Última atualização:** 2026-10-22
 
 ## Índice
 
@@ -35,7 +35,7 @@
 | REQ-026 | 2026-10-18 | Melhorar formigas adultas e cenário em pixel art sem blur nas bordas | ART | UNDEFINED | IMPLEMENTED |
 | REQ-027 | 2026-10-18 | Arte de formiga inimiga com asas na chegada e sem asas após pousar | ART | UNDEFINED | IMPLEMENTED |
 | REQ-029 | 2026-10-18 | Ataques de cupins, formigas de ataque (soldado) e área de resíduos | PROGRAMMING, GAME_DESIGN, ART | UNDEFINED | IMPLEMENTED |
-| REQ-030 | 2026-10-18 | Tutorial da primeira abertura do jogo | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
+| REQ-030 | 2026-10-18 | Tutorial da primeira abertura do jogo | PROGRAMMING, GAME_DESIGN | UNDEFINED | CANCELLED |
 | REQ-031 | 2026-10-18 | Menu principal com fundo de colônia trabalhando e sem splash da Unity | PROGRAMMING, ART | UNDEFINED | IMPLEMENTED |
 | REQ-032 | 2026-10-18 | Sala Gotas de Orvalho | PROGRAMMING | UNDEFINED | VERIFIED |
 | REQ-033 | 2026-10-18 | Arte do pulgão menor que a formiga | ART | UNDEFINED | IMPLEMENTED |
@@ -47,7 +47,33 @@
 | REQ-040 | 2026-10-20 | Combate e cupins: postos de guarda, distribuição das soldadas e velocidade por situação | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
 | REQ-041 | 2026-10-20 | Áudio espacial: SFX pela posição da câmera e pelo zoom | AUDIO, PROGRAMMING | UNDEFINED | DONE |
 | REQ-042 | 2026-10-20 | Água no mapa: lagos mais fundos e bolsões de água no subterrâneo | PROGRAMMING | UNDEFINED | DONE |
+| REQ-043 | 2026-10-20 | Ordens de trabalho completas com travas e duas funções por formiga | PROGRAMMING, GAME_DESIGN | UNDEFINED | IN_PROGRESS |
+| REQ-044 | 2026-10-20 | Feromônio: rastro das formigas, pincel e opção de desenho | PROGRAMMING, GAME_DESIGN | UNDEFINED | CANCELLED |
+| REQ-045 | 2026-10-20 | Modos de conversão da área de resíduos: folhas em água e terra em areia e água (KI-042, KI-045) | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
+| REQ-046 | 2026-10-20 | Limite de pintura por ambiente, upgrades de área e barra de área livre (KI-043) | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
 | REQ-047 | 2026-10-21 | Direção de arte unificada (16 px por célula) e terreno iluminado no estilo do menu, em etapas | ART, PROGRAMMING | UNDEFINED | IN_PROGRESS |
+| REQ-048 | 2026-10-21 | Barra inferior num cartão só e opção Mostrar ambientes | PROGRAMMING, ART | UNDEFINED | IMPLEMENTED |
+| REQ-049 | 2026-10-21 | Aplicar aparência aprovada às formigas e à Rainha | ART | UNDEFINED | IMPLEMENTED |
+
+| REQ-050 | 2026-10-21 | Refinar a aparência dos cupins no estilo das formigas aprovadas | ART | UNDEFINED | IMPLEMENTED |
+
+| REQ-051 | 2026-10-21 | Refinar ovos, larvas e pupas no estilo aprovado | ART | UNDEFINED | IMPLEMENTED |
+
+| REQ-054 | 2026-10-21 | Refinar os demais assets de Scenery no estilo aprovado | ART, PROGRAMMING | UNDEFINED | IN_PROGRESS |
+| REQ-053 | 2026-10-21 | Refinar as pedras de cenário no estilo aprovado, maiores que as formigas | ART, PROGRAMMING | UNDEFINED | IMPLEMENTED |
+| REQ-052 | 2026-10-21 | Refinar a aparência do pulgão no estilo aprovado | ART | UNDEFINED | IMPLEMENTED |
+| REQ-055 | 2026-10-21 | Sala de nutrientes busca folhas e água nos depósitos | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
+| REQ-056 | 2026-10-21 | Formiga guerreira de ataque a distância (cuspideira) | PROGRAMMING, GAME_DESIGN, ART | UNDEFINED | IMPLEMENTED |
+| REQ-057 | 2026-10-21 | Formiga que cuida dos resíduos (lixeira) | PROGRAMMING, GAME_DESIGN, ART | UNDEFINED | IMPLEMENTED |
+| REQ-058 | 2026-10-21 | Sala construída muda de visual: formigas põem terra nos slots do ambiente | GAME_DESIGN, ART, PROGRAMMING | UNDEFINED | IMPLEMENTED |
+| REQ-059 | 2026-10-21 | Carregadora leva mais de todos os itens e prioriza o estoque | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
+| REQ-060 | 2026-10-21 | Refazer os assets de cenário no padrão de pixel art (limpeza com Qwen) | ART | UNDEFINED | PLANNED |
+| REQ-061 | 2026-10-22 | Fazenda de pulgões, fazendeira, depósitos de areia e de cogumelos e pulgão preto | PROGRAMMING, GAME_DESIGN, ART | UNDEFINED | IMPLEMENTED |
+| REQ-062 | 2026-10-22 | Trazer o Build Assistant do SpaceFall | RELEASE | UNDEFINED | VERIFIED |
+| REQ-063 | 2026-10-22 | Versão da build no canto inferior da tela, em todas as cenas | RELEASE | UNDEFINED | VERIFIED |
+| REQ-064 | 2026-10-22 | Histórico de versões ao clicar na versão, sem clique no mundo sob ela | RELEASE | UNDEFINED | VERIFIED |
+| REQ-065 | 2026-10-22 | Tutorial como tour da interface, com o jogador livre para clicar | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
+| REQ-066 | 2026-10-22 | Glossário com a explicação de tudo | PROGRAMMING, GAME_DESIGN | UNDEFINED | PLANNED |
 
 ## Registros
 
@@ -572,19 +598,20 @@
 ### REQ-030 — Tutorial da primeira abertura do jogo
 
 - **Data de registro:** 2026-10-18
-- **Estado:** IMPLEMENTED
+- **Estado:** CANCELLED
 - **Prioridade:** UNDEFINED
 - **Setores:** PROGRAMMING, GAME_DESIGN
 - **Descrição:** Criar, com a UI que já existe, o tutorial da primeira vez que o jogador abre o jogo: abertura com a câmera enquadrando a rainha e as operárias; pincel de escavação e primeira câmara; área de nutrientes; berçário e reprodução da rainha; árvore de evolução; inimigos e defesa; despedida. Câmera automática só nas transições, botão "Ver objetivo" se o jogador se afastar.
 - **Critérios de aceitação:** Pendente de definição (o roteiro de etapas, textos e botões veio no pedido).
 - **Dependências:** REQ-022
-- **Itens relacionados:** PRG-035
+- **Itens relacionados:** PRG-035, REQ-065
 - **Referências:** [TutorialGuide.md](../Assets/Project/Scripts/Runtime/Tutorial/TutorialGuide.md); [Garantias do tutorial](../Docs/01_Design/07_Garantias_do_tutorial_e_primeiros_objetivos.md)
-- **Decisões pendentes:** não há cinematic no projeto, então a abertura desce da vista mais aberta até o abrigo; pop-ups de "Continuar" extras nas etapas da rainha e dos inimigos; progresso no meio do tutorial não é salvo (recomeça na próxima abertura).
+- **Decisões pendentes:** não há cinematic no projeto, então a abertura desce da vista mais aberta até o abrigo; pop-ups de "Continuar" extras nas etapas da rainha e dos inimigos; progresso no meio do tutorial não é salvo (recomeça no próximo jogo novo); ao regenerar o mapa dentro da cena (R ou "novo mapa" no fim de jogo) o tutorial termina e não recomeça.
 - **Histórico:**
   - 2026-10-18 — PLANNED: pedido registrado.
   - 2026-10-18 — IMPLEMENTED: etapas, câmera, destaques e pop-ups prontos; planejador coberto por 5 testes EditMode; Play Mode pelo agente até a árvore de evolução. Etapas de inimigos e despedida só revisadas no código.
-
+  - 2026-10-22 — IMPLEMENTED: a pedido do desenvolvedor, todo jogo novo abre com o tutorial (removida a marca de "já visto" em `PlayerPrefs`); continua sem rodar ao continuar um save. Compilado na Unity; não testado em Play Mode.
+  - 2026-10-22 — CANCELLED: o desenvolvedor decidiu substituir o roteiro guiado (cavar, nutrientes, berçário, árvore, cupins) pelo tour da interface de REQ-065; o código do roteiro foi removido (fica no histórico do Git).
 
 ### REQ-031 — Menu principal com fundo de colônia trabalhando e sem splash da Unity
 
@@ -619,6 +646,7 @@
   - 2026-10-18 — IMPLEMENTED: sala, pincel, etapas, gota e água não absorvida; suíte EditMode 217/217 na Unity (8 testes novos).
   - 2026-10-20 — Relato do desenvolvedor: a sala parava de produzir água. Causa: teto de água só pela altura (KI-049); agora conta a largura e a gota segue com o depósito de água cheio, até a sala encher ("a água tem que continuar saindo mesmo com o depósito cheio, até o limite da própria sala"). Transbordo para os túneis fica aberto (KI-050).
   - 2026-10-20 — VERIFIED: sala construída pelo desenvolvedor numa partida (save) e replay no editor enchendo a sala; DewRoomTests 16/16 na Unity. Desenvolvedor marcou como pronta.
+  - 2026-10-20 — Transbordo da sala cheia (KI-050) dado como resolvido pelo desenvolvedor.
 
 ### REQ-033 — Arte do pulgão menor que a formiga
 
@@ -673,6 +701,9 @@
   - 2026-10-19 — IMPLEMENTED: painel, seções com interruptor e limite, rainha coletora e save versão 16. Testes EditMode novos passando e Play Mode pelo agente com as duas abas; falta uso por uma pessoa.
   - 2026-10-19 — IMPLEMENTED: a pedido do desenvolvedor, novo botão COLETAR NUTRIENTE, que força a rainha a ficar na sala de nutrientes comendo cada nutriente pronto (sem cortar plantas nem pôr ovos). Teste EditMode novo passando e botão conferido em Play Mode pelo agente.
   - 2026-10-19 — IMPLEMENTED: o desenvolvedor relatou que a rainha nunca parava de coletar nutrientes. Causa: a regra de 2026-10-18 (a rainha ociosa vai comer o nutriente guardado) seguia valendo no modo NINHO. Agora, no ninho, ela não sai para comer (as formigas entregam); só a rainha sem nenhuma adulta ainda vai comer. Teste `BroodTests.InTheNest_TheQueenNoLongerLeavesToEat_OnlyWithTheNutrientJob` passando; sem Play Mode.
+  - 2026-10-21 — IMPLEMENTED: a pedido do desenvolvedor, os 3 botões do trabalho da rainha viraram um seletor de comportamento: BOTAR OVOS ou trabalhar como uma das classes já liberadas, com a mesma IA da formiga daquele papel. Saves antigos: COLETAR RECURSOS vira operária e COLETAR NUTRIENTE vira jardineira (a rainha "só na sala de nutrientes" deixou de existir). Suíte EditMode 375/375 na Unity; Play Mode pelo agente com capturas da lista (só operária liberada e todas liberadas) e escolha da cortadeira; não usado por uma pessoa com o mouse.
+  - 2026-10-21 — IMPLEMENTED: a pedido do desenvolvedor, a rainha passou a respeitar as seções paradas no painel (continua fora dos limites). "Ambientes que não estão funcionando" = seções PARADAS (confirmado pelo desenvolvedor em 2026-10-21). 2 testes novos; suíte EditMode 377/377; sem Play Mode.
+  - 2026-10-21 — IMPLEMENTED: a pedido do desenvolvedor, a rainha anda na velocidade das formigas do papel dela (no ninho, a da operária) e só fica parada na sala da rainha; sem sala, vaga pelo formigueiro (de fora, volta pela abertura mais perto). 2 testes novos e 5 cenários de teste ganharam sala da rainha; suíte EditMode 379/379; Play Mode pelo agente: rainha sem sala andando no começo da partida, ~250–285 FPS.
 
 ### REQ-036 — Depósitos de alimentos, construção e água; resíduos sem obstruir
 
@@ -789,6 +820,77 @@
   - 2026-10-20 — IMPLEMENTED: laguinhos fundos e `CarveWaterPockets`; 2 testes novos em `WaterSimulationTests` passando na Unity (os 5 que falham são os de KI-022). Mapa gerado renderizado à parte (8 laguinhos, ~27 bolsões); não visto em Play Mode pelo agente.
   - 2026-10-20 — DONE: aprovado pelo desenvolvedor ("excelente, pode marcar como pronto").
 
+### REQ-043 — Ordens de trabalho completas com travas e duas funções por formiga
+
+- **Data de registro:** 2026-10-20
+- **Estado:** IN_PROGRESS
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, GAME_DESIGN
+- **Descrição:** Pedido do desenvolvedor de 2026-10-20, junto com o KI-033 (duas funções por formiga): toda interação deve informar quem vai, fazer o quê e para onde vai, mais uma segunda função que não é daquela formiga. O destino pede (ex.: uma vaga do depósito informa uma célula de água, que busca uma formiga disponível e diz aonde ir); a vaga e a célula de água ficam travadas para outras interações. Com obstáculo no caminho (bloco a cavar ou construir), a formiga troca de função com o obstáculo e passa a dela para a formiga que deveria ter feito aquela. Objetivo: acabar com as formigas se movendo de forma irregular, com vários pedidos feitos a várias formigas e, ao ser atendido, as várias formigas perdidas com o objeto na mão.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-036 (depósitos)
+- **Itens relacionados:** —
+- **Referências:** [StorageGuide.md](../Assets/Project/Scripts/Runtime/Colony/StorageGuide.md) ("Ordens de entrega com vaga travada"); [KnownIssues.md](../Assets/Project/Scripts/KnownIssues.md) (KI-033, KI-052)
+- **Decisões pendentes:** ordem de migração dos outros trabalhos para ordens (escavação, obra, plantas, ovos); como medir a necessidade de cada seção (hoje: fração da demanda sem formiga, escolha do agente). Escavação (2026-10-21): o que conta como obstrução (só marca de outra formiga, ou também terra sem marca entre a frente e o bloco), e quem herda a função (a formiga que cavou a obstrução ou uma ociosa). Decidido em 2026-10-20: segunda função pela necessidade (sem papel, vira operária temporária); no obstáculo sem dono, a formiga não executa aquela função.
+- **Histórico:**
+  - 2026-10-20 — registrado.
+  - 2026-10-20 — IN_PROGRESS: piloto nas entregas aos depósitos (água, planta, terra): cada formiga sai com a vaga travada e um caminho até ela; a água tem vaga travada desde a aceitação. A recrutação parte da formiga ociosa (na ordem de prioridade atual), não do destino, para não roubar formigas de tarefas mais prioritárias. No save do desenvolvedor (1004 formigas) o tempo carregando sem destino caiu de 23% para 0,5%; suíte EditMode 359/359. Segunda função e troca no obstáculo ainda não começaram. Não visto em Play Mode por uma pessoa.
+  - 2026-10-20 — Segunda função pela necessidade (`TrySecondFunction`) e troca de função no obstáculo para a ordem de água (`TrySwapWithObstacle`); 3 testes novos, suíte EditMode 362/362. Não visto em Play Mode.
+  - 2026-10-21 — Desenvolvedor descreveu a escavação como a próxima ordem a migrar (relato, após ver 193 de 261 escavadoras ociosas diante de 4012 marcas, KI-055): cada formiga tenta chegar ao seu bloco; se falhar, desobstrui a passagem e passa a função dela a outra formiga (troca de função com a que não chegou a tempo), de modo que a área pintada seja atendida por todas ao mesmo tempo, cada uma no que é possível. Registrado; nada implementado. Pendente confirmar o desenho (ver Decisões pendentes).
+  - 2026-10-20 — Regressão de desempenho relatada pelo desenvolvedor (F11: 605 formigas buscando água, `UpdateAnt` 50 ms): a ordem de água travava só a vaga. Corrigido: a ordem só nasce com vaga e bloco de água travados e cai se perder o bloco. No save: Tick 14,5 → 9,8 ms no Editor, 302 → 63 formigas buscando; suíte 362/362. Falta conferir o FPS em Play Mode.
+
+### REQ-044 — Feromônio: rastro das formigas, pincel e opção de desenho
+
+- **Data de registro:** 2026-10-20
+- **Estado:** CANCELLED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, GAME_DESIGN
+- **Descrição:** Pedido do desenvolvedor de 2026-10-20: o feromônio também é um pincel. Toda formiga que se move dentro do formigueiro cria um ponto de feromônio a cada 2 s de jogo; o ponto vale 100 e se espalha por 6 blocos ao redor, somando com os outros. Locais do formigueiro com menos de 25 são tampados; blocos com mais de 25 são escavados. O pincel do jogador pinta 100. Uma opção no menu de opções liga e desliga o desenho do feromônio.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** —
+- **Itens relacionados:** PRG-054
+- **Referências:** — (o guia do sistema foi removido junto com ele)
+- **Decisões pendentes:** decaimento do rastro (o pedido não define; assumido 1 ponto a cada 5 s); só tampa célula cujo rastro já foi forte; espalha só por células vazias (a terra em volta só recebe se o desenvolvedor ligar `PheromoneSpreadsIntoSoil`, o que faz o formigueiro crescer sem parar); salas pintadas nunca são tampadas; tampar pode fechar passagens.
+- **Histórico:**
+  - 2026-10-20 — registrado.
+  - 2026-10-20 — IMPLEMENTED: 9 testes novos em `PheromoneTests`, suíte EditMode 371/371 na Unity. Não visto em Play Mode por uma pessoa.
+  - 2026-10-20 — CANCELLED: o desenvolvedor pediu para remover tudo do feromônio. Removidos simulação, camada da grade, pincel, opção de desenho, textos, testes e guia; save na versão 20 (saves da 19 carregam descartando o rastro).
+
+### REQ-045 — Modos de conversão da área de resíduos: folhas em água e terra em areia e água
+
+- **Data de registro:** 2026-10-20
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, GAME_DESIGN
+- **Descrição:** Pedidos do desenvolvedor de 2026-10-20 registrados como KI-042 e KI-045 em [KnownIssues.md](../Assets/Project/Scripts/KnownIssues.md): a área de resíduos pode ser configurada entre converter cadáver de cupim em folhas ou folhas em água; e passa a aceitar terra e convertê-la em água (1 terra vira 1 areia e 1 água), com upgrade.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-029 (área de resíduos), REQ-036 (depósitos e itens soltos)
+- **Itens relacionados:** PRG-055
+- **Referências:** [RaidGuide.md](../Assets/Project/Scripts/Runtime/Colony/RaidGuide.md) ("Modos por área"), [HudGuide.md](../Assets/Project/Scripts/Runtime/UI/HudGuide.md), [UpgradesGuide.md](../Assets/Project/Scripts/Runtime/Upgrades/UpgradesGuide.md)
+- **Decisões pendentes:** abrir a configuração ao clicar na área (KI-037); tempos de conversão (60 s), custo (300 N) e anel do R2 escolhidos pelo agente, sem balanceamento; só a terra que iria ao despejo vai à área (suposição do agente).
+- **Histórico:**
+  - 2026-10-20 — registrado. Decisões do desenvolvedor na mesma conversa: um modo por vez para a área inteira; água e areia saem como itens soltos; no modo folhas em água, só as folhas dos restos de cupim; upgrade R2 que deixa a conversão da terra 2× mais rápida.
+  - 2026-10-20 — IMPLEMENTED: `WasteMode` em `AntColony.Waste.cs`, submenu RESÍDUOS no HUD, nó R2 na tela Evolução, save versão 21. 7 testes novos em `WasteModeTests`; suíte EditMode 369/369 na Unity. Play Mode pelo agente: submenu aparece com o pincel Resíduos e o clique troca o modo. O ciclo de conversão não foi visto por uma pessoa.
+  - 2026-10-21 — Relato do desenvolvedor: "existem várias formigas sem emprego mas nenhuma enchendo as áreas de resíduo". Causa (lida no quicksave: modo terra → água, área com 4989 células vazias e nenhum item, depósito de construção com vaga, 109 marcas de escavação): só a terra cavada que iria ao despejo ia para a área. Corrigido: as ociosas levam a terra da pilha de fora para a área. Testes no harness .NET (`WasteModeTests` 9/9; falhas restantes são chamadas nativas da Unity); a Unity estava sem conexão MCP, então falta rodar a suíte na Unity e o desenvolvedor conferir no save.
+  - 2026-10-21 — Relato do desenvolvedor (print com duas áreas misturando terra, areia, água e folhas): "a ideia é que eles funcionem cada um para um tipo independente de conteúdo". Mudou a decisão de "um modo por vez para a área inteira": agora cada área tem o próprio modo, escolhido no submenu RESÍDUOS antes de pintar, recebe só o conteúdo dele e tem cor própria. Save versão 22 (modo por célula; saves da 21 aplicam o modo único a todas as áreas). Testes no harness .NET (`WasteModeTests` 9/9); falta rodar na Unity e rodar Configurar localização para os textos novos das dicas.
+
+### REQ-046 — Limite de pintura por ambiente, upgrades de área e barra de área livre (KI-043)
+
+- **Data de registro:** 2026-10-20
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, GAME_DESIGN
+- **Descrição:** Pedido de 2026-10-20 registrado como KI-043 em [KnownIssues.md](../Assets/Project/Scripts/KnownIssues.md): cada ambiente tem um limite máximo de células que o pincel pode pintar, com upgrade para aumentar; e um limite de salas não conectadas que dividem esse orçamento (1 sala de 50 ou 2 de 25). Em 2026-10-21: "Vamos fazer isso, e adicionar upgrades para aumentar a quantidade de área permitida. Nos menus de escolher o ambiente, faz um fill horizontal mostrando quanto tem disponível para pintar, e bloqueando a pintura (usando o mesmo efeito de clicar na rainha sem recurso para colocar ovo)."
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-039 (melhorias incrementais), REQ-036 (depósitos)
+- **Itens relacionados:** PRG-058
+- **Referências:** [AntFarmGuide.md](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md) ("Limite de pintura por ambiente"), [UpgradesGuide.md](../Assets/Project/Scripts/Runtime/Upgrades/UpgradesGuide.md), [HudGuide.md](../Assets/Project/Scripts/Runtime/UI/HudGuide.md)
+- **Decisões pendentes:** valores de base (rainha 200, nutrientes 150, berçário 200, resíduos 120, orvalho 100, cada depósito 150), máximo de 2 salas, ganho por nível, custo e teto das galerias (inclusive T+3: 150 N, teto 3) foram escolhidos pelo agente, sem balanceamento; saves acima do limite ficam como estão (no quicksave do desenvolvedor, berçário 201/200 e depósito de alimentos 206/150 já ficam bloqueados); interação com setores independentes (KI-037).
+- **Histórico:**
+  - 2026-10-20 — registrado como KI-043.
+  - 2026-10-21 — IMPLEMENTED: `PaintBudget` (células e salas por ambiente, 4 lados), recusa no pincel com o aviso da rainha sem recurso, galerias Q+4, C+4, B+3, D+3, R+1 e G+3, barra de área livre nos botões dos ambientes e linha de área nas dicas. `PaintBudgetTests` (12 casos); suíte EditMode 392/392 na Unity. Conferido pelo agente no Editor com o quicksave (traços simulados: sala nova, 3ª sala recusada, depósito cheio recusado, preenchimento para no limite) e captura do menu com as barras. Falta uma pessoa pintar em Play Mode.
+  - 2026-10-21 — Pedido do desenvolvedor: "Quero um upgrade de aumentar o número de salas máximas também". Galeria T+3 (Salas extras): +1 sala não conectada por nível em todos os ambientes, teto 3. Teste `ExtraRoomsGalleryRaisesTheMaxRoomsOfEveryRoom`; suíte EditMode 393/393 na Unity.
+
 ### REQ-047 — Direção de arte unificada (16 px por célula) e terreno iluminado no estilo do menu, em etapas
 
 - **Data de registro:** 2026-10-21
@@ -800,7 +902,7 @@
 - **Dependências:** REQ-024 (experimento 16x16), REQ-025 e REQ-026 (resolução e refinamento das formigas)
 - **Itens relacionados:** ART-013, PRG-059
 - **Referências:** [40 — Direção de arte unificada e terreno iluminado](../Docs/02_World_Art_UI/40_Direcao_de_arte_unificada_e_terreno_iluminado.md)
-- **Decisões pendentes:** tamanho da paleta mestra (a origem já foi decidida: o cenário). Regras e D1 a D5 decididas em 2026-10-21 (ver histórico).
+- **Decisões pendentes:** nova estratégia dos elementos de cenário (etapa 10). Zoom até 32 px por célula e UI com escala própria decididos em 2026-10-21 (D7). Regras, D1 a D5 e a paleta mestra de 32 cores decididas e aprovadas em 2026-10-21 (ver histórico).
 - **Histórico:**
   - 2026-10-21 — registrado; plano de 13 etapas escrito no documento 40.
   - 2026-10-21 — decisões do desenvolvedor: D1 "pode seguir do jeito que está" (câmera em 16 px por célula, sem pixels grossos); D2 "mantém" (formigas de lado e de cima); D3 "vamos ficar com a luz" (a luz substitui a névoa); D4 "vamos unificar a resolução de tudo" (cenário em 16 px por célula); D5 "o cenário é a definição dos pixels, vamos manter tudo no mesmo padrão" (paleta mestra a partir do cenário). Substitui a decisão de 2026-10-17 de a formiga ter pixels menores que os do terreno. Registrado no documento 40.
@@ -812,3 +914,352 @@
   - 2026-10-21 — luz aprovada pelo desenvolvedor ("Vi no jogo e a luz está aprovada assim"); etapa 6 concluída.
   - 2026-10-21 — parede de fundo com sombra de canto aprovada pelo desenvolvedor ("está aprovada assim"); etapa 3 concluída.
   - 2026-10-21 — o desenvolvedor pediu para começar pela etapa 2 enquanto decide a etapa 0; distância com sinal, teste e visualização de depuração implementados (PRG-059).
+  - 2026-10-21 — etapa 7 pedida ("Pode fazer a etapa 7 (pós-processamento) agora") e implementada (PRG-059): bloom leve nos tons claros, vinheta, cor quente e a opção BRILHO (BLOOM) nas configurações; aguarda aprovação em captura.
+  - 2026-10-21 — sobre a etapa 7, o desenvolvedor: "não vi diferença alguma" (pós-processamento sem aprovação; valores a rever).
+  - 2026-10-21 — pedidos do desenvolvedor: "objeto de cubo para ser um cogumelo luminoso, para ser posicionado pelas formigas dentro dos túneis", emitindo luz "seguindo a regra proposta de limite de iluminação", e "que não seja preto absoluto dentro do formigueiro. Deixe apenas uma penumbra forte". Implementados (PRG-059): pincel Cogumelo luminoso, cogumelo de uma célula encaixado pelas formigas pela obra, fonte de luz de nível 10 com a regra da etapa 6, e penumbra no interior (túnel 0,22, terra 0,12).
+  - 2026-10-21 — correção do desenvolvedor: "a penumbra é apenas dentro do formigueiro, áreas bloqueadas abaixo da superfície que não são caminháveis no formigueiro se mantêm preto absoluto". Feito: só o túnel tem piso de penumbra (0,22); a terra longe da luz voltou ao preto.
+  - 2026-10-21 — "Dobre a intensidade de geração de luz dos cogumelos": nível subiu de 10 para 16, o teto da regra de limite (20 passaria do limite de 16 níveis e da folga do bloco); alcance de 9 para 15 células de túnel.
+  - 2026-10-21 — decisão do desenvolvedor: "Pode ficar no teto (16)"; a regra de limite de 16 níveis se mantém.
+  - 2026-10-21 — tamanho da paleta mestra decidido: "vamos de 32". Etapa 0 feita (ART-013): 32 cores em `Assets/Project/Art/Palette` (29 tiradas do cenário, 2 laranjas das folhas secas e 3 azuis de água) e prancha no documento 40 (`41_Paleta_mestra.png`); aguarda aprovação.
+  - 2026-10-21 — paleta aprovada: "A paleta de 32 cores está aprovada". Etapa 0 concluída; as etapas de arte (5, 8 a 12) estão liberadas.
+  - 2026-10-21 — etapa 4 pedida ("Vamos fazer a etapa 4 (atlas RGB)") e implementada (PRG-059): atlas RGB de 128 × 128 por linha, lido pelo terreno e pelo bloco carregado; o atlas gerado mantém o visual atual até a etapa 5.
+  - 2026-10-21 — etapa 5 pedida ("Vamos fazer a etapa 5 (atlas desenhado na paleta mestra)") e feita (ART-013): `Art/Terrain/TerrainAtlas.png` atribuído nas duas cenas; aguarda aprovação em captura.
+  - 2026-10-21 — atlas aprovado: "O atlas do terreno está aprovado". Etapa 5 concluída.
+  - 2026-10-21 — etapa 8 pedida ("Vamos fazer a etapa 8 (formigas em 16 px)"). Decisão do desenvolvedor sobre as cores das formigas fora da paleta: "Ampliar a paleta" (D6, 12 cores). Operárias e variantes de função redesenhadas em 48 × 32 (ART-013); rainha, cupim alado e pulgões pendentes.
+  - 2026-10-21 — operárias e variantes aprovadas: "As formigas novas estão aprovadas".
+  - 2026-10-21 — rainha pedida ("Vamos fazer a rainha em 16 px (etapa 8)") e feita: quadros próprios de 96 × 64 ligados no jogo; aguarda aprovação.
+  - 2026-10-21 — rainha aprovada: "A rainha está aprovada".
+  - 2026-10-21 — cupim alado pedido ("Vamos fazer o cupim alado em 16 px (etapa 8)") e feito: 16 quadros em 64 × 64; aguarda aprovação.
+  - 2026-10-21 — cupim alado aprovado: "O cupim alado está aprovado".
+  - 2026-10-21 — pulgões pedidos ("Vamos fazer os pulgões em 16 px (etapa 8)") e feitos: 8 quadros em 40 × 24; aguardam aprovação. Todas as classes da etapa 8 desenhadas.
+  - 2026-10-21 — pulgões aprovados: "Os pulgões estão aprovados". Etapa 8 concluída.
+  - 2026-10-21 — etapa 9 pedida ("Vamos fazer a etapa 9 (crias e itens em 16 px)") e feita: crias em 48 × 32 e itens carregados na paleta; falta conferir em jogo e aprovar.
+  - 2026-10-21 — "Conferi as crias e os itens em jogo e estão aprovados". Etapa 9 concluída.
+  - 2026-10-21 — etapa 10 pedida ("Vamos fazer a etapa 10 (cenário em 16 px)"); o desenvolvedor escolheu "detalhe por célula". Cenário remapeado para a paleta, shader de detalhe por célula e faixas distantes a 16 px implementados (PRG-059); aguarda avaliação em captura.
+  - 2026-10-21 — decisões do desenvolvedor (D7): "vamos manter a UI com mais pixels, para ela não se misturar com os elementos de cenários" (etapa 11 descartada) e "O zoom também pode aumentar" (zoom máximo até 32 px por célula na etapa 1).
+  - 2026-10-21 — etapa 1 pedida ("Vamos fazer a etapa 1 (zoom em passos inteiros até 32 px por célula). Vamos avaliar isso dependendo damos um passo atras") e implementada (PRG-059): zoom em níveis de 16 e 32 px por célula, câmera alinhada aos pixels; em avaliação pelo desenvolvedor.
+  - 2026-10-21 — "O zoom em passos inteiros está aprovado". Etapa 1 concluída.
+  - 2026-10-21 — elementos de cenário adiados pelo desenvolvedor: "a estratégia delas vai ser diferente já que tem que ser grandes em relação às formigas".
+  - 2026-10-21 — pedido: bloom nos cogumelos luminosos, "por hora fica só nos cogumelos". Feito (PRG-059): emissão HDR do cogumelo no shader (4×) e bloom com limiar acima do branco (1,1), intensidade 2 e espalhamento 0,55; a superfície clara deixou de ter bloom.
+  - 2026-10-21 — "troca a iluminação dos cogumelos de azul para uma amarelada sutil". Feito (PRG-059): cubo amarelo claro, luz que sai do cogumelo com tom amarelado próprio (sem a penumbra azulada) e bloom mais contido (intensidade 1,5, espalhamento 0,4, 3 iterações; emissão 2,5×), porque o tom novo deixava uma névoa grande em volta da galeria.
+  - 2026-10-21 — com print: "Faz isso aqui ser um gradiente de transição suave, e não marcado" (as faixas da luz do cogumelo). Feito (PRG-059): a luz dos cogumelos é interpolada sem degraus e o peso dela também, sem borda de célula; a luz de fora continua em degraus.
+  - 2026-10-21 — "aumenta o spread de iluminação nas paredes, para não ter o corte brusco nos blocos". Feito (PRG-059): a luz do cogumelo perde 2 por célula de terra (era 4, o mesmo da luz de fora) e entra até 8 células na parede; as duas luzes são calculadas e interpoladas à parte; a luz do cogumelo termina numa curva até zero, sem corte nem linha na borda.
+  - 2026-10-21 — "o blur que você fez na sombra dos cogumelos ficou bom. Pode voltar para o spread anterior, e faz a sombra geral do jogo ter este mesmo efeito de gradiente suave". Feito (PRG-059): custo da luz do cogumelo na terra de volta a 4; a luz de fora deixou os degraus e usa a mesma curva suave (opção Light Steps removida).
+  - 2026-10-21 — pedido: a luz do cogumelo multiplicar a cor dele no cenário em volta e mais intensidade no bloom dos cogumelos. Feito (PRG-059): o tom da luz sai da cor do cogumelo (Glow Mushroom Color, normalizada, força em Glow Color Strength = 1), que também pinta o cubo; bloom de 1,5 para 3. Só o terreno recebe a luz; formigas, crias e cenário da superfície não são iluminados.
+
+### REQ-048 — Barra inferior num cartão só e opção Mostrar ambientes
+
+- **Data de registro:** 2026-10-21
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, ART
+- **Descrição:** Pedido de 2026-10-21, com print dos botões de pausa, painel da colônia e sino: "Junte estes 3 botões em um background. Adicione no menu um toggle de ativar visualização dos ambientes." Em 2026-10-22, com print da barra: "Tira o menu de ativar/desativar os ambientes da tela de menu, e coloque aqui".
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-046
+- **Itens relacionados:** PRG-060
+- **Referências:** [HudGuide.md](../Assets/Project/Scripts/Runtime/UI/HudGuide.md), [SettingsGuide.md](../Assets/Project/Scripts/Runtime/Settings/SettingsGuide.md)
+- **Decisões pendentes:** com a opção desligada, a pintura volta enquanto um pincel de ambiente está na mão (escolha do agente). Ícone do botão provisório: o cogumelo do menu AMBIENTES, aceso com a pintura à mostra (escolha do agente).
+- **Histórico:**
+  - 2026-10-21 — registrado e IMPLEMENTED: cartão `BarraInferior` com os 3 botões; `GameSettingsData.ShowRooms` e `AntFarmView.ShowRooms`. Conferido pelo agente em Play Mode (captura da barra e da tela; cor de uma sala de teste some com a opção desligada); suíte EditMode 404/404 na Unity.
+  - 2026-10-22 — o desenvolvedor pediu o toggle na barra: a linha MOSTRAR AMBIENTES saiu da tela de configurações (menu do ESC e menu principal) e virou o quarto botão da `BarraInferior` (`AntFarmHud.ToggleShowRooms`, grava o `settings.json` a cada clique). Conferido pelo agente em Play Mode (alterna `AntFarmView.ShowRooms`, acende o botão e grava o arquivo nos dois sentidos; captura da barra); suíte EditMode 446/447, com a falha em `SurfaceSceneryTests`, fora deste pedido.
+
+### REQ-049 — Aplicar aparência aprovada às formigas e à Rainha
+
+- **Data de registro:** 2026-10-21
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** ART
+- **Descrição:** Após aprovar a proposta de refinamento de Ant_Top_0.png, o desenvolvedor pediu aplicar o ajuste de aparência a todas as formigas, incluindo a Rainha, mantendo a temática e as regras de estilo.
+- **Critérios de aceitação:** Aplicar a aparência da amostra aprovada às formigas e à Rainha sem fugir das regras de estilo.
+- **Dependências:** REQ-047
+- **Itens relacionados:** ART-014
+- **Referências:** [Sprites e fontes](../Assets/Project/Art/Ants/README.md)
+- **Decisões pendentes:** —
+- **Histórico:**
+  - 2026-10-21 — PLANNED: pedido registrado; a amostra Ant_Top_0 foi aprovada pelo desenvolvedor ("Excelente").
+  - 2026-10-21 — IN_PROGRESS: refinamento dos 72 quadros adultos e da Rainha, mantendo cores por função, dimensões e metadados.
+  - 2026-10-21 — IMPLEMENTED: 72 PNGs substituídos e reimportados na Unity sem divergências; paleta, alpha, dimensões e metadados conferidos, prancha inspecionada (ART-014). Falta conferir as animações em Play Mode e obter aprovação visual do conjunto.
+
+### REQ-050 — Refinar a aparência dos cupins no estilo das formigas aprovadas
+
+- **Data de registro:** 2026-10-21
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** ART
+- **Descrição:** Após aprovar o refinamento das formigas e da Rainha, o desenvolvedor pediu o mesmo ajuste para os cupins.
+- **Critérios de aceitação:** Aplicar o refinamento de aparência aprovado aos cupins, mantendo as regras de estilo.
+- **Dependências:** REQ-049, REQ-047
+- **Itens relacionados:** ART-015
+- **Referências:** [Cupins](../Assets/Project/Art/Ants/InimigaAlada/README.md)
+- **Decisões pendentes:** —
+- **Histórico:**
+  - 2026-10-21 — PLANNED: pedido registrado ("Excelente, agora os cupins").
+  - 2026-10-21 — IN_PROGRESS: preparação dos 16 quadros Top, Walk, Fly e Land em 64×64, preservando paleta, alinhamento, pivôs e GUIDs.
+  - 2026-10-21 — IMPLEMENTED: 16 quadros refinados, prancha inspecionada e importação validada na Unity; dimensões, paleta, alpha, PPU e metadados preservados (ART-015). Reprodução em Play Mode e aprovação visual do conjunto pendentes.
+
+### REQ-051 — Refinar ovos, larvas e pupas no estilo aprovado
+
+- **Data de registro:** 2026-10-21
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** ART
+- **Descrição:** O desenvolvedor pediu continuar o refinamento visual nos ovos, pupas e demais estágios da cria, após as formigas e os cupins.
+- **Critérios de aceitação:** Aplicar o tratamento visual aprovado aos ovos, larvas e pupas, preservando as regras de estilo.
+- **Dependências:** REQ-047, REQ-049
+- **Itens relacionados:** ART-016
+- **Referências:** [Arte das crias](../Assets/Project/Art/Ants/README.md)
+- **Decisões pendentes:** —
+- **Histórico:**
+  - 2026-10-21 — PLANNED: pedido registrado ("Vamos agora para os ovos, pupa, etc").
+  - 2026-10-21 — IN_PROGRESS: refinamento dos seis quadros Egg/Larva/Pupa Idle 0–1 em 48×32, preservando a paleta e o tamanho de cada cria.
+  - 2026-10-21 — IMPLEMENTED: seis PNGs refinados, paletas e alpha conferidos, prancha antes/depois inspecionada e importação validada na Unity com metadados preservados (ART-016). Reprodução em Play Mode e aprovação visual do conjunto pendentes.
+
+### REQ-052 — Refinar a aparência do pulgão no estilo aprovado
+
+- **Data de registro:** 2026-10-21
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** ART
+- **Descrição:** O desenvolvedor pediu aplicar o refinamento visual ao pulgão, dando continuidade às formigas, cupins e crias.
+- **Critérios de aceitação:** Aplicar o tratamento visual aprovado ao pulgão, preservando as regras de estilo.
+- **Dependências:** REQ-047, REQ-049
+- **Itens relacionados:** ART-017
+- **Referências:** [Arte do pulgão](../Assets/Project/Art/Aphids/README.md)
+- **Decisões pendentes:** —
+- **Histórico:**
+  - 2026-10-21 — PLANNED: pedido registrado ("agora vamos pro pulgão").
+  - 2026-10-21 — IN_PROGRESS: refinamento dos oito quadros Walk/Top 0–3 em 40×24, preservando a paleta verde e a anatomia do pulgão.
+  - 2026-10-21 — IMPLEMENTED: oito sprites refinados, paleta e alpha conferidos, prancha antes/depois inspecionada e importação validada na Unity com metadados preservados (ART-017). Aprovação visual e reprodução das animações pendentes; integração no gameplay permanece fora deste pedido.
+
+### REQ-053 — Refinar os Pebbles no estilo gráfico aprovado
+
+- **Data de registro:** 2026-10-21
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** ART, PROGRAMMING
+- **Descrição:** Refinar os props de cenário, começando pelas 14 variantes de Pebbles, no mesmo estilo gráfico das formigas e considerando que são maiores que elas.
+- **Critérios de aceitação:** Mesmo estilo gráfico; pedras maiores que as formigas.
+- **Dependências:** REQ-047, REQ-049
+- **Itens relacionados:** ART-018, PRG-061
+- **Referências:** [Pebbles](../Assets/Project/Art/Scenery/Pebbles/)
+- **Decisões pendentes:** Aprovação visual do conjunto.
+- **Histórico:**
+  - 2026-10-21 — PLANNED: pedido registrado pelo desenvolvedor.
+  - 2026-10-21 — IN_PROGRESS: redesenho das 14 pedras a 16 px/célula, preservando tamanho físico, com sprite detalhado separado da máscara de navegação.
+  - 2026-10-21 — IMPLEMENTED: 14 pedras refinadas e importadas a 16 PPU, mantendo tamanho físico, GUIDs e pivôs; paleta/alpha de 3.158.528 pixels e prancha conferidos. Integração compilada, 2 testes EditMode aprovados. Aprovação visual e Play Mode pendentes (ART-018, PRG-061).
+
+### REQ-054 — Refinar as outras famílias de cenário
+
+- **Data de registro:** 2026-10-21
+- **Estado:** IN_PROGRESS
+- **Prioridade:** UNDEFINED
+- **Setores:** ART, PROGRAMMING
+- **Descrição:** Aplicar o tratamento dos Pebbles a todos os outros assets de Scenery: 55 imagens em Clovers, DryLeaves, Flowers, Grains, Grass, Mushrooms, Tufts e Twigs.
+- **Critérios de aceitação:** Mesmo tratamento gráfico aprovado para as pedras, em todos os demais assets da pasta.
+- **Dependências:** REQ-047, REQ-053
+- **Itens relacionados:** ART-019, PRG-062
+- **Referências:** [Cenário](../Assets/Project/Art/Scenery/README.md)
+- **Decisões pendentes:** Aprovação visual do conjunto.
+- **Histórico:**
+  - 2026-10-21 — PLANNED: pedido registrado pelo desenvolvedor após aprovar a entrega dos Pebbles.
+  - 2026-10-21 — IN_PROGRESS: refinamento de 55 imagens com ImageGen; plantas detalhadas compartilham arte e usam máscara de um texel por célula para crescimento e colheita.
+  - 2026-10-21 — Decisão do desenvolvedor: limitar o maior eixo dos elementos gigantes a 128 células; 24 das 55 imagens são afetadas, mantendo 16 px/célula. Tamanhos menores e Pebbles preservados.
+
+### REQ-055 — Sala de nutrientes busca folhas e água nos depósitos
+
+- **Data de registro:** 2026-10-21
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, GAME_DESIGN
+- **Descrição:** As formigas que trabalham na sala de nutrientes buscam elas mesmas as folhas e a água nos depósitos que existirem. Sem depósito, continua como antes, com outras formigas entregando.
+- **Critérios de aceitação:** UNDEFINED
+- **Dependências:** REQ-036
+- **Itens relacionados:** PRG-047
+- **Referências:** [StorageGuide.md](../Assets/Project/Scripts/Runtime/Colony/StorageGuide.md) ("Sala de nutrientes busca no depósito")
+- **Decisões pendentes:** Suposição do agente: "quem trabalha na sala" = jardineira e comum (inclusive a emprestada como comum pela segunda função); carregadora e cortadeira deixaram de levar planta e água do depósito aos canteiros. A folha da sala Gotas de Orvalho continua vindo do depósito pelas formigas de antes.
+- **Histórico:**
+  - 2026-10-21 — PLANNED: pedido registrado pelo desenvolvedor.
+  - 2026-10-21 — IMPLEMENTED: `TryStartGardenSupply` e campo só dos canteiros; teste `StorageTests.NutrientRoomWorkers_FetchPlantAndWaterFromTheDepots_CarriersDoNot`; StorageTests 16/16 na Unity; suíte EditMode completa com 417 de 418 antes do ajuste do teste novo (só ele falhava). Falta ver em jogo.
+
+### REQ-056 — Formiga guerreira de ataque a distância (cuspideira)
+
+- **Data de registro:** 2026-10-21
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, GAME_DESIGN, ART
+- **Descrição:** "Precisamos de mais formigas": uma nova formiga guerreira que ataque a distância, cuspindo.
+- **Critérios de aceitação:** UNDEFINED
+- **Dependências:** REQ-029, REQ-040
+- **Itens relacionados:** PRG-063, GD-009, ART-020
+- **Referências:** [RaidGuide.md](../Assets/Project/Scripts/Runtime/Colony/RaidGuide.md) ("Cuspideira")
+- **Decisões pendentes:** Valores assumidos pelo agente: nó K0 no ramo do soldado (260 nutrientes, exige S0 e o primeiro ataque); alcance 8 células com linha livre de blocos, cuspe de 2 a cada 1,5 s, vida 8, custo de cria 30. Não recebe as galerias do soldado (S+1 a S+4). Arte própria pendente (ART-020).
+- **Histórico:**
+  - 2026-10-21 — PLANNED: pedido registrado pelo desenvolvedor.
+  - 2026-10-21 — IMPLEMENTED: papel `AntRole.Spitter`, nó K0, cuspe com voo e desenho; compilação dotnet sem erros; testes de `SpitterAndMiddenTests` aprovados num harness dotnet fora da Unity. Falta rodar na Unity, remontar o HUD e ver em jogo.
+  - 2026-10-21 — Validação na Unity: HUD e localização remontados, suíte EditMode 423/423, Play Mode conferido pelo agente (cuspes a 7–8 células, cupins mortos). Segue IMPLEMENTED até o desenvolvedor jogar e aprovar os valores.
+  - 2026-10-21 — Pedido do desenvolvedor: cuspideira e lixeira bem distinguíveis e cuspideira sem colar no cupim com a linha fechada. Feito: quadros verde-limão e cinza (ART-020) e parada a 3 células; suíte EditMode 424/424 e Play Mode conferido pelo agente.
+
+### REQ-057 — Formiga que cuida dos resíduos (lixeira)
+
+- **Data de registro:** 2026-10-21
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, GAME_DESIGN, ART
+- **Descrição:** Uma nova formiga para cuidar dos resíduos.
+- **Critérios de aceitação:** UNDEFINED
+- **Dependências:** REQ-029, REQ-045
+- **Itens relacionados:** PRG-064, GD-009, ART-020
+- **Referências:** [RaidGuide.md](../Assets/Project/Scripts/Runtime/Colony/RaidGuide.md) ("Lixeira")
+- **Decisões pendentes:** Suposição do agente sobre o trabalho dela: antes de tudo tira corpos de cupim, leva itens soltos (folhas dos restos, água e areia da área) e leva terra à área de terra → água; sem isso, faz o trabalho da comum. Nó W0 no ramo da comum (160 nutrientes, depois do primeiro ataque), vida 6, velocidade 26, custo de cria 20. Não acelera a decomposição nem a conversão.
+- **Histórico:**
+  - 2026-10-21 — PLANNED: pedido registrado pelo desenvolvedor.
+  - 2026-10-21 — IMPLEMENTED: papel `AntRole.Midden` e nó W0; compilação dotnet sem erros; teste de corpo em `SpitterAndMiddenTests` aprovado no harness dotnet. Falta rodar na Unity, remontar o HUD e ver em jogo.
+  - 2026-10-21 — Validação na Unity: suíte EditMode 423/423; em Play Mode as lixeiras desmembraram os corpos depois do ataque. Segue IMPLEMENTED até o desenvolvedor jogar.
+
+### REQ-058 — Sala construída muda de visual
+
+- **Data de registro:** 2026-10-21
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** GAME_DESIGN, ART, PROGRAMMING
+- **Descrição:** Tarefa futura: quando uma sala for construída, o visual dela muda. As formigas colocam terra nos slots do ambiente para construir aquele ambiente diferenciado.
+- **Critérios de aceitação:** UNDEFINED
+- **Dependências:** REQ-047
+- **Itens relacionados:** GD-010, ART-023, PRG-071
+- **Referências:** [BuiltRoomsGuide.md](../Assets/Project/Scripts/Runtime/Colony/BuiltRoomsGuide.md), [Terrain/README.md](../Assets/Project/Art/Terrain/README.md) ("Salas construídas"), [maquete das salas](../Docs/02_World_Art_UI/43_Salas_construidas.png)
+- **Decisões pendentes:** — (decididas pelo desenvolvedor em 2026-10-22: sete famílias visuais, os cinco depósitos em Depósito; bloco e parede de fundo por família; slots nas paredes de terra em contato com o vão, em volta e dentro da área pintada, teto incluído (correção depois de jogar); 1 terra por slot; só visual; o fundo aparece com a sala pronta). Prioridade (decisão do desenvolvedor em 2026-10-22, depois de jogar): construção primeiro (obra marcada e reboco), depois as automatizações; com depósito de construção, o reboco usa a terra guardada (KI-059).
+- **Histórico:**
+  - 2026-10-21 — PLANNED: pedido registrado pelo desenvolvedor como tarefa futura.
+  - 2026-10-22 — IN_PROGRESS: pedido do desenvolvedor para começar pelos tiles ("modificar a TerrainAtlas para comportar os tiles de ambiente; depois a lógica"). Atlas com 14 linhas novas (ART-023) e formato no código (PRG-071); atlas aceito pela Unity em Play Mode, suíte EditMode 440/440. A lógica (slots, construção, gravação das linhas nas células) fica para a próxima etapa.
+  - 2026-10-22 — IMPLEMENTED: o desenvolvedor aprovou os tiles e pediu a lógica. Slots de reboco na terra em volta da sala, reboco pela obra das formigas, sala pronta com o fundo da família, shader com o fundo de sala como vazio e save versão 25 (PRG-071, GD-010). RoomLiningTests 5/5 e suíte EditMode 445/445 na Unity; Play Mode pelo agente (berçário e depósito rebocados por 6 formigas em 60 s de jogo, capturados com a luz do jogo). Falta uma pessoa jogar.
+  - 2026-10-22 — Ajuste pedido pelo desenvolvedor depois de jogar ("quase aprovado"): converter também as paredes de dentro e todas as que encostam no ambiente. Feito: slots nas 8 vizinhas do vão (teto e quinas de cima incluídos) e na terra pintada que encosta no vão, sem a terra fofa de canteiro e do teto do orvalho. Com os slots novos, o reboco passou a esperar também a obra marcada, a área de resíduos e a vaga no depósito de construção (três testes de depósito e de resíduos falhavam). RoomLiningTests 6/6, suíte EditMode 446/446; Play Mode pelo agente (70 slots com teto e parede interna rebocados em 47 s de jogo). Segue IMPLEMENTED até o desenvolvedor aprovar.
+  - 2026-10-22 — Decisão do desenvolvedor: manter o reboco como último uso da terra; com depósito de construção, só a sobra do depósito cheio.
+  - 2026-10-22 — Na prática não funcionou (relato do desenvolvedor): as salas não eram rebocadas enquanto esperavam as automatizações. Decisão nova: construção primeiro, por ser escolha pontual do jogador, e depois as automatizações. Feito: a comum constrói (obra marcada e reboco) logo depois do socorro, antes do cuidado, do ovo, da rega, da comida da rainha, de cavar e do abastecimento; o reboco não espera mais canteiros, orvalho, área de resíduos nem depósito cheio. Testes de automatização passam a começar com as salas rebocadas. Suíte EditMode 447/447; o quicksave do desenvolvedor (98 formigas, 1407 células de sala) teve os 182 slots pendentes rebocados em ~45 s de jogo e todas as salas prontas, em Play Mode pelo agente.
+
+### REQ-059 — Carregadora leva mais de todos os itens e prioriza o estoque
+
+- **Data de registro:** 2026-10-21
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, GAME_DESIGN
+- **Descrição:** Hoje a carregadora só leva mais folhas. Ela deve carregar mais de todos os itens, com prioridade: carregar o estoque, depois entregar do estoque; no resto, é uma operária comum.
+- **Critérios de aceitação:** UNDEFINED
+- **Dependências:** REQ-036, REQ-055
+- **Itens relacionados:** PRG-065
+- **Referências:** [StorageGuide.md](../Assets/Project/Scripts/Runtime/Colony/StorageGuide.md) ("Carregadora: estoque primeiro")
+- **Decisões pendentes:** Nutriente, ovo/cria e partes de cupim continuam um por viagem (KI-057): falta decidir se a carregadora deve levar vários deles. Água por viagem igual à carga de planta (4; L1: 6), valor assumido. Valores assumidos: terra 6 por viagem (dobro da comum) e coleta de itens iguais a até 2 células no depósito. Reverte a suposição do REQ-055 de que a carregadora não leva planta e água do depósito aos canteiros.
+- **Histórico:**
+  - 2026-10-21 — PLANNED: pedido registrado pelo desenvolvedor.
+  - 2026-10-21 — IMPLEMENTED: capacidade de terra 6, coleta múltipla no depósito e ordem estoque → entrega → comum; testes novos em `StorageTests`; suíte EditMode 426/426 na Unity; quicksave do desenvolvedor rodado no editor pelo agente (carregadoras enchendo o depósito de água, sem erros). Falta uma pessoa jogar.
+  - 2026-10-21 — Pedido complementar: várias águas por viagem, do mapa ao depósito e do depósito aos canteiros. Feito (`Ant.WaterLoad`); teste novo, suíte EditMode 427/427 na Unity; no quicksave, 26 s de jogo com viagens de 3 a 6 águas e sem erros.
+
+### REQ-060 — Refazer os assets de cenário no padrão de pixel art (limpeza com Qwen)
+
+- **Data de registro:** 2026-10-21
+- **Estado:** PLANNED
+- **Prioridade:** UNDEFINED
+- **Setores:** ART
+- **Descrição:** Em outro momento, refazer todos os assets de cenário com o fluxo usado na Pebble_05_2x, para tirar os artefatos dos masters gerados com o ImageGen e normalizados por amostragem direta: blocos de pixel de tamanhos misturados, granulado e filetes de 1 px entre manchas, contorno grosso e serrilhado em vez de 1 px em `1B1815`, e variantes `_2x` com densidade inconsistente. Escopo: todas as famílias de `Art/Scenery` (Pebbles, Clovers, DryLeaves, Flowers, Grains, Grass, Mushrooms, Tufts, Twigs) e, depois de avaliar, os demais sprites do mundo; o terreno fica sem contorno.
+- **Critérios de aceitação:** Aprovados pelo desenvolvedor em 2026-10-21 ao pedir o registro, por asset: 16 px de arte por célula (1 texel = 1 pixel de arte), filtro Point e PPU da família; só cores da paleta mestra da família, com contorno de 1 px em `1B1815`, nunca preto puro; alpha 0/255, sem filetes, granulado nem pixels soltos (aglomerados menores que 4 px); mesmas dimensões, enquadramento e caixa da silhueta (pivô e base inalterados), GUID e `.meta` preservados; PNG sem metadados; console sem erros e conferência em Play Mode.
+- **Dependências:** REQ-047, REQ-053, REQ-054
+- **Itens relacionados:** ART-021, ART-018, ART-019
+- **Referências:** [Pebbles/README.md](../Assets/Project/Art/Scenery/Pebbles/README.md) (piloto da Pebble_05_2x); [paleta mestra](../Assets/Project/Art/Palette/README.md); estúdio externo `H:\QWEN` (ComfyUI + Qwen Image 2.1): `tools/qwen_run.py` (redesenho) e `tools/pixel_snap_palette.py` (grade, paleta, `--thin`, `--edge-dark`, contorno).
+- **Decisões pendentes:** Quando executar e em que ordem as famílias; se o refinamento de REQ-054 em andamento segue como está ou já passa por este fluxo; se os demais sprites do mundo (formigas, crias, pulgão, cupim) entram no escopo.
+- **Histórico:**
+  - 2026-10-21 — PLANNED: pedido registrado pelo desenvolvedor para fazer em outro momento. Piloto aprovado: Pebble_05_2x redesenhada com o Qwen (seed 11) e limpa; master em `Source~/Pebbles/Refined`, `bake-refined.ps1` rodado e importação conferida na Unity (16 PPU, Point, alpha 0/255, GUID e silhueta preservados, console sem erros). Pendente no piloto: o master é a ampliação 2× de uma versão de 608×496 (8 px de arte por célula); refazer nativo. Backup do master anterior em `H:\QWEN\assets\incrementant\pebbles\backup_refined_2026-10-21`.
+
+### REQ-061 — Fazenda de pulgões, fazendeira, depósitos de areia e de cogumelos e pulgão preto
+
+- **Data de registro:** 2026-10-22
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, GAME_DESIGN, ART
+- **Descrição:** Sistema de fazenda de pulgões: uma área com limites e upgrades, com limite de pulgões criados. O pulgão cria areia, folha e água quando uma fazendeira interage com ele; sem fazendeira, gera só água. Novo tipo de formiga, a fazendeira, também com upgrades, expandindo as árvores da rainha e do formigueiro com as regras de UI. Pulgões se alimentam de areia: depósito de areia (e de material de construção). Pulgões são alvos dos cupins: mordido, o pulgão fica preto, muda de lado e ataca as formigas. Na fazenda, um campo de areia e água lado a lado por pulgão. Cogumelos brilhantes vêm dos pulgões.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-029, REQ-036, REQ-039, REQ-046, REQ-047
+- **Itens relacionados:** PRG-066, PRG-067, PRG-068, PRG-069, PRG-070, GD-011, ART-022, ART-017
+- **Referências:** [FarmGuide.md](../Assets/Project/Scripts/Runtime/Colony/FarmGuide.md), [KnownIssues.md](../Assets/Project/Scripts/KnownIssues.md) (KI-058)
+- **Decisões pendentes:** Valores assumidos pelo agente (limite 2 + A+1, nascimento 60 s, água 40 s, ordenha 20 s com 2 areias, 1 folha, 2 águas e 25% de cogumelo, pulgão preto com 12 de vida e 1,5 de dano, custos dos nós A0, A1, A+1..A+3, Z0, Z1, Z+1).
+- **Histórico:**
+  - 2026-10-22 — PLANNED: pedido registrado. Decisões respondidas pelo desenvolvedor no mesmo dia: a fazenda cria os pulgões sozinha; o campo de areia e água é comida e bebida (a fazendeira enche os cochos); o cogumelo é insumo do pincel Cogumelo luminoso; o pulgão preto é inimigo até morrer.
+  - 2026-10-22 — IMPLEMENTED: fazenda, baias e cochos, ordenha, fazendeira (Z0, Z1, Z+1), câmaras e galerias A0, A1, A+1..A+3, depósito de areia (D6), cogumelo dos pulgões no pincel, objetivo dos pulgões nos ataques e pulgão preto; suíte EditMode 436/436 na Unity em 2026-10-22 (FarmTests 9 testes novos); setups de localização (609 textos), HUD e arte rodados sem erro; Play Mode conferido pelo agente em 2026-10-22 (fazenda montada por comando: cochos cheios pelas fazendeiras, 4 ordenhas, colheita na fazenda, cogumelo plantado na marca; tela Evolução com A0 e Z0). Falta uma pessoa jogar e aprovar valores e arte.
+  - 2026-10-22 — Decisão do desenvolvedor: o depósito de material de construção é separado do de construção, um para areia e um para cogumelos (a primeira entrega guardava os cogumelos no de construção). Feito: depósito de cogumelos (pincel livre, nó D7); localização (613 textos) e HUD remontados; suíte EditMode 438/438 na Unity; submenu DEPÓSITO conferido pelo agente em Play Mode (ver PRG-068).
+
+### REQ-062 — Trazer o Build Assistant do SpaceFall
+
+- **Data de registro:** 2026-10-22
+- **Estado:** VERIFIED
+- **Prioridade:** UNDEFINED
+- **Setores:** RELEASE
+- **Descrição:** Pegar o plugin Build Assistant (Iung) do projeto SpaceFall e implementá-lo no Incrementant.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** —
+- **Itens relacionados:** REL-001
+- **Referências:** [BuildAssist Guide.md](../Assets/Iung/Build%20Assistant/BuildAssist%20Guide.md)
+- **Decisões pendentes:** Nome da empresa/produto, pasta de saída, versionamento e plataforma da primeira build pelo Build Assistant.
+- **Histórico:**
+  - 2026-10-22 — PLANNED: pedido registrado.
+  - 2026-10-22 — VERIFIED: plugin copiado do SpaceFall para `Assets/Iung/Build Assistant` (mesmos GUIDs, sem o histórico de builds do SpaceFall); compilou na Unity sem erros, settings novo criado e janela `Iung/Build Assistant/Open` aberta pelo agente. Nenhuma build gerada ainda.
+
+### REQ-063 — Versão da build no canto inferior da tela, em todas as cenas
+
+- **Data de registro:** 2026-10-22
+- **Estado:** VERIFIED
+- **Prioridade:** UNDEFINED
+- **Setores:** RELEASE
+- **Descrição:** Texto no canto inferior da tela, persistente em todas as cenas, com o versionamento da build.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-062
+- **Itens relacionados:** REL-002
+- **Referências:** [HudGuide.md](../Assets/Project/Scripts/Runtime/UI/HudGuide.md) ("Versão da build")
+- **Decisões pendentes:** —
+- **Histórico:**
+  - 2026-10-22 — PLANNED: pedido registrado.
+  - 2026-10-22 — VERIFIED: `BuildVersionOverlay` (prefab em `Resources`, instanciado antes da primeira cena e mantido entre cenas) no canto inferior direito; Play Mode conferido pelo agente: um único overlay no menu principal e na partida, texto `v0.1.0` (ainda sem build pelo Build Assistant). Falta conferir numa build real.
+
+### REQ-064 — Histórico de versões ao clicar na versão, sem clique no mundo sob ela
+
+- **Data de registro:** 2026-10-22
+- **Estado:** VERIFIED
+- **Prioridade:** UNDEFINED
+- **Setores:** RELEASE
+- **Descrição:** Na região do texto da versão, o cursor não interage com o mundo. Clicar na versão abre uma janela com todas as versões até agora: à esquerda um botão por versão, a mais de cima a atual; à direita as informações da versão selecionada.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-062, REQ-063
+- **Itens relacionados:** REL-003
+- **Referências:** [HudGuide.md](../Assets/Project/Scripts/Runtime/UI/HudGuide.md) ("Versão da build")
+- **Decisões pendentes:** —
+- **Histórico:**
+  - 2026-10-22 — PLANNED: pedido registrado.
+  - 2026-10-22 — VERIFIED: `VersionHistoryScreen` (lista de versões à esquerda, notas por seção e idioma à direita) aberto pelo texto da versão, que virou um botão e barra o pincel só na área dele. Play Mode conferido pelo agente na partida e no menu: raycast acerta o botão no centro e nada a 150 px dele; 9 e 25 versões de teste em memória (rolagem, seleção, troca de idioma pt/en, versão sem notas); lista vazia com a mensagem; pausa e trava de input devolvidas ao fechar. Idioma pt-BR ligado como tradução no Build Assistant. Falta conferir numa build real com changelog gravado.
+
+### REQ-065 — Tutorial como tour da interface, com o jogador livre para clicar
+
+- **Data de registro:** 2026-10-22
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, GAME_DESIGN
+- **Descrição:** O jogo é complexo e denso; o tutorial obrigatório antes de o jogador começar deve ser simples: explicar como ler a interface e o que cada botão faz, deixando-o livre para clicar onde quiser e explorar. Todo jogo novo começa com ele.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** —
+- **Itens relacionados:** PRG-035, REQ-030, REQ-066
+- **Referências:** [TutorialGuide.md](../Assets/Project/Scripts/Runtime/Tutorial/TutorialGuide.md)
+- **Decisões pendentes:** —
+- **Histórico:**
+  - 2026-10-22 — PLANNED: pedido registrado. Decisões do desenvolvedor: substituir o roteiro guiado pelo tour; avançar com Próximo/Voltar (e Pular); jogo pausado e sem cupins durante o tour; o tutorial roda em todo Novo jogo do menu, mas não ao regenerar o mapa dentro da cena.
+  - 2026-10-22 — IMPLEMENTED: `TutorialDirector` reescrito como tour de 14 paradas (câmera, cartões, menus Ferramenta/Ambientes/Rainha/Evolução, barra inferior, cupins, dicas) entre boas-vindas e despedida, com moldura de destaque e textos em pt-BR e inglês; HUD remontado. Suíte EditMode 444/444 na Unity e Play Mode pelo agente (paradas avançadas pelo código; conferidos boas-vindas, Nutrientes, Ferramenta com o submenu aberto, Pausa, despedida e o fim do tour). Falta uma pessoa jogar o tour com mouse.
+
+### REQ-066 — Glossário com a explicação de tudo
+
+- **Data de registro:** 2026-10-22
+- **Estado:** PLANNED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, GAME_DESIGN
+- **Descrição:** Depois do tour da interface (REQ-065), criar um glossário com a explicação de tudo. Acesso decidido pelo desenvolvedor: um botão na barra inferior e uma entrada no menu do ESC; o fim do tour aponta para ele.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-065
+- **Itens relacionados:** PRG-072
+- **Referências:** —
+- **Decisões pendentes:** organização e conteúdo das entradas.
+- **Histórico:**
+  - 2026-10-22 — PLANNED: pedido registrado.

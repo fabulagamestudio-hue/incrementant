@@ -125,6 +125,8 @@ namespace Fabula.Incrementant.Tests
             for (int x = 50; x <= 56; x++)
             for (int y = Surface + 1; y <= Surface + 2; y++)
                 grid.Set(x, y, CellMaterial.Spoil);
+            // Salas já rebocadas: a construção vem antes das automatizações (decisão de 2026-10-22); o teste mede o que vem depois dela.
+            RoomLiningTests.LineAllRooms(grid);
             var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 4);
             var granular = new GranularSimulation();
             for (int i = 0; i < 60 * 90; i++)
@@ -158,6 +160,8 @@ namespace Fabula.Incrementant.Tests
             for (int x = 50; x <= 56; x++)
             for (int y = Surface + 1; y <= Surface + 2; y++)
                 grid.Set(x, y, CellMaterial.Spoil);
+            // Salas já rebocadas: a construção vem antes das automatizações (decisão de 2026-10-22); o teste mede o que vem depois dela.
+            RoomLiningTests.LineAllRooms(grid);
             var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 4);
             var granular = new GranularSimulation();
             for (int i = 0; i < 60 * 150; i++)
@@ -197,6 +201,8 @@ namespace Fabula.Incrementant.Tests
             for (int x = 50; x <= 56; x++)
             for (int y = Surface + 1; y <= Surface + 2; y++)
                 grid.Set(x, y, CellMaterial.Spoil);
+            // Salas já rebocadas: a construção vem antes das automatizações (decisão de 2026-10-22); o teste mede o que vem depois dela.
+            RoomLiningTests.LineAllRooms(grid);
             var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 4);
             var granular = new GranularSimulation();
             bool sawFetching = false;

@@ -17,6 +17,8 @@ namespace Fabula.Incrementant.AntFarm
     {
         readonly Transform _parent;
         readonly int _sortingOrder;
+        readonly Material _material;
+        Material _detailedMaterial;
         readonly SceneryStamp[][] _stamps = new SceneryStamp[2][];
         readonly PlantShape[][] _shapes = new PlantShape[2][];
         readonly Dictionary<int, Entry> _entries = new Dictionary<int, Entry>();
@@ -37,12 +39,16 @@ namespace Fabula.Incrementant.AntFarm
             /// <summary>Linhas enterradas desenhadas por último (VegetationSimulation.GetSunkRows).</summary>
             public int Sunk;
             public float BaseY;
+            public PlantCellMask Mask;
+            public MaterialPropertyBlock Properties;
         }
 
-        public PlantSprites(Transform parent, SceneryStampLibrary library, int sortingOrder)
+        /// <param name="material">Material das plantas (o de detalhe por célula do cenário); null = o padrão de sprite.</param>
+        public PlantSprites(Transform parent, SceneryStampLibrary library, int sortingOrder, Material material = null)
         {
             _parent = parent;
             _sortingOrder = sortingOrder;
+            _material = material;
             // Toda planta da superfície é colhível (o cenário não pinta mais grama, trevo, flor nem tufo).
             Load(PlantKind.Grass, library, SceneryElement.Grass, SceneryElement.Tuft);
             Load(PlantKind.Leafy, library, SceneryElement.Clover, SceneryElement.Flower);
@@ -63,7 +69,8 @@ namespace Fabula.Incrementant.AntFarm
             var shapes = new PlantShape[stamps.Length];
             for (int i = 0; i < stamps.Length; i++)
                 shapes[i] = PlantShape.FromPixels(stamps[i].Pixels, stamps[i].Width, stamps[i].Height, stamps[i].PivotX,
-                                                  stamps[i].PivotY, SurfaceSceneryPainter.PixelsPerCell);
+                                                  stamps[i].PivotY, SurfaceSceneryPainter.PixelsPerCell,
+                                                  stamps[i].VisualSprite != null ? 1 : 4);
             _stamps[(int)kind] = stamps;
             _shapes[(int)kind] = shapes;
         }
@@ -111,6 +118,8 @@ namespace Fabula.Incrementant.AntFarm
 
         Entry Create(int x, SceneryStamp stamp, PlantShape shape, PixelGrid grid, Vector3 mapOrigin)
         {
+            if (stamp.VisualSprite != null)
+                return CreateDetailed(x, stamp, shape, grid, mapOrigin);
             int ppc = SurfaceSceneryPainter.PixelsPerCell;
             var entry = new Entry
             {
@@ -138,6 +147,8 @@ namespace Fabula.Incrementant.AntFarm
             go.transform.SetParent(_parent, false);
             entry.Renderer = go.AddComponent<SpriteRenderer>();
             entry.Renderer.sortingOrder = _sortingOrder;
+            if (_material != null)
+                entry.Renderer.sharedMaterial = _material;
             entry.Renderer.sprite = entry.Sprite;
             // Pivô no centro da coluna da raiz, no topo do chão: as células da forma caem sobre as da grade.
             entry.BaseY = mapOrigin.y + grid.GetSurfaceY(x) + 1;
@@ -145,6 +156,42 @@ namespace Fabula.Incrementant.AntFarm
             // Força o primeiro desenho de todas as células.
             for (int i = 0; i < entry.State.Length; i++)
                 entry.State[i] = byte.MaxValue;
+            return entry;
+        }
+
+        Entry CreateDetailed(int x, SceneryStamp stamp, PlantShape shape, PixelGrid grid, Vector3 mapOrigin)
+        {
+            if (_detailedMaterial == null)
+            {
+                var shader = Resources.Load<Shader>("Scenery/DetailedPlants");
+                if (shader == null)
+                    throw new System.InvalidOperationException("Shader Resources/Scenery/DetailedPlants ausente; reimporte o asset.");
+                _detailedMaterial = new Material(shader) { name = "DetailedPlants", hideFlags = HideFlags.DontSave };
+            }
+            var mask = new PlantCellMask(stamp.VisualSprite);
+            var entry = new Entry
+            {
+                Stamp = stamp, Shape = shape, Sprite = stamp.VisualSprite, Mask = mask,
+                Pixels = mask.Pixels, State = new byte[shape.Cells.Length], Properties = new MaterialPropertyBlock(),
+                BaseY = mapOrigin.y + grid.GetSurfaceY(x) + 1 + mask.VisualOffset.y,
+                Texture = new Texture2D(mask.Width, mask.Height, TextureFormat.RGBA32, false, true)
+                { name = $"PlantMask_{x}", filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp },
+            };
+            var go = new GameObject($"Plant_{x}") { hideFlags = HideFlags.DontSave };
+            go.transform.SetParent(_parent, false);
+            go.transform.position = new Vector3(mapOrigin.x + x + 0.5f + mask.VisualOffset.x, entry.BaseY, mapOrigin.z);
+            entry.Renderer = go.AddComponent<SpriteRenderer>();
+            entry.Renderer.sprite = entry.Sprite;
+            entry.Renderer.sortingOrder = _sortingOrder;
+            entry.Renderer.sharedMaterial = _detailedMaterial;
+            entry.Properties.SetTexture("_CellMask", entry.Texture);
+            entry.Properties.SetVector("_MaskMapping", mask.Mapping);
+            entry.Properties.SetVector("_MaskBounds", mask.Bounds);
+            entry.Properties.SetFloat("_MarkStrength", 0f);
+            entry.Texture.SetPixels32(entry.Pixels);
+            entry.Texture.Apply(false);
+            entry.Renderer.SetPropertyBlock(entry.Properties);
+            System.Array.Fill(entry.State, byte.MaxValue);
             return entry;
         }
 
@@ -170,11 +217,22 @@ namespace Fabula.Incrementant.AntFarm
                 return;
             entry.Texture.SetPixels32(entry.Pixels);
             entry.Texture.Apply(false);
+            if (entry.Mask != null)
+            {
+                entry.Properties.SetColor("_MarkColor", markTint);
+                entry.Properties.SetFloat("_MarkStrength", markStrength);
+                entry.Renderer.SetPropertyBlock(entry.Properties);
+            }
         }
 
         /// <summary>Copia (ou apaga) o bloco de pixels da célula; marcada, puxa a cor para a tinta de marca.</summary>
         static void PaintCell(Entry entry, Vector2Int cell, byte state, Color32 markTint, float markStrength)
         {
+            if (entry.Mask != null)
+            {
+                entry.Mask.SetCell(cell, state);
+                return;
+            }
             SceneryStamp stamp = entry.Stamp;
             int ppc = SurfaceSceneryPainter.PixelsPerCell;
             int x0 = stamp.PivotX + cell.x * ppc - ppc / 2;
@@ -197,12 +255,17 @@ namespace Fabula.Incrementant.AntFarm
         {
             if (entry.Renderer != null)
                 Object.Destroy(entry.Renderer.gameObject);
-            if (entry.Sprite != null)
+            if (entry.Sprite != null && entry.Mask == null)
                 Object.Destroy(entry.Sprite);
             if (entry.Texture != null)
                 Object.Destroy(entry.Texture);
         }
 
-        public void Dispose() => Clear();
+        public void Dispose()
+        {
+            Clear();
+            if (_detailedMaterial != null)
+                Object.Destroy(_detailedMaterial);
+        }
     }
 }

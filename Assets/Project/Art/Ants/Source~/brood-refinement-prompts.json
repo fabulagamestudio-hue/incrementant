@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-21",
+  "tool": "image_gen.imagegen integrado",
+  "scope": "6 quadros Egg/Larva/Pupa Idle 0-1, 48x32, 16 PPU",
+  "processing": "normalize-brood-refined.ps1: proporcao, paleta por estagio, alpha 0/255, enquadramento e apoio no chao. Masters finais em BroodRefined; reexportacao por bake-brood-refined.ps1.",
+  "generations": [
+    {
+      "id": "egg0",
+      "type": "Egg",
+      "prompt": "Edit FIRST original Egg_Idle_0.png game sprite. SECOND reference is the approved refined ant style ONLY: same restrained earthy pixel art, chunky stepped highlights and crisp outline; do NOT depict an ant adult or copy its red color. Single small smooth ant egg, horizontal oval, ivory cream, rounded shell with clear 3-tone volume and tiny upper-left glint. NO cracks, hatchling, spots, eyes, limbs or nest. Keep small footprint approximately x16..31,y19..31 on the 48x32 canvas. Actual logical grid48x32 pixels; preserve original subject size, center and large transparent top margin, grounded at bottom row31. Improve the quality/readability of the existing brood drawing. ONLY flat palette colors #1B1815 #CFB691 #E4D2AE #F5EDD9. One logical pixel dark #1B1815 outline, upper-left lighting, three-tone flat color clusters, no gradients, antialiasing, realistic texture, glow or cast shadow. Transparent background, all alpha fully transparent or opaque. No props, text, extra brood or scenery. Show one complete subject. If enlarged, each logical pixel is a solid square. This is a tiny in-game sprite, not a painting.",
+      "generated_file": "C:\\Users\\arthu\\.codex\\generated_images\\01a16036-8bb2-7981-835c-4703e3f689d1\\exec-651a7489-678c-4b50-92ef-4b1a9f4e033c.png"
+    },
+    {
+      "id": "egg1",
+      "type": "Egg",
+      "prompt": "Edit FIRST original Egg_Idle_1 pose; SECOND image is refined egg frame0. Produce ONE subtle idle frame1/2 of the SAME small smooth ivory ant egg. Preserve exactly the same shell style, palette, upper-left stepped highlight and small original footprint on48x32 logical canvas, centered around24 and grounded bottomrow31. Very subtle original wobble: at most one logical pixel tilt/flattening, never bouncing or hatching. No cracks, spots, face, limbs, shadow, glow, props or extra eggs. ONLY #1B1815 outline #CFB691 shade #E4D2AE base #F5EDD9 highlight. Crisp square pixels, flat color clusters with one-pixel dark outline, no gradients or antialiasing. Transparent background. Do not fill canvas; most of upper canvas stays transparent, egg footprint approx15x12.",
+      "generated_file": "C:\\Users\\arthu\\.codex\\generated_images\\01a16036-8bb2-7981-835c-4703e3f689d1\\exec-ae4ee033-683f-4b54-89b2-36e362f7cafb.png"
+    },
+    {
+      "id": "larva0",
+      "type": "Larva",
+      "prompt": "Edit FIRST original Larva_Idle_0.png game sprite. SECOND reference is the approved refined ant style ONLY: same restrained earthy pixel art, chunky stepped highlights and crisp outline; do NOT depict an ant adult or copy its red color. One ant larva, horizontal gently arched soft cream body, about8 plump readable rounded segments, tapered tail LEFT and small tan head RIGHT with a tiny dark mouth. NO adult legs, antennae, giant eyes, hairs or slime. Preserve ant brood identity, body footprint x2..45,y16..31. Actual logical grid48x32 pixels; preserve original subject size, center and large transparent top margin, grounded at bottom row31. Improve the quality/readability of the existing brood drawing. ONLY flat palette colors #1B1815 #CFB691 #E4D2AE #F5EDD9 #B9986D #823A10. One logical pixel dark #1B1815 outline, upper-left lighting, three-tone flat color clusters, no gradients, antialiasing, realistic texture, glow or cast shadow. Transparent background, all alpha fully transparent or opaque. No props, text, extra brood or scenery. Show one complete subject. If enlarged, each logical pixel is a solid square. This is a tiny in-game sprite, not a painting.",
+      "generated_file": "C:\\Users\\arthu\\.codex\\generated_images\\01a16036-8bb2-7981-835c-4703e3f689d1\\exec-64415602-080c-4eda-8f17-2a874bcef457.png"
+    },
+    {
+      "id": "larva1",
+      "type": "Larva",
+      "prompt": "Edit FIRST original Larva_Idle_1 as a pose guide, SECOND is finished frame0 of the same brood. Produce ONE idle frame1/2. Preserve SECOND exact design, segment/fold placement, size, color ramps, upper-left stepped shading, margins and centered placement. Cream ant larva in about8 plump gently arched segments, tan small head RIGHT, tapered tail LEFT, tiny dark mouth; subtle breathing only, about1 logical pixel slight lift of a few segments. NO legs, antennae, eyes, hairs, slime. Actual logical canvas48x32, subject stays within original footprint, resting on bottom row31, no bounce. ONLY colors #1B1815 #CFB691 #E4D2AE #F5EDD9 #B9986D #823A10. One logical pixel #1B1815 outline, flat square color clusters, no gradients, antialiasing, glow or cast shadow. Fully transparent background. No text, props, extra brood or scenery. Refined earthy pixel-art style consistent with approved ant sprites.",
+      "generated_file": "C:\\Users\\arthu\\.codex\\generated_images\\01a16036-8bb2-7981-835c-4703e3f689d1\\exec-ecd04692-ee3a-4dab-bc16-f22716c4b289.png"
+    },
+    {
+      "id": "pupa0",
+      "type": "Pupa",
+      "prompt": "Edit FIRST original Pupa_Idle_0.png game sprite. SECOND reference is the approved refined ant style ONLY: same restrained earthy pixel art, chunky stepped highlights and crisp outline; do NOT depict an ant adult or copy its red color. One ant pupa inside a warm beige elongated cocoon, horizontal, rounded tapered ends, readable wrapped chitin/silk folds and exactly two darker existing vertical fold bands near the middle. Subtle internal shape, no visible adult legs, eyes, antennae, ropes, package ties or cracks. Keep footprint x3..44,y16..31. Actual logical grid48x32 pixels; preserve original subject size, center and large transparent top margin, grounded at bottom row31. Improve the quality/readability of the existing brood drawing. ONLY flat palette colors #1B1815 #B9986D #DEB06D #E4D2AE #823A10. One logical pixel dark #1B1815 outline, upper-left lighting, three-tone flat color clusters, no gradients, antialiasing, realistic texture, glow or cast shadow. Transparent background, all alpha fully transparent or opaque. No props, text, extra brood or scenery. Show one complete subject. If enlarged, each logical pixel is a solid square. This is a tiny in-game sprite, not a painting.",
+      "generated_file": "C:\\Users\\arthu\\.codex\\generated_images\\01a16036-8bb2-7981-835c-4703e3f689d1\\exec-110c00d4-ab83-46f3-a48f-4640245a0e47.png"
+    },
+    {
+      "id": "pupa1",
+      "type": "Pupa",
+      "prompt": "Edit FIRST original Pupa_Idle_1 as a pose guide, SECOND is finished frame0 of the same brood. Produce ONE idle frame1/2. Preserve SECOND exact design, segment/fold placement, size, color ramps, upper-left stepped shading, margins and centered placement. Beige ant pupa in elongated tapered cocoon, keep exactly two darker vertical fold bands and sparse silk/chitin folds; subtle breathing/settling only, about1 logical pixel slight change of top contour, bottom stays planted. No visible adult legs, eyes, antennae, ropes or accessories. Actual logical canvas48x32, subject stays within original footprint, resting on bottom row31, no bounce. ONLY colors #1B1815 #B9986D #DEB06D #E4D2AE #823A10. One logical pixel #1B1815 outline, flat square color clusters, no gradients, antialiasing, glow or cast shadow. Fully transparent background. No text, props, extra brood or scenery. Refined earthy pixel-art style consistent with approved ant sprites.",
+      "generated_file": "C:\\Users\\arthu\\.codex\\generated_images\\01a16036-8bb2-7981-835c-4703e3f689d1\\exec-7405a9e7-1c3c-42e0-b0d9-4af97bf71a44.png"
+    }
+  ]
+}

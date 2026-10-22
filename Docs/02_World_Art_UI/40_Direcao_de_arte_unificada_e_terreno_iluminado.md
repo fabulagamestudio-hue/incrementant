@@ -1,6 +1,6 @@
 # 40 — Direção de arte unificada e terreno iluminado
 
-Documento do projeto de 2026-10-21. Regras e decisões D1 a D5 aprovadas pelo desenvolvedor em 2026-10-21 (ver "Decisões"); falta montar a paleta mestra para fechar a etapa 0. Os números das etapas são pontos de partida.
+Documento do projeto de 2026-10-21. Regras e decisões D1 a D5 aprovadas pelo desenvolvedor em 2026-10-21 (ver "Decisões"); paleta mestra de 32 cores montada e aprovada em 2026-10-21 (etapa 0 concluída). Os números das etapas são pontos de partida.
 
 [Índice da documentação](../README.md)
 
@@ -71,9 +71,9 @@ As formigas têm quadros de lado (`Ant_Walk`, pivô no pé) e de cima (`Ant_Top`
 | Zoom | Em **passos inteiros** de px de tela por célula (16, 32, 48), para cada pixel de arte virar exatamente 1×1, 2×2 ou 3×3 pixels de tela |
 | Filtro | `Point` em todo sprite e textura de arte, sem exceção |
 | Contorno | 1 pixel desenhado, na cor mais escura da paleta mestra (não preto puro), em sprites e UI. Sai o `Outline` do uGUI. **O terreno não tem contorno nem borda** (decisão de 2026-10-21) |
-| Paleta | Uma paleta mestra, tirada do cenário (D5), da qual saem o terreno, os PNGs, as cores dos inspectors e a UI. Tamanho a definir na montagem |
+| Paleta | Uma paleta mestra, tirada do cenário (D5), da qual saem o terreno, os PNGs, as cores dos inspectors e a UI. **32 cores** (2026-10-21), em `Assets/Project/Art/Palette`, mais 12 das formigas (D6) |
 | Vista | Adultas de lado quando apoiadas no chão; de cima quando na parede de fundo. Crias e itens de lado, apoiados no chão (D2: os dois conjuntos ficam) |
-| UI | Escala em múltiplo inteiro do mesmo pixel |
+| UI | ~~Escala em múltiplo inteiro do mesmo pixel~~ Descartada (D7, 2026-10-21): a UI mantém a própria escala, com mais pixels, para não se misturar com o cenário |
 | Exceção | Nenhuma: o cenário também vai para 16 px por célula (D4). A exceção de fundo com pixel ×6 foi descartada |
 
 ### Por que 16 e não 36 (a densidade das formigas)
@@ -88,7 +88,7 @@ Com 16, o terreno, o bloco carregado e o cultivo já estão no padrão. Redesenh
 
 A ilustração do menu foi pintada com ~3 px de tela por pixel de arte. Com 16 px de arte por célula no zoom inicial de 16, o jogo fica mais fino que o menu. **D1 (2026-10-21): fica como está**: câmera começando em 16 px por célula e arte com pixel de 1×1 dentro dos 16, sem "pixels grossos". O jogo aceita ser mais fino que a ilustração do menu.
 
-Consequência para a etapa 1: o zoom máximo atual (`_minHalfHeight` = 24, ~22 px por célula em 1080p) não alcança o passo de 32. A etapa 1 precisa escolher entre subir o limite até 32 ou ficar só com 16 como passo inteiro.
+**Decidido em 2026-10-21 (D7): o zoom pode aumentar até o passo de 32.** Consequência para a etapa 1: o zoom máximo atual (`_minHalfHeight` = 24, ~22 px por célula em 1080p) não alcança o passo de 32. A etapa 1 precisa escolher entre subir o limite até 32 ou ficar só com 16 como passo inteiro.
 
 ## Visual do terreno: as camadas
 
@@ -113,7 +113,7 @@ As camadas 2, 3 e 4 dependem de saber, em cada célula, a distância até a fron
 - **Zoom afastado.** O shader já apaga a textura quando o texel fica menor que um pixel. A borda e a luz devem continuar visíveis nessa hora (em resolução de célula), para o mapa afastado não ficar chapado.
 - **Pixel art.** Luz, sombra e borda são calculadas na posição do texel (arredondada) e quantizadas, para não haver gradiente mais fino que o pixel de arte.
 - **Desempenho.** O custo do shader é por pixel de tela e não muda com a densidade da arte. O cuidado é no lado da CPU: refazer distância e luz só nos blocos sujos. Medir na etapa Render do painel F11 (`SimProfiler`).
-- **Bloco carregado.** `AntSwarmView.BlockSprite` usa sempre o atlas gerado por código, mesmo com **Tile Atlas** atribuído. Precisa ler o mesmo atlas RGB do terreno.
+- **Bloco carregado.** Resolvido na etapa 4: `AntSwarmView.BlockSprite` lê o mesmo atlas do terreno (`TerrainTileAtlas`).
 
 ## Plano em etapas
 
@@ -140,6 +140,7 @@ Cada etapa cabe numa sessão de trabalho e termina com algo verificável. As tri
 - Regras e D1 a D5 aprovadas em 2026-10-21.
 - Montar a paleta mestra a partir do cenário (D5): terras (claro, médio, escuro, fundo), pedra, areia, rocha-mãe, verde, água, luz quente, contorno. Exportar como PNG de amostras e lista hexadecimal.
 - **Pronto quando:** este documento tiver as regras marcadas como aprovadas e a paleta salva no projeto.
+- **Feita em 2026-10-21:** o desenvolvedor escolheu 32 cores. Paleta em `Assets/Project/Art/Palette` (`MasterPalette.png` 32×1 e `MasterPalette.hex`, com o [README](../../Assets/Project/Art/Palette/README.md) dos grupos, índices e método) e prancha em [41_Paleta_mestra.png](41_Paleta_mestra.png). São 29 cores reais do cenário (k-means em OKLab por grupo, com as famílias pesando igual), mais dois laranjas das folhas secas e três azuis de água, que o cenário não tem. O cenário remapeado para a paleta ficou quase igual ao original (prévia conferida pelo agente). Aprovada pelo desenvolvedor em 2026-10-21 ("A paleta de 32 cores está aprovada").
 
 ### Etapa 1 — Zoom inteiro e limpeza (programação, pequena)
 
@@ -147,6 +148,7 @@ Cada etapa cabe numa sessão de trabalho e termina com algo verificável. As tri
 - `TermiteMarkers`: filtro `Point`.
 - Trocar o `Outline` do uGUI por contorno de 1 pixel na cor da paleta onde ele aparece.
 - **Pronto quando:** formigas andando e girando não piscarem em 16 e 32 px por célula, comparando capturas antes e depois.
+- **Implementada e aprovada em 2026-10-21 (zoom; "O zoom em passos inteiros está aprovado"):** `MapCamera` com zoom em níveis de 16 e 32 px por célula (**Pixel Step** 16, **Max Pixels Per Cell** 32, pela D7), transição curta terminando no valor exato, zoom contínuo abaixo de 16 e centro alinhado à grade de pixels (meio pixel em resolução ímpar). `MapCameraZoomTests` (2 casos) e a suíte EditMode passando; conferido pelo agente em Play Mode (16 → 32 → 32 → 16 → contínuo → 16, alinhado) e em captura a 32. Fora desta etapa, pela D7: filtro dos marcadores de cupim e contorno do uGUI (são UI). Não conferido: se as formigas giradas ainda piscam (o giro livre do sprite não depende do zoom).
 
 ### Etapa 2 — Distância com sinal (programação)
 
@@ -171,12 +173,14 @@ Cada etapa cabe numa sessão de trabalho e termina com algo verificável. As tri
 - `AntSwarmView.BlockSprite` lê o mesmo atlas atribuído ao terreno.
 - Documentar o formato do atlas no `AntFarmGuide.md` (tamanho por material, ordem de `CellMaterial`, o que cada canal significa).
 - **Pronto quando:** um atlas de teste com cores fortes aparecer igual no terreno e no bloco carregado.
+- **Implementada em 2026-10-21** (`CellTileArt`, `TerrainTileAtlas`, `TerrainTiles.shader`, `AntSwarmView.BlockSprite`): 128 × 128 texels por linha (8 × 8 células), uma linha por `CellMaterial` e a parede de fundo por último (128 × 2432 px). O texel é a cor final do material; o shader divide a cor da célula pela cor de referência da linha e aplica o resultado sobre a arte, então tom, umidade, marcas e água continuam por cima. Com o zoom aberto sobra a média da linha. **Tile Tone Strength** (0,5) reduz a variação de tom por célula. O atlas gerado repete o padrão de antes sobre a cor de referência, então o terreno fica como era até a etapa 5. Atlas fora do formato gera erro e cai no gerado. Formato documentado no `AntFarmGuide.md` ("Atlas RGB"). Verificado pelo agente: `TerrainTileAtlasTests` (5) e `TerrainRenderCacheTests` passando, 405 testes EditMode passando antes do teste novo; em Play Mode, um atlas de listras de cores fortes trocado durante o jogo apareceu no terreno e na parede de fundo, e o bloco carregado bateu texel a texel com ele (0 de 196 diferentes). Variantes sorteadas por bloco ficaram de fora: a repetição de 8 células pode ser conferida com a arte da etapa 5.
 
 ### Etapa 5 — Atlas desenhado (arte)
 
 - Pintar, na paleta mestra, um tile repetível por material (terra, monte, areia, pedra, rocha-mãe, compactado) e o fundo, no formato da etapa 4.
 - Conferir no jogo, nos dois zooms, se a repetição aparece.
 - **Pronto quando:** o atlas estiver atribuído no **Tile Atlas** e aprovado em captura de tela.
+- **Feita em 2026-10-21:** `Assets/Project/Art/Terrain/TerrainAtlas.png` (128 × 2432, as 19 linhas), desenhado só com a paleta mestra (o gerador confere) por `Source~/terrain_atlas.py`, que fica no projeto para refazer ou ajustar ([README](../../Assets/Project/Art/Terrain/README.md)). Prévia em [42_Atlas_do_terreno.png](42_Atlas_do_terreno.png). Terra em manchas com pedrinhas, areia pontilhada, pedra e rocha-mãe em blocos, monte em torrões soltos, compactados em camadas, plantas em fibras e parede de fundo calma no tom do túnel; luz de cima à esquerda. Atribuído em **Tile Atlas** nas cenas AntFarm e MainMenu, e o setup da cena passa a atribuí-lo quando o campo estiver vazio. Conferido pelo agente em Play Mode no zoom inicial e no máximo (~22 px por célula; 32 depende da etapa 1): sem emenda visível, a terra despejada (média `9E6533`) se distingue da terra (`7E512F`), sem erros no console. A primeira versão do monte parecia calçamento e foi refeita em torrões. Aprovado pelo desenvolvedor em 2026-10-21 ("O atlas do terreno está aprovado").
 
 ### Etapa 6 — Mapa de luz (programação)
 
@@ -184,38 +188,62 @@ Cada etapa cabe numa sessão de trabalho e termina com algo verificável. As tri
 - Mapa em resolução de célula ou de bloco, borrado, com luz ambiente baixa, enviado ao shader e quantizado em 4–6 degraus por texel. **Substitui a névoa** (D3, 2026-10-21): a névoa sai (código, opção **Fog Of War** e o que mais depender dela) quando a luz entrar.
 - Refeito só nos blocos sujos ou quando uma fonte muda.
 - **Pronto quando:** a luz acompanhar a abertura de salas e a etapa Render do F11 continuar dentro do orçamento atual.
+- **Penumbra em vez de breu (2026-10-21, pedido do desenvolvedor: "não seja preto absoluto dentro do formigueiro. Deixe apenas uma penumbra forte"):** o túnel longe da luz fica no piso 0,22 (`_InteriorAmbient`). A penumbra é só dentro do formigueiro: a terra abaixo da superfície que não é caminho das formigas continua preta (correção do desenvolvedor no mesmo dia; um piso de 0,12 na terra foi recusado). O texto abaixo, que fala em breu, descreve a versão anterior.
 - **Implementada em 2026-10-21** (`AntFarmView.Light.cs`, `TerrainTiles.shader`) e ajustada no mesmo dia pelo desenvolvedor: **a luz só entra de fora**. Tudo acima do solo original tem luz cheia e fica totalmente visível; a luz cai reta pelas bocas, sem perder força e sem limite de profundidade, até bater num bloco (o feixe), e de lá se espalha perdendo 1 nível (de 16) por célula de túnel e 4 por célula de terra; o interior longe dos feixes cai num breu (túnel com piso de 0,08, terra preta). O feixe foi pedido pelo desenvolvedor no segundo ajuste, com desenho. Salas não emitem luz (a primeira versão tinha túnel, sala da rainha e sala de nutrientes como fontes; recusado). Marcações e pincel ficam acima da luz. 5 degraus no shader, interpolados por texel. A névoa saiu (código e opção **Fog Of War**). `TerrainRenderCacheTests` confere a luz contra uma propagação na grade inteira, o feixe num poço de 40 células (que apaga ao ser tapado longe da janela) e o pincel acima da luz. Redesenhar o mundo inteiro: ~119 ms (85,4 ms com a névoa); etapa Render do F11 parado ~0,06 ms. Aprovada pelo desenvolvedor em 2026-10-21 ("a luz está aprovada assim"). Falta medir com chuva forte e cavando. Fontes internas (cogumelos luminosos, salas) ficam para quando o desenvolvedor pedir (etapa 12).
 
 ### Etapa 7 — Pós-processamento (programação, pequena)
 
 - Volume do URP: bloom leve só nos tons claros, vinheta e ajuste de cor quente. Opção nas configurações para desligar o bloom.
 - **Pronto quando:** capturas antes e depois forem aprovadas e a opção funcionar.
+- **Implementada em 2026-10-21** (`PostProcessSetup`, menu **Incrementant/Setup/Configurar pós-processamento**, também chamado pelo setup das cenas AntFarm e MainMenu): perfil `Assets/Project/Settings/PostProcessProfile.asset` num Volume global `PostProcess`, com a câmera em pós-processamento. Valores iniciais: bloom com limiar 0,75 (linear), intensidade 0,6, espalhamento 0,55, meia resolução, sem filtro de alta qualidade; vinheta 0,25 com suavidade 0,45; temperatura +10 (`WhiteBalance`, para esquentar sem escurecer a paleta); sem tonemapping. Com limiar 0,85 o bloom quase não aparecia (0,4% dos pixels mudavam na vitrine do menu); com 0,75 ele brilha nos caules, pedras e destaques claros da superfície e não toca a terra nem o breu (halo de no máximo 1/255 abaixo da superfície). Opção **BRILHO (BLOOM)** nas configurações (`GameSettingsData.Bloom`, aplicada por `PostProcessSettingsBinder` na cópia do perfil). O agente conferiu capturas com e sem o Volume no menu e na partida e a opção ligando e desligando o bloom em Play Mode. Falta a aprovação do desenvolvedor e medir o custo de GPU (a etapa Render do F11 não inclui o pós-processamento do URP).
+- **Bloom só nos cogumelos (2026-10-21):** o desenvolvedor não viu diferença no bloom dos tons claros e pediu bloom nos cogumelos luminosos, "por hora só nos cogumelos". O shader do terreno multiplica a cor do cogumelo por **Glow Mushroom Emission** (2,5×, HDR) e o bloom passou a limiar 1,1 (acima do branco), intensidade 1,5, espalhamento 0,4 e 3 iterações: só o que emite em HDR brilha, a superfície clara não. Com intensidade 1 o halo mal aparecia; com 6 iterações e espalhamento de 0,55 ou mais, virava uma névoa grande em volta da galeria. No mesmo dia a luz dos cogumelos trocou o azul pelo amarelado sutil (pedido do desenvolvedor): cubo amarelo claro e tom próprio da luz que sai dele (**Glow Light Tint**), sem a penumbra azulada. Logo depois, a pedido dele, a luz dos cogumelos deixou de ser em degraus: gradiente contínuo, com a borda também interpolada (a luz de fora segue em degraus). Em seguida a luz do cogumelo passou a entrar mais nas paredes (2 níveis por célula de terra) e a terminar numa curva que chega a zero antes da última célula, sem corte nem linha na borda. O desenvolvedor aprovou esse desfoque, pediu o alcance anterior de volta (4 por célula de terra) e o mesmo gradiente suave para toda a luz: a luz de fora também deixou os 5 degraus e usa a mesma curva (o "quantizado em degraus" acima ficou para trás). Depois, a pedido dele, a luz do cogumelo passou a multiplicar a cor do próprio cogumelo no terreno em volta (um campo de cor só, **Glow Mushroom Color**, com a força em **Glow Color Strength**) e o bloom dos cogumelos subiu de intensidade 1,5 para 3. Conferido pela captura da Game view, com e sem o bloom.
 
 ### Etapa 8 — Formigas em 16 px (arte, uma classe por sessão)
 
 - Redesenhar em 48×32 (3×2 células) os quadros `Ant_Walk_0–3` e `Ant_Top_0–3` de cada pasta em `Art/Ants`, mais rainha, cupim alado e pulgões, na paleta mestra e com o contorno da regra.
 - Ajustar `AntSpriteImporter` e `AphidSpriteImporter` para 16 PPU e conferir os pivôs.
 - **Pronto quando:** cada classe for conferida em jogo nos dois zooms, ao lado do terreno novo.
+- **Operárias e variantes de função feitas em 2026-10-21:** os 8 quadros (Walk e Top 0–3) em 48 × 32, redesenhados por `Art/Ants/Source~/ant_sprites.py` com as proporções do desenho aprovado (gáster grande, cintura, tórax, cabeça com olho, mandíbula e antena com cotovelo), patas em tripé de 4 quadros, luz de cima à esquerda e contorno de 1 px no índice 0. A raiz e `Operaria/` usam a rampa vermelha; Soldado, Coletora, Escavadora, Cuidadora, Jardineira e Cortadeira usam a rampa da sua cor (64 PNGs, mesmos caminhos e GUIDs). Como a paleta não tinha as cores das formigas, ela ganhou 12 cores (D6). `AntSpriteImporter` passou a 16 PPU para os quadros novos; os de tamanho antigo (108 × 72 e 144 × 144) seguem em 36 até serem redesenhados. Conferido pelo agente na importação (48 × 32, 16 PPU, pivôs (24, 8) e (24, 16)) e em Play Mode no zoom inicial. **Faltam:** rainha (hoje desenhada com os quadros da operária ampliados 2×, então com pixel do dobro do tamanho), cupim alado e pulgões. Operárias e variantes aprovadas pelo desenvolvedor em 2026-10-21 ("As formigas novas estão aprovadas").
+- **Rainha feita em 2026-10-21:** quadros próprios de 96 × 64 em `Art/Ants/Rainha` (mesmo gerador, escala 2: gáster maior e listrado, tórax maior, patas de 2 px, marcas das asas), na rampa vermelha. Importados a 32 px por unidade e desenhados com Queen Scale 2, então o pixel é o mesmo das operárias; ligados em `AntSwarmView` (campos novos **Queen Walk Frames** / **Queen Top Frames**) nas cenas AntFarm e MainMenu e pelo setup da cena. Conferido pelo agente na importação (96 × 64, 32 PPU, pivôs (48, 16) e (48, 32)) e em Play Mode. Aprovada pelo desenvolvedor em 2026-10-21 ("A rainha está aprovada").
+- **Cupim alado feito em 2026-10-21:** os 16 quadros de `Art/Ants/InimigaAlada` em 64 × 64 (as mesmas 4 × 4 células) a 16 px por célula, pelo mesmo gerador: corpo da operária em carvão-violeta, patas vinho, olho âmbar, asas claras batendo no voo e se soltando no pouso. Mesmos GUIDs. Conferido pelo agente na importação (16 PPU, pivôs (32, 16) e (32, 32)) e em Play Mode num ataque forçado (cupins andando de lado e de cima, no tamanho das operárias; o voo não chegou a ser capturado). Aprovado pelo desenvolvedor em 2026-10-21 ("O cupim alado está aprovado").
+- **Pulgões feitos em 2026-10-21:** os 8 quadros de `Art/Aphids` em 40 × 24 (2,5 × 1,5 células) a 16 px por célula, pelo mesmo gerador, nos verdes da paleta; `AphidSpriteImporter` passou a 16 PPU. Conferidos pelo agente na importação (16 PPU, pivôs (20, 6) e (20, 12)) e em prévia ao lado da operária; não há conferência em jogo porque os pulgões ainda não são usados por nenhum código nem cena. Aprovados pelo desenvolvedor em 2026-10-21 ("Os pulgões estão aprovados"). **Etapa 8 concluída:** todas as classes desenhadas a 16 px por célula e aprovadas.
+
+- **Refinamento de aparência em 2026-10-21 (REQ-049, ART-014):** após aprovação da amostra Ant_Top_0, os 64 quadros das operárias/funções e os 8 da Rainha receberam carapaça mais segmentada e sombreada, mantendo as rampas, resoluções, caminhos, GUIDs, PPU e pivôs. Masters ImageGen e reexportação atual em `Art/Ants/Source~/Refined` e `bake-refined.ps1`; o gerador procedural anterior é histórico e sobrescreve este refinamento. Paleta, alpha binário e prancha conferidos; 72 sprites reimportados na Unity sem divergências e console sem erros. Reprodução em Play Mode e aprovação visual do conjunto pendentes. [Prancha](Formigas_refinadas_2026-10-21.png).
+
+- **Refinamento dos cupins em 2026-10-21 (REQ-050, ART-015):** os 16 quadros de `Art/Ants/InimigaAlada` receberam o tratamento das formigas aprovadas, mantendo 64×64, 16 PPU, pivôs, GUIDs e sete cores da paleta (carvão/violeta, vinho, âmbar e asas claras). Voo, pouso com perda das asas e caminhada lateral/superior preservados; o último pouso coincide com Walk_0. Masters ImageGen em `Art/Ants/Source~/TermiteRefined`, reexportados por `bake-termite-refined.ps1`. Paleta, alpha, prancha e importação dos 16 sprites conferidos; reprodução em Play Mode e aprovação visual do conjunto pendentes. [Prancha](Cupins_refinados_2026-10-21.png).
+
+- **Refinamento dos pulgões em 2026-10-21 (REQ-052, ART-017):** oito quadros Walk/Top 0–3 em 40×24 refinados com ImageGen, mantendo paleta verde, corpo em pera, cornículos, antenas e seis patas. Mesmos caminhos, GUIDs, 16 PPU e pivôs. Masters e reexportação em `Art/Aphids/Source~`; o grupo procedural `aphids` sobrescreve esta aparência. Paleta, alpha, prancha e importação dos oito sprites na Unity conferidos; aprovação visual e reprodução das animações pendentes. O pacote ainda aguarda integração no gameplay. [Prancha](Pulgoes_refinados_2026-10-21.png).
 
 ### Etapa 9 — Crias e itens (arte)
 
+- **Refinamento das crias em 2026-10-21 (REQ-051, ART-016):** seis quadros Egg/Larva/Pupa Idle 0–1 em 48×32 refinados com ImageGen, mantendo as paletas por estágio, escala, pivô e GUIDs. Ovo com volume, larva em gomos e pupa com dobras do casulo; contorno de um pixel na cor 0, alpha binário e luz superior esquerda. Masters em `Art/Ants/Source~/BroodRefined`, reexportação por `bake-brood-refined.ps1`; o gerador procedural `brood` anterior sobrescreve este refinamento. Prancha antes/depois e importação dos seis sprites na Unity conferidas; reprodução em Play Mode e aprovação visual do conjunto pendentes. [Prancha](Crias_refinadas_2026-10-21.png).
+
 - Ovo, larva e pupa em 16 px por célula. Itens carregados (nutriente, água, ovo) como sprites da paleta, em vez de cores do inspector.
 - **Pronto quando:** crias e cargas forem conferidas em jogo.
+- **Feita em 2026-10-21:** ovo, larva e pupa em 48 × 32 (mesmas 3 × 2 células) a 16 px por célula, e sprites de 16 × 16 para o nutriente e a água carregados (`Item_Nutrient`, `Item_Water`), na paleta, pelo gerador `Art/Ants/Source~/ant_sprites.py` (grupo `brood`). `AntSpriteImporter` passa as crias redesenhadas a 16 PPU e os itens com pivô no centro; `AntSwarmView` ganhou **Nutrient Sprite** e **Water Sprite**, ligados nas cenas AntFarm e MainMenu e pelo setup. Conferido pelo agente: importação (48 × 32 e 16 × 16 a 16 PPU, pivôs (24, 8) e (8, 8)), prévia ao lado da operária e suíte EditMode 410/410. **Não conferido em jogo:** nem a partida nova nem a vitrine do menu têm crias ou cargas nos primeiros segundos; o desenvolvedor conferiu em jogo e aprovou em 2026-10-21 ("Conferi as crias e os itens em jogo e estão aprovados"). **Etapa 9 concluída.** As cores de nutriente e água pintadas no terreno (`AntFarmView`, `CultivationView`) continuam no Inspector.
 
 ### Etapa 10 — Cenário (arte e programação)
 
 - Redesenhar plantas e elementos de `Art/Scenery` em 16 px por célula (D4, 2026-10-21: sem exceção de fundo), dividindo texturas grandes quando passarem do limite.
 - Alinhar as cores do cenário procedural à paleta mestra.
 - **Pronto quando:** a superfície for aprovada em captura junto do terreno.
+- **Em andamento (2026-10-21):** o desenvolvedor escolheu "detalhe por célula" em vez de redesenhar a arte 16 vezes maior (que estouraria o limite de textura das camadas do mundo e mudaria como as plantas viram células) ou de encolher o cenário. Feito: os 69 PNGs de `Art/Scenery` remapeados para a paleta mestra (`Source~/palette_remap.py`, `.meta` intactos); shader `Incrementant/SceneryCells` (`Materials/SceneryCells.mat`, campo **Cell Material** do `SurfaceSceneryView`, ligado nas cenas e pelo setup) nas camadas de perto e da frente e nas plantas, desenhando cada célula a 16 texels com contorno de 1 texel na silhueta, realce e sombra na borda e granulado em manchas de 2x2; faixas de grama distante pintadas a 16 px por célula (`SurfaceSceneryPainter.BandPixelsPerCell`). Um pontilhado ordenado entre células ficou como opção desligada (`_BlendWidth`), porque virou linhas de pontos nas bordas de contraste. Suíte EditMode 410/410. Avaliação do agente: as células ainda leem como blocos grandes (o pixel da arte continua valendo 1 célula).
+- **Elementos de cenário adiados (2026-10-21):** o desenvolvedor pediu para pular cogumelos, pedras, gravetos, folhas e plantas: "a estratégia delas vai ser diferente já que tem que ser grandes em relação às formigas". Ficam como estão (remapeados para a paleta, com o shader de detalhe por célula) até a nova estratégia ser definida.
+
+- **Pebbles retomados em 2026-10-21 (REQ-053, ART-018):** o desenvolvedor pediu começar o refinamento dos props pelas pedras, no estilo das formigas e maiores que elas. As 14 variantes ganham 16 vezes a largura/altura em pixels e passam a 16 PPU, conservando as dimensões físicas de 8×5 a 76×62 células. Sprite detalhado separado da máscara de navegação, com renderização por prop; a camada inteira não é ampliada. As demais famílias seguem adiadas. [Arte e reexportação](../../Assets/Project/Art/Scenery/Pebbles/README.md). Aprovação visual e conferência em Play Mode pendentes.
+
+- **Demais famílias retomadas em 2026-10-21 (REQ-054, ART-019, PRG-062):** pedido de aplicar o tratamento dos Pebbles às outras 55 imagens de Scenery. O desenvolvedor aprovou limitar o maior eixo dos elementos gigantes a 128 células: 24 imagens mudam proporcionalmente de tamanho físico e 31 preservam a escala, todas a 16 px/célula. Isso leva a estimativa de RGBA de cerca de 800 para 207 MiB por cópia de textura. Plantas compartilham a arte detalhada e recebem máscara de um texel por célula para crescimento, colheita e marcação, sem cópia da textura grande por instância. Fontes e prompts em `Art/Scenery/Source~/RefinedScenery`. Refinamento em andamento; aprovação visual do conjunto e Play Mode pendentes.
 
 ### Etapa 11 — UI no mesmo pixel (programação e arte)
 
 - Escala da HUD e do menu em múltiplo inteiro do pixel do mundo; molduras e ícones na paleta mestra.
 - **Pronto quando:** o HUD for conferido em 1080p e 1440p sem pixels de tamanhos diferentes.
+- **Descartada em 2026-10-21 (D7):** a UI fica com a escala própria, com mais pixels, para não se misturar com os elementos de cenário.
 
 ### Etapa 12 — Decorações de borda (opcional)
 
 - Raízes no teto, musgo no chão e cogumelos luminosos colocados nas bordas das cavidades, pela distância com sinal (como objetos; a terra em si continua sem borda). Os cogumelos viram fontes de luz da etapa 6.
+- **Cogumelo luminoso adiantado em 2026-10-21, a pedido do desenvolvedor:** em vez de decoração automática, é um bloco de uma célula (cubo provisório, `CellMaterial.GlowMushroom`) que o jogador marca no túnel com o pincel **Cogumelo luminoso** e as formigas encaixam pela obra, com terra como substrato. É fonte de luz da etapa 6 com a mesma regra de espalhamento; o nível começou em 10 e, a pedido do desenvolvedor ("dobre a intensidade"), foi ao teto da regra, 16 (alcance de 15 células de túnel, dentro da folga do bloco). Dobrar de fato (20) passaria do limite de níveis e da folga do bloco. Detalhes no `AntFarmGuide.md` ("Cogumelo luminoso"). Falta a arte do cogumelo.
 
 ## Decisões
 
@@ -227,7 +255,9 @@ Tomadas pelo desenvolvedor em 2026-10-21. Substituem a decisão de 2026-10-17 de
 | D2 | Vista das formigas | Mantém os dois conjuntos (lado e cima), com a regra da tabela de regras |
 | D3 | Névoa e luz | A luz substitui a névoa |
 | D4 | Cenário | Tudo na mesma resolução: cenário redesenhado em 16 px por célula, sem exceção de fundo |
-| D5 | Paleta | "O cenário é a definição dos pixels": a paleta mestra sai do cenário e vale para tudo. Tamanho a definir na montagem |
+| D5 | Paleta | "O cenário é a definição dos pixels": a paleta mestra sai do cenário e vale para tudo. 32 cores (2026-10-21) |
+| D7 | UI e zoom | A UI mantém a escala própria, com mais pixels que o mundo, "para ela não se misturar com os elementos de cenários" (a etapa 11 sai do plano); o zoom máximo pode subir até 32 px por célula ("O zoom também pode aumentar"), o que fecha a dúvida da etapa 1 |
+| D6 | Cores das formigas | Ampliar a paleta (2026-10-21): rampas de 3 tons para vermelho, roxo, rosa e verde-azulado (índices 32–43), que as 32 não tinham |
 
 ## Como validar
 

@@ -1,0 +1,722 @@
+{
+  "date": "2026-10-21",
+  "tool": "image_gen.imagegen integrado",
+  "density": 16,
+  "entries": [
+    {
+      "Family": "Clovers",
+      "Name": "Clover_00",
+      "Width": 84,
+      "Height": 79,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Clovers\\Clover_00.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Three-leaf clover, preserving all three broad leaflets, their heart-shaped tips, veins and slender curved green stem. Rich forest and lime green planes. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 84 by 79 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Clovers/Clover_00.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Clovers",
+      "Name": "Clover_01",
+      "Width": 84,
+      "Height": 92,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Clovers\\Clover_01.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Three-leaf clover, preserving all three broad leaflets, their heart-shaped tips, veins and slender curved green stem. Rich forest and lime green planes. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 84 by 92 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Clovers/Clover_01.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Clovers",
+      "Name": "Clover_02",
+      "Width": 84,
+      "Height": 72,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Clovers\\Clover_02.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Three-leaf clover, preserving all three broad leaflets, their heart-shaped tips, veins and slender curved green stem. Rich forest and lime green planes. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 84 by 72 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Clovers/Clover_02.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Clovers",
+      "Name": "Clover_03",
+      "Width": 84,
+      "Height": 104,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Clovers\\Clover_03.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Three-leaf clover, preserving all three broad leaflets, their heart-shaped tips, veins and slender curved green stem. Rich forest and lime green planes. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 84 by 104 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Clovers/Clover_03.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Clovers",
+      "Name": "Clover_04",
+      "Width": 84,
+      "Height": 89,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Clovers\\Clover_04.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Three-leaf clover, preserving all three broad leaflets, their heart-shaped tips, veins and slender curved green stem. Rich forest and lime green planes. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 84 by 89 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Clovers/Clover_04.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Clovers",
+      "Name": "Clover_05",
+      "Width": 84,
+      "Height": 78,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Clovers\\Clover_05.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Three-leaf clover, preserving all three broad leaflets, their heart-shaped tips, veins and slender curved green stem. Rich forest and lime green planes. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 84 by 78 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Clovers/Clover_05.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "DryLeaves",
+      "Name": "DryLeaf_00",
+      "Width": 180,
+      "Height": 25,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\DryLeaves\\DryLeaf_00.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single long fallen dry curled leaf viewed side-on, preserving extreme horizontal aspect, curled tips, spine and existing folds. Warm ochre, burnt orange and brown planes, delicate branching veins and chipped dry edges. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 180 by 25 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/DryLeaves/DryLeaf_00.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "DryLeaves",
+      "Name": "DryLeaf_01",
+      "Width": 200,
+      "Height": 29,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\DryLeaves\\DryLeaf_01.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single long fallen dry curled leaf viewed side-on, preserving extreme horizontal aspect, curled tips, spine and existing folds. Warm ochre, burnt orange and brown planes, delicate branching veins and chipped dry edges. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 200 by 29 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/DryLeaves/DryLeaf_01.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "DryLeaves",
+      "Name": "DryLeaf_02",
+      "Width": 126,
+      "Height": 22,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\DryLeaves\\DryLeaf_02.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single long fallen dry curled leaf viewed side-on, preserving extreme horizontal aspect, curled tips, spine and existing folds. Warm ochre, burnt orange and brown planes, delicate branching veins and chipped dry edges. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 126 by 22 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/DryLeaves/DryLeaf_02.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "DryLeaves",
+      "Name": "DryLeaf_03",
+      "Width": 198,
+      "Height": 19,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\DryLeaves\\DryLeaf_03.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single long fallen dry curled leaf viewed side-on, preserving extreme horizontal aspect, curled tips, spine and existing folds. Warm ochre, burnt orange and brown planes, delicate branching veins and chipped dry edges. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 198 by 19 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/DryLeaves/DryLeaf_03.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "DryLeaves",
+      "Name": "DryLeaf_04",
+      "Width": 192,
+      "Height": 31,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\DryLeaves\\DryLeaf_04.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single long fallen dry curled leaf viewed side-on, preserving extreme horizontal aspect, curled tips, spine and existing folds. Warm ochre, burnt orange and brown planes, delicate branching veins and chipped dry edges. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 192 by 31 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/DryLeaves/DryLeaf_04.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "DryLeaves",
+      "Name": "DryLeaf_05",
+      "Width": 176,
+      "Height": 28,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\DryLeaves\\DryLeaf_05.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single long fallen dry curled leaf viewed side-on, preserving extreme horizontal aspect, curled tips, spine and existing folds. Warm ochre, burnt orange and brown planes, delicate branching veins and chipped dry edges. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 176 by 28 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/DryLeaves/DryLeaf_05.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Flowers",
+      "Name": "Flower_00",
+      "Width": 111,
+      "Height": 271,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Flowers\\Flower_00.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single tall daisy, keeping white petals, yellow domed center, long narrow green stem and two basal leaves. Preserve lean angle and height-to-width ratio; distinct overlapping petals and readable leaf folds. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 111 by 271 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Flowers/Flower_00.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Flowers",
+      "Name": "Flower_01",
+      "Width": 126,
+      "Height": 255,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Flowers\\Flower_01.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single tall daisy, keeping white petals, yellow domed center, long narrow green stem and two basal leaves. Preserve lean angle and height-to-width ratio; distinct overlapping petals and readable leaf folds. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 126 by 255 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Flowers/Flower_01.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Flowers",
+      "Name": "Flower_02",
+      "Width": 131,
+      "Height": 285,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Flowers\\Flower_02.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single tall daisy, keeping white petals, yellow domed center, long narrow green stem and two basal leaves. Preserve lean angle and height-to-width ratio; distinct overlapping petals and readable leaf folds. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 131 by 285 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Flowers/Flower_02.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Flowers",
+      "Name": "Flower_03",
+      "Width": 105,
+      "Height": 220,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Flowers\\Flower_03.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single tall daisy, keeping white petals, yellow domed center, long narrow green stem and two basal leaves. Preserve lean angle and height-to-width ratio; distinct overlapping petals and readable leaf folds. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 105 by 220 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Flowers/Flower_03.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Grains",
+      "Name": "Grain_00",
+      "Width": 8,
+      "Height": 7,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Grains\\Grain_00.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single small seed or food crumb matching the original shape and tan color, with a few simple planes, a crease and a pale highlight. Keep compact silhouette and avoid over-detail. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 8 by 7 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Grains/Grain_00.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Grains",
+      "Name": "Grain_01",
+      "Width": 6,
+      "Height": 5,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Grains\\Grain_01.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single small seed or food crumb matching the original shape and tan color, with a few simple planes, a crease and a pale highlight. Keep compact silhouette and avoid over-detail. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 6 by 5 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Grains/Grain_01.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Grains",
+      "Name": "Grain_02",
+      "Width": 6,
+      "Height": 5,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Grains\\Grain_02.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single small seed or food crumb matching the original shape and tan color, with a few simple planes, a crease and a pale highlight. Keep compact silhouette and avoid over-detail. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 6 by 5 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Grains/Grain_02.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Grains",
+      "Name": "Grain_03",
+      "Width": 6,
+      "Height": 5,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Grains\\Grain_03.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single small seed or food crumb matching the original shape and tan color, with a few simple planes, a crease and a pale highlight. Keep compact silhouette and avoid over-detail. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 6 by 5 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Grains/Grain_03.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Grains",
+      "Name": "Grain_04",
+      "Width": 6,
+      "Height": 5,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Grains\\Grain_04.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single small seed or food crumb matching the original shape and tan color, with a few simple planes, a crease and a pale highlight. Keep compact silhouette and avoid over-detail. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 6 by 5 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Grains/Grain_04.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Grains",
+      "Name": "Grain_05",
+      "Width": 4,
+      "Height": 4,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Grains\\Grain_05.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single small seed or food crumb matching the original shape and tan color, with a few simple planes, a crease and a pale highlight. Keep compact silhouette and avoid over-detail. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 4 by 4 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Grains/Grain_05.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Grains",
+      "Name": "Grain_06",
+      "Width": 6,
+      "Height": 5,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Grains\\Grain_06.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single small seed or food crumb matching the original shape and tan color, with a few simple planes, a crease and a pale highlight. Keep compact silhouette and avoid over-detail. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 6 by 5 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Grains/Grain_06.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Grains",
+      "Name": "Grain_07",
+      "Width": 10,
+      "Height": 7,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Grains\\Grain_07.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single small seed or food crumb matching the original shape and tan color, with a few simple planes, a crease and a pale highlight. Keep compact silhouette and avoid over-detail. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 10 by 7 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Grains/Grain_07.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Grass",
+      "Name": "Grass_00",
+      "Width": 103,
+      "Height": 398,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Grass\\Grass_00.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single tall stand of grass blades, preserving exactly the number, placement, lean and proportions of the reference blades. Fine long green leaves, readable central folds, sharp tips and broad light/shade strips; preserve negative spaces and rooted base. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 103 by 398 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Grass/Grass_00.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Grass",
+      "Name": "Grass_01",
+      "Width": 127,
+      "Height": 413,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Grass\\Grass_01.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single tall stand of grass blades, preserving exactly the number, placement, lean and proportions of the reference blades. Fine long green leaves, readable central folds, sharp tips and broad light/shade strips; preserve negative spaces and rooted base. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 127 by 413 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Grass/Grass_01.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Grass",
+      "Name": "Grass_02",
+      "Width": 203,
+      "Height": 403,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Grass\\Grass_02.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single tall stand of grass blades, preserving exactly the number, placement, lean and proportions of the reference blades. Fine long green leaves, readable central folds, sharp tips and broad light/shade strips; preserve negative spaces and rooted base. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 203 by 403 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Grass/Grass_02.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Grass",
+      "Name": "Grass_03",
+      "Width": 102,
+      "Height": 388,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Grass\\Grass_03.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single tall stand of grass blades, preserving exactly the number, placement, lean and proportions of the reference blades. Fine long green leaves, readable central folds, sharp tips and broad light/shade strips; preserve negative spaces and rooted base. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 102 by 388 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Grass/Grass_03.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Grass",
+      "Name": "Grass_04",
+      "Width": 94,
+      "Height": 411,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Grass\\Grass_04.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single tall stand of grass blades, preserving exactly the number, placement, lean and proportions of the reference blades. Fine long green leaves, readable central folds, sharp tips and broad light/shade strips; preserve negative spaces and rooted base. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 94 by 411 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Grass/Grass_04.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Grass",
+      "Name": "Grass_05",
+      "Width": 165,
+      "Height": 297,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Grass\\Grass_05.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single tall stand of grass blades, preserving exactly the number, placement, lean and proportions of the reference blades. Fine long green leaves, readable central folds, sharp tips and broad light/shade strips; preserve negative spaces and rooted base. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 165 by 297 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Grass/Grass_05.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Grass",
+      "Name": "Grass_06",
+      "Width": 126,
+      "Height": 413,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Grass\\Grass_06.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single tall stand of grass blades, preserving exactly the number, placement, lean and proportions of the reference blades. Fine long green leaves, readable central folds, sharp tips and broad light/shade strips; preserve negative spaces and rooted base. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 126 by 413 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Grass/Grass_06.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Grass",
+      "Name": "Grass_07",
+      "Width": 127,
+      "Height": 369,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Grass\\Grass_07.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single tall stand of grass blades, preserving exactly the number, placement, lean and proportions of the reference blades. Fine long green leaves, readable central folds, sharp tips and broad light/shade strips; preserve negative spaces and rooted base. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 127 by 369 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Grass/Grass_07.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Grass",
+      "Name": "Grass_08",
+      "Width": 130,
+      "Height": 419,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Grass\\Grass_08.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single tall stand of grass blades, preserving exactly the number, placement, lean and proportions of the reference blades. Fine long green leaves, readable central folds, sharp tips and broad light/shade strips; preserve negative spaces and rooted base. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 130 by 419 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Grass/Grass_08.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Grass",
+      "Name": "Grass_09",
+      "Width": 86,
+      "Height": 398,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Grass\\Grass_09.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single tall stand of grass blades, preserving exactly the number, placement, lean and proportions of the reference blades. Fine long green leaves, readable central folds, sharp tips and broad light/shade strips; preserve negative spaces and rooted base. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 86 by 398 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Grass/Grass_09.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Mushrooms",
+      "Name": "Mushroom_00",
+      "Width": 52,
+      "Height": 77,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Mushrooms\\Mushroom_00.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single woodland mushroom, preserving ochre cap, cream stem, height-to-cap-width proportions and lean angle. Strong readable cap volume, subtle cap flecks, distinct underside gills and stem fibers. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 52 by 77 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Mushrooms/Mushroom_00.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Mushrooms",
+      "Name": "Mushroom_01",
+      "Width": 56,
+      "Height": 66,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Mushrooms\\Mushroom_01.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single woodland mushroom, preserving ochre cap, cream stem, height-to-cap-width proportions and lean angle. Strong readable cap volume, subtle cap flecks, distinct underside gills and stem fibers. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 56 by 66 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Mushrooms/Mushroom_01.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Mushrooms",
+      "Name": "Mushroom_02",
+      "Width": 38,
+      "Height": 43,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Mushrooms\\Mushroom_02.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single woodland mushroom, preserving ochre cap, cream stem, height-to-cap-width proportions and lean angle. Strong readable cap volume, subtle cap flecks, distinct underside gills and stem fibers. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 38 by 43 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Mushrooms/Mushroom_02.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Mushrooms",
+      "Name": "Mushroom_03",
+      "Width": 50,
+      "Height": 63,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Mushrooms\\Mushroom_03.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single woodland mushroom, preserving ochre cap, cream stem, height-to-cap-width proportions and lean angle. Strong readable cap volume, subtle cap flecks, distinct underside gills and stem fibers. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 50 by 63 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Mushrooms/Mushroom_03.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Mushrooms",
+      "Name": "Mushroom_04",
+      "Width": 62,
+      "Height": 81,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Mushrooms\\Mushroom_04.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single woodland mushroom, preserving ochre cap, cream stem, height-to-cap-width proportions and lean angle. Strong readable cap volume, subtle cap flecks, distinct underside gills and stem fibers. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 62 by 81 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Mushrooms/Mushroom_04.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Mushrooms",
+      "Name": "Mushroom_05",
+      "Width": 54,
+      "Height": 77,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Mushrooms\\Mushroom_05.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single woodland mushroom, preserving ochre cap, cream stem, height-to-cap-width proportions and lean angle. Strong readable cap volume, subtle cap flecks, distinct underside gills and stem fibers. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 54 by 77 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Mushrooms/Mushroom_05.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Mushrooms",
+      "Name": "Mushroom_06",
+      "Width": 94,
+      "Height": 122,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Mushrooms\\Mushroom_06.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single woodland mushroom, preserving ochre cap, cream stem, height-to-cap-width proportions and lean angle. Strong readable cap volume, subtle cap flecks, distinct underside gills and stem fibers. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 94 by 122 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Mushrooms/Mushroom_06.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Mushrooms",
+      "Name": "Mushroom_07",
+      "Width": 46,
+      "Height": 76,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Mushrooms\\Mushroom_07.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single woodland mushroom, preserving ochre cap, cream stem, height-to-cap-width proportions and lean angle. Strong readable cap volume, subtle cap flecks, distinct underside gills and stem fibers. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 46 by 76 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Mushrooms/Mushroom_07.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Tufts",
+      "Name": "Tuft_00",
+      "Width": 31,
+      "Height": 62,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Tufts\\Tuft_00.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Small rooted tuft of green grass, preserving original blade count, arrangement, lean angles and gaps. Crisp folded blades, thin bright upper-left edges, dark green recesses, sharp tips. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 31 by 62 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Tufts/Tuft_00.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Tufts",
+      "Name": "Tuft_01",
+      "Width": 34,
+      "Height": 59,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Tufts\\Tuft_01.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Small rooted tuft of green grass, preserving original blade count, arrangement, lean angles and gaps. Crisp folded blades, thin bright upper-left edges, dark green recesses, sharp tips. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 34 by 59 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Tufts/Tuft_01.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Tufts",
+      "Name": "Tuft_02",
+      "Width": 18,
+      "Height": 60,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Tufts\\Tuft_02.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Small rooted tuft of green grass, preserving original blade count, arrangement, lean angles and gaps. Crisp folded blades, thin bright upper-left edges, dark green recesses, sharp tips. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 18 by 60 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Tufts/Tuft_02.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Tufts",
+      "Name": "Tuft_03",
+      "Width": 32,
+      "Height": 58,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Tufts\\Tuft_03.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Small rooted tuft of green grass, preserving original blade count, arrangement, lean angles and gaps. Crisp folded blades, thin bright upper-left edges, dark green recesses, sharp tips. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 32 by 58 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Tufts/Tuft_03.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Tufts",
+      "Name": "Tuft_04",
+      "Width": 30,
+      "Height": 71,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Tufts\\Tuft_04.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Small rooted tuft of green grass, preserving original blade count, arrangement, lean angles and gaps. Crisp folded blades, thin bright upper-left edges, dark green recesses, sharp tips. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 30 by 71 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Tufts/Tuft_04.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Tufts",
+      "Name": "Tuft_05",
+      "Width": 26,
+      "Height": 70,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Tufts\\Tuft_05.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Small rooted tuft of green grass, preserving original blade count, arrangement, lean angles and gaps. Crisp folded blades, thin bright upper-left edges, dark green recesses, sharp tips. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 26 by 70 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Tufts/Tuft_05.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Tufts",
+      "Name": "Tuft_06",
+      "Width": 37,
+      "Height": 71,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Tufts\\Tuft_06.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Small rooted tuft of green grass, preserving original blade count, arrangement, lean angles and gaps. Crisp folded blades, thin bright upper-left edges, dark green recesses, sharp tips. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 37 by 71 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Tufts/Tuft_06.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Tufts",
+      "Name": "Tuft_07",
+      "Width": 18,
+      "Height": 72,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Tufts\\Tuft_07.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Small rooted tuft of green grass, preserving original blade count, arrangement, lean angles and gaps. Crisp folded blades, thin bright upper-left edges, dark green recesses, sharp tips. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 18 by 72 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Tufts/Tuft_07.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Twigs",
+      "Name": "Twig_00",
+      "Width": 212,
+      "Height": 62,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Twigs\\Twig_00.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single long fallen woodland twig, keeping extreme horizontal aspect ratio, existing short branch and both broken ends. Warm brown bark, readable longitudinal ridges, a few knots and cracks, pale split wood at ends. No new branches or foliage. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 212 by 62 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Twigs/Twig_00.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Twigs",
+      "Name": "Twig_01",
+      "Width": 198,
+      "Height": 54,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Twigs\\Twig_01.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single long fallen woodland twig, keeping extreme horizontal aspect ratio, existing short branch and both broken ends. Warm brown bark, readable longitudinal ridges, a few knots and cracks, pale split wood at ends. No new branches or foliage. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 198 by 54 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Twigs/Twig_01.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Twigs",
+      "Name": "Twig_02",
+      "Width": 286,
+      "Height": 66,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Twigs\\Twig_02.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single long fallen woodland twig, keeping extreme horizontal aspect ratio, existing short branch and both broken ends. Warm brown bark, readable longitudinal ridges, a few knots and cracks, pale split wood at ends. No new branches or foliage. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 286 by 66 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Twigs/Twig_02.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Twigs",
+      "Name": "Twig_03",
+      "Width": 306,
+      "Height": 55,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Twigs\\Twig_03.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single long fallen woodland twig, keeping extreme horizontal aspect ratio, existing short branch and both broken ends. Warm brown bark, readable longitudinal ridges, a few knots and cracks, pale split wood at ends. No new branches or foliage. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 306 by 55 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Twigs/Twig_03.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    },
+    {
+      "Family": "Twigs",
+      "Name": "Twig_04",
+      "Width": 364,
+      "Height": 65,
+      "Path": "H:\\Fabula\\Games\\Incrementant\\Assets\\Project\\Art\\Scenery\\Twigs\\Twig_04.png",
+      "prompt": "Refine this existing game scenery sprite in the same approved pixel-art treatment as the ant and refined rock references. Single long fallen woodland twig, keeping extreme horizontal aspect ratio, existing short branch and both broken ends. Warm brown bark, readable longitudinal ridges, a few knots and cracks, pale split wood at ends. No new branches or foliage. Preserve the reference silhouette, individual variant identity, side view, canvas proportions and bottom support point. It is physically large compared with the ant: 364 by 65 world cells, while the ant is 3 by 2 cells. Add deliberate small-scale art detail inside large readable shaded planes, not a smooth painting or a mere enlargement. Hard-edged square pixel clusters, darkest thin silhouette outline, discrete shading, upper-left light, warm earthy miniature woodland world. Use only colors from this master palette: 1B1815 382414 463123 623E23 785A40 9A7F5E B9986D DEB06D 823A10 7B4F2E 9E6534 C5833E D6872F F4B815 CFB691 E4D2AE F5EDD9 504D55 7D7676 A59685 BBB29F 0F2105 173709 32550E 437122 638929 91B13B B3CF51 E2EA7A. Preserve the original family's colors. No gradients, soft edges, blur, glow, cast shadow, background, ground, text, frame, ant or other creature. A single isolated subject, fully visible with small transparent margin, no cropping, genuine transparent background. Tall plants must remain tall slender plants; horizontal leaf/twig props must remain long horizontal props.",
+      "refs": [
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Source~/RefinedScenery/Layouts/Twigs/Twig_04.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Ants/Ant_Walk_0.png",
+        "H:/Fabula/Games/Incrementant/Assets/Project/Art/Scenery/Pebbles/Pebble_03.png"
+      ]
+    }
+  ]
+}

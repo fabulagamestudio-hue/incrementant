@@ -148,7 +148,7 @@ namespace Fabula.Incrementant.Tests
             Assert.IsTrue(TickUntil(colony, () => colony.Brood.Count == 1, 25f));
             BroodRecord laid = colony.Brood.Brood[0];
             // Uma formiga ociosa o reivindica já no passo da postura (as formigas andam depois da rainha).
-            Assert.IsTrue(laid.Phase == EggPhase.Laid || laid.Phase == EggPhase.Claimed, $"Fase {laid.Phase}.");
+            Assert.IsTrue(laid.Phase == EggPhase.Laid || laid.Phase == EggPhase.Claimed || laid.Phase == EggPhase.Carried, $"Fase {laid.Phase}.");
             Assert.AreEqual(colony.Queen.X, laid.LaidX);
             Assert.AreEqual(colony.Queen.Y, laid.LaidY);
             Assert.AreEqual(-1, laid.Slot, "Ainda não está em nenhum ponto do berçário.");
@@ -313,9 +313,13 @@ namespace Fabula.Incrementant.Tests
                 "No ninho, a rainha não sai para comer: as formigas levam o nutriente até ela.");
             Assert.IsTrue(colony.QueenInRoom, "Ela fica na sala dela.");
 
-            colony.QueenJob = QueenJob.Nutrients;
+            // Ociosa, a jardineira volta à sala da rainha: o nutriente é para ela buscar (limite 0 tira as formigas, não ela).
+            for (int x = 46; x < 50; x++)
+                grid.SetNutrient(x, 1, true);
+            colony.Work.SetLimit(WorkSection.QueenFeed, 0);
+            colony.QueenJob = QueenJob.Gardener;
             Assert.IsTrue(TickUntil(colony, () => grid.IsNutrientRoom(colony.Queen.X, colony.Queen.Y), 60f),
-                "Com COLETAR NUTRIENTE, ela vai à sala de nutrientes.");
+                "Como jardineira, ela vai à sala de nutrientes.");
         }
 
         [Test]

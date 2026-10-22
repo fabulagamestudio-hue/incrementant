@@ -1,0 +1,23 @@
+{
+  "name": "com.iung.buildassistant",
+  "version": "1.0.0",
+  "displayName": "Build Assistant",
+  "description": "Unity editor tool for build management, versioning, validation and release workflow automation.",
+  "unity": "6000.3",
+  "unityRelease": "11f1",
+  "author": {
+    "name": "Iung Dev"
+  },
+  "dependencies": {
+    "com.unity.textmeshpro": "3.0.6"
+  },
+  "keywords": [
+    "build",
+    "pipeline",
+    "automation",
+    "versioning",
+    "release",
+    "editor",
+    "tools"
+  ]
+}

@@ -523,7 +523,7 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
-        public void Colony_PicksTheBiggestPlant_ThenTheNearestToTheEntrance()
+        public void Colony_PicksTheNearestPlantToTheEntrance_ThenTheBiggest()
         {
             PixelGrid grid = MakeWorld(400);
             var vegetation = new VegetationSimulation(new VegetationSettings(), seed: 11, Layout, grid.Width);
@@ -538,7 +538,7 @@ namespace Fabula.Incrementant.Tests
                     continue;
                 candidates++;
                 int distance = Mathf.Abs(x - Layout.EntranceX);
-                if (rows > bestRows || rows == bestRows && distance < bestDistance)
+                if (distance < bestDistance || distance == bestDistance && rows > bestRows)
                 {
                     expected = x;
                     bestRows = rows;
@@ -550,7 +550,7 @@ namespace Fabula.Incrementant.Tests
             var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 7);
             colony.AttachVegetation(vegetation);
             colony.Tick(Dt);
-            Assert.AreEqual(expected, colony.GardenTarget, "Maior primeiro; no empate, a mais perto da entrada.");
+            Assert.AreEqual(expected, colony.GardenTarget, "Mais perto da entrada primeiro; no empate, a maior (regra do AntFarmGuide).");
         }
 
         [Test]
@@ -636,6 +636,10 @@ namespace Fabula.Incrementant.Tests
             var (grid, vegetation, plantX, shape) = MakeGarden(new[] { wide });
             AddBeds(grid, 24, 27, 30, 33, 36, 39, 42, 45);
             AddPuddle(grid);
+            // Sala da rainha ao lado do ninho: sem ela, a rainha vagaria pelo formigueiro.
+            for (int x = 14; x <= 18; x++)
+            for (int y = 1; y <= 3; y++)
+                Assert.IsTrue(grid.SetQueenRoom(x, y, true));
             // A colheita leva até 30 min de jogo; o teste é da colheita, sem morte de formigas.
             var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 5);
             colony.AttachVegetation(vegetation);
@@ -790,6 +794,45 @@ namespace Fabula.Incrementant.Tests
             Assert.AreNotEqual(BedStage.Soil, grid.GetBedStage(24, 1), "O canteiro ainda recebe a planta.");
         }
 
+        /// <summary>
+        /// KI-011: pixel de planta solto selado dentro da terra (nenhuma formiga chega a ele) não reserva a vaga do canteiro;
+        /// antes ele contava em <c>PlantDebrisCount</c> e o corte nunca começava.
+        /// </summary>
+        [Test]
+        public void UnreachableLoosePlantPixel_DoesNotHoldTheBedsSlot()
+        {
+            var (grid, vegetation, _, _) = MakeGarden();
+            AddBeds(grid, 24);
+            for (int x = 100; x <= 101; x++)
+            {
+                grid.Set(x, 6, CellMaterial.FallenLeaf);
+                Assert.IsTrue(grid.SetMarked(x, 6, true));
+            }
+            Assert.AreEqual(2, grid.PlantDebrisCount);
+            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 5);
+            colony.AttachVegetation(vegetation);
+
+            var granular = new GranularSimulation();
+            for (int i = 0; i < 60 * 240 && grid.GetBedStage(24, 1) == BedStage.Soil; i++)
+            {
+                colony.Tick(Dt);
+                granular.Step(grid);
+            }
+
+            Assert.AreNotEqual(BedStage.Soil, grid.GetBedStage(24, 1), "O canteiro recebe planta cortada mesmo com pixels soltos inalcançáveis no mapa.");
+            Assert.AreEqual(2, grid.PlantDebrisCount - CountDebrisOutside(grid, 100, 101, 6), "Os pixels selados continuam lá.");
+        }
+
+        static int CountDebrisOutside(PixelGrid grid, int x0, int x1, int y)
+        {
+            int n = 0;
+            for (int yy = 0; yy < grid.Height; yy++)
+            for (int x = 0; x < grid.Width; x++)
+                if (CellMaterials.IsPlantDebris(grid.Get(x, yy)) && !(yy == y && x >= x0 && x <= x1))
+                    n++;
+            return n;
+        }
+
         [Test]
         public void Colony_StartsWithOnlyWorkers()
         {
@@ -893,9 +936,9 @@ namespace Fabula.Incrementant.Tests
             PrepareCultivation(grid);
             var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 7);
             colony.AttachVegetation(vegetation);
-            // As formigas ficam fora da coleta (cortar e recolher pedaços): só a rainha colhe.
-            colony.Work.SetEnabled(WorkSection.Harvest, false);
-            colony.Work.SetEnabled(WorkSection.Dig, false);
+            // Limite 0: as formigas ficam fora da coleta (cortar e recolher pedaços); a rainha não segue limites e colhe.
+            colony.Work.SetLimit(WorkSection.Harvest, 0);
+            colony.Work.SetLimit(WorkSection.Dig, 0);
             var granular = new GranularSimulation();
 
             for (int i = 0; i < 60 * 120; i++)
@@ -905,18 +948,39 @@ namespace Fabula.Incrementant.Tests
             }
             Assert.AreEqual(0, colony.HarvestedPixels, "No ninho, a rainha não colhe.");
 
-            colony.QueenJob = QueenJob.Forage;
+            colony.QueenJob = QueenJob.Worker;
             bool queenOutside = false;
             for (int i = 0; i < 60 * 900 && colony.HarvestedPixels == 0; i++)
             {
                 colony.Tick(Dt);
                 granular.Step(grid);
                 queenOutside |= colony.QueenPlace == ColonyPlace.Outdoor;
-                Assert.AreEqual(0, colony.WorkersIn(WorkSection.Harvest), "Nenhuma formiga entra na coleta parada.");
+                Assert.AreEqual(0, colony.WorkersIn(WorkSection.Harvest), "Nenhuma formiga entra na coleta com limite 0.");
             }
-            Assert.IsTrue(queenOutside, "A rainha coletora sai do formigueiro.");
+            Assert.IsTrue(queenOutside, "A rainha operária sai do formigueiro.");
             Assert.Greater(colony.HarvestedPixels, 0, "A rainha cortou, carregou e plantou um pedaço num canteiro.");
             Assert.Less(PlantCells(grid, plantX, shape), shape.Cells.Length);
+        }
+
+        [Test]
+        public void WorkerQueen_RespectsAStoppedSection()
+        {
+            var (grid, vegetation, _, _) = MakeGarden();
+            PrepareCultivation(grid);
+            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 7);
+            colony.AttachVegetation(vegetation);
+            colony.Work.SetEnabled(WorkSection.Harvest, false);
+            colony.Work.SetEnabled(WorkSection.Dig, false);
+            colony.QueenJob = QueenJob.Worker;
+            var granular = new GranularSimulation();
+
+            for (int i = 0; i < 60 * 300; i++)
+            {
+                colony.Tick(Dt);
+                granular.Step(grid);
+                Assert.IsFalse(colony.Queen.State == AntState.Digging, "Com a coleta e a escavação paradas, a rainha não corta nem cava.");
+            }
+            Assert.AreEqual(0, colony.HarvestedPixels, "Coleta parada: nem a rainha colhe.");
         }
     }
 }

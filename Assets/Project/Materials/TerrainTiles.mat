@@ -31,18 +31,35 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _MaterialColors:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _TileAtlas:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _BackDetail: 0.6
+    - _BackTileId: 18
+    - _DebugSignedDistance: 0
     - _DetailStrength: 1
     - _EdgeDarkening: 0.35
+    - _GlowEmission: 2.5
+    - _GlowMaterialId: 17
+    - _InteriorAmbient: 0.22
+    - _LightFadeStart: 0.09375
     - _TexelsPerCell: 16
-    - _TileCount: 15
-    - _TileSize: 64
+    - _TileCount: 19
+    - _TileSize: 128
+    - _WallShadowSteps: 3
+    - _WallShadowStrength: 0.45
+    - _WallShadowWidth: 6
     m_Colors:
+    - _GlowLightTint: {r: 1, g: 0.93, b: 0.72, a: 1}
+    - _LightTint: {r: 1.06, g: 1, b: 0.9, a: 1}
+    - _ShadowTint: {r: 0.8, g: 0.85, b: 1, a: 1}
     - _WindowOrigin: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

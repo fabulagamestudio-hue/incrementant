@@ -121,6 +121,11 @@ namespace Fabula.Incrementant.UI
         Dictionary<string, Vector2> _queenPositions;
         static HashSet<string> _legacyHive;
 
+        // Posição e altura do título, do efeito e do bloco de baixo como o setup os montou: o detalhe desce o que vem depois
+        // quando o título ou o efeito ocupam mais linhas que a caixa (LayoutDetail).
+        Vector2 _effectPos, _infoPos;
+        float _titleHeight, _effectHeight;
+
         UpgradeTab _tab = UpgradeTab.Queen;
         int _selectedHive;
         int _selectedQueen;
@@ -129,14 +134,6 @@ namespace Fabula.Incrementant.UI
         string _message = "";
         UnityAction[] _hiveHandlers, _queenHandlers, _hivePortalHandlers, _queenPortalHandlers, _amountHandlers;
         readonly StringBuilder _text = new StringBuilder(256);
-
-        /// <summary>Quantas vezes o jogador clicou num nó (o tutorial espera a primeira consulta).</summary>
-        public int NodeSelections { get; private set; }
-
-        public RectTransform HiveTabRect => (RectTransform)_hive.Tab.transform;
-        public RectTransform QueenTabRect => (RectTransform)_queen.Tab.transform;
-        /// <summary>Painel com nome, efeito, requisito e botão de compra do nó escolhido.</summary>
-        public RectTransform DetailRect => (RectTransform)_title.transform.parent;
 
         /// <summary>Nós desenhados na aba (todos menos os da câmara central), na ordem dos widgets.</summary>
         public static List<UpgradeDef> NodesOf(UpgradeTab tab)
@@ -157,6 +154,10 @@ namespace Fabula.Incrementant.UI
                 enabled = false;
                 return;
             }
+            _titleHeight = _title.rectTransform.sizeDelta.y;
+            _effectHeight = _effect.rectTransform.sizeDelta.y;
+            _effectPos = _effect.rectTransform.anchoredPosition;
+            _infoPos = _info.rectTransform.anchoredPosition;
             _hivePositions = UpgradeLayout.Positions(UpgradeTab.Hive);
             _queenPositions = UpgradeLayout.Positions(UpgradeTab.Queen);
             _selectedQueen = Math.Max(0, _queenDefs.FindIndex(d => d.Id == "Q1"));
@@ -263,7 +264,6 @@ namespace Fabula.Incrementant.UI
             else
                 _selectedQueen = index;
             _message = "";
-            NodeSelections++;
             if (center)
             {
                 UpgradeDef def = Selected;
@@ -464,6 +464,7 @@ namespace Fabula.Incrementant.UI
             if (_message.Length > 0)
                 _text.Append('\n').Append(Loc.T(_message));
             _info.text = _text.ToString();
+            LayoutDetail();
 
             bool gallery = def.Kind == UpgradeKind.Gallery;
             _amountRoot.SetActive(gallery);
@@ -499,6 +500,21 @@ namespace Fabula.Incrementant.UI
                 _buyLabel.text = owned ? Loc.T("tree.acquired") : Loc.T("tree.soon");
                 _buyImage.color = BuyDisabled;
             }
+        }
+
+        /// <summary>
+        /// Desce o efeito e o bloco de baixo (requisitos, custo, aviso) quando o título ou o efeito passam da altura da caixa
+        /// montada pelo setup. Antes, um efeito de 4 linhas (a lixeira, W0) escrevia por cima dos requisitos (relato do
+        /// desenvolvedor em 2026-10-21).
+        /// </summary>
+        void LayoutDetail()
+        {
+            float titleExtra = Mathf.Max(0f, _title.preferredHeight - _titleHeight);
+            float effectHeight = Mathf.Max(_effectHeight, _effect.preferredHeight);
+            RectTransform effect = _effect.rectTransform;
+            effect.anchoredPosition = new Vector2(_effectPos.x, _effectPos.y - titleExtra);
+            effect.sizeDelta = new Vector2(effect.sizeDelta.x, effectHeight);
+            _info.rectTransform.anchoredPosition = new Vector2(_infoPos.x, _infoPos.y - titleExtra - (effectHeight - _effectHeight));
         }
 
         void AppendGalleryLines(AntColony colony, UpgradeDef def)

@@ -9,10 +9,13 @@ namespace Fabula.Incrementant.AntFarm
     /// solo original (céu, montes, construções) tem luz cheia, <see cref="_outsideLight"/>, e fica totalmente visível. A luz
     /// cai reta pelas bocas do formigueiro, sem perder força, por todas as células livres da coluna até bater num bloco (o
     /// feixe, <see cref="_beamBottom"/>); do feixe ela se espalha pelas 8 vizinhas perdendo 1 nível por célula vazia e
-    /// <see cref="_solidLightCost"/> por célula de terra. O interior longe dos feixes fica no breu (túnel no piso
-    /// <see cref="_interiorAmbient"/>, terra preta). O espalhamento não passa de um bloco, então a versão do bloco e dos 8
-    /// vizinhos basta para saber quando refazer; o feixe, que pode descer qualquer distância, é conferido a cada frame
-    /// (<see cref="RefreshBeams"/>) e invalida os blocos em volta do trecho que mudou.
+    /// <see cref="_solidLightCost"/> por célula de terra. O formigueiro longe dos feixes fica numa penumbra forte (túnel no piso
+    /// <see cref="_interiorAmbient"/>; antes de 2026-10-21 era quase preto); a terra longe da luz continua preta. A outra
+    /// fonte é o cogumelo luminoso (<see cref="CellMaterial.GlowMushroom"/>), com nível <see cref="_glowMushroomLight"/> e a
+    /// mesma regra de espalhamento (etapa 12 do documento 40). O espalhamento não passa de um bloco, então a versão do bloco e
+    /// dos 8 vizinhos basta para saber quando refazer (pôr ou cavar um cogumelo muda a versão do bloco dele); o feixe, que pode
+    /// descer qualquer distância, é conferido a cada frame (<see cref="RefreshBeams"/>) e invalida os blocos em volta do
+    /// trecho que mudou.
     /// </summary>
     public sealed partial class AntFarmView
     {
@@ -22,6 +25,10 @@ namespace Fabula.Incrementant.AntFarm
         // Região do bloco com folga de LightLevels: terra e nível de cada célula, e as filas por nível da propagação.
         bool[] _lightSolidRegion;
         byte[] _lightRegion;
+        // A luz final da célula veio de um cogumelo luminoso (o shader usa o tom amarelado dele, Glow Light Tint).
+        bool[] _lightFromGlowRegion;
+        // Luz só dos cogumelos, propagada à parte (custo próprio na terra, Glow Solid Light Cost) e depois somada pelo máximo.
+        byte[] _glowRegion;
         readonly List<int>[] _lightQueues = CreateLightQueues();
         // Por coluna, a célula mais baixa do feixe de luz que desce do lado de fora (GetSurfaceY + 1 = a boca está fechada).
         int[] _beamBottom;
@@ -78,9 +85,11 @@ namespace Fabula.Incrementant.AntFarm
         /// <summary>
         /// Propaga a luz na região do bloco (origem <paramref name="ox"/>, <paramref name="oy"/>, tamanho <paramref name="w"/>
         /// x <paramref name="h"/>) com folga de <see cref="LightLevels"/>: nenhuma fonte de fora da folga alcança o bloco, então o
-        /// resultado é exato. Fontes: o lado de fora e o feixe (<see cref="RefreshBeams"/> antes). Fila por nível, do mais forte
-        /// para o mais fraco (cada célula sai com o nível final dela). Sem fonte na região (o fundo do formigueiro longe dos
-        /// feixes), tudo fica no zero sem propagar.
+        /// resultado é exato. Fontes: o lado de fora e o feixe (<see cref="RefreshBeams"/> antes) e os cogumelos luminosos. As
+        /// duas luzes são propagadas à parte, porque perdem níveis diferentes na terra (<see cref="_solidLightCost"/> e
+        /// <see cref="_glowSolidLightCost"/>), e cada célula fica com a maior; a do cogumelo marca a célula
+        /// (<see cref="GlowLightAt"/>). Sem fonte na região (o fundo do formigueiro longe dos feixes e dos cogumelos), tudo fica
+        /// no zero sem propagar.
         /// </summary>
         void ComputeLight(PixelGrid grid, int ox, int oy, int w, int h)
         {
@@ -92,19 +101,24 @@ namespace Fabula.Incrementant.AntFarm
             {
                 _lightRegion = new byte[count];
                 _lightSolidRegion = new bool[count];
+                _lightFromGlowRegion = new bool[count];
+                _glowRegion = new byte[count];
             }
 
             int top = Mathf.Min(grid.Height - 1, oy - margin + rows - 1);
             // Uma coluna tem fonte na região se o trecho iluminado dela (do fundo do feixe para cima) chega à linha de cima.
-            bool anySource = false;
-            for (int x = Mathf.Max(0, ox - margin); x < Mathf.Min(grid.Width, ox + w + margin) && !anySource; x++)
-                anySource = _beamBottom[x] <= top;
-            if (!anySource || _outsideLight == 0)
+            bool beamSource = false;
+            for (int x = Mathf.Max(0, ox - margin); x < Mathf.Min(grid.Width, ox + w + margin) && !beamSource && _outsideLight > 0; x++)
+                beamSource = _beamBottom[x] <= top;
+            System.Array.Clear(_lightFromGlowRegion, 0, count);
+            bool glowSource = HasGlowMushroom(grid, ox - margin, oy - margin, stride, rows);
+            if (!beamSource && !glowSource)
             {
                 System.Array.Clear(_lightRegion, 0, count);
                 return;
             }
 
+            // Fontes e terra da região. Fora da grade conta como terra sem fonte.
             for (int r = 0; r < rows; r++)
             {
                 int y = oy - margin + r;
@@ -112,25 +126,47 @@ namespace Fabula.Incrementant.AntFarm
                 {
                     int x = ox - margin + c;
                     int i = r * stride + c;
-                    // Fora da grade conta como terra sem fonte.
                     bool inside = grid.InBounds(x, y);
-                    // Do fundo do feixe para cima: lado de fora ou feixe, luz cheia.
-                    bool source = inside && y >= _beamBottom[x];
                     _lightSolidRegion[i] = !inside || !IsEdgeOpen(grid, x, y);
-                    _lightRegion[i] = source ? (byte)_outsideLight : (byte)0;
-                    if (source)
-                        _lightQueues[_outsideLight].Add(i);
+                    // Do fundo do feixe para cima: lado de fora ou feixe, luz cheia.
+                    _lightRegion[i] = inside && y >= _beamBottom[x] ? (byte)_outsideLight : (byte)0;
+                    _glowRegion[i] = inside && glowSource && grid.Get(x, y) == CellMaterial.GlowMushroom ? (byte)_glowMushroomLight : (byte)0;
                 }
             }
+            if (beamSource)
+                Propagate(_lightRegion, stride, rows, count, _solidLightCost);
+            if (!glowSource)
+                return;
+            Propagate(_glowRegion, stride, rows, count, _glowSolidLightCost);
+            // Fica a maior; no empate, a luz de fora (tom normal).
+            for (int i = 0; i < count; i++)
+            {
+                if (_glowRegion[i] > _lightRegion[i])
+                {
+                    _lightRegion[i] = _glowRegion[i];
+                    _lightFromGlowRegion[i] = true;
+                }
+            }
+        }
 
-            int solidCost = Mathf.Max(1, _solidLightCost);
+        /// <summary>
+        /// Espalha a luz já posta nas fontes de <paramref name="region"/> pelas 8 vizinhas: −1 por célula vazia,
+        /// −<paramref name="solidCost"/> por célula de terra. Fila por nível, do mais forte para o mais fraco (cada célula sai
+        /// com o nível final dela).
+        /// </summary>
+        void Propagate(byte[] region, int stride, int rows, int count, int solidCost)
+        {
+            solidCost = Mathf.Max(1, solidCost);
+            for (int i = 0; i < count; i++)
+                if (region[i] > 1)
+                    _lightQueues[region[i]].Add(i);
             for (int level = LightLevels; level > 1; level--)
             {
                 List<int> queue = _lightQueues[level];
                 for (int q = 0; q < queue.Count; q++)
                 {
                     int i = queue[q];
-                    if (_lightRegion[i] != level)
+                    if (region[i] != level)
                         continue;
                     int r = i / stride, c = i - r * stride;
                     for (int dy = -1; dy <= 1; dy++)
@@ -145,9 +181,9 @@ namespace Fabula.Incrementant.AntFarm
                                 continue;
                             int n = nr * stride + nc;
                             int next = level - (_lightSolidRegion[n] ? solidCost : 1);
-                            if (next > _lightRegion[n])
+                            if (next > region[n])
                             {
-                                _lightRegion[n] = (byte)next;
+                                region[n] = (byte)next;
                                 _lightQueues[next].Add(n);
                             }
                         }
@@ -158,18 +194,59 @@ namespace Fabula.Incrementant.AntFarm
             _lightQueues[1].Clear();
         }
 
+        /// <summary>Há cogumelo luminoso aceso no retângulo (origem <paramref name="x0"/>, <paramref name="y0"/>)?</summary>
+        bool HasGlowMushroom(PixelGrid grid, int x0, int y0, int w, int h)
+        {
+            if (_glowMushroomLight <= 0)
+                return false;
+            int xa = Mathf.Max(0, x0), xb = Mathf.Min(grid.Width, x0 + w);
+            int ya = Mathf.Max(0, y0), yb = Mathf.Min(grid.Height, y0 + h);
+            for (int y = ya; y < yb; y++)
+            for (int x = xa; x < xb; x++)
+                if (grid.Get(x, y) == CellMaterial.GlowMushroom)
+                    return true;
+            return false;
+        }
+
         /// <summary>Nível de luz da célula do bloco (<paramref name="lx"/>, <paramref name="ly"/>); precisa de <see cref="ComputeLight"/>.</summary>
         byte LightAt(int lx, int ly, int w) => _lightRegion[(ly + LightLevels) * (w + 2 * LightLevels) + lx + LightLevels];
 
+        /// <summary>A luz da célula do bloco veio de um cogumelo luminoso; precisa de <see cref="ComputeLight"/>.</summary>
+        bool GlowLightAt(int lx, int ly, int w) => _lightFromGlowRegion[(ly + LightLevels) * (w + 2 * LightLevels) + lx + LightLevels];
+
         /// <summary>
-        /// Brilho da célula inteira, quando a luz é aplicada na CPU (sem tiles, ou embaixo de uma marcação): o nível em
-        /// <see cref="_lightSteps"/> degraus, com o piso de penumbra no túnel. Igual ao que o shader faz por texel.
+        /// Canal A da textura de materiais: 255 = cor já iluminada pela CPU (o shader não aplica a luz), 128 = luz de cogumelo
+        /// (tom <c>_GlowLightTint</c>), 0 = luz de fora (tom normal).
+        /// </summary>
+        static byte LightFlags(bool lit, bool glowLight) => lit ? (byte)255 : glowLight ? (byte)128 : (byte)0;
+
+        /// <summary>
+        /// Brilho da célula inteira, quando a luz é aplicada na CPU (sem tiles, ou embaixo de uma marcação): o nível na
+        /// mesma curva do shader (chega a zero <see cref="LightFadeStart"/> antes do fim e desce ao quadrado), com o piso de
+        /// penumbra no túnel (a terra não tem piso: longe da luz, preta).
         /// </summary>
         float LightFactor(int level, bool tunnel)
         {
-            float stepped = Mathf.Round(level / (float)LightLevels * _lightSteps) / _lightSteps;
-            return tunnel ? Mathf.Max(stepped, _interiorAmbient) : stepped;
+            float g = Mathf.Clamp01((level / (float)LightLevels - LightFadeStart) / (1f - LightFadeStart));
+            float curved = g * g;
+            return tunnel ? Mathf.Max(curved, _interiorAmbient) : curved;
         }
+
+        /// <summary>
+        /// Tom da luz dos cogumelos: a cor deles com o canal mais forte em 1 (multiplicar não passa do branco, então o túnel
+        /// iluminado não entra no bloom), misturada ao branco por <see cref="_glowColorStrength"/>. Em espaço de cor gama, como
+        /// a cor do Inspector; <c>Material.SetColor</c> converte para linear.
+        /// </summary>
+        Color GlowLightTint()
+        {
+            Color color = _glowMushroomColor;
+            float max = Mathf.Max(color.r, Mathf.Max(color.g, color.b));
+            Color normalized = max > 0f ? new Color(color.r / max, color.g / max, color.b / max, 1f) : Color.white;
+            return Color.Lerp(Color.white, normalized, _glowColorStrength);
+        }
+
+        /// <summary>Nível (0 a 1) em que a luz chega a zero na curva; o mesmo valor padrão de <c>_LightFadeStart</c> no shader.</summary>
+        const float LightFadeStart = 1.5f / LightLevels;
 
         /// <summary>Nível gravado no canal B da textura de materiais (0..255).</summary>
         static byte LightByte(int level) => (byte)((level * 255 + LightLevels / 2) / LightLevels);
@@ -185,7 +262,7 @@ namespace Fabula.Incrementant.AntFarm
                 return;
             int t = TileBytes * i;
             byte id = _materialIds[t];
-            if (_materialIds[t + 3] != 0 || id == CellTileArt.SkyId)
+            if (_materialIds[t + 3] == 255 || id == CellTileArt.SkyId)
                 return;
             int gridIndex = (_originY + i / _width) * _cachedGrid.Width + _originX + i % _width;
             _pixels[i] = Darken(_pixels[i], LightFactor(_cellLight[gridIndex], id == (byte)CellMaterial.Empty));
