@@ -3347,6 +3347,10 @@ MonoBehaviour:
     m_Key: domain.forge
     m_Metadata:
       m_Items: []
+  - m_Id: 1806537463033856
+    m_Key: buy.depth
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

@@ -256,7 +256,7 @@ Uma regra só para todos os nós: nível aberto, condição do mundo, requisitos
    - `BuildCaves` com salões, túneis verticais e câmaras laterais;
    - zoom em duas leituras e ligações só na seleção;
    - remontar o HUD.
-3. **Compra unificada** por `UpgradeBoard.Unlockable`. Desde a etapa 2, câmaras e galerias vivas já abrem pelo nível do formigueiro (`TierOpen`). Faltam os nós da rainha.
+3. **Compra unificada** por `UpgradeBoard.Unlockable` (**feito em 2026-10-23**). Os nós da rainha também passam pelo nível, pela condição e pelos requisitos do catálogo (`AntColony.CheckBuy`). Mudanças para o jogador: as melhorias de classe no nível 2 esperam profundidade 5; Q2 e N0 pedem a câmara B0 (50 N); J1 pede C1; E2 (quebrar rocha) pede T+2 no nível 3.
 4. **Nós novos:** Minérios, Forja e os nós de nível 5 de Formigas, Escavação e Guarda, com custos e efeitos aprovados.
 
 ## Em aberto

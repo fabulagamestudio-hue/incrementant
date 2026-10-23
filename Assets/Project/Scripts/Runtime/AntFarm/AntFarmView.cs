@@ -109,6 +109,8 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField, Range(1, 8)] int _glowSolidLightCost = 4;
         [Tooltip("Multiplicador da cor do cogumelo luminoso no shader (acima de 1 = HDR): é o que o bloom do pós-processamento pega. Só com Tile Material.")]
         [SerializeField, Range(1f, 8f)] float _glowMushroomEmission = 2.5f;
+        [Tooltip("Emissão do cogumelo luminoso de terra (o passageiro): mais fraca que a do cogumelo dos pulgões. Só com Tile Material.")]
+        [SerializeField, Range(1f, 8f)] float _soilGlowEmission = 1.5f;
         [Tooltip("Cor do cogumelo luminoso: o cubo, a marca do pincel, o contorno do pincel e o tom da luz que sai dele.")]
         [SerializeField] Color32 _glowMushroomColor = new Color32(240, 214, 130, 255);
         [Tooltip("Quanto a cor do cogumelo tinge a luz em volta (0 = luz branca, 1 = multiplica a cor inteira, com o canal mais forte em 1 para não passar do branco e entrar no bloom). Só com Tile Material.")]
@@ -138,7 +140,7 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField] Texture2D _grassOverhang;
         [Tooltip("Minério guardado ou solto desenhado com o sprite da boca da formiga (Art/Ants/Item_CopperOre, Item_IronOre e Item_GoldOre, nesta ordem, 8 x 8, sem compressão). Vazio ou incompleto: a arte da linha do atlas, como os outros itens.")]
         [SerializeField] Sprite[] _oreItemSprites = new Sprite[0];
-        [Tooltip("Ferramenta, arma e armadura guardadas ou soltas com o sprite da boca da formiga (Art/Ants/Item_<Metal><Tipo>), 9 de 8 x 8 sem compressão: ferramenta, arma, armadura, cada uma em cobre, ferro e ouro. Vazio ou incompleto: a arte da linha do atlas.")]
+        [Tooltip("Ferramenta, arma e armadura guardadas ou soltas com o sprite da boca da formiga (Art/Ants/Item_<Metal><Tipo>), 9 de 8 x 8 sem compressão: ferramenta, arma, armadura, cada uma em cobre, ferro e ouro; mais 3 barras (Item_<Metal>Bar) no fim, opcionais. Vazio ou incompleto: a arte da linha do atlas.")]
         [SerializeField] Sprite[] _equipItemSprites = new Sprite[0];
         [Tooltip("Depuração: pinta cada célula pela distância com sinal até a borda terra/vazio (quente = terra, frio = vazio, claro = perto da borda). Só com Tile Material.")]
         [SerializeField] bool _debugSignedDistance;
@@ -242,6 +244,8 @@ namespace Fabula.Incrementant.AntFarm
         static readonly int InteriorAmbientId = Shader.PropertyToID("_InteriorAmbient");
         static readonly int GlowMaterialId = Shader.PropertyToID("_GlowMaterialId");
         static readonly int GlowEmissionId = Shader.PropertyToID("_GlowEmission");
+        static readonly int SoilGlowIdId = Shader.PropertyToID("_SoilGlowId");
+        static readonly int SoilGlowEmissionId = Shader.PropertyToID("_SoilGlowEmission");
         static readonly int GlowLightTintId = Shader.PropertyToID("_GlowLightTint");
         Color32[] _skyRows;
         int _width;
@@ -376,6 +380,7 @@ namespace Fabula.Incrementant.AntFarm
 
         const int OreCount = (int)CellMaterial.GoldOre - (int)CellMaterial.CopperOre + 1;
         const int EquipCount = 3 * Equipment.Tiers;
+        const int BarCount = Equipment.Tiers;
 
         /// <summary>
         /// Os sprites que entram na textura: os minérios e, se os 9 equipamentos também estão certos, eles em seguida. Sem os
@@ -387,7 +392,11 @@ namespace Fabula.Incrementant.AntFarm
                 return null;
             if (!ItemSpritesValid(_equipItemSprites, EquipCount, size, "Equip Item Sprites", "Item_<Metal><Tipo>"))
                 return _oreItemSprites.Take(OreCount).ToArray();
-            return _oreItemSprites.Take(OreCount).Concat(_equipItemSprites.Take(EquipCount)).ToArray();
+            IEnumerable<Sprite> joined = _oreItemSprites.Take(OreCount).Concat(_equipItemSprites.Take(EquipCount));
+            // As barras vêm depois do equipamento e são opcionais (lista antiga de 9 segue valendo).
+            if (_equipItemSprites.Length >= EquipCount + BarCount && ItemSpritesValid(_equipItemSprites.Skip(EquipCount).ToArray(), BarCount, size, "Equip Item Sprites (barras)", "Item_<Metal>Bar"))
+                joined = joined.Concat(_equipItemSprites.Skip(EquipCount).Take(BarCount));
+            return joined.ToArray();
         }
 
         bool ItemSpritesValid(Sprite[] list, int count, int size, string field, string files)
@@ -407,9 +416,11 @@ namespace Fabula.Incrementant.AntFarm
             return true;
         }
 
-        /// <summary>Índice do item em <c>_ItemSprites</c>: minério 0 a 2, ferramenta, arma e armadura (cobre, ferro, ouro) 3 a 11; -1 sem sprite.</summary>
+        /// <summary>Índice do item em <c>_ItemSprites</c>: minério 0 a 2, ferramenta, arma e armadura (cobre, ferro, ouro) 3 a 11, barra 12 a 14; -1 sem sprite.</summary>
         public static int ItemSpriteIndex(CellMaterial material)
         {
+            if (Equipment.IsBar(material))
+                return OreCount + EquipCount + Equipment.TierOf(material);
             if (CellMaterials.IsOre(material))
                 return (int)material - (int)CellMaterial.CopperOre;
             EquipKind kind = Equipment.KindOf(material);
@@ -434,6 +445,8 @@ namespace Fabula.Incrementant.AntFarm
                 references[row] = CellMaterials.BaseColor((CellMaterial)row);
             references[(int)CellMaterial.Empty] = _tunnelColor;
             references[(int)CellMaterial.GlowMushroom] = _glowMushroomColor;
+            // O cogumelo de terra grava a cor do cogumelo na célula (só a linha do atlas muda): referência igual, tom neutro.
+            references[CellTileArt.SoilGlowRow] = _glowMushroomColor;
             references[CellTileArt.BackgroundRow] = _tunnelColor;
             for (int style = 0; style < CellTileArt.RoomStyleCount; style++)
             {
@@ -478,6 +491,8 @@ namespace Fabula.Incrementant.AntFarm
                 _tileInstance.SetFloat(InteriorAmbientId, _interiorAmbient);
                 _tileInstance.SetFloat(GlowMaterialId, (float)CellMaterial.GlowMushroom);
                 _tileInstance.SetFloat(GlowEmissionId, _glowMushroomEmission);
+                _tileInstance.SetFloat(SoilGlowIdId, CellTileArt.SoilGlowRow);
+                _tileInstance.SetFloat(SoilGlowEmissionId, _soilGlowEmission);
                 _tileInstance.SetColor(GlowLightTintId, GlowLightTint());
             }
 
@@ -889,6 +904,9 @@ namespace Fabula.Incrementant.AntFarm
             }
             // O cogumelo luminoso brilha com a própria cor: sai daqui já "iluminado" e o shader não o escurece.
             bool glow = material == CellMaterial.GlowMushroom;
+            // O de terra (passageiro) usa a própria linha do atlas.
+            if (glow && _cellTiles != null && grid.IsFleetingGlow(x, y))
+                tileId = (byte)CellTileArt.SoilGlowRow;
             bool overlay = solid && (grid.IsMarked(x, y) || (_drawnRooms && HasRoomPaint(grid, x, y)));
             lit = _cellTiles != null && (overlay || tunnelPaint || glow);
             if (solid && !glow && (_cellTiles == null || overlay))

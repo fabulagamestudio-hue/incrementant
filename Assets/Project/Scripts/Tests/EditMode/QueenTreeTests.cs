@@ -51,6 +51,16 @@ namespace Fabula.Incrementant.Tests
                 colony.Tick(Dt);
         }
 
+        /// <summary>
+        /// Abre o nível 2 do formigueiro (profundidade 5, documento 46) sem mexer na simulação: a galeria T+3 (salas extras,
+        /// só muda o pincel) completa vale 3 níveis + 3 da galeria completa.
+        /// </summary>
+        internal static void OpenTierTwo(AntColony colony) => colony.Galleries.Set("T+3", 3);
+
+        /// <summary>Compra a câmara B0 (berçário inicial), requisito do formigueiro para Q2 e N0.</summary>
+        static void BuyNurseryChamber(AntColony colony) =>
+            Assert.AreEqual(BuyBlock.None, colony.TryBuyUpgrade(Upgrades.UpgradeCatalog.Get("B0"), 1, out _));
+
         [Test]
         public void AtTheStart_OnlyTheCommonClassIsUnlocked_AndTheFreeNodesAreOwned()
         {
@@ -132,11 +142,60 @@ namespace Fabula.Incrementant.Tests
             Assert.IsFalse(colony.Tree.IsRoleUnlocked(AntRole.Soldier));
 
             colony.RestoreRaids(raidsUnlocked: true, raidsSurvived: 1, secondsToNextRaid: 120f);
+            OpenTierTwo(colony);
             Assert.AreEqual(BuyBlock.None, colony.TryBuy(QueenNode.S0));
             Assert.IsTrue(colony.Tree.IsRoleUnlocked(AntRole.Soldier));
             Assert.AreEqual(18f, colony.Tree.MaxHealth(AntRole.Soldier));
             Assert.AreEqual(BuyBlock.None, colony.TryBuy(QueenNode.S2));
             Assert.AreEqual(27f, colony.Tree.MaxHealth(AntRole.Soldier));
+        }
+
+        [Test]
+        public void AQueenNodeInAClosedTier_WaitsForTheDepth_WithoutCharging()
+        {
+            // Documento 46, "Compra": os nós da rainha seguem a mesma regra das câmaras e galerias (nível do formigueiro aberto).
+            AntColony colony = MakeColony(21, 5000);
+            Assert.AreEqual(BuyBlock.None, colony.TryBuy(QueenNode.E0)); // nível 1: aberto desde o começo
+            Assert.AreEqual(BuyBlock.NeedsDepth, colony.CheckBuy(QueenNode.E1)); // nível 2: profundidade 5
+            int before = colony.Nutrients;
+            Assert.AreEqual(BuyBlock.NeedsDepth, colony.TryBuy(QueenNode.E1));
+            Assert.AreEqual(before, colony.Nutrients, "Recusa não cobra.");
+            Assert.IsFalse(colony.Tree.Owns(QueenNode.E1));
+
+            OpenTierTwo(colony);
+            Assert.AreEqual(BuyBlock.None, colony.TryBuy(QueenNode.E1));
+        }
+
+        [Test]
+        public void AQueenNode_AlsoNeedsTheRequirementsFromOtherDomains()
+        {
+            // Q2 (postura em lotes) exige a câmara B0 do Berçário além de Q1; N0 (cuidadora) também exige B0.
+            AntColony colony = MakeColony(21, 5000);
+            Assert.AreEqual(BuyBlock.None, colony.TryBuy(QueenNode.Q1));
+            OpenTierTwo(colony);
+            Assert.AreEqual(BuyBlock.MissingRequirement, colony.TryBuy(QueenNode.Q2));
+            Assert.AreEqual(BuyBlock.MissingRequirement, colony.TryBuy(QueenNode.N0));
+
+            var board = new Upgrades.UpgradeBoard();
+            board.Refresh(colony.Tree, colony.RaidsSurvived, colony.Ants.Count, colony.Galleries);
+            Assert.AreEqual(Upgrades.UpgradeStatus.Locked, board.Status(Upgrades.UpgradeCatalog.Of(QueenNode.Q2)), "A tela mostra o mesmo bloqueio.");
+
+            BuyNurseryChamber(colony);
+            board.Refresh(colony.Tree, colony.RaidsSurvived, colony.Ants.Count, colony.Galleries);
+            Assert.AreEqual(Upgrades.UpgradeStatus.Available, board.Status(Upgrades.UpgradeCatalog.Of(QueenNode.Q2)));
+            Assert.AreEqual(BuyBlock.None, colony.TryBuy(QueenNode.Q2));
+            Assert.AreEqual(BuyBlock.None, colony.TryBuy(QueenNode.N0));
+        }
+
+        [Test]
+        public void ANodeBoughtBeforeTheRule_StaysBought()
+        {
+            // Save antigo: Q2 comprado sem B0 e com o nível fechado continua comprado (a regra vale só para compras novas).
+            AntColony colony = MakeColony(21, 5000);
+            colony.Tree.Restore(1UL << (int)QueenNode.Q1 | 1UL << (int)QueenNode.Q2);
+            Assert.IsTrue(colony.Tree.Owns(QueenNode.Q2));
+            Assert.AreEqual(BuyBlock.Owned, colony.TryBuy(QueenNode.Q2));
+            Assert.AreEqual(5000, colony.Nutrients);
         }
 
         [Test]
@@ -190,7 +249,9 @@ namespace Fabula.Incrementant.Tests
         {
             AntColony colony = MakeColony(21, 5000);
             colony.TryBuy(QueenNode.Q1);
-            colony.TryBuy(QueenNode.Q2);
+            OpenTierTwo(colony);
+            BuyNurseryChamber(colony);
+            Assert.AreEqual(BuyBlock.None, colony.TryBuy(QueenNode.Q2));
             int before = colony.Nutrients;
             // O primeiro ciclo sai aos 18 s da partida (o relógio inicial é o da configuração).
             for (float t = 0f; t < 25f && colony.Brood.Count == 0; t += Dt)
@@ -208,7 +269,9 @@ namespace Fabula.Incrementant.Tests
             AntColony colony = MakeColony(14, 5000); // 14 x 3 = 42 células / 16 = 2 vagas
             Assert.AreEqual(2, colony.NurserySlots);
             colony.TryBuy(QueenNode.Q1);
-            colony.TryBuy(QueenNode.Q2);
+            OpenTierTwo(colony);
+            BuyNurseryChamber(colony);
+            Assert.AreEqual(BuyBlock.None, colony.TryBuy(QueenNode.Q2));
             for (float t = 0f; t < 25f && colony.Brood.Count == 0; t += Dt)
                 colony.Tick(Dt);
             Assert.AreEqual(2, colony.Brood.Count, "Lote parcial: só cabem dois.");

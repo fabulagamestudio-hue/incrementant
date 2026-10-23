@@ -246,6 +246,7 @@ namespace Fabula.Incrementant.UI
                 case BuyBlock.NotAvailableYet: return "buy.soon";
                 case BuyBlock.InsufficientNutrients: return "buy.insufficient";
                 case BuyBlock.NeedsFirstRaid: return "buy.raid";
+                case BuyBlock.NeedsDepth: return "buy.depth";
                 default: return "buy.done";
             }
         }
@@ -274,7 +275,7 @@ namespace Fabula.Incrementant.UI
                 UpgradeDef def = defs[i];
                 SkillNodeWidget widget = view.Nodes[i];
                 widget.Apply(StateOf(def), i == selected, _diamondAcquired, _diamondAvailable, _diamondLocked, _diamondRoot);
-                widget.SetBuried(!_board.TierOpen(def.Tier) && !UpgradeBoard.IgnoresTier(def));
+                widget.SetBuried(!_board.TierOpen(def.Tier));
                 if (def.Kind == UpgradeKind.Gallery)
                     widget.SetLevel(LevelText(def));
             }
@@ -439,7 +440,7 @@ namespace Fabula.Incrementant.UI
             else if (UpgradeBoard.HasSystem(def))
             {
                 _buyLabel.text = owned ? Loc.T("tree.acquired") : Loc.T("tree.unlock.cost", def.Cost);
-                _buyImage.color = !owned && colony.Tree.Check(def.QueenNode.Value) == BuyBlock.None && colony.Nutrients >= def.Cost
+                _buyImage.color = !owned && colony.CheckBuy(def.QueenNode.Value) == BuyBlock.None && colony.Nutrients >= def.Cost
                     ? BuyEnabled : BuyDisabled;
             }
             else
@@ -512,7 +513,7 @@ namespace Fabula.Incrementant.UI
                 parts.Append("<color=").Append(_board.ConditionMet(def.Condition) ? MetColor : MissingColor).Append('>')
                      .Append(Loc.T(ConditionKey(def.Condition))).Append("</color>");
             }
-            if (!_board.TierOpen(def.Tier) && !UpgradeBoard.IgnoresTier(def))
+            if (!_board.TierOpen(def.Tier))
                 parts.Append(", <color=").Append(MissingColor).Append('>')
                      .Append(Loc.T("tree.depth", UpgradeCatalog.DepthToOpenTier(def.Tier))).Append("</color>");
             _text.Append(Loc.T("tree.requires", parts.ToString()));

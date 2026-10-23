@@ -379,12 +379,35 @@ namespace Fabula.Incrementant.Colony
         }
 
         /// <summary>
-        /// Compra um nó da árvore da rainha com os nutrientes: sem saldo, sem pré-requisito, já comprado ou ainda sem
-        /// sistema no jogo, nada é debitado nem aplicado (o motivo vai no retorno).
+        /// Por que o nó da árvore da rainha não pode ser comprado agora, sem olhar o saldo (<see cref="BuyBlock.None"/> = pode).
+        /// Junta as regras da árvore (<see cref="QueenTree.Check"/>: já comprado, sistema, primeiro ataque, fazenda, pré-requisitos
+        /// da rainha) às do formigueiro (documento 46, "Compra"): nível aberto, condição e requisitos do catálogo, inclusive os de
+        /// outro domínio (Q2 exige B0). Um nó comprado num save antigo sem esses requisitos continua comprado.
+        /// </summary>
+        public BuyBlock CheckBuy(QueenNode node)
+        {
+            BuyBlock block = Tree.Check(node);
+            return block != BuyBlock.None ? block : GateBlock(UpgradeCatalog.Of(node));
+        }
+
+        /// <summary>Regra única do catálogo para qualquer nó: condição do mundo, nível do formigueiro aberto e requisitos.</summary>
+        BuyBlock GateBlock(UpgradeDef def)
+        {
+            _gate.Refresh(Tree, RaidsSurvived, _ants.Count, Galleries);
+            if (def.Condition == UpgradeCondition.FirstRaid && RaidsSurvived < 1)
+                return BuyBlock.NeedsFirstRaid;
+            if (!_gate.TierOpen(def.Tier))
+                return BuyBlock.NeedsDepth;
+            return _gate.Unlockable(def) ? BuyBlock.None : BuyBlock.MissingRequirement;
+        }
+
+        /// <summary>
+        /// Compra um nó da árvore da rainha com os nutrientes: sem saldo, sem pré-requisito, com o nível fechado, já comprado
+        /// ou ainda sem sistema no jogo, nada é debitado nem aplicado (o motivo vai no retorno; regras em <see cref="CheckBuy"/>).
         /// </summary>
         public BuyBlock TryBuy(QueenNode node)
         {
-            BuyBlock block = Tree.Check(node);
+            BuyBlock block = CheckBuy(node);
             if (block != BuyBlock.None)
                 return block;
             int cost = QueenTree.Def(node).Cost;
@@ -399,8 +422,8 @@ namespace Fabula.Incrementant.Colony
 
         /// <summary>
         /// Compra uma câmara ou níveis de uma galeria com sistema (<paramref name="count"/> níveis; 0 = quantos o saldo pagar;
-        /// câmara = 1). Confere sistema, teto, anel, condição e requisitos do catálogo e o saldo; sem nenhum nível pago nada é
-        /// debitado. Os nós da árvore da rainha continuam em <see cref="TryBuy"/>.
+        /// câmara = 1). Confere sistema, teto, nível do formigueiro, condição e requisitos do catálogo e o saldo; sem nenhum nível
+        /// pago nada é debitado. Os nós da árvore da rainha vão por <see cref="TryBuy"/>, com a mesma regra do catálogo.
         /// </summary>
         public BuyBlock TryBuyUpgrade(UpgradeDef def, int count, out int bought)
         {
@@ -411,11 +434,9 @@ namespace Fabula.Incrementant.Colony
             int level = Galleries.Level(def.Id);
             if (gallery ? def.Capped && level >= def.Cap : level > 0 || def.Initial)
                 return BuyBlock.Owned;
-            _gate.Refresh(Tree, RaidsSurvived, _ants.Count, Galleries);
-            if (def.Condition == UpgradeCondition.FirstRaid && RaidsSurvived < 1)
-                return BuyBlock.NeedsFirstRaid;
-            if (!_gate.Unlockable(def))
-                return BuyBlock.MissingRequirement;
+            BuyBlock block = GateBlock(def);
+            if (block != BuyBlock.None)
+                return block;
             long cost;
             if (gallery)
                 cost = count == 0
@@ -1660,7 +1681,8 @@ namespace Fabula.Incrementant.Colony
                         continue;
                     bool fillable = IsFillable(x, y, true);
                     // Marca de cogumelo: só quem leva cogumelo a preenche (campo próprio); a terra fica com as outras marcas.
-                    bool mushroom = _grid.IsGlowMushroomMarked(x, y);
+                    // Sem a fabricação dos pulgões (MushroomFromSoil) a marca é como a de obra comum: a terra a preenche.
+                    bool mushroom = NeedsMushroomItem(x, y);
                     if (mushroom && fillable)
                         mushroomSites++;
                     for (int k = 0; k < 8; k++)
@@ -1743,7 +1765,7 @@ namespace Fabula.Incrementant.Colony
                 if (!_grid.IsBuildMarked(nx, ny) || _grid.IsSolid(nx, ny) || IsOutdoor(nx, ny))
                     continue;
                 // A marca de cogumelo espera o cogumelo (e a de terra, a terra): uma não segura a ordem da outra.
-                if (_grid.IsGlowMushroomMarked(nx, ny) != _grid.IsGlowMushroomMarked(x, y))
+                if (NeedsMushroomItem(nx, ny) != NeedsMushroomItem(x, y))
                     continue;
                 int nd = _exitField.Get(nx, ny);
                 if (nd != FlowField.Unreachable && OrderDepth(nx, ny, nd) > depth + BuildOrderSlack)
@@ -3740,7 +3762,7 @@ namespace Fabula.Incrementant.Colony
                 int nx = ant.X + AntNavigation.Dx[k];
                 int ny = ant.Y + AntNavigation.Dy[k];
                 if (IsFillable(nx, ny, true) && (IsOutdoor(nx, ny) || antExit < _exitField.Get(nx, ny)) && !AntAt(nx, ny) &&
-                    _grid.IsGlowMushroomMarked(nx, ny) == !soil)
+                    NeedsMushroomItem(nx, ny) == !soil)
                     _candidates[count++] = k;
                 // Reboco de sala: a célula já é sólida, então não fecha passagem nem pede a ordem da obra.
                 else if (soil && IsLiningOpen(nx, ny))
@@ -3779,14 +3801,21 @@ namespace Fabula.Incrementant.Colony
                 return;
 
             // Terra solta voltaria a escorrer; encaixada, fica onde foi posta (e continua escavável). Na marca de cogumelo vai
-            // o cogumelo colhido dos pulgões (pedido do desenvolvedor em 2026-10-22; antes um pixel de terra servia de substrato).
+            // o cogumelo colhido dos pulgões, que é permanente (pedido do desenvolvedor em 2026-10-22). Enquanto a colônia
+            // não fabrica cogumelo (MushroomFromSoil), a terra serve de substrato, mas esse cogumelo some em 1 minuto.
             bool mushroom = _grid.IsGlowMushroomMarked(ant.DigX, ant.DigY);
-            if (mushroom != (ant.Carried == CellMaterial.GlowMushroom))
+            bool carriesMushroom = ant.Carried == CellMaterial.GlowMushroom;
+            bool fleeting = mushroom && !carriesMushroom;
+            if (mushroom ? fleeting && !_mushroomFromSoil : carriesMushroom)
                 return;
             _grid.Set(ant.DigX, ant.DigY, mushroom ? CellMaterial.GlowMushroom : CellMaterials.ToPacked(ant.Carried),
                       mushroom ? (byte)128 : ant.CarriedShade);
             if (mushroom)
+            {
                 MushroomsPlanted++;
+                if (fleeting)
+                    _grid.SetFleetingGlow(ant.DigX, ant.DigY);
+            }
             // Marca como obra: do lado de fora a formiga anda por dentro dela (AntNavigation.IsOutdoorBuilt).
             _grid.SetBuilt(ant.DigX, ant.DigY, true);
             Emit(SfxId.Build, ant.DigX, ant.DigY);

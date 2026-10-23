@@ -424,6 +424,7 @@ namespace Fabula.Incrementant.EditorTools.Localization
             Add(l, "buy.soon", "EM BREVE: O JOGO AINDA NÃO TEM ESSE SISTEMA", "COMING SOON: THE GAME DOESN'T HAVE THIS SYSTEM YET");
             Add(l, "buy.insufficient", "NUTRIENTES INSUFICIENTES", "NOT ENOUGH NUTRIENTS");
             Add(l, "buy.raid", "LIBERA DEPOIS DO PRIMEIRO ATAQUE DE CUPINS", "UNLOCKS AFTER THE FIRST TERMITE ATTACK");
+            Add(l, "buy.depth", "PROFUNDIDADE INSUFICIENTE PARA ESTE NÍVEL", "NOT ENOUGH DEPTH FOR THIS LEVEL");
             Add(l, "buy.done", "COMPRADO", "BOUGHT");
             string[] branchPt = { "RAINHA", "OPERÁRIA", "CARREGADORA", "CORTADEIRA", "ESCAVADORA", "JARDINEIRA", "CUIDADORA", "SOLDADO" };
             string[] branchEn = { "QUEEN", "WORKER", "CARRIER", "CUTTER", "DIGGER", "GARDENER", "NURSE", "SOLDIER" };

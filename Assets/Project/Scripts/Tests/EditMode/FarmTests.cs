@@ -340,6 +340,8 @@ namespace Fabula.Incrementant.Tests
             Assert.IsTrue(colony.FarmUnlocked, "A câmara A0 libera o pincel da fazenda.");
             Assert.AreEqual(BuyBlock.None, colony.TryBuy(QueenNode.Z0));
             Assert.IsTrue(colony.Tree.IsRoleUnlocked(AntRole.Farmer));
+            Assert.AreEqual(BuyBlock.NeedsDepth, colony.TryBuy(QueenNode.Z1), "Z1 fica no nível 2 do formigueiro.");
+            QueenTreeTests.OpenTierTwo(colony);
             Assert.AreEqual(BuyBlock.None, colony.TryBuy(QueenNode.Z1));
             Assert.AreEqual(1.5f, colony.Tree.MilkRate(AntRole.Farmer), 1e-5f, "Z1: ordenha 50% mais rápida.");
         }

@@ -3552,6 +3552,10 @@ MonoBehaviour:
     m_Localized: FORGE
     m_Metadata:
       m_Items: []
+  - m_Id: 1806537463033856
+    m_Localized: NOT ENOUGH DEPTH FOR THIS LEVEL
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

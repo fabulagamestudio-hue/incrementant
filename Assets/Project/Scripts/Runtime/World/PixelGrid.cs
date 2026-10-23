@@ -309,6 +309,54 @@ namespace Fabula.Incrementant.World
             return IsSolid(x, y - 1) || IsSolid(x, y + 1) || IsSolid(x - 1, y) || IsSolid(x + 1, y);
         }
 
+        /// <summary>Quanto dura um cogumelo luminoso feito com terra (sem a fabricação dos pulgões): 1 minuto simulado.</summary>
+        public const float FleetingGlowSeconds = 60f;
+
+        // Cogumelos feitos com terra e o instante (em _fleetingClock) em que somem; os dos pulgões não entram aqui.
+        readonly Dictionary<int, float> _fleetingGlow = new Dictionary<int, float>();
+        readonly List<int> _fleetingDue = new List<int>();
+        float _fleetingClock;
+
+        public int FleetingGlowCount => _fleetingGlow.Count;
+
+        /// <summary>O cogumelo da célula é de terra e some sozinho (<see cref="FleetingGlowSeconds"/> depois de encaixado).</summary>
+        public bool IsFleetingGlow(int x, int y) => InBounds(x, y) && _fleetingGlow.ContainsKey(y * Width + x);
+
+        /// <summary>Marca o cogumelo da célula como passageiro: ele some depois de <paramref name="seconds"/>. Só vale sobre um <see cref="CellMaterial.GlowMushroom"/>.</summary>
+        public bool SetFleetingGlow(int x, int y, float seconds = FleetingGlowSeconds)
+        {
+            if (!InBounds(x, y) || _cells[y * Width + x] != CellMaterial.GlowMushroom)
+                return false;
+            _fleetingGlow[y * Width + x] = _fleetingClock + seconds;
+            // Muda o desenho (a linha do atlas do cogumelo de terra): a célula é redesenhada.
+            DirtyRender(y * Width + x);
+            return true;
+        }
+
+        /// <summary>
+        /// Avança o relógio dos cogumelos passageiros e esvazia os que venceram. Devolve as células esvaziadas em
+        /// <paramref name="expired"/> (índices), para quem chama emitir o efeito.
+        /// </summary>
+        public void AdvanceFleetingGlow(float deltaTime, List<int> expired)
+        {
+            _fleetingClock += deltaTime;
+            if (_fleetingGlow.Count == 0)
+                return;
+            _fleetingDue.Clear();
+            foreach (KeyValuePair<int, float> pair in _fleetingGlow)
+            {
+                if (pair.Value <= _fleetingClock)
+                    _fleetingDue.Add(pair.Key);
+            }
+            // Set tira a célula do dicionário (o cogumelo saiu), por isso o laço é separado do anterior.
+            foreach (int i in _fleetingDue)
+            {
+                expired?.Add(i);
+                Set(i % Width, i / Width, CellMaterial.Empty, 0);
+            }
+            _fleetingDue.Clear();
+        }
+
         /// <summary>
         /// Marca/desmarca a célula para um cogumelo luminoso: é uma marca de obra (<see cref="SetBuildMarked"/>) que a formiga
         /// preenche com <see cref="CellMaterial.GlowMushroom"/>. Só onde <see cref="CanPlaceGlowMushroom"/> aceita; desmarcar
@@ -579,6 +627,9 @@ namespace Fabula.Incrementant.World
             bool wasSolid = _cells[i] != CellMaterial.Empty;
             bool wasPlant = CellMaterials.IsPlant(_cells[i]);
             bool wasGlow = _cells[i] == CellMaterial.GlowMushroom;
+            // Cavado, trocado ou substituído, o cogumelo deixa de ser passageiro; quem encaixa um de terra marca de novo.
+            if (wasGlow && _fleetingGlow.Count > 0)
+                _fleetingGlow.Remove(i);
             if (material != CellMaterial.Empty && !CellMaterials.IsPlant(material) && CellMaterials.IsPlant(_cells[i]))
                 PushBehindAt(i);
             else if (CellMaterials.IsPlant(material))

@@ -480,6 +480,7 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Nascimento, caminho até a baia, água sem ordenha e a ordenha. Depois das formigas, que acabaram de agir.</summary>
         void TickFarm(float deltaTime)
         {
+            TickFleetingMushrooms(deltaTime);
             if (_grid.FarmRoomCount == 0 && _aphids.Count == 0)
             {
                 _breedTimer = 0f;
@@ -1043,9 +1044,40 @@ namespace Fabula.Incrementant.Colony
 
         // ---------------------------------------------------------------- cogumelo luminoso
 
+        // Valor de MushroomFromSoil na última varredura da obra: quando muda, os campos da obra são refeitos.
+        bool _mushroomFromSoil;
+        readonly List<int> _expiredMushrooms = new List<int>();
+
+        /// <summary>
+        /// A colônia ainda não fabrica cogumelo luminoso (nenhum pulgão e nenhum cogumelo guardado ou solto): a marca de
+        /// cogumelo usa terra comum, e o cogumelo de terra some depois de <see cref="PixelGrid.FleetingGlowSeconds"/>. Com a
+        /// fabricação dos pulgões a marca espera o cogumelo deles, que é permanente.
+        /// </summary>
+        bool MushroomFromSoil => _aphids.Count == 0 && _grid.StoredCount(StorageKind.Mushroom) == 0;
+
+        /// <summary>A marca de cogumelo da célula espera um cogumelo dos pulgões (não terra): é o caso quando a colônia já os fabrica.</summary>
+        bool NeedsMushroomItem(int x, int y) => !_mushroomFromSoil && _grid.IsGlowMushroomMarked(x, y);
+
+        /// <summary>Esvazia os cogumelos de terra vencidos e acompanha se a colônia passou a fabricar (ou deixou de fabricar) cogumelo.</summary>
+        void TickFleetingMushrooms(float deltaTime)
+        {
+            bool fromSoil = MushroomFromSoil;
+            if (fromSoil != _mushroomFromSoil)
+            {
+                _mushroomFromSoil = fromSoil;
+                _builtMarkVersion = -1;
+            }
+            _expiredMushrooms.Clear();
+            _grid.AdvanceFleetingGlow(deltaTime, _expiredMushrooms);
+            foreach (int cell in _expiredMushrooms)
+                EmitFx(FxId.Dig, cell % _grid.Width, cell / _grid.Width, CellMaterial.GlowMushroom);
+            _expiredMushrooms.Clear();
+        }
+
         /// <summary>
         /// Marca de cogumelo esperando cogumelo que ninguém foi buscar, e cogumelo guardado no depósito de cogumelos (ou solto) ao alcance: vai pegá-lo
-        /// (seção Construção). O cogumelo vem dos pulgões; a terra não serve mais de substrato.
+        /// (seção Construção). O cogumelo vem dos pulgões e é permanente; sem a fabricação deles, a marca usa terra
+        /// (<see cref="MushroomFromSoil"/>) e este caminho não é usado.
         /// </summary>
         bool TryStartMushroomWork(Ant ant)
         {

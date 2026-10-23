@@ -59,8 +59,9 @@ namespace Fabula.Incrementant.Tests
                 Assert.AreEqual(block + 1, back);
                 Assert.IsTrue(seen.Add(block) && seen.Add(back), $"estilo {(RoomStyle)style}");
             }
-            Assert.AreEqual(CellTileArt.RowCount - 1, CellTileArt.RoomBackRow(RoomStyle.Wardrobe), "A última família fecha o atlas.");
-            Assert.AreEqual(CellTileArt.RowCount - CellTileArt.MaterialCount, seen.Count);
+            Assert.AreEqual(CellTileArt.SoilGlowRow - 1, CellTileArt.RoomBackRow(RoomStyle.Wardrobe), "A última família vem logo antes da linha do cogumelo de terra.");
+            Assert.AreEqual(CellTileArt.RowCount - 1, CellTileArt.SoilGlowRow, "O cogumelo de terra fecha o atlas.");
+            Assert.AreEqual(CellTileArt.SoilGlowRow - CellTileArt.MaterialCount, seen.Count);
         }
 
         [Test]

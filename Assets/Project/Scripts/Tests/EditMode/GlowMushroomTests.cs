@@ -98,16 +98,78 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
-        public void Colony_PlantsAGlowMushroomOnTheMark_OnlyWithAMushroomFromTheAphids()
+        public void Colony_WithoutAphids_PlantsAGlowMushroomWithSoil_ThatVanishesAfterOneMinute()
         {
             PixelGrid grid = MakeTunnelWorld();
             Assert.IsTrue(grid.SetGlowMushroomMarked(65, 5, true));
             AntColony colony = MakeColony(grid);
 
-            // Pedido do desenvolvedor em 2026-10-22: o cogumelo vem dos pulgões. Só com terra (a pilha de fora), a marca espera.
+            // Sem pulgões nem cogumelo guardado a colônia não fabrica cogumelo: a terra (a pilha de fora) serve de substrato.
+            Run(grid, colony, () => grid.BuildMarkedCount == 0, 60);
+            Assert.AreEqual(CellMaterial.GlowMushroom, grid.Get(65, 5), "A terra deveria virar o cogumelo.");
+            Assert.IsTrue(grid.IsFleetingGlow(65, 5), "O cogumelo de terra é passageiro.");
+            Assert.AreEqual(1, colony.MushroomsPlanted);
+
+            // Some 60 s depois de encaixado (a obra do mundo de teste termina bem antes dos 60 s do relógio).
+            var sim = new GranularSimulation();
+            for (int tick = 0; tick < 55 * 60; tick++)
+            {
+                sim.Step(grid);
+                colony.Tick(1f / 60f);
+            }
+            Assert.AreEqual(CellMaterial.GlowMushroom, grid.Get(65, 5), "Passado menos de 1 minuto, o cogumelo continua.");
+            for (int tick = 0; tick < 10 * 60; tick++)
+            {
+                sim.Step(grid);
+                colony.Tick(1f / 60f);
+            }
+            Assert.AreEqual(CellMaterial.Empty, grid.Get(65, 5), "Depois de 1 minuto o cogumelo de terra some.");
+            Assert.IsFalse(grid.IsFleetingGlow(65, 5));
+            Assert.AreEqual(0, grid.FleetingGlowCount);
+        }
+
+        [Test]
+        public void FleetingGlow_IsForgottenWhenTheMushroomIsDug_AndSurvivesTheSave()
+        {
+            PixelGrid grid = MakeTunnelWorld();
+            grid.Set(50, 5, CellMaterial.GlowMushroom);
+            grid.Set(52, 5, CellMaterial.GlowMushroom);
+            Assert.IsTrue(grid.SetFleetingGlow(50, 5));
+            Assert.IsFalse(grid.SetFleetingGlow(60, 5), "Só um cogumelo pode ser passageiro.");
+            Assert.IsTrue(grid.SetFleetingGlow(52, 5));
+
+            grid.Set(52, 5, CellMaterial.Empty, 0);
+            Assert.IsFalse(grid.IsFleetingGlow(52, 5), "Cavado o cogumelo, o relógio dele para.");
+            grid.Set(52, 5, CellMaterial.GlowMushroom);
+            grid.AdvanceFleetingGlow(PixelGrid.FleetingGlowSeconds + 1f, null);
+            Assert.AreEqual(CellMaterial.GlowMushroom, grid.Get(52, 5), "Um cogumelo permanente no mesmo lugar não herda o relógio.");
+            Assert.AreEqual(CellMaterial.Empty, grid.Get(50, 5), "O passageiro venceu.");
+
+            Assert.IsTrue(grid.SetFleetingGlow(52, 5));
+            AntColony colony = MakeColony(grid);
+            var rain = new RainSimulation(new RainSettings(), 3);
+            var water = new WaterSimulation(new WaterSettings(), grid, 3);
+            var stream = new MemoryStream();
+            GameSnapshot.Capture(grid, colony, rain, water, 0, 3, 1.0).Write(stream);
+            stream.Position = 0;
+            PixelGrid grid2 = MakeTunnelWorld();
+            GameSnapshot.Read(stream).ApplyTo(grid2);
+            Assert.IsTrue(grid2.IsFleetingGlow(52, 5), "O cogumelo passageiro continua passageiro depois do save.");
+        }
+
+        [Test]
+        public void Colony_WithAphids_WaitsForTheirMushroom_AndPlantsIt_Permanently()
+        {
+            PixelGrid grid = MakeTunnelWorld();
+            Assert.IsTrue(grid.SetGlowMushroomMarked(65, 5, true));
+            AntColony colony = MakeColony(grid);
+            Assert.IsNotNull(colony.SpawnAphid(60, 6));
+
+            // Pedido do desenvolvedor em 2026-10-22: com a fabricação dos pulgões o cogumelo vem deles. Só com terra (a pilha
+            // de fora), a marca espera.
             Run(grid, colony, () => grid.BuildMarkedCount == 0, 40);
             Assert.IsTrue(grid.IsGlowMushroomMarked(65, 5), "Sem cogumelo colhido, a marca espera.");
-            Assert.AreEqual(CellMaterial.Empty, grid.Get(65, 5), "A terra não serve mais de substrato.");
+            Assert.AreEqual(CellMaterial.Empty, grid.Get(65, 5), "Com pulgões, a terra não serve de substrato.");
 
             Assert.IsTrue(grid.SetStored(45, 5, StoredItems.Mushroom), "Um cogumelo solto (como os que a ordenha deixa na fazenda).");
             Run(grid, colony, () => grid.BuildMarkedCount == 0);
@@ -117,6 +179,7 @@ namespace Fabula.Incrementant.Tests
             Assert.AreEqual(0, grid.StoredCount(StorageKind.Mushroom), "O cogumelo guardado foi gasto.");
             Assert.AreEqual(1, colony.MushroomsPlanted);
             Assert.AreEqual(0, colony.TotalDelivered, "Plantar o cogumelo não conta como entrega de terra.");
+            Assert.IsFalse(grid.IsFleetingGlow(65, 5), "O cogumelo dos pulgões é permanente.");
         }
 
         [Test]
@@ -240,6 +303,36 @@ namespace Fabula.Incrementant.Tests
             grid.Set(40, floorY, CellMaterial.Empty);
             Assert.AreEqual(0, Light(40, floorY + 1), "Tirado o cogumelo, a luz some.");
             Assert.AreEqual(0, Flags(42, floorY + 1), "Sem cogumelo, a célula perde a marca da luz dele.");
+        }
+
+        [Test]
+        public void SoilGlowMushroom_UsesItsOwnAtlasRow_AndStillLightsTheGallery()
+        {
+            PixelGrid grid = MakeDeepGallery(out RectInt window, out int floorY);
+            AntFarmView view = MakeView(grid, true);
+            int TileId(int x, int y)
+            {
+                Render(view, grid, window);
+                var texture = (Texture2D)WindowRenderer(view).sharedMaterial.GetTexture("_CellMaterials");
+                return texture.GetRawTextureData<byte>()[AntFarmView.TileBytes * ((y - window.y) * window.width + x - window.x)];
+            }
+            int Light(int x, int y)
+            {
+                Render(view, grid, window);
+                var texture = (Texture2D)WindowRenderer(view).sharedMaterial.GetTexture("_CellMaterials");
+                return texture.GetRawTextureData<byte>()[AntFarmView.TileBytes * ((y - window.y) * window.width + x - window.x) + 2];
+            }
+
+            grid.Set(30, floorY, CellMaterial.GlowMushroom);
+            grid.Set(60, floorY, CellMaterial.GlowMushroom);
+            Assert.AreEqual((int)CellMaterial.GlowMushroom, TileId(30, floorY), "O dos pulgões usa a linha do cogumelo.");
+            Assert.IsTrue(grid.SetFleetingGlow(60, floorY));
+            Assert.AreEqual(CellTileArt.SoilGlowRow, TileId(60, floorY), "O de terra usa a própria linha, redesenhada ao virar passageiro.");
+            Assert.AreEqual((int)CellMaterial.GlowMushroom, TileId(30, floorY));
+            Assert.Greater(Light(60, floorY + 1), 0, "O cogumelo de terra também ilumina.");
+
+            grid.AdvanceFleetingGlow(PixelGrid.FleetingGlowSeconds + 1f, null);
+            Assert.AreEqual(0, Light(60, floorY + 1), "Quando ele some, a luz some junto.");
         }
 
         [Test]

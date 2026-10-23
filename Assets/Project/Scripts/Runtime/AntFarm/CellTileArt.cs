@@ -53,7 +53,13 @@ namespace Fabula.Incrementant.AntFarm
         /// <summary>Linha da parede de fundo da sala construída (o vazio dentro dela).</summary>
         public static int RoomBackRow(RoomStyle style) => RoomBlockRow(style) + 1;
 
-        public static int RowCount => MaterialCount + 1 + 2 * RoomStyleCount;
+        /// <summary>
+        /// Linha do cogumelo luminoso de terra (o passageiro, sem fabricação dos pulgões), a última do atlas: a célula
+        /// <see cref="CellMaterial.GlowMushroom"/> com <c>PixelGrid.IsFleetingGlow</c> grava este id na textura de materiais.
+        /// </summary>
+        public static int SoilGlowRow => MaterialCount + 1 + 2 * RoomStyleCount;
+
+        public static int RowCount => SoilGlowRow + 1;
 
         /// <summary>Família visual do ambiente pintado: os cinco depósitos usam a mesma.</summary>
         public static RoomStyle StyleOf(PaintRoom room)
@@ -76,7 +82,7 @@ namespace Fabula.Incrementant.AntFarm
         }
 
         /// <summary>Verdadeiro nas linhas de bloco de sala construída (sólidas); as de fundo são vazias como a parede do túnel.</summary>
-        static bool IsRoomBlockRow(int row) => row > BackgroundRow && (row - BackgroundRow) % 2 == 1;
+        static bool IsRoomBlockRow(int row) => row > BackgroundRow && row < SoilGlowRow && (row - BackgroundRow) % 2 == 1;
 
         /// <summary>
         /// Texels do atlas gerado (linha a linha, de baixo para cima): o padrão de cada material sobre a cor de referência
@@ -95,7 +101,8 @@ namespace Fabula.Incrementant.AntFarm
                 for (int y = 0; y < TileSize; y++)
                 for (int x = 0; x < TileSize; x++)
                 {
-                    float factor = row < BackgroundRow ? Shade((CellMaterial)row, x, y, seed)
+                    float factor = row == SoilGlowRow ? Shade(CellMaterial.GlowMushroom, x, y, seed)
+                        : row < BackgroundRow ? Shade((CellMaterial)row, x, y, seed)
                         : IsRoomBlockRow(row) ? Bricks(x, y, seed) : Dirt(x, y, seed, 0.12f);
                     factor = Mathf.Clamp(1f + (factor - 1f) * Contrast, 0f, 2f);
                     Color c = new Color(linear.r * factor, linear.g * factor, linear.b * factor, 1f).gamma;

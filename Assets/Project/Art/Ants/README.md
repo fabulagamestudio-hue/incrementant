@@ -8,9 +8,9 @@ Camadas 24×16 (mesmo canvas, PPU e pivô do papel) para desenhar **por cima** d
 
 **Camadas próprias por papel (2026-10-23):** o soldado, de cabeção, tem a armadura em `Equipamento/<Metal>/Armadura/Soldado/` (`Ant_Walk_0`, `Ant_Top_0`): placa no tórax e capacete que cobre só o alto da cabeça, no lugar da placa de rosto geral, que atravessava o cabeção. Gerada por `soldier_armor()` em `Source~/equip_layers.py`. Ligadas em **Role Equip** do `AntSwarmView` (posição null = camada geral). Cuspideira, escavadora e operária continuam com as gerais.
 
-### Itens de equipamento (8 × 8)
+### Itens de equipamento e barras (8 × 8)
 
-`Item_<Copper|Iron|Gold><Tool|Weapon|Armor>.png` (9 PNGs, 8×8, RGBA32 sem compressão, centrados): o mesmo desenho das camadas vestidas, como objeto (picareta, espada, capacete), com o contorno de 1 texel. Aparecem na boca da formiga a caminho do armazém e guardados na grade, no lugar da arte provisória do atlas. Gerar de novo: `python Source~/equip_items.py [--sheet prancha.png]`. [Prancha](../../../../Docs/02_World_Art_UI/Itens_equipamento_2026-10-23.png). Ligados em **Equip Item Sprites** do `AntSwarmView` e do `AntFarmView`.
+`Item_<Copper|Iron|Gold><Tool|Weapon|Armor|Bar>.png` (12 PNGs; a barra é um lingote visto de frente, desde 2026-10-23, e vai no fim da lista, 8×8, RGBA32 sem compressão, centrados): o mesmo desenho das camadas vestidas, como objeto (picareta, espada, capacete), com o contorno de 1 texel. Aparecem na boca da formiga a caminho do armazém e guardados na grade, no lugar da arte provisória do atlas. Gerar de novo: `python Source~/equip_items.py [--sheet prancha.png]`. [Prancha](../../../../Docs/02_World_Art_UI/Itens_equipamento_2026-10-23.png). Ligados em **Equip Item Sprites** do `AntSwarmView` e do `AntFarmView`.
 
 ## Refinamento de aparência — 2026-10-21 (REQ-049)
 
@@ -52,7 +52,7 @@ O grupo `brood` do gerador procedural descrito abaixo sobrescreve este refinamen
 
 Itens novos que a formiga leva na boca, 16 × 16 (1 célula), pivô no centro: `Item_Nutrient.png` (grão amarelo: 12, 13, 28) e `Item_Water.png` (gota: 29, 30, 31). Ligados em `AntSwarmView` → **Nutrient Sprite** / **Water Sprite**; vazios, volta o quadrado na cor do Inspector. O ovo na boca já usa a arte da cria.
 
-Minério solto (REQ-071, 2026-10-23): `Item_CopperOre.png`, `Item_IronOre.png` e `Item_GoldOre.png`, 8 × 8 desenhados direto nessa escala (a redução de um 16 × 16 apagava as pepitas): torrão de pedra (17, 18, 19) com pepitas do metal (cobre 8, 11, 12; ferro 32, 33, 34; ouro 7, 13, 16). Gerador: `ore_item` em `Source~/ant_sprites.py` (grupo `brood`). O mesmo sprite vai na boca (`AntSwarmView` → **Ore Sprites**) e no chão ou no depósito (`AntFarmView` → **Ore Item Sprites**).
+Minério solto (REQ-071, 2026-10-23): `Item_CopperOre.png`, `Item_IronOre.png` e `Item_GoldOre.png`, 8 × 8 desenhados direto nessa escala (a redução de um 16 × 16 apagava as pepitas): torrão de pedra (17, 18, 19) com pepitas do metal (cobre 8, 11, 12; ferro 44, 45, 46 (aço claro, como no atlas; era 32, 33, 34 em 2026-10-23); ouro 7, 13, 16). Gerador: `ore_item` em `Source~/ant_sprites.py` (grupo `brood`). O mesmo sprite vai na boca (`AntSwarmView` → **Ore Sprites**) e no chão ou no depósito (`AntFarmView` → **Ore Item Sprites**).
 
 Gerados por `Source~/ant_sprites.py` com o grupo `brood`:
 

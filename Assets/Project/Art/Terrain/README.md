@@ -2,7 +2,7 @@
 
 Atlas RGB desenhado na [paleta mestra](../Palette/README.md) (etapa 5 do [documento 40](../../../../Docs/02_World_Art_UI/40_Direcao_de_arte_unificada_e_terreno_iluminado.md)). Formato e como o shader o usa: `AntFarmGuide.md`, "Atlas RGB". Prévia de cada linha repetida 2×2: [42_Atlas_do_terreno.png](../../../../Docs/02_World_Art_UI/42_Atlas_do_terreno.png). Maquete de uma sala de cada família construída, ao lado da mesma sala antes do reboco: [43_Salas_construidas.png](../../../../Docs/02_World_Art_UI/43_Salas_construidas.png).
 
-> **Experimento 8x8 (branch `experimento/arte-8x8`, 2026-10-22):** `TerrainAtlas.png` (64 × 3776 desde as salas da fundição, da forja e dos armazéns de 2026-10-23, linhas de 64 × 64) e `GrassOverhang.png` (64 × 8) foram reduzidos pela metade com `../Source~/halve_pixel_art.py`. Os tamanhos abaixo e os geradores ainda são os de 16 texels por célula: rodar um gerador e depois o script de redução. Ver `AntFarmGuide.md`, "Arte 8x8". O contorno preto da terra e das folhas é desenhado pelo shader ("Contorno preto" no mesmo guia), não está nos PNGs.
+> **Experimento 8x8 (branch `experimento/arte-8x8`, 2026-10-22):** `TerrainAtlas.png` (64 × 3840 desde o cogumelo de terra de 2026-10-23, antes 64 × 3776; desde as salas da fundição, da forja e dos armazéns de 2026-10-23, linhas de 64 × 64) e `GrassOverhang.png` (64 × 8) foram reduzidos pela metade com `../Source~/halve_pixel_art.py`. Os tamanhos abaixo e os geradores ainda são os de 16 texels por célula: rodar um gerador e depois o script de redução. Ver `AntFarmGuide.md`, "Arte 8x8". O contorno preto da terra e das folhas é desenhado pelo shader ("Contorno preto" no mesmo guia), não está nos PNGs.
 
 | Arquivo | Conteúdo |
 |---|---|
@@ -33,7 +33,7 @@ Precisa de Python com `numpy` e `Pillow`. O script falha se alguma cor sair da p
 | 9 | Terra mole | Manchas escuras com brilho úmido | 1–4 |
 | 10–13 | Plantas e restos de planta | Riscos de fibra (vertical na grama, diagonal na folha) | 7, 9, 23–27 |
 | 14–16 | Entulho, resíduo, restos de cupim | Pedaços com relevo | 0–5, 8–11, 17, 18 |
-| 17 | Cogumelo luminoso | Manchas claras (o shader soma a emissão) | 7, 13, 15, 16 |
+| 17 | Cogumelo luminoso (2026-10-23) | O cogumelo dos pulgões (permanente): chapéu dourado com pontos claros e caule creme, um por célula (8 × 8 texels repetidos a cada célula, como as ferramentas), sobre o fundo escuro do túnel; o shader soma a emissão. Desenhado por `Source~/glow_mushrooms.py` | 1, 11–16 |
 | 18 | Serapilheira (REQ-070, 2026-10-23) | Folhas secas sobrepostas com nervura e luz na borda, gravetos miúdos sobre húmus. No 8x8 foi gerada a 16 texels, reduzida com `halve_pixel_art.py` e inserida no PNG atual (as outras linhas não foram regeradas) | 1–5, 8–13 |
 | 19 | Terra adubada (REQ-070) | Terra escura com torrões, palha picada e pontas de folha em traços de 2 texels (para sobreviver à redução a 8) | 1–4, 6, 7, 25 |
 | 20 | Néctar (REQ-070) | Mel âmbar com bolhas de luz; só no bloco carregado e no item | 7, 12, 13, 15, 16 |
@@ -42,6 +42,7 @@ Precisa de Python com `numpy` e `Pillow`. O script falha se alguma cor sair da p
 | 27–35 | Ferramentas (27–29), armas (30–32) e armaduras (33–35) de cobre, ferro e ouro (REQ-071; refeitas em 2026-10-23) | Um objeto de 8 × 8 texels por célula sobre fundo escuro: picareta, espada e escudo com bossa central, na cor do metal, com cabo de madeira; só no bloco carregado e no item guardado | cobre 1, 4, 5, 7, 8, 12; ferro 0, 4, 5, 18, 44, 46; ouro 2, 4, 5, 11, 13, 16 |
 | 0, 36 | Vazio e parede de fundo | Tom do túnel com poucas manchas escuras | 0, 1, 2 |
 | 51–58 | Bloco e fundo das salas da fundição, da forja e dos armazéns de armas e de armaduras (2026-10-23) | Fundição: tijolo refratário e brasa nas frestas. Forja: pedra escura com rebites e brilho do fogo. Armas: tábuas e cabideiro. Armaduras: painéis claros e tecido azul. Inseridas no fim do PNG atual, reduzidas a 8 | 0–2, 8, 32–34; 0, 1, 8, 17, 18, 20, 33; 1–4, 9, 10, 18; 1, 3–6, 14, 29, 30 |
+| 59 | Cogumelo luminoso de terra (2026-10-23) | A última linha do atlas (`CellTileArt.SoilGlowRow`): o cogumelo passageiro, feito com terra quando a colônia ainda não fabrica cogumelo. Mesma silhueta do 17, mas chapéu em tons de terra, brilho fraco e torrões na base. A célula `GlowMushroom` com `PixelGrid.IsFleetingGlow` grava este id na textura de materiais; o shader o trata como emissivo (`_SoilGlowEmission`). Desenhado por `Source~/glow_mushrooms.py` | 1, 3, 4–7, 9, 14 |
 
 Luz de cima à esquerda: as formas clareiam no alto/esquerda e escurecem embaixo/direita. Nenhum padrão de material marca a borda do tile, então a repetição a cada 8 células fica disfarçada.
 

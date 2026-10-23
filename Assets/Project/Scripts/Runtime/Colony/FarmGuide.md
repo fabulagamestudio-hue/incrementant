@@ -6,7 +6,7 @@ Pedido do desenvolvedor em 2026-10-22. Código em `Colony/AntColony.Farm.cs` (ba
 
 - **Origem:** a fazenda cria os pulgões sozinha, um por vez, até o limite.
 - **Campo de areia e água:** comida e bebida. Cada pulgão tem uma baia com um cocho de areia e um de água lado a lado; a fazendeira os enche.
-- **Cogumelo luminoso:** insumo do pincel. A ordenha às vezes rende um cogumelo, guardado como item; o pincel Cogumelo luminoso passou a gastar esse cogumelo (a terra não serve mais de substrato).
+- **Cogumelo luminoso:** insumo do pincel. A ordenha às vezes rende um cogumelo, guardado como item; o pincel Cogumelo luminoso passou a gastar esse cogumelo, que é permanente. Sem a fabricação (nenhum pulgão e nenhum cogumelo guardado ou solto, `MushroomFromSoil`), a marca usa terra comum e o cogumelo de terra some 60 s depois de encaixado; ao surgir o primeiro pulgão ou cogumelo, as marcas pendentes voltam a esperar o cogumelo dos pulgões.
 - **Pulgão preto:** inimigo até morrer.
 - **Depósitos:** um de areia e um de cogumelos, separados do depósito de construção (resposta do desenvolvedor no mesmo dia, depois da primeira entrega, que guardava o cogumelo no depósito de construção).
 

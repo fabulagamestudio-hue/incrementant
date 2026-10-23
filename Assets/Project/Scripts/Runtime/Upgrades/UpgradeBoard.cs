@@ -15,11 +15,11 @@ namespace Fabula.Incrementant.Upgrades
     }
 
     /// <summary>
-    /// Estado dos nós do <see cref="UpgradeCatalog"/> lido a cada atualização da tela. Hoje só a árvore da rainha tem
-    /// compra (<see cref="QueenTree"/>); os pincéis que já são livres contam como adquiridos e o resto (câmaras novas e
-    /// todas as galerias) não tem sistema, então aparece como EM BREVE com nível 0. Por isso nada aqui vai para o save.
-    /// Os nós da rainha que já existem seguem as regras atuais mesmo dentro de um nível fechado (documento 39,
-    /// "até serem implementados, o jogo segue os requisitos atuais").
+    /// Estado dos nós do <see cref="UpgradeCatalog"/> lido a cada atualização da tela e usado pela compra (o mesmo estado,
+    /// sem cópia: nada aqui vai para o save). Nós da rainha: comprados na <see cref="QueenTree"/>; câmaras e galerias com
+    /// sistema: níveis em <see cref="UpgradeLevels"/>; pincéis livres contam como adquiridos; o resto aparece como EM BREVE.
+    /// Todo nó segue a mesma regra para abrir (<see cref="Unlockable"/>: nível do formigueiro, condição e requisitos,
+    /// documento 46); os da rainha somam a ela as regras da própria árvore.
     /// </summary>
     public sealed class UpgradeBoard
     {
@@ -98,9 +98,6 @@ namespace Fabula.Incrementant.Upgrades
         public static bool HasSystem(UpgradeDef def) =>
             def.QueenNode.HasValue ? QueenTree.Def(def.QueenNode.Value).Implemented : LiveNodes.Contains(def.Id);
 
-        /// <summary>Nó da rainha que já existe: segue as regras antigas de compra, mesmo dentro de um nível fechado.</summary>
-        public static bool IgnoresTier(UpgradeDef def) => def.QueenNode.HasValue && HasSystem(def);
-
         /// <summary>Galeria com sistema e ainda abaixo do teto.</summary>
         public bool CanLevel(UpgradeDef def) =>
             def.Kind == UpgradeKind.Gallery && HasSystem(def) && (!def.Capped || Level(def) < def.Cap);
@@ -130,7 +127,8 @@ namespace Fabula.Incrementant.Upgrades
             if (def.Kind == UpgradeKind.Chamber && Owns(def))
                 return UpgradeStatus.Owned;
             if (def.QueenNode.HasValue)
-                return _tree != null && _tree.Check(def.QueenNode.Value) == BuyBlock.None ? UpgradeStatus.Available : UpgradeStatus.Locked;
+                return _tree != null && _tree.Check(def.QueenNode.Value) == BuyBlock.None && Unlockable(def)
+                    ? UpgradeStatus.Available : UpgradeStatus.Locked;
             if (def.Kind == UpgradeKind.Gallery && Level(def) > 0)
                 return UpgradeStatus.Owned;
             return (CanLevel(def) || def.Kind == UpgradeKind.Chamber && HasSystem(def)) && Unlockable(def)

@@ -354,5 +354,7 @@ namespace Fabula.Incrementant.Colony
         InsufficientNutrients,
         /// <summary>O ramo do soldado espera o primeiro ataque de cupins.</summary>
         NeedsFirstRaid,
+        /// <summary>O nível do formigueiro do nó ainda está fechado (falta profundidade; documento 46).</summary>
+        NeedsDepth,
     }
 }

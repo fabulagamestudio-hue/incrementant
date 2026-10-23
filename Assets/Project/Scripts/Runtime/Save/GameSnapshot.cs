@@ -85,6 +85,8 @@ namespace Fabula.Incrementant.Save
         const int BuiltBit = 4;
         const int LiningShift = 3;
         const int LiningMask = 15;
+        /// <summary>Bit 7 de <see cref="Marked"/>: cogumelo luminoso de terra, que some sozinho (sem mudar a versão; volta com 1 minuto cheio).</summary>
+        const int FleetingBit = 128;
 
         /// <summary>Origem do mapa (<c>MapSource</c> como int): um save não carrega em outro modo.</summary>
         public int MapSource;
@@ -263,7 +265,8 @@ namespace Fabula.Incrementant.Save
                 snapshot.Cells[i] = (byte)grid.Get(x, y);
                 snapshot.Shades[i] = grid.GetShade(x, y);
                 int mark = grid.IsMarked(x, y) ? 1 : grid.IsGlowMushroomMarked(x, y) ? 3 : grid.IsBuildMarked(x, y) ? 2 : 0;
-                snapshot.Marked[i] = (byte)(mark | (grid.IsBuilt(x, y) ? BuiltBit : 0) | (grid.GetLining(x, y) & LiningMask) << LiningShift);
+                snapshot.Marked[i] = (byte)(mark | (grid.IsBuilt(x, y) ? BuiltBit : 0) | (grid.GetLining(x, y) & LiningMask) << LiningShift |
+                                            (grid.IsFleetingGlow(x, y) ? FleetingBit : 0));
                 snapshot.Wetness[i] = grid.GetWetness(x, y);
                 snapshot.Water[i] = grid.HasWater(x, y) ? (byte)1 : (byte)0;
                 snapshot.QueenRoom[i] = grid.IsQueenRoom(x, y) ? (byte)1 : (byte)0;
@@ -343,6 +346,8 @@ namespace Fabula.Incrementant.Save
                     grid.SetGlowMushroomMarked(x, y, true, skipPlacementCheck: true);
                 if ((Marked[i] & BuiltBit) != 0)
                     grid.SetBuilt(x, y, true);
+                if ((Marked[i] & FleetingBit) != 0)
+                    grid.SetFleetingGlow(x, y);
                 int lining = (Marked[i] >> LiningShift) & LiningMask;
                 if (lining != 0)
                     grid.SetLining(x, y, (byte)lining);

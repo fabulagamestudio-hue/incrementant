@@ -3593,6 +3593,10 @@ MonoBehaviour:
     m_Localized: FORJA
     m_Metadata:
       m_Items: []
+  - m_Id: 1806537463033856
+    m_Localized: "PROFUNDIDADE INSUFICIENTE PARA ESTE N\xCDVEL"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

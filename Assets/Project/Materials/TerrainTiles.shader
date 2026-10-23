@@ -78,6 +78,8 @@ Shader "Incrementant/TerrainTiles"
         _LightFadeStart ("Luz: nível (0 a 1) em que ela chega a zero", Range(0, 0.5)) = 0.09375
         _GlowMaterialId ("Material emissivo: id no atlas (o AntFarmView sobrescreve)", Float) = 17
         _GlowEmission ("Emissão do material emissivo (o AntFarmView sobrescreve)", Range(1, 8)) = 2.5
+        _SoilGlowId ("Linha do atlas do cogumelo luminoso de terra, emissivo como o outro (o AntFarmView sobrescreve)", Float) = 59
+        _SoilGlowEmission ("Emissão do cogumelo de terra (o AntFarmView sobrescreve)", Range(1, 8)) = 1.5
         _ShadowTint ("Cor da penumbra", Color) = (0.8, 0.85, 1, 1)
         _OverhangTex ("Transbordo da grama (o AntFarmView sobrescreve)", 2D) = "black" {}
         _OverhangSize ("Transbordo: largura da textura, em texels", Float) = 64
@@ -161,6 +163,8 @@ Shader "Incrementant/TerrainTiles"
                 float _LightFadeStart;
                 float _GlowMaterialId;
                 float _GlowEmission;
+                float _SoilGlowId;
+                float _SoilGlowEmission;
                 float _DebugSignedDistance;
                 float _OverhangSize;
                 float _OverhangMaterialId;
@@ -258,7 +262,7 @@ Shader "Incrementant/TerrainTiles"
             {
                 float2 uv = (cell + 0.5) / _WindowOrigin.zw;
                 float a = SAMPLE_TEXTURE2D_LOD(_CellMaterials, sampler_CellMaterials, uv, 0).a;
-                return (a > 0.25 && a < 0.75) || MaterialAt(cell) == _GlowMaterialId ? 1.0 : 0.0;
+                return (a > 0.25 && a < 0.75) || MaterialAt(cell) == _GlowMaterialId || MaterialAt(cell) == _SoilGlowId ? 1.0 : 0.0;
             }
 
             // Nível da célula contando só a luz pedida (wantGlow 1 = de cogumelo, 0 = de fora); a outra conta como zero.
@@ -790,7 +794,7 @@ Shader "Incrementant/TerrainTiles"
                 if (data.a < 0.75)
                     light *= MapLight(cell, inner, solid);
                 float3 surface = lerp(RowColor(row, 1), texel, detailStrength * fade) * tone;
-                half emission = id == _GlowMaterialId ? _GlowEmission : 1.0;
+                half emission = id == _GlowMaterialId ? _GlowEmission : (id == _SoilGlowId ? _SoilGlowEmission : 1.0);
                 half4 result = half4(surface * light * emission, cellColor.a);
                 // Contorno da terra: só as células a até 2 da borda podem encostar num texel vazio (as lascas ficam na de
                 // distância 1 e podem chegar perto da de distância 2 nas quinas).

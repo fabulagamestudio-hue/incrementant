@@ -387,7 +387,7 @@ namespace Fabula.Incrementant.EditorTools.Setup
             AssetDatabase.LoadAssetAtPath<Sprite>($"{AntSpriteImporter.AntsFolder}{AntSpriteImporter.ItemPrefix}GoldOre.png"),
         };
 
-        /// <summary>Equipamento solto e na boca (REQ-071): ferramenta, arma e armadura, cada uma em cobre, ferro e ouro.</summary>
+        /// <summary>Equipamento solto e na boca (REQ-071): ferramenta, arma e armadura, cada uma em cobre, ferro e ouro, e no fim as três barras.</summary>
         public static Sprite[] LoadEquipItems()
         {
             string[] kinds = { "Tool", "Weapon", "Armor" };
@@ -396,6 +396,8 @@ namespace Fabula.Incrementant.EditorTools.Setup
             foreach (string kind in kinds)
                 foreach (string metal in metals)
                     items.Add(AssetDatabase.LoadAssetAtPath<Sprite>($"{AntSpriteImporter.AntsFolder}{AntSpriteImporter.ItemPrefix}{metal}{kind}.png"));
+            foreach (string metal in metals)
+                items.Add(AssetDatabase.LoadAssetAtPath<Sprite>($"{AntSpriteImporter.AntsFolder}{AntSpriteImporter.ItemPrefix}{metal}Bar.png"));
             return items.ToArray();
         }
 

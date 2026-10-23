@@ -42531,7 +42531,7 @@ MonoBehaviour:
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 10
-    m_MaxSize: 40
+    m_MaxSize: 48
     m_Alignment: 0
     m_AlignByGeometry: 0
     m_RichText: 1
@@ -95629,7 +95629,7 @@ MonoBehaviour:
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 10
-    m_MaxSize: 40
+    m_MaxSize: 48
     m_Alignment: 4
     m_AlignByGeometry: 0
     m_RichText: 1
@@ -98275,6 +98275,9 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 6021807ad30695d4a8dc2c1a6f8d3ee4, type: 3}
   - {fileID: 21300000, guid: f2112c07347f90f46a7aa6ee0ce9f96c, type: 3}
   - {fileID: 21300000, guid: 13b80bc5e23cd6e49b12b7d654ea18af, type: 3}
+  - {fileID: 21300000, guid: b0055f007ea66ae4ead0e0e9641a0348, type: 3}
+  - {fileID: 21300000, guid: cb9e82394866037409123aed4fe09722, type: 3}
+  - {fileID: 21300000, guid: e9b30f8084ae07d46916c80fc97482f2, type: 3}
   _debugSignedDistance: 0
 --- !u!212 &1455741070
 SpriteRenderer:
@@ -143518,6 +143521,9 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 6021807ad30695d4a8dc2c1a6f8d3ee4, type: 3}
   - {fileID: 21300000, guid: f2112c07347f90f46a7aa6ee0ce9f96c, type: 3}
   - {fileID: 21300000, guid: 13b80bc5e23cd6e49b12b7d654ea18af, type: 3}
+  - {fileID: 21300000, guid: b0055f007ea66ae4ead0e0e9641a0348, type: 3}
+  - {fileID: 21300000, guid: cb9e82394866037409123aed4fe09722, type: 3}
+  - {fileID: 21300000, guid: e9b30f8084ae07d46916c80fc97482f2, type: 3}
   _equipWalk:
   - {fileID: 21300000, guid: f808e00f5b07e4a4ca67268c19f266fc, type: 3}
   - {fileID: 21300000, guid: e8a145f49df88274a83076d999eda30f, type: 3}

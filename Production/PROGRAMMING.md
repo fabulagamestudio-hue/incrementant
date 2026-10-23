@@ -92,6 +92,7 @@ Protótipo de viabilidade do formigário implementado: grade de pixels com físi
 | PRG-077 | Preenchimento vertical dos depósitos: pilha de itens iguais por célula, capacidade por depósito, vagas e contas em itens, save e desenho (etapa 2 do REQ-072) | VERIFIED | UNDEFINED | [StorageGuide.md](../Assets/Project/Scripts/Runtime/Colony/StorageGuide.md) ("Pilha por célula"); `StorageStackTests` (7) e suíte EditMode 482/482; Play Mode pelo agente em 2026-10-23 | REQ-072, PRG-076 | 2026-10-23 |
 | PRG-078 | Árvore de evolução em níveis, etapa 1 (dados): domínio e nível do formigueiro de cada nó, colunas e testes | VERIFIED | UNDEFINED | [UpgradeCatalog.cs](../Assets/Project/Scripts/Runtime/Upgrades/UpgradeCatalog.cs); suíte EditMode 489/489 em 2026-10-23 | REQ-073, GD-014 | 2026-10-23 |
 | PRG-079 | Árvore de evolução em níveis, etapa 2 (layout e tela): formigueiro numa tela só, colunas por domínio, faixas por nível, galeria e ligações entre colunas só na seleção | VERIFIED | UNDEFINED | [SkillTreeScreen.cs](../Assets/Project/Scripts/Runtime/UI/SkillTreeScreen.cs), [UpgradeLayout.cs](../Assets/Project/Scripts/Runtime/Upgrades/UpgradeLayout.cs); suíte EditMode 490/490 e Play Mode pelo agente em 2026-10-23 | REQ-073, GD-014, PRG-078 | 2026-10-23 |
+| PRG-080 | Árvore de evolução em níveis, etapa 3: compra dos nós da rainha pela regra única (nível, condição e requisitos do catálogo) | IMPLEMENTED | UNDEFINED | [AntColony.cs](../Assets/Project/Scripts/Runtime/Colony/AntColony.cs) (`CheckBuy`, `GateBlock`); suíte EditMode 489/493 antes de ajustar os testes antigos; falta a rodada final na Unity | REQ-073, GD-014, PRG-079 | 2026-10-23 |
 
 ## Detalhes
 
@@ -359,6 +360,22 @@ Fechamento, com o servidor MCP religado pelo desenvolvedor:
 Pendente: os nós sumirem de longe (zoom), registrado no documento 46.
 
 Guia: [HudGuide](../Assets/Project/Scripts/Runtime/UI/HudGuide.md) ("Tela Evolução").
+
+### PRG-080 — Árvore de evolução em níveis, etapa 3 (compra unificada)
+
+Pedido do desenvolvedor em 2026-10-23: "Pode seguir com a etapa 3". O que mudou:
+- `AntColony.CheckBuy` soma às regras da `QueenTree` a regra do formigueiro (`GateBlock`: condição do catálogo, nível aberto e `UpgradeBoard.Unlockable`), usada por `TryBuy`, `TryBuyUpgrade`, `UpgradeBoard.Status` e o botão da tela;
+- `BuyBlock.NeedsDepth` (texto `buy.depth`);
+- `UpgradeBoard.IgnoresTier` removido; os nós da rainha num nível fechado ficam apagados;
+- testes novos em `QueenTreeTests`: nível fechado não cobra, requisito de outro domínio (Q2 e N0 exigem B0) e save antigo continua comprado.
+
+Mudanças para o jogador: as melhorias de classe do nível 2 esperam profundidade 5; Q2 e N0 pedem B0 (50 N); J1 pede C1; E2 pede T+2 no nível 3.
+
+Evidências:
+- Primeira rodada na Unity: 489/493. Três testes de galeria esperavam `MissingRequirement` onde agora a resposta é `NeedsDepth`; foram ajustados. A quarta falha foi um log de erro do MCP, que caiu no meio da rodada.
+- Depois disso, `dotnet build` com 0 erros e `UpgradeCatalogTests` 25/25 fora da Unity.
+
+Pendente: rodar `GalleryTests`, `QueenTreeTests` e `FarmTests` na Unity (precisam dela) e conferir em Play Mode.
 
 ## Riscos e bloqueios
 

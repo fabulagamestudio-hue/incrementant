@@ -546,7 +546,7 @@ namespace Fabula.Incrementant.AntFarm
             return null;
         }
 
-        /// <summary>Sprite do minério ou do equipamento carregado (REQ-071), ou null se é outra coisa ou falta o sprite dele.</summary>
+        /// <summary>Sprite do minério, da barra ou do equipamento carregado (REQ-071), ou null se é outra coisa ou falta o sprite dele.</summary>
         Sprite OreSprite(CellMaterial carried)
         {
             if (CellMaterials.IsOre(carried))
@@ -556,7 +556,11 @@ namespace Fabula.Incrementant.AntFarm
             }
             EquipKind kind = Equipment.KindOf(carried);
             if (kind == EquipKind.None)
-                return null;
+            {
+                // A barra é a última da lista do equipamento (depois das 9 peças).
+                int bar = Equipment.IsBar(carried) ? 3 * Equipment.Tiers + Equipment.TierOf(carried) : -1;
+                return bar >= 0 && _equipItemSprites != null && bar < _equipItemSprites.Length ? _equipItemSprites[bar] : null;
+            }
             int index = ((int)kind - 1) * Equipment.Tiers + Equipment.TierOf(carried);
             return _equipItemSprites != null && index < _equipItemSprites.Length ? _equipItemSprites[index] : null;
         }

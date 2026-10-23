@@ -469,7 +469,7 @@ def water_item():
 # com pepitas do metal, o mesmo sprite na boca da formiga e no chão (AntFarmView desenha o item com ele). Desenhado direto em
 # 8 x 8 (a redução de um 16 x 16 apagava as pepitas): . vazio, O contorno, S/B/L sombra, base e luz da pedra, d/m/h metal.
 ORE_ROCK_RAMP = (17, 18, 19)
-ORE_METALS = {'CopperOre': (8, 11, 12), 'IronOre': (32, 33, 34), 'GoldOre': (7, 13, 16)}
+ORE_METALS = {'CopperOre': (8, 11, 12), 'IronOre': (44, 45, 46), 'GoldOre': (7, 13, 16)}
 ORE_ITEM = (
     '........',
     '..OOO...',

@@ -1,4 +1,4 @@
-"""Sprites 8x8 dos itens de equipamento (REQ-071): ferramenta, arma e armadura em cobre, ferro e ouro.
+"""Sprites 8x8 dos itens de metal (REQ-071): barra, ferramenta, arma e armadura em cobre, ferro e ouro.
 
 O mesmo desenho das camadas vestidas (equip_layers.py), como objeto solto: o item na boca da formiga, guardado na grade e
 nos armazéns. Cada forma é desenhada em 6x6 e o contorno de 1 texel (1B1815) é gerado em volta, como nos Item_*Ore.
@@ -41,6 +41,14 @@ SHAPES = {
         "lmkkmd",
         "lm..md",
         ".d..d.",
+    ],
+    "Bar": [  # lingote visto de frente: topo claro, corpo, base na sombra
+        "......",
+        ".llll.",
+        "lmmmmd",
+        "mmmmdd",
+        ".dddd.",
+        "......",
     ],
 }
 
