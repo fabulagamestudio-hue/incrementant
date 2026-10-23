@@ -149,23 +149,23 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
-        public void DepthOpensTheRings()
+        public void DepthOpensTheTiers()
         {
             var tree = new QueenTree();
             var board = new UpgradeBoard();
             board.Refresh(tree, 0, 0);
             Assert.AreEqual(0, board.Depth);
-            Assert.IsTrue(board.RingOpen(1));
-            Assert.IsFalse(board.RingOpen(2));
+            Assert.IsTrue(board.TierOpen(1));
+            Assert.IsFalse(board.TierOpen(2));
             foreach (QueenNode node in new[] { QueenNode.Q1, QueenNode.O1, QueenNode.O2, QueenNode.L0, QueenNode.F0 })
                 Assert.AreEqual(BuyBlock.None, tree.Grant(node));
             board.Refresh(tree, 0, 0);
             Assert.AreEqual(5, board.Depth);
-            Assert.IsTrue(board.RingOpen(2));
+            Assert.IsTrue(board.TierOpen(2));
             board.SetLevelForPreview("H+1", 10); // completa: 10 níveis + 3
             board.Refresh(tree, 0, 0);
             Assert.AreEqual(18, board.Depth);
-            Assert.IsFalse(board.RingOpen(3));
+            Assert.IsFalse(board.TierOpen(3));
         }
 
         [Test]
@@ -178,7 +178,7 @@ namespace Fabula.Incrementant.Tests
             Assert.AreEqual(UpgradeStatus.Owned, board.Status(UpgradeCatalog.Get("D4")));
             Assert.AreEqual(UpgradeStatus.Available, board.Status(UpgradeCatalog.Get("Q1")));
             Assert.AreEqual(UpgradeStatus.Locked, board.Status(UpgradeCatalog.Get("S0"))); // espera o primeiro ataque
-            Assert.AreEqual(UpgradeStatus.Available, board.Status(UpgradeCatalog.Get("C1"))); // com sistema, requisito e anel A1 abertos
+            Assert.AreEqual(UpgradeStatus.Available, board.Status(UpgradeCatalog.Get("C1"))); // com sistema, requisito e nível 1 abertos
             Assert.AreEqual(UpgradeStatus.Locked, board.Status(UpgradeCatalog.Get("C2"))); // sem sistema
             Assert.IsTrue(UpgradeBoard.HasSystem(UpgradeCatalog.Get("Q1")));
             Assert.IsTrue(UpgradeBoard.HasSystem(UpgradeCatalog.Get("O3")));
@@ -186,24 +186,139 @@ namespace Fabula.Incrementant.Tests
             Assert.IsFalse(UpgradeBoard.HasSystem(UpgradeCatalog.Get("D+1")));
         }
 
-        [TestCase(UpgradeTab.Hive)]
-        [TestCase(UpgradeTab.Queen)]
-        public void LayoutKeepsNodesApart(UpgradeTab tab)
+        [Test]
+        public void LayoutKeepsNodesApart()
         {
-            Dictionary<string, Vector2> positions = UpgradeLayout.Positions(tab);
+            var layout = new UpgradeLayout();
             var nodes = new List<KeyValuePair<string, Vector2>>();
-            foreach (KeyValuePair<string, Vector2> pair in positions)
+            foreach (KeyValuePair<string, Vector2> pair in layout.Positions)
             {
-                if (UpgradeCatalog.Get(pair.Key).IsCenter)
+                UpgradeDef def = UpgradeCatalog.Get(pair.Key);
+                if (def.Domain == UpgradeDomain.Root)
+                {
+                    Assert.AreEqual(layout.Root, pair.Value, pair.Key);
                     continue;
-                Assert.GreaterOrEqual(pair.Value.magnitude, 250f, $"{pair.Key} cobre a câmara central");
-                Assert.LessOrEqual(pair.Value.magnitude, UpgradeLayout.ContentRadius() - 100f, $"{pair.Key} sai do conteúdo");
+                }
+                Assert.IsTrue(layout.Bounds.Contains(pair.Value), $"{pair.Key} sai do conteúdo");
                 nodes.Add(pair);
             }
             for (int i = 0; i < nodes.Count; i++)
             for (int j = i + 1; j < nodes.Count; j++)
                 Assert.GreaterOrEqual(Vector2.Distance(nodes[i].Value, nodes[j].Value), 125f,
                                       $"{nodes[i].Key} e {nodes[j].Key} se sobrepõem");
+        }
+
+        // ---------------------------------------------------------------- formigueiro em níveis (documento 46)
+
+        [Test]
+        public void EveryNodeHasAPlaceInTheAnthill()
+        {
+            foreach (UpgradeDef def in UpgradeCatalog.All)
+            {
+                Assert.IsTrue(def.Placed, $"{def.Id} sem domínio e nível no formigueiro");
+                Assert.Less(def.Tier, UpgradeCatalog.TierCount, $"{def.Id} abaixo do último nível");
+                // A raiz é exatamente a câmara central das duas abas antigas.
+                Assert.AreEqual(def.IsCenter, def.Domain == UpgradeDomain.Root, def.Id);
+                if (def.Domain == UpgradeDomain.Root)
+                    Assert.AreEqual(0, def.Tier, def.Id);
+            }
+        }
+
+        [Test]
+        public void TunnelsOnlyGoDown()
+        {
+            foreach (UpgradeDef def in UpgradeCatalog.All)
+            foreach (UpgradeRequirement r in def.Requires)
+            {
+                UpgradeDef target = UpgradeCatalog.Get(r.Id);
+                Assert.GreaterOrEqual(def.Tier, target.Tier, $"{def.Id} (nível {def.Tier}) fica acima do requisito {r.Id} (nível {target.Tier})");
+            }
+        }
+
+        [Test]
+        public void NodesNeverSitAboveTheHallOfTheirDomain()
+        {
+            foreach (UpgradeDef def in UpgradeCatalog.All)
+                Assert.GreaterOrEqual(def.Tier, UpgradeCatalog.OriginTier(def.Domain), $"{def.Id} acima do salão de {def.Domain}");
+        }
+
+        [Test]
+        public void SideChambersHoldAtMostEightNodes()
+        {
+            var counts = new Dictionary<(UpgradeDomain, int), int>();
+            foreach (UpgradeDef def in UpgradeCatalog.All)
+            {
+                if (def.Domain == UpgradeDomain.Root)
+                    continue;
+                counts.TryGetValue((def.Domain, def.Tier), out int n);
+                counts[(def.Domain, def.Tier)] = n + 1;
+            }
+            foreach (KeyValuePair<(UpgradeDomain, int), int> pair in counts)
+                Assert.LessOrEqual(pair.Value, UpgradeCatalog.MaxNodesPerSideChamber, $"{pair.Key.Item1} nível {pair.Key.Item2}");
+        }
+
+        [Test]
+        public void EveryDomainIsOneColumn()
+        {
+            var seen = new HashSet<UpgradeDomain>();
+            foreach (UpgradeDomainDef d in UpgradeCatalog.Domains)
+            {
+                Assert.AreNotEqual(UpgradeDomain.Root, d.Domain, "a raiz fica no topo, fora das colunas");
+                Assert.IsTrue(seen.Add(d.Domain), $"{d.Domain} em duas colunas");
+                Assert.That(d.OriginTier, Is.InRange(0, UpgradeCatalog.TierCount - 1), d.Domain.ToString());
+            }
+            foreach (UpgradeDomain domain in System.Enum.GetValues(typeof(UpgradeDomain)))
+                if (domain != UpgradeDomain.Root)
+                    Assert.IsTrue(seen.Contains(domain), $"{domain} sem coluna");
+        }
+
+        [Test]
+        public void EveryNodeSitsInsideTheBandOfItsTierAndNearItsColumn()
+        {
+            var layout = new UpgradeLayout();
+            foreach (UpgradeDef def in UpgradeCatalog.All)
+            {
+                if (def.Domain == UpgradeDomain.Root)
+                    continue;
+                Vector2 p = layout.Positions[def.Id];
+                // Abaixo do salão do domínio (que fica no topo da faixa) e acima do fim da faixa.
+                Assert.Less(p.y, layout.TierTop(def.Tier) - UpgradeLayout.BandTop + UpgradeLayout.RowSpacing * 0.5f, def.Id);
+                Assert.Greater(p.y, layout.TierBottom(def.Tier), def.Id);
+                Assert.LessOrEqual(Mathf.Abs(p.x - layout.DomainX(def.Domain)), UpgradeLayout.NodeSpacing * 0.5f + 0.01f, def.Id);
+            }
+            // Colunas da esquerda para a direita, e níveis de cima para baixo.
+            for (int c = 1; c < UpgradeCatalog.Domains.Length; c++)
+                Assert.Greater(UpgradeLayout.ColumnX(c), UpgradeLayout.ColumnX(c - 1));
+            for (int t = 1; t < UpgradeCatalog.TierCount; t++)
+                Assert.AreEqual(layout.TierBottom(t - 1), layout.TierTop(t));
+            Assert.Greater(layout.Root.y, UpgradeLayout.GalleryY);
+            // O rótulo do nível, à esquerda, termina antes do salão (meia largura 170) e da câmara mais larga da primeira coluna.
+            float labelEnd = layout.Bounds.xMin + UpgradeLayout.TierLabelInset + UpgradeLayout.TierLabelWidth;
+            Assert.Less(labelEnd, UpgradeLayout.ColumnX(0) - UpgradeLayout.ColumnWidth * 0.5f);
+        }
+
+        [Test]
+        public void TiersRepeatTheRingsExceptVitality()
+        {
+            // Documento 46, "Distribuição dos nós atuais": nível = anel do documento 39; O+2 desce por exigir B1.
+            foreach (UpgradeDef def in UpgradeCatalog.All)
+                Assert.AreEqual(def.Id == "O+2" ? 2 : def.Ring, def.Tier, def.Id);
+            Assert.AreEqual(UpgradeDomain.Ants, UpgradeCatalog.Get("O+2").Domain);
+            Assert.AreEqual(UpgradeDomain.Queen, UpgradeCatalog.Get("H+1").Domain);
+            Assert.AreEqual(UpgradeDomain.Waste, UpgradeCatalog.Get("W0").Domain);
+            Assert.AreEqual(UpgradeDomain.Farm, UpgradeCatalog.Get("Z0").Domain);
+        }
+
+        [Test]
+        public void DeeperTiersNeverOpenEarlier()
+        {
+            Assert.AreEqual(0, UpgradeCatalog.DepthToOpenTier(0));
+            Assert.AreEqual(0, UpgradeCatalog.DepthToOpenTier(1));
+            for (int tier = 1; tier < UpgradeCatalog.TierCount; tier++)
+                Assert.GreaterOrEqual(UpgradeCatalog.DepthToOpenTier(tier), UpgradeCatalog.DepthToOpenTier(tier - 1));
+            // Os níveis 0 a 4 repetem os anéis de hoje.
+            for (int ring = 0; ring <= 4; ring++)
+                Assert.AreEqual(UpgradeCatalog.DepthToOpen(ring), UpgradeCatalog.DepthToOpenTier(ring));
         }
     }
 }

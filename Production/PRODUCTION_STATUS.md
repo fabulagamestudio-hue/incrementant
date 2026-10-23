@@ -112,6 +112,7 @@ Melhorias incrementais documentadas (GD-008, REQ-039): o [documento 39](../Docs/
 ### Programação
 
 - **Rachadura dos blocos:** PRG-076 verificado (REQ-072, etapa 1): golpes, dano na célula e desenho no shader; suíte EditMode 474/475 (falha da máscara corrigida, `BlockCrackTests` 5/5 depois) e Play Mode pelo agente em 2026-10-23. Etapa 2 (preenchimento vertical dos depósitos) em PRG-077, verificado: pilha de itens iguais por célula com capacidade por depósito, save versão 27, suíte EditMode 482/482 e Play Mode; sem o nó da melhoria nas árvores, a capacidade segue 1 no jogo.
+- **Árvore de evolução em níveis:** PRG-078 verificado (REQ-073, etapa 1): domínio e nível de cada nó no catálogo e 7 testes; suíte EditMode 489/489 em 2026-10-23. PRG-079 verificado (etapa 2): tela única em colunas e níveis; suíte EditMode 490/490 e Play Mode em 2026-10-23; os nós ainda não somem de longe.
 - **Minérios e forja:** PRG-075 implementado (REQ-071): veios, fundição, forja, armazéns e equipamento; suíte EditMode verde, sem Play Mode.
 - **Biomas da superfície:** PRG-074 implementado (REQ-070): Serapilheira à direita e Canteiro de flores à esquerda, com insumos (serapilheira e néctar) e depósitos próprios, folhas que voltam, gotas de néctar, cenário e plantas por bioma; EditMode 457/457 e Play Mode visto pelo agente em 2026-10-23.
 - **Salas construídas:** PRG-071 implementado (REQ-058): slots de reboco, obra das formigas, sala pronta e save versão 25; testado em EditMode e em Play Mode pelo agente, limites em KI-059.
@@ -123,6 +124,7 @@ Melhorias incrementais documentadas (GD-008, REQ-039): o [documento 39](../Docs/
 
 ### Game design
 
+- **Árvore de evolução:** GD-014 em andamento (REQ-073): [documento 46](../Docs/01_Design/46_Arvore_de_evolucao_em_niveis_e_tuneis.md) aprovado em 2026-10-23 (formigueiro descendo da rainha, domínios em colunas, níveis por progresso, túneis por valor do upgrade); etapa 1 (dados) verificada em PRG-078; etapa 2 (tela em colunas e níveis) verificada em PRG-079; compra dos nós da rainha e nós novos pendentes.
 - **Exterior:** GD-012 em andamento (dois biomas implementados, PRG-074, com valores assumidos); (REQ-070): direção A decidida pelo desenvolvedor em 2026-10-23 (biomas laterais com insumos únicos e postos avançados) e regra do cenário (elementos grandes só no bioma deles, gramado central limpo, decoração não imita insumo); biomas, insumos, números e biomas da demo a aprovar.
 - **Entregas verificadas:** GD-006 Documento revisado convertido e conferido contra o DOCX (38 seções e 28 tabelas); [índice](../Docs/README.md)
 - **Pendências:** GD-001 Conceito (alinhamento do protótipo à referência revisada e validação do loop); GD-002 Regras da chuva (interpretações a confirmar); GD-003 Regras da água (valores de X/Y e interpretações a confirmar); GD-004 Regras da rainha (interpretações a confirmar); GD-005 Regras das plantas e nutrientes (interpretações a confirmar); GD-008 Melhorias incrementais (proposta sem balanceamento, construção não pedida)
@@ -261,6 +263,7 @@ Melhorias incrementais documentadas (GD-008, REQ-039): o [documento 39](../Docs/
 | REQ-070 | Razão para trabalhar na área externa: biomas laterais com insumos únicos e postos avançados | IN_PROGRESS | UNDEFINED |
 | REQ-071 | Mundo pequeno no molde do Terraria, minérios em veios, fundição, forja e armazéns de equipamento | IN_PROGRESS | UNDEFINED |
 | REQ-072 | Blocos em porcentagem: rachadura na coleta e preenchimento vertical nos depósitos | IMPLEMENTED | UNDEFINED |
+| REQ-073 | Árvore de evolução como formigueiro descendo da rainha: domínios, níveis e túneis | IN_PROGRESS | UNDEFINED |
 
 Registro completo: [REQUESTS.md](REQUESTS.md)
 
@@ -294,6 +297,7 @@ Registro completo: [REQUESTS.md](REQUESTS.md)
 
 ## Decisões necessárias
 
+- Árvore de evolução em níveis (REQ-073, GD-014): limite do nível 5, ordem das colunas, nós e custos de Minérios e Forja ([documento 46](../Docs/01_Design/46_Arvore_de_evolucao_em_niveis_e_tuneis.md)).
 - Blocos em porcentagem (REQ-072): lugar da melhoria de tamanho nas árvores de melhoria (árvore incompleta, a trabalhar no futuro pelo desenvolvedor) e quais depósitos a ganham; avaliação da arte da rachadura (ART-030).
 - Minérios e forja (REQ-071, GD-013): aprovar os números do documento 45 e a transformação automática da fundição e da forja; fruto da fruteira; lugar nas melhorias; uso das roupas.
 - Uso da serapilheira e do néctar (REQ-070): adiado pelo desenvolvedor em 2026-10-23; hoje os insumos só se acumulam.

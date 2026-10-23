@@ -11,6 +11,43 @@ namespace Fabula.Incrementant.Upgrades
         Queen,
     }
 
+    /// <summary>
+    /// Coluna do formigueiro do documento 46: a sala e as classes que trabalham nela. A ordem das colunas na tela é a de
+    /// <see cref="UpgradeCatalog.Domains"/>, não a deste enum (domínio novo entra no fim).
+    /// </summary>
+    public enum UpgradeDomain
+    {
+        Root,
+        Farm,
+        Foraging,
+        Cultivation,
+        Dew,
+        Nursery,
+        Queen,
+        Ants,
+        Common,
+        Works,
+        Digging,
+        Storage,
+        Waste,
+        Guard,
+        Ores,
+        Forge,
+    }
+
+    /// <summary>Domínio e o nível do formigueiro em que fica o salão dele (documento 46, "Domínios").</summary>
+    public readonly struct UpgradeDomainDef
+    {
+        public readonly UpgradeDomain Domain;
+        public readonly int OriginTier;
+
+        public UpgradeDomainDef(UpgradeDomain domain, int originTier)
+        {
+            Domain = domain;
+            OriginTier = originTier;
+        }
+    }
+
     /// <summary>Câmara = compra única; galeria = melhoria com nível (documento 39 do design).</summary>
     public enum UpgradeKind
     {
@@ -62,6 +99,14 @@ namespace Fabula.Incrementant.Upgrades
         public int Branch { get; }
         /// <summary>0 = câmara central; 1 a 4 = anéis A1 a A4.</summary>
         public int Ring { get; }
+        /// <summary>Coluna do formigueiro do documento 46 (tabela de posição de <see cref="UpgradeCatalog"/>).</summary>
+        public UpgradeDomain Domain { get; internal set; }
+        /// <summary>
+        /// Nível do formigueiro do documento 46 (0 = Câmara real, desce com o progresso). Chama-se Tier para não
+        /// confundir com o nível da galeria. Nunca acima dos requisitos: o túnel só desce.
+        /// </summary>
+        public int Tier { get; internal set; } = -1;
+        public bool Placed => Tier >= 0;
         public UpgradeKind Kind { get; }
         /// <summary>Custo da câmara ou custo do nível 1 da galeria, em nutrientes.</summary>
         public int Cost { get; }
@@ -126,6 +171,32 @@ namespace Fabula.Incrementant.Upgrades
         public const int PointsPerLevel = 1;
         public const int PointsPerCompletedGallery = 3;
         static readonly int[] RingDepth = { 0, 0, 5, 20, 50 };
+
+        /// <summary>Profundidade que abre cada nível do formigueiro (documento 46, "Níveis"; o 100 do nível 5 é suposição).</summary>
+        static readonly int[] TierDepth = { 0, 0, 5, 20, 50, 100 };
+        public static int TierCount => TierDepth.Length;
+        /// <summary>Nós por câmara lateral (domínio + nível) antes de ela precisar se dividir (documento 46, regra 6).</summary>
+        public const int MaxNodesPerSideChamber = 8;
+
+        /// <summary>Colunas do formigueiro, da esquerda para a direita; a raiz fica no topo, fora delas.</summary>
+        public static readonly UpgradeDomainDef[] Domains =
+        {
+            new UpgradeDomainDef(UpgradeDomain.Farm, 1),
+            new UpgradeDomainDef(UpgradeDomain.Foraging, 1),
+            new UpgradeDomainDef(UpgradeDomain.Cultivation, 1),
+            new UpgradeDomainDef(UpgradeDomain.Dew, 1),
+            new UpgradeDomainDef(UpgradeDomain.Nursery, 1),
+            new UpgradeDomainDef(UpgradeDomain.Queen, 0),
+            new UpgradeDomainDef(UpgradeDomain.Ants, 0),
+            new UpgradeDomainDef(UpgradeDomain.Common, 0),
+            new UpgradeDomainDef(UpgradeDomain.Works, 0),
+            new UpgradeDomainDef(UpgradeDomain.Digging, 1),
+            new UpgradeDomainDef(UpgradeDomain.Storage, 1),
+            new UpgradeDomainDef(UpgradeDomain.Waste, 1),
+            new UpgradeDomainDef(UpgradeDomain.Guard, 2),
+            new UpgradeDomainDef(UpgradeDomain.Ores, 4),
+            new UpgradeDomainDef(UpgradeDomain.Forge, 5),
+        };
 
         /// <summary>Chave do texto do ramo, por aba (a ordem é a direção do túnel na tela).</summary>
         public static readonly string[][] Branches =
@@ -295,6 +366,51 @@ namespace Fabula.Incrementant.Upgrades
             Gallery(Q, "S+3", Soldado, 3, 150, "S0,N0", GalleryType.Physical, 10, 10f, -0.05f);
             Gallery(Q, "S+4", Soldado, 3, 160, "S0", GalleryType.Physical, 10, 1f, 0.05f);
             Gallery(Q, "Z+1", Jardineira, 2, 100, "Z0", GalleryType.Physical, 10, 22f, 0.04f);
+
+            // ---------------- posição no formigueiro do documento 46 (uma linha por câmara lateral, como as tabelas dele).
+            // O nível é o anel do documento 39, menos O+2, que desce para o nível 2 por exigir B1.
+            const UpgradeDomain Raiz = UpgradeDomain.Root;
+            Place(Raiz, 0, "P0,T0,Q0,O0");
+            Place(UpgradeDomain.Queen, 1, "Q1,Q+2,Q+3,Q+4,H+1");
+            Place(UpgradeDomain.Queen, 2, "Q2,Q+1");
+            Place(UpgradeDomain.Queen, 4, "Q3");
+            Place(UpgradeDomain.Ants, 2, "O+2");
+            Place(UpgradeDomain.Common, 1, "O1,O2,O3");
+            Place(UpgradeDomain.Common, 2, "O+1,O+3");
+            Place(UpgradeDomain.Common, 4, "O4");
+            Place(UpgradeDomain.Cultivation, 1, "C0,C1,J0,C+1,C+4");
+            Place(UpgradeDomain.Cultivation, 2, "C2,C3,J1,C+2,C+3,J+1,J+2");
+            Place(UpgradeDomain.Cultivation, 3, "C4,J2");
+            Place(UpgradeDomain.Cultivation, 4, "C5,J3");
+            Place(UpgradeDomain.Nursery, 1, "B0,N0,B+3");
+            Place(UpgradeDomain.Nursery, 2, "B1,B2,N1,N+1,N+2");
+            Place(UpgradeDomain.Nursery, 3, "B3,N2,N3,B+1,B+2");
+            Place(UpgradeDomain.Nursery, 4, "B4");
+            Place(UpgradeDomain.Storage, 1, "D0,D3,D4,D6,D7,L0,D+3");
+            Place(UpgradeDomain.Storage, 2, "D1,L1,L3,D+1,L+1,L+2,L+3");
+            Place(UpgradeDomain.Storage, 3, "D2,L2,D+2");
+            Place(UpgradeDomain.Storage, 4, "D5,L4");
+            Place(UpgradeDomain.Foraging, 1, "F0,X0");
+            Place(UpgradeDomain.Foraging, 2, "F1,F+1,X+1,X+2,X+3");
+            Place(UpgradeDomain.Foraging, 3, "F2,X1");
+            Place(UpgradeDomain.Dew, 1, "G0,G+3");
+            Place(UpgradeDomain.Dew, 2, "G1,G+1,G+2");
+            Place(UpgradeDomain.Dew, 3, "G2");
+            Place(UpgradeDomain.Waste, 1, "R0,R+1");
+            Place(UpgradeDomain.Waste, 2, "R1,W0");
+            Place(UpgradeDomain.Waste, 3, "R2");
+            Place(UpgradeDomain.Works, 1, "T1,T+1,T+3");
+            Place(UpgradeDomain.Works, 2, "T+2");
+            Place(UpgradeDomain.Works, 3, "T2");
+            Place(UpgradeDomain.Digging, 1, "E0");
+            Place(UpgradeDomain.Digging, 2, "E1,E+1,E+2");
+            Place(UpgradeDomain.Digging, 3, "E2,E+3");
+            Place(UpgradeDomain.Digging, 4, "E3");
+            Place(UpgradeDomain.Farm, 1, "A0,Z0,A+3");
+            Place(UpgradeDomain.Farm, 2, "A1,Z1,A+1,A+2,Z+1");
+            Place(UpgradeDomain.Guard, 2, "S0,K0,S1,S2,M0,M2,M+1,M+2");
+            Place(UpgradeDomain.Guard, 3, "S3,M1,S+1,S+2,S+3,S+4");
+            Place(UpgradeDomain.Guard, 4, "S4");
         }
 
         // ---------------------------------------------------------------- consulta
@@ -316,6 +432,28 @@ namespace Fabula.Incrementant.Upgrades
 
         /// <summary>O nó do catálogo que corresponde a um nó da árvore da rainha.</summary>
         public static UpgradeDef Of(QueenNode node) => Get(node.ToString());
+
+        /// <summary>Nós da coluna, na ordem da tabela.</summary>
+        public static List<UpgradeDef> OfDomain(UpgradeDomain domain)
+        {
+            var list = new List<UpgradeDef>();
+            foreach (UpgradeDef def in Defs)
+                if (def.Domain == domain && def.Placed)
+                    list.Add(def);
+            return list;
+        }
+
+        /// <summary>Nível do salão da coluna (a raiz fica no 0).</summary>
+        public static int OriginTier(UpgradeDomain domain)
+        {
+            foreach (UpgradeDomainDef d in Domains)
+                if (d.Domain == domain)
+                    return d.OriginTier;
+            return 0;
+        }
+
+        /// <summary>Profundidade exigida para o nível do formigueiro abrir (0 nos níveis 0 e 1).</summary>
+        public static int DepthToOpenTier(int tier) => TierDepth[Math.Max(0, Math.Min(tier, TierDepth.Length - 1))];
 
         /// <summary>Profundidade exigida para o anel abrir (0 no centro e em A1).</summary>
         public static int DepthToOpen(int ring) => RingDepth[Math.Max(0, Math.Min(ring, RingDepth.Length - 1))];
@@ -410,6 +548,19 @@ namespace Fabula.Incrementant.Upgrades
         {
             Defs.Add(def);
             ById.Add(def.Id, def);
+        }
+
+        /// <summary>Põe os nós "a,b,c" na câmara lateral (domínio, nível). Id desconhecido ou repetido é erro da tabela.</summary>
+        static void Place(UpgradeDomain domain, int tier, string ids)
+        {
+            foreach (string raw in ids.Split(','))
+            {
+                UpgradeDef def = Get(raw.Trim());
+                if (def.Placed)
+                    throw new InvalidOperationException($"Nó de evolução '{def.Id}' posicionado duas vezes no formigueiro.");
+                def.Domain = domain;
+                def.Tier = tier;
+            }
         }
 
         /// <summary>"C4,J+1:10" → C4 comprado e J+1 no nível 10.</summary>

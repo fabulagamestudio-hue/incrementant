@@ -5,16 +5,18 @@ namespace Fabula.Incrementant.UI
 {
     /// <summary>
     /// Janela arrastável da árvore da tela Evolução: arrastar move o conteúdo, a roda do mouse aproxima ou afasta em torno
-    /// do ponteiro. O conteúdo (<see cref="_content"/>) tem o centro da árvore na origem e é ancorado no centro desta
-    /// janela; a posição fica presa para o centro do formigueiro nunca sair de vista por mais que o raio do conteúdo.
+    /// do ponteiro. O conteúdo (<see cref="_content"/>) é ancorado no centro desta janela e usa as coordenadas do
+    /// formigueiro (<c>UpgradeLayout</c>); a posição fica presa para o meio da janela nunca sair de <see cref="_contentBounds"/>.
     /// Os botões dos nós não tratam arrasto, então o arrasto que começa num nó chega aqui (e o EventSystem cancela o clique).
     /// </summary>
     public sealed class TreeViewport : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IScrollHandler
     {
         [SerializeField] RectTransform _content;
-        [Tooltip("Raio do conteúdo em pixels de UI (UpgradeLayout.ContentRadius).")]
-        [SerializeField, Min(100f)] float _contentRadius = 2000f;
-        [SerializeField, Range(0.1f, 1f)] float _minZoom = 0.3f;
+        [Tooltip("Retângulo do formigueiro em pixels de UI (UpgradeLayout.Bounds): o meio da janela não sai dele.")]
+        [SerializeField] Rect _contentBounds = new Rect(-2000f, -2000f, 4000f, 4000f);
+        [Tooltip("Ponto do conteúdo que fica no meio da janela ao abrir a tela.")]
+        [SerializeField] Vector2 _startPoint;
+        [SerializeField, Range(0.05f, 1f)] float _minZoom = 0.3f;
         [SerializeField, Range(0.5f, 3f)] float _maxZoom = 1.25f;
         [SerializeField, Range(0.1f, 2f)] float _startZoom = 0.6f;
         [Tooltip("Fator por clique da roda.")]
@@ -40,11 +42,11 @@ namespace Fabula.Incrementant.UI
             _zoom = _content.localScale.x;
         }
 
-        /// <summary>Volta ao enquadramento inicial: centro da árvore no meio da janela, zoom de abertura.</summary>
+        /// <summary>Volta ao enquadramento inicial: <see cref="_startPoint"/> no meio da janela, zoom de abertura.</summary>
         public void ResetView()
         {
             SetZoom(_startZoom);
-            CenterOn(Vector2.zero);
+            CenterOn(_startPoint);
         }
 
         /// <summary>Põe o ponto do conteúdo (coordenadas da árvore, y para cima) no meio da janela.</summary>
@@ -91,9 +93,10 @@ namespace Fabula.Incrementant.UI
 
         void Clamp()
         {
-            float limit = _contentRadius * _zoom;
+            // O ponto do conteúdo no meio da janela é -posição / zoom; ele fica dentro do retângulo do formigueiro.
             Vector2 p = _content.anchoredPosition;
-            _content.anchoredPosition = new Vector2(Mathf.Clamp(p.x, -limit, limit), Mathf.Clamp(p.y, -limit, limit));
+            _content.anchoredPosition = new Vector2(Mathf.Clamp(p.x, -_contentBounds.xMax * _zoom, -_contentBounds.xMin * _zoom),
+                                                    Mathf.Clamp(p.y, -_contentBounds.yMax * _zoom, -_contentBounds.yMin * _zoom));
         }
 
         float ScaleFactor()

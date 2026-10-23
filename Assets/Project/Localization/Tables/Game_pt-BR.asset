@@ -3529,6 +3529,70 @@ MonoBehaviour:
     m_Localized: "ARMAZ\xC9M DE ROUPAS E ARMADURAS"
     m_Metadata:
       m_Items: []
+  - m_Id: 1792060155883520
+    m_Localized: "N\xCDVEL {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1799237474054144
+    m_Localized: FAZENDA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1799237478248448
+    m_Localized: COLETA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1799237478248449
+    m_Localized: CULTIVO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1799237478248450
+    m_Localized: ORVALHO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1799237478248451
+    m_Localized: "BER\xC7\xC1RIO"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1799237478248452
+    m_Localized: RAINHA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1799237478248453
+    m_Localized: FORMIGAS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1799237478248454
+    m_Localized: "OPER\xC1RIA"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1799237478248455
+    m_Localized: OBRA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1799237478248456
+    m_Localized: "ESCAVA\xC7\xC3O"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1799237478248457
+    m_Localized: "DEP\xD3SITOS"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1799237478248458
+    m_Localized: "RES\xCDDUOS"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1799237478248459
+    m_Localized: GUARDA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1799237478248460
+    m_Localized: "MIN\xC9RIOS"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1799237478248461
+    m_Localized: FORJA
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -80,6 +80,7 @@
 | REQ-070 | 2026-10-23 | Razão para trabalhar na área externa: biomas laterais com insumos únicos e postos avançados | GAME_DESIGN, ART, PROGRAMMING | UNDEFINED | IN_PROGRESS |
 | REQ-071 | 2026-10-23 | Mundo pequeno no molde do Terraria, minérios em veios, fundição, forja e armazéns de equipamento | GAME_DESIGN, PROGRAMMING, ART | UNDEFINED | IN_PROGRESS |
 | REQ-072 | 2026-10-23 | Blocos em porcentagem: rachadura crescente na coleta e preenchimento vertical nos depósitos (2 itens por célula com melhoria) | GAME_DESIGN, PROGRAMMING, ART | UNDEFINED | IMPLEMENTED |
+| REQ-073 | 2026-10-23 | Árvore de evolução como formigueiro descendo da rainha: domínios, níveis por progresso e túneis por valor do upgrade | GAME_DESIGN, PROGRAMMING | UNDEFINED | IN_PROGRESS |
 
 ## Registros
 
@@ -1379,3 +1380,20 @@
   - 2026-10-23 — PLANNED: pedido registrado e avaliação técnica feita pelo agente, sem implementação.
   - 2026-10-23 — IN_PROGRESS: respostas do desenvolvedor às decisões e pedido "Pode começar pela etapa 1 (rachaduras)". Etapa 1 feita (PRG-076, ART-030): golpes de 0,1 s, dano na célula em 4 estágios e desenho no shader; suíte EditMode 474/475 (a falha era a própria máscara da rachadura, corrigida; `BlockCrackTests` 5/5 depois), visto pelo agente em Play Mode. Falta a etapa 2 (preenchimento vertical) e a avaliação do desenvolvedor.
   - 2026-10-23 — IMPLEMENTED: pedido "Pode seguir com a etapa 2 (preenchimento vertical dos depósitos)". Feito (PRG-077): pilha de itens iguais por célula com capacidade por depósito, vagas e contas em itens, save versão 27 e desenho pela altura da pilha; suíte EditMode 482/482 e visto pelo agente em Play Mode. O nó da melhoria nas árvores fica para quando o desenvolvedor trabalhar nelas (árvore incompleta); até lá a capacidade é 1 e nada muda para o jogador.
+
+### REQ-073 — Árvore de evolução como formigueiro descendo da rainha
+
+- **Data de registro:** 2026-10-23
+- **Estado:** IN_PROGRESS
+- **Prioridade:** UNDEFINED
+- **Setores:** GAME_DESIGN, PROGRAMMING
+- **Descrição:** Pedido do desenvolvedor: "Existe poucos ramos para o número de salas e formigas, e se aumentarmos o número deles perderemos mais ainda o controle. Precisamos segmentar isso, para continuar o formato de formigueiro, e ter possibilidade de expansão. [...] Começando da rainha que é a parte de cima do formigueiro, que liga para baixo. As conexões serão baseados no quanto nós esperamos que o jogador esteja avançado para ir descendo mais fundo no formigueiro." Complemento: "não manter o nível daquela formiga ou sala exclusiva naquela altura [...] Vamos fazer túneis que descem baseado no valor daquele upgrade." Proposta do agente aprovada na conversa ("Aprovado. Escreva o documento de design [...] e me mostre antes de mexer no código"): uma tela só, domínios em colunas, níveis por progresso, túneis que descem até o nível de cada upgrade. Documento escrito; código não alterado.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-039 (catálogo de melhorias do documento 39), REQ-071 (nós da forja e dos minérios), REQ-072 (lugar da pilha por célula em D1/D+1)
+- **Itens relacionados:** GD-014, PRG-078, PRG-079
+- **Referências:** [Documento 46](../Docs/01_Design/46_Arvore_de_evolucao_em_niveis_e_tuneis.md); [UpgradesGuide](../Assets/Project/Scripts/Runtime/Upgrades/UpgradesGuide.md); [HudGuide](../Assets/Project/Scripts/Runtime/UI/HudGuide.md) ("Tela Evolução")
+- **Decisões pendentes:** limite de profundidade do nível 5; ordem das colunas; nós, custos e efeitos dos domínios Minérios e Forja e dos nós de nível 5; pincéis do depósito de minério e da fundição livres ou pagos; ids e custos dos nós novos.
+- **Histórico:**
+  - 2026-10-23 — PLANNED: pedido registrado; documento 46 escrito pelo agente com domínios, níveis, regra dos túneis e distribuição dos 123 nós atuais (níveis conferidos por script contra `UpgradeCatalog`). Sem implementação.
+  - 2026-10-23 — IN_PROGRESS: documento aprovado ("Documento aprovado. Pode começar pela etapa 1 (dados: Domain e Level no catálogo e os testes)"). Etapa 1 feita (PRG-078): domínio e nível (`Tier`) de cada nó, colunas e 7 testes; suíte EditMode 489/489. Faltam as etapas 2 (layout e tela), 3 (compra por nível) e 4 (nós novos de Minérios e Forja).
+  - 2026-10-23 — IN_PROGRESS: pedido "Pode seguir com a etapa 2 (layout e tela em colunas e níveis)". Etapa 2 implementada (PRG-079): tela única em colunas e níveis, galeria sob a Câmara real, ligações entre colunas só na seleção, salões com progresso; vista em Play Mode pelo agente. Depois que o desenvolvedor religou o servidor MCP: setup de localização, chaves antigas apagadas, Play Mode final e suíte EditMode 490/490 (PRG-079 verificado). Os nós ainda não somem de longe.

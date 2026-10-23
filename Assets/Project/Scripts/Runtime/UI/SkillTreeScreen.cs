@@ -15,10 +15,11 @@ using UnityEngine.UI;
 namespace Fabula.Incrementant.UI
 {
     /// <summary>
-    /// Tela Evolução (documento 39 do design): duas abas, Formigueiro e Rainha e classes, cada uma um formigueiro radial
-    /// arrastável (<see cref="TreeViewport"/>) com câmaras, galerias com nível, anéis de profundidade e túneis de
-    /// dependência; os requisitos da outra aba aparecem como portais que levam até o nó. A compra de verdade só existe
-    /// nos nós da árvore da rainha que já têm sistema (<see cref="AntColony.TryBuy"/>); o resto mostra EM BREVE.
+    /// Tela Evolução (documento 46 do design): um formigueiro em corte arrastável (<see cref="TreeViewport"/>) que desce da
+    /// Câmara real, com uma coluna por domínio, faixas por nível do formigueiro (as fechadas cobertas de terra) e câmaras e
+    /// galerias (documento 39). Dentro da coluna as ligações aparecem sempre; as que cruzam colunas ou saem da raiz só com
+    /// o nó selecionado. A compra vai para <see cref="AntColony.TryBuy"/> (nós da rainha com sistema) ou
+    /// <see cref="AntColony.TryBuyUpgrade"/> (câmaras e galerias vivas); o resto mostra EM BREVE.
     /// Cobre a tela inteira; ESC ou VOLTAR a fecham. A hierarquia é montada pelo Editor
     /// (<c>Incrementant/Setup/Montar HUD da partida</c>), que liga as referências abaixo. Não pausa o jogo (regra em
     /// aberto no design, seção 34).
@@ -26,8 +27,8 @@ namespace Fabula.Incrementant.UI
     public sealed class SkillTreeScreen : MonoBehaviour
     {
         /// <summary>
-        /// Ligação de dependência entre dois nós da aba, desenhada pelos túneis do formigueiro: índices em <see cref="NodesOf"/>;
-        /// <see cref="Parent"/> -1 = a câmara central.
+        /// Ligação de dependência desenhada pelos túneis do formigueiro: índices em <see cref="NodesOf"/>; <see cref="Parent"/>
+        /// -1 = a Câmara real. <see cref="Cross"/>: liga colunas diferentes (ou a raiz) e só aparece com o nó selecionado.
         /// </summary>
         [Serializable]
         public struct Link
@@ -35,42 +36,31 @@ namespace Fabula.Incrementant.UI
             public TunnelPathGraphic Path;
             public int Parent;
             public int Child;
+            public bool Cross;
         }
 
-        /// <summary>Abertura ao lado de um nó para um requisito da outra aba; clicar leva até ele.</summary>
+        /// <summary>Peças do formigueiro (montadas pelo setup na ordem de <see cref="NodesOf"/> e de <see cref="UpgradeCatalog.Domains"/>).</summary>
         [Serializable]
-        public struct Portal
+        public sealed class TreeView
         {
-            public Button Button;
-            public string Target;
-        }
-
-        /// <summary>Peças de uma aba (montadas pelo setup na ordem de <see cref="NodesOf"/>).</summary>
-        [Serializable]
-        public sealed class TabView
-        {
-            public Button Tab;
-            public Image TabImage;
-            public GameObject Page;
             public TreeViewport Viewport;
             public SkillNodeWidget Root;
             public SkillNodeWidget[] Nodes;
             public Link[] Links;
-            public Portal[] Portals;
-            /// <summary>Terra escura dos anéis 1 a 4 (índice 0 = A1) e o aviso de profundidade de cada um.</summary>
-            public RingGraphic[] Rings;
-            public Text[] RingLabels;
+            /// <summary>Por nível do formigueiro (índice = nível): terra escura do nível fechado, rótulo e aviso de profundidade.</summary>
+            public Image[] TierShades;
+            public Text[] TierLabels;
+            public Text[] TierWarnings;
+            /// <summary>Nome e progresso do salão de cada domínio, na ordem das colunas.</summary>
+            public Text[] HallLabels;
             /// <summary>Nó cujas ligações estão na frente (destacadas); -2 = nenhum ainda.</summary>
             [NonSerialized] public int Highlighted = -2;
         }
 
         [SerializeField] AntFarmGame _game;
 
-        [Header("Abas")]
-        [SerializeField] TabView _hive = new TabView();
-        [SerializeField] TabView _queen = new TabView();
-        [SerializeField] Sprite _tabActive;
-        [SerializeField] Sprite _tabInactive;
+        [Header("Formigueiro")]
+        [SerializeField] TreeView _tree = new TreeView();
 
         [Header("Cabeçalho")]
         [SerializeField] Text _nutrients;
@@ -95,7 +85,7 @@ namespace Fabula.Incrementant.UI
         [SerializeField, Min(0f)] float _linkHighlightCore = 4f;
         [Tooltip("Amostras da legenda do rodapé, na ordem: tem o requisito, falta o requisito, o que libera.")]
         [SerializeField] TunnelPathGraphic[] _legendLines = Array.Empty<TunnelPathGraphic>();
-        [SerializeField] Color _closedRing = new Color(0.08f, 0.05f, 0.03f, 0.72f);
+        [SerializeField] Color _closedTier = new Color(0.08f, 0.05f, 0.03f, 0.78f);
 
         [Header("Detalhe")]
         [SerializeField] Text _title;
@@ -115,10 +105,12 @@ namespace Fabula.Incrementant.UI
         const string MetColor = "#8CC759", MissingColor = "#D9775A";
 
         readonly UpgradeBoard _board = new UpgradeBoard();
-        List<UpgradeDef> _hiveDefs;
-        List<UpgradeDef> _queenDefs;
-        Dictionary<string, Vector2> _hivePositions;
-        Dictionary<string, Vector2> _queenPositions;
+        List<UpgradeDef> _defs;
+        UpgradeLayout _layout;
+        // Nós de cada coluna (índices em _defs) e o progresso mostrado no salão, para só refazer o texto quando muda.
+        List<int>[] _domainNodes;
+        int[] _hallOwned;
+        string _hallLanguage;
         static HashSet<string> _legacyHive;
 
         // Posição e altura do título, do efeito e do bloco de baixo como o setup os montou: o detalhe desce o que vem depois
@@ -126,28 +118,27 @@ namespace Fabula.Incrementant.UI
         Vector2 _effectPos, _infoPos;
         float _titleHeight, _effectHeight;
 
-        UpgradeTab _tab = UpgradeTab.Queen;
-        int _selectedHive;
-        int _selectedQueen;
+        int _selected;
         int _amount;
         // Chave do aviso da última compra recusada (traduzida a cada quadro); vazio = sem aviso.
         string _message = "";
-        UnityAction[] _hiveHandlers, _queenHandlers, _hivePortalHandlers, _queenPortalHandlers, _amountHandlers;
+        UnityAction[] _nodeHandlers, _amountHandlers;
         readonly StringBuilder _text = new StringBuilder(256);
 
-        /// <summary>Nós desenhados na aba (todos menos os da câmara central), na ordem dos widgets.</summary>
-        public static List<UpgradeDef> NodesOf(UpgradeTab tab)
+        /// <summary>Nós desenhados (todos menos os da Câmara real), na ordem da tabela, que é a ordem dos widgets.</summary>
+        public static List<UpgradeDef> NodesOf()
         {
-            List<UpgradeDef> list = UpgradeCatalog.OfTab(tab);
-            list.RemoveAll(d => d.IsCenter);
+            var list = new List<UpgradeDef>();
+            foreach (UpgradeDef def in UpgradeCatalog.All)
+                if (def.Domain != UpgradeDomain.Root)
+                    list.Add(def);
             return list;
         }
 
         void Awake()
         {
-            _hiveDefs = NodesOf(UpgradeTab.Hive);
-            _queenDefs = NodesOf(UpgradeTab.Queen);
-            if (_game == null || !Valid(_hive, _hiveDefs.Count) || !Valid(_queen, _queenDefs.Count) || _buyButton == null ||
+            _defs = NodesOf();
+            if (_game == null || !Valid(_tree, _defs.Count) || _buyButton == null ||
                 _backButton == null || _title == null || _amountButtons == null || _amountButtons.Length != Amounts.Length)
             {
                 Debug.LogError($"{name}: SkillTreeScreen com referências faltando (rode Incrementant/Setup/Montar HUD da partida).", this);
@@ -158,14 +149,20 @@ namespace Fabula.Incrementant.UI
             _effectHeight = _effect.rectTransform.sizeDelta.y;
             _effectPos = _effect.rectTransform.anchoredPosition;
             _infoPos = _info.rectTransform.anchoredPosition;
-            _hivePositions = UpgradeLayout.Positions(UpgradeTab.Hive);
-            _queenPositions = UpgradeLayout.Positions(UpgradeTab.Queen);
-            _selectedQueen = Math.Max(0, _queenDefs.FindIndex(d => d.Id == "Q1"));
-            _selectedHive = Math.Max(0, _hiveDefs.FindIndex(d => d.Id == "C1"));
-            _hiveHandlers = NodeHandlers(UpgradeTab.Hive, _hiveDefs.Count);
-            _queenHandlers = NodeHandlers(UpgradeTab.Queen, _queenDefs.Count);
-            _hivePortalHandlers = PortalHandlers(_hive);
-            _queenPortalHandlers = PortalHandlers(_queen);
+            _layout = new UpgradeLayout();
+            _selected = Math.Max(0, _defs.FindIndex(d => d.Id == "Q1"));
+            _domainNodes = new List<int>[UpgradeCatalog.Domains.Length];
+            _hallOwned = new int[_domainNodes.Length];
+            for (int c = 0; c < _domainNodes.Length; c++)
+                _domainNodes[c] = new List<int>();
+            for (int i = 0; i < _defs.Count; i++)
+                _domainNodes[_layout.Column(_defs[i].Domain)].Add(i);
+            _nodeHandlers = new UnityAction[_defs.Count];
+            for (int i = 0; i < _defs.Count; i++)
+            {
+                int index = i;
+                _nodeHandlers[i] = () => Select(index);
+            }
             _amountHandlers = new UnityAction[Amounts.Length];
             for (int i = 0; i < Amounts.Length; i++)
             {
@@ -174,119 +171,50 @@ namespace Fabula.Incrementant.UI
             }
         }
 
-        static bool Valid(TabView view, int count) =>
-            view != null && view.Tab != null && view.Page != null && view.Viewport != null && view.Nodes != null &&
-            view.Nodes.Length == count && view.Rings != null && view.Rings.Length == 4 && view.RingLabels != null &&
-            view.RingLabels.Length == 4;
-
-        UnityAction[] NodeHandlers(UpgradeTab tab, int count)
+        static bool Valid(TreeView view, int count)
         {
-            var handlers = new UnityAction[count];
-            for (int i = 0; i < count; i++)
-            {
-                int index = i;
-                handlers[i] = () => Select(tab, index, center: false);
-            }
-            return handlers;
-        }
-
-        UnityAction[] PortalHandlers(TabView view)
-        {
-            var handlers = new UnityAction[view.Portals?.Length ?? 0];
-            for (int i = 0; i < handlers.Length; i++)
-            {
-                string target = view.Portals[i].Target;
-                handlers[i] = () => GoTo(target);
-            }
-            return handlers;
+            int tiers = UpgradeCatalog.TierCount;
+            return view != null && view.Viewport != null && view.Nodes != null && view.Nodes.Length == count && view.Links != null &&
+                   view.TierShades != null && view.TierShades.Length == tiers && view.TierLabels != null &&
+                   view.TierLabels.Length == tiers && view.TierWarnings != null && view.TierWarnings.Length == tiers &&
+                   view.HallLabels != null && view.HallLabels.Length == UpgradeCatalog.Domains.Length;
         }
 
         void OnEnable()
         {
             if (!enabled)
                 return;
-            _hive.Tab.onClick.AddListener(OpenHive);
-            _queen.Tab.onClick.AddListener(OpenQueen);
             _backButton.onClick.AddListener(Close);
             _buyButton.onClick.AddListener(Buy);
-            Hook(_hive, _hiveHandlers, _hivePortalHandlers, true);
-            Hook(_queen, _queenHandlers, _queenPortalHandlers, true);
+            for (int i = 0; i < _nodeHandlers.Length; i++)
+                _tree.Nodes[i].Button.onClick.AddListener(_nodeHandlers[i]);
             for (int i = 0; i < _amountButtons.Length; i++)
                 _amountButtons[i].onClick.AddListener(_amountHandlers[i]);
-            // Toda abertura começa enquadrando a câmara central.
-            _hive.Viewport.ResetView();
-            _queen.Viewport.ResetView();
+            // Toda abertura começa enquadrando a Câmara real, no topo.
+            _tree.Viewport.ResetView();
         }
 
         void OnDisable()
         {
-            if (_hiveHandlers == null)
+            if (_nodeHandlers == null)
                 return;
-            _hive.Tab.onClick.RemoveListener(OpenHive);
-            _queen.Tab.onClick.RemoveListener(OpenQueen);
             _backButton.onClick.RemoveListener(Close);
             _buyButton.onClick.RemoveListener(Buy);
-            Hook(_hive, _hiveHandlers, _hivePortalHandlers, false);
-            Hook(_queen, _queenHandlers, _queenPortalHandlers, false);
+            for (int i = 0; i < _nodeHandlers.Length; i++)
+                _tree.Nodes[i].Button.onClick.RemoveListener(_nodeHandlers[i]);
             for (int i = 0; i < _amountButtons.Length; i++)
                 _amountButtons[i].onClick.RemoveListener(_amountHandlers[i]);
         }
 
-        static void Hook(TabView view, UnityAction[] nodes, UnityAction[] portals, bool add)
-        {
-            for (int i = 0; i < nodes.Length; i++)
-            {
-                if (add)
-                    view.Nodes[i].Button.onClick.AddListener(nodes[i]);
-                else
-                    view.Nodes[i].Button.onClick.RemoveListener(nodes[i]);
-            }
-            for (int i = 0; i < portals.Length; i++)
-            {
-                if (add)
-                    view.Portals[i].Button.onClick.AddListener(portals[i]);
-                else
-                    view.Portals[i].Button.onClick.RemoveListener(portals[i]);
-            }
-        }
-
-        void OpenHive() { _tab = UpgradeTab.Hive; _message = ""; }
-
-        void OpenQueen() { _tab = UpgradeTab.Queen; _message = ""; }
-
         void Close() => gameObject.SetActive(false);
 
-        void Select(UpgradeTab tab, int index, bool center)
+        void Select(int index)
         {
-            _tab = tab;
-            if (tab == UpgradeTab.Hive)
-                _selectedHive = index;
-            else
-                _selectedQueen = index;
+            _selected = index;
             _message = "";
-            if (center)
-            {
-                UpgradeDef def = Selected;
-                Positions(tab).TryGetValue(def.Id, out Vector2 position);
-                View(tab).Viewport.CenterOn(position);
-            }
         }
 
-        /// <summary>Portal: troca de aba e centraliza no nó exigido.</summary>
-        void GoTo(string id)
-        {
-            UpgradeDef target = UpgradeCatalog.Find(id);
-            if (target == null || target.IsCenter)
-                return;
-            int index = Defs(target.Tab).IndexOf(target);
-            if (index >= 0)
-                Select(target.Tab, index, center: true);
-        }
-
-        TabView View(UpgradeTab tab) => tab == UpgradeTab.Hive ? _hive : _queen;
-        List<UpgradeDef> Defs(UpgradeTab tab) => tab == UpgradeTab.Hive ? _hiveDefs : _queenDefs;
-        Dictionary<string, Vector2> Positions(UpgradeTab tab) => tab == UpgradeTab.Hive ? _hivePositions : _queenPositions;
-        UpgradeDef Selected => _tab == UpgradeTab.Hive ? _hiveDefs[_selectedHive] : _queenDefs[_selectedQueen];
+        UpgradeDef Selected => _defs[_selected];
 
         void Buy()
         {
@@ -329,21 +257,16 @@ namespace Fabula.Incrementant.UI
             if (colony == null)
                 return;
             _board.Refresh(colony.Tree, colony.RaidsSurvived, colony.Ants.Count, colony.Galleries);
-            bool hive = _tab == UpgradeTab.Hive;
-            _hive.Page.SetActive(hive);
-            _queen.Page.SetActive(!hive);
-            _hive.TabImage.sprite = hive ? _tabActive : _tabInactive;
-            _queen.TabImage.sprite = hive ? _tabInactive : _tabActive;
             _nutrients.text = Loc.T("hud.nutrients.value", colony.Nutrients);
             if (_depth != null)
                 _depth.text = Loc.T("tree.depth", _board.Depth);
-            RefreshTab(hive ? _hive : _queen, Defs(_tab), hive ? _selectedHive : _selectedQueen);
+            RefreshTree(_tree, _defs, _selected);
             RefreshDetail(colony, Selected);
         }
 
         // ---------------------------------------------------------------- árvore
 
-        void RefreshTab(TabView view, List<UpgradeDef> defs, int selected)
+        void RefreshTree(TreeView view, List<UpgradeDef> defs, int selected)
         {
             view.Root?.Apply(SkillNodeState.Acquired, false, _diamondAcquired, _diamondAvailable, _diamondLocked, _diamondRoot);
             for (int i = 0; i < defs.Count; i++)
@@ -351,18 +274,40 @@ namespace Fabula.Incrementant.UI
                 UpgradeDef def = defs[i];
                 SkillNodeWidget widget = view.Nodes[i];
                 widget.Apply(StateOf(def), i == selected, _diamondAcquired, _diamondAvailable, _diamondLocked, _diamondRoot);
-                widget.SetBuried(!_board.RingOpen(def.Ring) && !UpgradeBoard.IgnoresRing(def));
+                widget.SetBuried(!_board.TierOpen(def.Tier) && !UpgradeBoard.IgnoresTier(def));
                 if (def.Kind == UpgradeKind.Gallery)
                     widget.SetLevel(LevelText(def));
             }
             RefreshLinks(view, defs, selected);
             RefreshLegend();
-            for (int ring = 0; ring < view.Rings.Length; ring++)
+            for (int tier = 0; tier < view.TierShades.Length; tier++)
             {
-                bool closed = !_board.RingOpen(ring + 1);
-                view.Rings[ring].enabled = closed;
-                view.Rings[ring].color = _closedRing;
-                view.RingLabels[ring].text = closed ? Loc.T("tree.ring.closed", UpgradeCatalog.DepthToOpen(ring + 1)) : "";
+                bool closed = !_board.TierOpen(tier);
+                view.TierShades[tier].enabled = closed;
+                view.TierShades[tier].color = _closedTier;
+                view.TierWarnings[tier].text = closed ? Loc.T("tree.ring.closed", UpgradeCatalog.DepthToOpenTier(tier)) : "";
+                view.TierLabels[tier].text = tier == 0 ? Loc.T("tree.root.hive") : Loc.T("tree.tier", tier);
+            }
+            RefreshHalls(view, defs);
+        }
+
+        /// <summary>Nome do domínio e quantos nós dele o jogador já tem (câmara comprada ou galeria com nível).</summary>
+        void RefreshHalls(TreeView view, List<UpgradeDef> defs)
+        {
+            bool language = _hallLanguage != Loc.Code;
+            _hallLanguage = Loc.Code;
+            for (int c = 0; c < _domainNodes.Length; c++)
+            {
+                int owned = 0;
+                foreach (int i in _domainNodes[c])
+                    if (_board.Owns(defs[i]) || defs[i].Kind == UpgradeKind.Gallery && _board.Level(defs[i]) > 0)
+                        owned++;
+                if (owned == _hallOwned[c] && !language)
+                    continue;
+                _hallOwned[c] = owned;
+                string name = Loc.DomainName(UpgradeCatalog.Domains[c].Domain);
+                int total = _domainNodes[c].Count;
+                view.HallLabels[c].text = total == 0 ? name : $"{name}  {owned}/{total}";
             }
         }
 
@@ -370,7 +315,7 @@ namespace Fabula.Incrementant.UI
         /// Cor de cada ligação pelo estado; as do nó selecionado pulsam: verde no requisito que o jogador já tem, vermelho no
         /// que falta e azul no que o nó libera. As destacadas vão para a frente das outras (o mesmo túnel leva várias linhas).
         /// </summary>
-        void RefreshLinks(TabView view, List<UpgradeDef> defs, int selected)
+        void RefreshLinks(TreeView view, List<UpgradeDef> defs, int selected)
         {
             bool reorder = view.Highlighted != selected;
             view.Highlighted = selected;
@@ -393,6 +338,8 @@ namespace Fabula.Incrementant.UI
                           : parentOk && UpgradeBoard.HasSystem(child) ? _linkAvailable
                           : _linkLocked;
                 }
+                // Ligações entre colunas (e as da raiz) só aparecem com o nó selecionado, para a árvore não virar um novelo.
+                link.Path.enabled = highlight || !link.Cross;
                 color = highlight ? Pulse(color) : color;
                 color.a = 1f;
                 link.Path.color = color;
@@ -554,8 +501,8 @@ namespace Fabula.Incrementant.UI
                 parts.Append("<color=").Append(_board.Meets(r) ? MetColor : MissingColor).Append('>').Append(NameOf(target));
                 if (r.Level > 0)
                     parts.Append(' ').Append(Loc.T("tree.level.open", r.Level));
-                if (target.Tab != def.Tab)
-                    parts.Append(" (").Append(Loc.T(target.Tab == UpgradeTab.Hive ? "tree.tab.hive" : "tree.tab.queen")).Append(')');
+                if (target.Domain != def.Domain && target.Domain != UpgradeDomain.Root)
+                    parts.Append(" (").Append(Loc.DomainName(target.Domain)).Append(')');
                 parts.Append("</color>");
             }
             if (def.Condition != UpgradeCondition.None)
@@ -565,9 +512,9 @@ namespace Fabula.Incrementant.UI
                 parts.Append("<color=").Append(_board.ConditionMet(def.Condition) ? MetColor : MissingColor).Append('>')
                      .Append(Loc.T(ConditionKey(def.Condition))).Append("</color>");
             }
-            if (!_board.RingOpen(def.Ring) && !UpgradeBoard.IgnoresRing(def))
+            if (!_board.TierOpen(def.Tier) && !UpgradeBoard.IgnoresTier(def))
                 parts.Append(", <color=").Append(MissingColor).Append('>')
-                     .Append(Loc.T("tree.depth", UpgradeCatalog.DepthToOpen(def.Ring))).Append("</color>");
+                     .Append(Loc.T("tree.depth", UpgradeCatalog.DepthToOpenTier(def.Tier))).Append("</color>");
             _text.Append(Loc.T("tree.requires", parts.ToString()));
         }
 

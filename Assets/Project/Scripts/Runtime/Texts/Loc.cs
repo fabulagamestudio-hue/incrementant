@@ -125,6 +125,11 @@ namespace Fabula.Incrementant.Texts
 
         public static string UpgradeEffect(string id) => T("upgrade." + id + ".effect");
 
+        /// <summary>Chave do nome de um domínio (coluna) do formigueiro da tela Evolução (documento 46).</summary>
+        public static string DomainKey(Upgrades.UpgradeDomain domain) => "domain." + domain.ToString().ToLowerInvariant();
+
+        public static string DomainName(Upgrades.UpgradeDomain domain) => T(DomainKey(domain));
+
         /// <summary>Texto da chave no idioma atual (o modelo cru, com os <c>{0}</c> ainda no lugar).</summary>
         public static string T(string key)
         {

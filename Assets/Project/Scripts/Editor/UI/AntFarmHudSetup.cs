@@ -879,10 +879,9 @@ namespace Fabula.Incrementant.EditorTools.UI
         }
 
         /// <summary>
-        /// Tela de evolução em tela cheia (referência <c>22-arvore-formigueiro-radial.png</c>): fundo de terra, título,
-        /// nutrientes, VOLTAR, abas, a árvore do formigueiro (só exibição), a da rainha e classes, painel de detalhe e
-        /// legenda. Fica por último sob o canvas para cobrir o resto do HUD. Os nós seguem a ordem de
-        /// <see cref="QueenNode"/> e de <see cref="HiveTreeInfo.All"/>, que é o que o <see cref="SkillTreeScreen"/> espera.
+        /// Tela de evolução em tela cheia: fundo de terra, título, nutrientes, VOLTAR, o formigueiro em níveis (documento 46),
+        /// painel de detalhe e legenda. Fica por último sob o canvas para cobrir o resto do HUD. Os nós seguem a ordem de
+        /// <see cref="SkillTreeScreen.NodesOf"/>, que é o que o <see cref="SkillTreeScreen"/> espera.
         /// </summary>
         static GameObject BuildTreeScreen(Transform root, AntFarmGame game)
         {
@@ -918,25 +917,9 @@ namespace Fabula.Incrementant.EditorTools.UI
             Image rule = BuildPlain(screen, "Linha", new Color(0.45f, 0.36f, 0.26f, 0.9f));
             PlaceTop(rule.rectTransform, new Vector2(70, 118), new Vector2(1780, 2));
 
-            // --- abas
-            Button hiveTab = BuildKitButton(screen, "AbaFormigueiro", "Tabs/tab_inactive", new Vector2(70, 140), new Vector2(340, 60),
-                                            "FORMIGUEIRO", Ink, TextMedium, out Image hiveTabImage);
-            Button queenTab = BuildKitButton(screen, "AbaRainha", "Tabs/tab_active", new Vector2(430, 140), new Vector2(440, 60),
-                                             "RAINHA E CLASSES", Ink, TextMedium, out Image queenTabImage);
-            SetObject(so, "_hive.Tab", hiveTab);
-            SetObject(so, "_hive.TabImage", hiveTabImage);
-            SetObject(so, "_queen.Tab", queenTab);
-            SetObject(so, "_queen.TabImage", queenTabImage);
-            SetObject(so, "_tabActive", LoadKit("Tabs/tab_active"));
-            SetObject(so, "_tabInactive", LoadKit("Tabs/tab_inactive"));
-
-            // --- páginas
-            Transform hivePage = BuildPage(screen, "PaginaFormigueiro");
-            Transform queenPage = BuildPage(screen, "PaginaRainha");
-            SetObject(so, "_hive.Page", hivePage.gameObject);
-            SetObject(so, "_queen.Page", queenPage.gameObject);
-            BuildUpgradePage(queenPage, Fabula.Incrementant.Upgrades.UpgradeTab.Queen, so, "_queen");
-            BuildUpgradePage(hivePage, Fabula.Incrementant.Upgrades.UpgradeTab.Hive, so, "_hive");
+            // --- o formigueiro (documento 46: uma tela só, sem abas)
+            Transform page = BuildPage(screen, "PaginaFormigueiro");
+            BuildAnthillPage(page, so, "_tree");
 
             // --- detalhe do nó escolhido (canto inferior direito)
             Image detail = BuildKitImage(screen, "Detalhe", "Panels/skill_details_panel", new Vector2(1, 0), new Vector2(1, 0),
@@ -1084,7 +1067,7 @@ namespace Fabula.Incrementant.EditorTools.UI
             return widget;
         }
 
-        static void WriteLinks(SerializedObject so, string field, System.Collections.Generic.List<(TunnelPathGraphic path, int parent, int child)> links)
+        static void WriteLinks(SerializedObject so, string field, System.Collections.Generic.List<(TunnelPathGraphic path, int parent, int child, bool cross)> links)
         {
             SerializedProperty list = so.FindProperty(field);
             list.arraySize = links.Count;
@@ -1094,6 +1077,7 @@ namespace Fabula.Incrementant.EditorTools.UI
                 element.FindPropertyRelative("Path").objectReferenceValue = links[i].path;
                 element.FindPropertyRelative("Parent").intValue = links[i].parent;
                 element.FindPropertyRelative("Child").intValue = links[i].child;
+                element.FindPropertyRelative("Cross").boolValue = links[i].cross;
             }
         }
 

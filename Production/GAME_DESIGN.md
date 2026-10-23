@@ -24,6 +24,7 @@ Conceito informado pelo desenvolvedor em 2026-10-17: formigueiro visto de lado, 
 | GD-011 | Fazenda de pulgões e fazendeira: regras, números e desbloqueio | IMPLEMENTED | UNDEFINED | Decisões do desenvolvedor em 2026-10-22 (origem, cochos, cogumelo, pulgão preto); números assumidos pelo agente ([FarmGuide.md](../Assets/Project/Scripts/Runtime/Colony/FarmGuide.md)) | REQ-061 | 2026-10-22 |
 | GD-012 | Exterior: biomas laterais com insumos únicos e postos avançados | IN_PROGRESS | UNDEFINED | Direção decidida pelo desenvolvedor em 2026-10-23; [Documento 44](../Docs/02_World_Art_UI/44_Biomas_da_superficie_e_postos_avancados.md) | REQ-070 | 2026-10-23 |
 | GD-013 | Mundo pequeno no molde do Terraria, minérios, fundição, forja e equipamento | IN_PROGRESS | UNDEFINED | Direção decidida pelo desenvolvedor em 2026-10-23; [Documento 45](../Docs/01_Design/45_Minerios_fundicao_forja_e_equipamento.md) | REQ-071 | 2026-10-23 |
+| GD-014 | Árvore de evolução como formigueiro: domínios, níveis e túneis por valor | IN_PROGRESS | UNDEFINED | Direção aprovada pelo desenvolvedor em 2026-10-23; [Documento 46](../Docs/01_Design/46_Arvore_de_evolucao_em_niveis_e_tuneis.md) | REQ-073, REQ-039 | 2026-10-23 |
 | GD-006 | Documento de design revisado organizado em Markdown | VERIFIED | UNDEFINED | Conferência automática em 2026-10-17: 38 seções, 507 parágrafos, 28 tabelas, 209 linhas e 604 células preservados; 156 links locais válidos. [Índice e conferência](../Docs/README.md) | REQ-009 | 2026-10-17 |
 
 ## Detalhes
@@ -75,6 +76,10 @@ Decidido pelo desenvolvedor em 2026-10-23 (REQ-070), entre três opções do age
 ### GD-013 — Mundo pequeno no molde do Terraria, minérios, fundição, forja e equipamento
 
 Decidido pelo desenvolvedor em 2026-10-23 (REQ-071): sem oceano, masmorra e mal; biomas extras areal (deserto) e fruteira (selva); três minérios (cobre, ferro, ouro) em veios; fundição com serapilheira como combustível; forja; armazéns de ferramentas/armas e de roupas/armaduras; a formiga equipa o item do papel dela. Números e regras do documento 45 são suposições do agente, a aprovar. Mudança do agente na implementação, a aprovar: a fundição e a forja transformam sozinhas, com o tempo, e as formigas só fazem a logística. Em aberto: fruto da fruteira, lugar nas melhorias, uso próprio das roupas.
+
+### GD-014 — Árvore de evolução como formigueiro: domínios, níveis e túneis por valor
+
+Direção aprovada pelo desenvolvedor em 2026-10-23 (REQ-073): uma tela só, descendo da rainha; domínios (sala + classes) em colunas; níveis por progresso esperado; cada upgrade no nível do seu valor, com o túnel do domínio descendo até ele (ex.: armadura das formigas no domínio Formigas, no nível da forja). O documento 46 distribui os 123 nós atuais (níveis = anéis atuais; só O+2 desce, por exigir B1) e propõe os domínios Minérios e Forja. Substitui as abas e o layout radial do documento 39. Em aberto: limite do nível 5, ordem das colunas, nós e custos da forja e dos minérios. Documento aprovado pelo desenvolvedor em 2026-10-23; etapa 1 (dados) implementada em PRG-078.
 
 ## Riscos e bloqueios
 

@@ -2,6 +2,8 @@
 
 Documento novo do projeto, criado em 2026-10-19 a pedido do desenvolvedor. **Aprovado pelo desenvolvedor em 2026-10-19: níveis repetíveis e os valores sugeridos da planilha.** Os valores ainda não foram testados em jogo e nada foi construído. Os números (custos, crescimento, efeito por nível, tetos) ficam na planilha [39_Melhorias_incrementais_valores.xlsx](../04_Data/39_Melhorias_incrementais_valores.xlsx); quando este texto e a planilha divergirem num número, vale a planilha.
 
+**Desde 2026-10-23, as duas abas, o layout radial e os anéis deste documento são substituídos pelo [documento 46](46_Arvore_de_evolucao_em_niveis_e_tuneis.md)** (domínios, níveis e túneis). Câmaras, galerias, marcos e fórmulas continuam valendo daqui.
+
 [Índice da documentação](../README.md)
 
 > Este documento **amplia** as seções 17 a 28. Ele não as substitui: os nós já descritos nelas (P0, T0, C0–C4, B0–B3, D0–D2, R0–R1, Q0–Q2, O0–O3, L0–L3, F0–F1, E0–E2, J0–J2, N0–N2, S0–S3) continuam com o mesmo id, efeito e custo. A regra da seção 28 ("uma compra por nó, sem níveis infinitos") foi revista pelo desenvolvedor em 2026-10-19: níveis repetíveis passam a valer, como descrito aqui. Registro em [Production/GAME_DESIGN.md](../../Production/GAME_DESIGN.md).

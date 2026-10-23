@@ -5,107 +5,157 @@ using UnityEngine;
 namespace Fabula.Incrementant.Upgrades
 {
     /// <summary>
-    /// Posição de cada nó no formigueiro radial da tela Evolução (documento 39, "O padrão formigueiro"): a câmara central
-    /// na origem, um túnel por ramo (8 direções a 45°, o primeiro logo à direita do topo, em sentido horário) e um anel por
-    /// profundidade. Os nós de um mesmo ramo e anel formam uma grade de no máximo duas colunas ao lado do eixo do túnel,
-    /// com as câmaras antes das galerias; em cada linha, o nó cujo pai fica mais para um lado ocupa a coluna desse lado, para as
-    /// linhas de dependência cruzarem menos. Coordenadas em pixels de UI, y para cima, centro da árvore em (0, 0).
+    /// Formigueiro em corte da tela Evolução (documento 46): a Câmara real no topo, uma galeria horizontal logo abaixo dela e
+    /// uma coluna por domínio (<see cref="UpgradeCatalog.Domains"/>) que desce da galeria. Cada nível do formigueiro
+    /// (<see cref="UpgradeDef.Tier"/>) é uma faixa horizontal; na faixa do nível de origem fica o salão do domínio (o rótulo) e,
+    /// em cada nível com nós do domínio, uma câmara lateral com os nós em grade de até duas colunas (câmaras antes das
+    /// galerias; o nó cujos pais ficam mais para um lado vai para a coluna desse lado). Coordenadas em pixels de UI, y para
+    /// cima, topo do conteúdo em y = 0 e a coluna do meio em x = 0.
     /// </summary>
-    public static class UpgradeLayout
+    public sealed class UpgradeLayout
     {
-        public const float FirstRingRadius = 420f;
-        public const float RingStep = 380f;
-        /// <summary>Distância entre linhas (no sentido do raio) e entre as duas colunas (no sentido do anel).</summary>
+        public const float ColumnWidth = 420f;
+        /// <summary>Distância entre linhas e entre as duas colunas de uma câmara lateral.</summary>
         public const float RowSpacing = 140f;
-        public const float ColumnSpacing = 130f;
-        public const int BranchCount = 8;
+        public const float NodeSpacing = 130f;
+        /// <summary>Folga da faixa acima dos nós (cabe o salão do domínio) e abaixo deles.</summary>
+        public const float BandTop = 170f, BandBottom = 70f;
+        /// <summary>
+        /// Faixa do nível 0: a Câmara real sozinha no topo, a galeria abaixo dela e, pendurados na galeria como as outras
+        /// colunas, os salões dos domínios ligados à raiz (<see cref="RootHallY"/>).
+        /// </summary>
+        public const float RootBandHeight = 540f;
+        public const float RootY = -150f, GalleryY = -330f, RootHallY = -440f;
+        /// <summary>Distância do topo da faixa ao centro do salão do domínio.</summary>
+        public const float HallDrop = 85f;
+        /// <summary>Margem lateral (à esquerda cabem os rótulos dos níveis, antes do salão da primeira coluna) e embaixo.</summary>
+        public const float SideMargin = 660f, BottomMargin = 160f;
+        /// <summary>Largura do rótulo do nível, alinhado à esquerda a partir da borda do conteúdo.</summary>
+        public const float TierLabelWidth = 380f, TierLabelInset = 40f;
 
-        /// <summary>Raio do meio do anel (1 a 4).</summary>
-        public static float RingRadius(int ring) => ring <= 0 ? 0f : FirstRingRadius + RingStep * (ring - 1);
+        readonly Dictionary<string, Vector2> _positions = new Dictionary<string, Vector2>();
+        readonly float[] _tierTop;
+        readonly float[] _tierBottom;
+        readonly Dictionary<UpgradeDomain, int> _column = new Dictionary<UpgradeDomain, int>();
 
-        /// <summary>Raio da borda externa do anel: os anéis se encostam no meio do caminho entre os centros.</summary>
-        public static float RingOuterRadius(int ring) => ring <= 0 ? FirstRingRadius - RingStep * 0.5f : RingRadius(ring) + RingStep * 0.5f;
+        /// <summary>Posição de cada nó (os da raiz ficam todos na Câmara real).</summary>
+        public IReadOnlyDictionary<string, Vector2> Positions => _positions;
+        public Vector2 Root { get; }
+        /// <summary>Retângulo do conteúdo inteiro, com margem: o que a janela pode mostrar.</summary>
+        public Rect Bounds { get; }
 
-        /// <summary>Direção do túnel do ramo (vetor unitário, y para cima).</summary>
-        public static Vector2 BranchDirection(int branch)
+        public float TierTop(int tier) => _tierTop[tier];
+        public float TierBottom(int tier) => _tierBottom[tier];
+        public int Column(UpgradeDomain domain) => _column[domain];
+        public static float ColumnX(int column) => (column - (UpgradeCatalog.Domains.Length - 1) * 0.5f) * ColumnWidth;
+        public float DomainX(UpgradeDomain domain) => ColumnX(_column[domain]);
+        /// <summary>Centro do salão do domínio, no nível de origem dele (no nível 0, abaixo da galeria).</summary>
+        public Vector2 Hall(UpgradeDomain domain)
         {
-            float angle = (90f - (branch + 0.5f) * (360f / BranchCount)) * Mathf.Deg2Rad;
-            return new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+            int origin = UpgradeCatalog.OriginTier(domain);
+            return new Vector2(DomainX(domain), origin == 0 ? RootHallY : _tierTop[origin] - HallDrop);
         }
 
-        /// <summary>Posições dos nós da aba (os da câmara central ficam todos em (0, 0)).</summary>
-        public static Dictionary<string, Vector2> Positions(UpgradeTab tab)
+        public UpgradeLayout()
         {
-            var result = new Dictionary<string, Vector2>();
-            var groups = new Dictionary<int, List<UpgradeDef>>();
-            foreach (UpgradeDef def in UpgradeCatalog.OfTab(tab))
+            UpgradeDomainDef[] domains = UpgradeCatalog.Domains;
+            for (int c = 0; c < domains.Length; c++)
+                _column[domains[c].Domain] = c;
+
+            // Câmaras laterais: (domínio, nível) → nós, câmaras antes das galerias, na ordem da tabela.
+            var groups = new Dictionary<(UpgradeDomain, int), List<UpgradeDef>>();
+            int tiers = UpgradeCatalog.TierCount;
+            var rows = new int[tiers];
+            foreach (UpgradeDef def in UpgradeCatalog.All)
             {
-                if (def.IsCenter)
-                {
-                    result[def.Id] = Vector2.zero;
+                if (def.Domain == UpgradeDomain.Root)
                     continue;
-                }
-                int key = def.Branch * 10 + def.Ring;
-                if (!groups.TryGetValue(key, out List<UpgradeDef> list))
-                    groups[key] = list = new List<UpgradeDef>();
+                if (!groups.TryGetValue((def.Domain, def.Tier), out List<UpgradeDef> list))
+                    groups[(def.Domain, def.Tier)] = list = new List<UpgradeDef>();
                 list.Add(def);
             }
-            // Do anel mais raso ao mais fundo: a ordem das colunas olha a posição dos pais, que precisam estar prontos antes.
-            var keys = new List<int>(groups.Keys);
-            keys.Sort((a, b) => a % 10 != b % 10 ? (a % 10).CompareTo(b % 10) : a.CompareTo(b));
-            foreach (int key in keys)
+            foreach (KeyValuePair<(UpgradeDomain, int), List<UpgradeDef>> pair in groups)
             {
-                List<UpgradeDef> list = groups[key];
-                // Câmaras primeiro (mais perto do centro e do eixo), galerias depois; a ordem da tabela desempata.
-                var ordered = new List<UpgradeDef>(list.Count);
-                foreach (UpgradeDef def in list)
-                    if (def.Kind == UpgradeKind.Chamber)
-                        ordered.Add(def);
-                foreach (UpgradeDef def in list)
-                    if (def.Kind == UpgradeKind.Gallery)
-                        ordered.Add(def);
-                Place(ordered, key / 10, key % 10, result);
+                pair.Value.Sort((a, b) => a.Kind != b.Kind ? a.Kind.CompareTo(b.Kind) : IndexOf(a).CompareTo(IndexOf(b)));
+                rows[pair.Key.Item2] = Math.Max(rows[pair.Key.Item2], (pair.Value.Count + 1) / 2);
             }
-            return result;
+
+            // Faixas dos níveis, de cima para baixo; um nível sem nós ainda tem a altura de uma linha.
+            _tierTop = new float[tiers];
+            _tierBottom = new float[tiers];
+            float y = 0f;
+            for (int t = 0; t < tiers; t++)
+            {
+                _tierTop[t] = y;
+                y -= t == 0 ? RootBandHeight : BandTop + Math.Max(1, rows[t]) * RowSpacing + BandBottom;
+                _tierBottom[t] = y;
+            }
+
+            // A raiz fica sobre as colunas dos domínios ligados a ela (salão no nível 0).
+            float sum = 0f;
+            int count = 0;
+            foreach (UpgradeDomainDef d in domains)
+                if (d.OriginTier == 0)
+                {
+                    sum += DomainX(d.Domain);
+                    count++;
+                }
+            Root = new Vector2(count > 0 ? sum / count : 0f, RootY);
+            foreach (UpgradeDef def in UpgradeCatalog.All)
+                if (def.Domain == UpgradeDomain.Root)
+                    _positions[def.Id] = Root;
+
+            // Do nível mais raso ao mais fundo: a coluna de cada nó olha a posição dos pais, que precisam estar prontos antes.
+            for (int t = 1; t < tiers; t++)
+                foreach (UpgradeDomainDef d in domains)
+                    if (groups.TryGetValue((d.Domain, t), out List<UpgradeDef> list))
+                        Place(list, DomainX(d.Domain), (_tierTop[t] - BandTop + _tierBottom[t] + BandBottom) * 0.5f);
+
+            float half = ColumnX(domains.Length - 1) + SideMargin;
+            Bounds = Rect.MinMaxRect(-half, _tierBottom[tiers - 1] - BottomMargin, half, 0f);
         }
 
-        static void Place(List<UpgradeDef> nodes, int branch, int ring, Dictionary<string, Vector2> result)
+        static int IndexOf(UpgradeDef def)
         {
-            Vector2 axis = BranchDirection(branch);
-            var side = new Vector2(axis.y, -axis.x); // perpendicular, no sentido horário
+            IReadOnlyList<UpgradeDef> all = UpgradeCatalog.All;
+            for (int i = 0; i < all.Count; i++)
+                if (all[i] == def)
+                    return i;
+            return -1;
+        }
+
+        void Place(List<UpgradeDef> nodes, float axisX, float centerY)
+        {
             int columns = nodes.Count == 1 ? 1 : 2;
             if (columns == 2)
                 for (int i = 0; i + 1 < nodes.Count; i += 2)
-                    if (ParentSide(nodes[i], side, result) > ParentSide(nodes[i + 1], side, result) + 1f)
+                    if (ParentSide(nodes[i], axisX) > ParentSide(nodes[i + 1], axisX) + 1f)
                         (nodes[i], nodes[i + 1]) = (nodes[i + 1], nodes[i]);
             int rows = (nodes.Count + columns - 1) / columns;
             for (int i = 0; i < nodes.Count; i++)
             {
                 int row = i / columns;
                 int column = i % columns;
-                // A última linha com um nó só fica no eixo.
+                // A última linha com um nó só fica no eixo do túnel.
                 int inRow = Math.Min(columns, nodes.Count - row * columns);
-                float lateral = inRow == 1 ? 0f : (column - 0.5f) * ColumnSpacing;
-                float radius = RingRadius(ring) + (row - (rows - 1) * 0.5f) * RowSpacing;
-                result[nodes[i].Id] = axis * radius + side * lateral;
+                float lateral = inRow == 1 ? 0f : (column - 0.5f) * NodeSpacing;
+                float down = (row - (rows - 1) * 0.5f) * RowSpacing;
+                _positions[nodes[i].Id] = new Vector2(axisX + lateral, centerY - down);
             }
         }
 
-        /// <summary>Média do deslocamento lateral (no sentido de <paramref name="side"/>) dos pais já posicionados; 0 sem pais.</summary>
-        static float ParentSide(UpgradeDef def, Vector2 side, Dictionary<string, Vector2> placed)
+        /// <summary>Média do deslocamento em x dos pais já posicionados, em relação ao eixo; 0 sem pais.</summary>
+        float ParentSide(UpgradeDef def, float axisX)
         {
             float sum = 0f;
             int count = 0;
             foreach (UpgradeRequirement r in def.Requires)
-                if (placed.TryGetValue(r.Id, out Vector2 p))
+                if (_positions.TryGetValue(r.Id, out Vector2 p))
                 {
-                    sum += Vector2.Dot(p, side);
+                    sum += p.x - axisX;
                     count++;
                 }
             return count == 0 ? 0f : sum / count;
         }
-
-        /// <summary>Raio que cobre todos os nós da aba mais uma margem: o tamanho do conteúdo arrastável.</summary>
-        public static float ContentRadius() => RingOuterRadius(4) + 120f;
     }
 }

@@ -10,7 +10,7 @@ namespace Fabula.Incrementant.Upgrades
         Owned,
         /// <summary>Pode ser comprado agora (sistema existe, requisitos e saldo à parte).</summary>
         Available,
-        /// <summary>Falta requisito, condição ou o anel ainda está fechado.</summary>
+        /// <summary>Falta requisito, condição ou o nível ainda está fechado.</summary>
         Locked,
     }
 
@@ -18,7 +18,7 @@ namespace Fabula.Incrementant.Upgrades
     /// Estado dos nós do <see cref="UpgradeCatalog"/> lido a cada atualização da tela. Hoje só a árvore da rainha tem
     /// compra (<see cref="QueenTree"/>); os pincéis que já são livres contam como adquiridos e o resto (câmaras novas e
     /// todas as galerias) não tem sistema, então aparece como EM BREVE com nível 0. Por isso nada aqui vai para o save.
-    /// Os nós da rainha que já existem seguem as regras atuais mesmo dentro de um anel fechado (documento 39,
+    /// Os nós da rainha que já existem seguem as regras atuais mesmo dentro de um nível fechado (documento 39,
     /// "até serem implementados, o jogo segue os requisitos atuais").
     /// </summary>
     public sealed class UpgradeBoard
@@ -98,14 +98,15 @@ namespace Fabula.Incrementant.Upgrades
         public static bool HasSystem(UpgradeDef def) =>
             def.QueenNode.HasValue ? QueenTree.Def(def.QueenNode.Value).Implemented : LiveNodes.Contains(def.Id);
 
-        /// <summary>Nó da rainha que já existe: segue as regras antigas de compra, mesmo dentro de um anel fechado.</summary>
-        public static bool IgnoresRing(UpgradeDef def) => def.QueenNode.HasValue && HasSystem(def);
+        /// <summary>Nó da rainha que já existe: segue as regras antigas de compra, mesmo dentro de um nível fechado.</summary>
+        public static bool IgnoresTier(UpgradeDef def) => def.QueenNode.HasValue && HasSystem(def);
 
         /// <summary>Galeria com sistema e ainda abaixo do teto.</summary>
         public bool CanLevel(UpgradeDef def) =>
             def.Kind == UpgradeKind.Gallery && HasSystem(def) && (!def.Capped || Level(def) < def.Cap);
 
-        public bool RingOpen(int ring) => Depth >= UpgradeCatalog.DepthToOpen(ring);
+        /// <summary>Nível do formigueiro aberto pela profundidade (documento 46, "Níveis").</summary>
+        public bool TierOpen(int tier) => Depth >= UpgradeCatalog.DepthToOpenTier(tier);
 
         public bool Meets(UpgradeRequirement requirement)
         {
@@ -136,10 +137,10 @@ namespace Fabula.Incrementant.Upgrades
                 ? UpgradeStatus.Available : UpgradeStatus.Locked;
         }
 
-        /// <summary>Requisitos e condição atendidos e anel aberto (vale para o que ainda não tem sistema).</summary>
+        /// <summary>Requisitos e condição atendidos e nível aberto (vale para o que ainda não tem sistema).</summary>
         public bool Unlockable(UpgradeDef def)
         {
-            if (!RingOpen(def.Ring) || !ConditionMet(def.Condition))
+            if (!TierOpen(def.Tier) || !ConditionMet(def.Condition))
                 return false;
             foreach (UpgradeRequirement requirement in def.Requires)
                 if (!Meets(requirement))

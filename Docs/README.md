@@ -74,6 +74,7 @@ Os textos preservam a distinção original entre regras definidas, propostas de 
 | 37 | [Continuidade pausa e game over](01_Design/37_Continuidade_pausa_e_game_over.md) | Documento revisado de 2026-10-17; estado das definições preservado conforme a fonte |
 | 39 | [Melhorias incrementais e formigueiro de dependências](01_Design/39_Melhorias_incrementais_e_formigueiro_de_dependencias.md) | Documento do projeto de 2026-10-19 (REQ-039); proposta, sem balanceamento nem construção |
 | 45 | [Minérios fundição forja e equipamento](01_Design/45_Minerios_fundicao_forja_e_equipamento.md) | Documento do projeto de 2026-10-23 (REQ-071); direção decidida pelo desenvolvedor, números e regras marcados como suposição do agente |
+| 46 | [Árvore de evolução em níveis e túneis](01_Design/46_Arvore_de_evolucao_em_niveis_e_tuneis.md) | Documento do projeto de 2026-10-23 (REQ-073); direção aprovada pelo desenvolvedor, substitui as abas e o layout radial do 39; limites, colunas e nós novos marcados como suposição |
 
 ### 02_World_Art_UI/ — Mundo, arte, interface e áudio
 

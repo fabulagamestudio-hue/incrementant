@@ -90,6 +90,8 @@ Protótipo de viabilidade do formigário implementado: grade de pixels com físi
 | PRG-075 | Minérios em veios, fundição, forja, armazéns e equipamento das formigas; areal e fruteira nas pontas do mundo | IMPLEMENTED | UNDEFINED | [WorkshopGuide.md](../Assets/Project/Scripts/Runtime/Colony/WorkshopGuide.md); [BiomesGuide.md](../Assets/Project/Scripts/Runtime/World/BiomesGuide.md); `OreTests`, `WorkshopTests`, suíte EditMode e Play Mode em 2026-10-23 | REQ-071, GD-013, ART-027 | 2026-10-23 |
 | PRG-076 | Rachadura dos blocos golpeados: golpes na escavação, dano na célula e desenho no shader do terreno (etapa 1 do REQ-072) | VERIFIED | UNDEFINED | [AntColony.Hits.cs](../Assets/Project/Scripts/Runtime/Colony/AntColony.Hits.cs), [PixelGrid.Damage.cs](../Assets/Project/Scripts/Runtime/World/PixelGrid.Damage.cs), [AntFarmGuide.md](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md) ("Rachadura dos blocos"); `BlockCrackTests` (5) e suíte EditMode 474/475 (a falha era a máscara da rachadura; corrigida, `BlockCrackTests` 5/5); Play Mode pelo agente em 2026-10-23 | REQ-072, ART-030 | 2026-10-23 |
 | PRG-077 | Preenchimento vertical dos depósitos: pilha de itens iguais por célula, capacidade por depósito, vagas e contas em itens, save e desenho (etapa 2 do REQ-072) | VERIFIED | UNDEFINED | [StorageGuide.md](../Assets/Project/Scripts/Runtime/Colony/StorageGuide.md) ("Pilha por célula"); `StorageStackTests` (7) e suíte EditMode 482/482; Play Mode pelo agente em 2026-10-23 | REQ-072, PRG-076 | 2026-10-23 |
+| PRG-078 | Árvore de evolução em níveis, etapa 1 (dados): domínio e nível do formigueiro de cada nó, colunas e testes | VERIFIED | UNDEFINED | [UpgradeCatalog.cs](../Assets/Project/Scripts/Runtime/Upgrades/UpgradeCatalog.cs); suíte EditMode 489/489 em 2026-10-23 | REQ-073, GD-014 | 2026-10-23 |
+| PRG-079 | Árvore de evolução em níveis, etapa 2 (layout e tela): formigueiro numa tela só, colunas por domínio, faixas por nível, galeria e ligações entre colunas só na seleção | VERIFIED | UNDEFINED | [SkillTreeScreen.cs](../Assets/Project/Scripts/Runtime/UI/SkillTreeScreen.cs), [UpgradeLayout.cs](../Assets/Project/Scripts/Runtime/Upgrades/UpgradeLayout.cs); suíte EditMode 490/490 e Play Mode pelo agente em 2026-10-23 | REQ-073, GD-014, PRG-078 | 2026-10-23 |
 
 ## Detalhes
 
@@ -328,6 +330,35 @@ Pedido de 2026-10-23 (REQ-072, etapa 1). O tempo de soltar um bloco inteiro foi 
 ### PRG-077 — Preenchimento vertical dos depósitos
 
 Pedido de 2026-10-23 (REQ-072, etapa 2). A célula do depósito guarda uma pilha de itens iguais até a capacidade do depósito (`PixelGrid.SetItemsPerCell`, 1 por padrão), e cada item ocupa 1/capacidade da altura; as vagas, reservas, contas e a coleta da carregadora passaram a contar itens; save versão 27 com a pilha de cada célula; o shader cresce o objeto (ou corta o sprite) até a altura da pilha. Fundição, forja e armazéns não empilham. Validado por `StorageStackTests` (capacidade 1 igual a antes, dois iguais por célula com a melhoria, só iguais dividem, capacidade só para os itens do próprio depósito, pilha destruída por sólido, save, formigas enchendo o depósito duas por célula) e pela suíte EditMode 482/482; em Play Mode pelo agente, blocos e minério com meia altura e cheios. Falta o nó da melhoria nas árvores (o desenvolvedor vai trabalhar nelas no futuro): até lá, nada muda para o jogador. Como funciona: [StorageGuide.md](../Assets/Project/Scripts/Runtime/Colony/StorageGuide.md) ("Pilha por célula").
+
+### PRG-078 — Árvore de evolução em níveis, etapa 1 (dados)
+
+Etapa 1 do [documento 46](../Docs/01_Design/46_Arvore_de_evolucao_em_niveis_e_tuneis.md) (REQ-073): `UpgradeDomain`, `UpgradeDomainDef`, `UpgradeDef.Domain`/`Tier`, a tabela `Place` com os 123 nós (níveis = anéis, O+2 no 2), colunas em `UpgradeCatalog.Domains` e `DepthToOpenTier`. Sete testes novos em `UpgradeCatalogTests` (posição, túnel só desce, salão, 8 por câmara lateral, colunas, níveis, abertura). Suíte EditMode 489/489 na Unity em 2026-10-23 (TestResults de 19:57–20:04 UTC). Nada muda no jogo ainda: a tela, o layout e a compra seguem pelos anéis até as etapas 2 e 3. Como funciona: [UpgradesGuide](../Assets/Project/Scripts/Runtime/Upgrades/UpgradesGuide.md), "Formigueiro em níveis".
+
+### PRG-079 — Árvore de evolução em níveis, etapa 2 (layout e tela)
+
+Etapa 2 do [documento 46](../Docs/01_Design/46_Arvore_de_evolucao_em_niveis_e_tuneis.md) (REQ-073), feita em 2026-10-23:
+- `UpgradeLayout` em colunas e faixas (instância com `Positions`, `Bounds`, `Hall`, `TierTop`);
+- `SkillTreeScreen` numa tela só (`TreeView`: faixas dos níveis, salões com progresso, `Link.Cross` só na seleção);
+- `TreeViewport` preso a um retângulo;
+- `BuildAnthillPage`, com galeria, colunas e câmaras laterais limitadas à largura da coluna;
+- `UpgradeBoard.TierOpen` no lugar de `RingOpen`;
+- `RingGraphic` removido;
+- chaves `tree.tier` e `domain.*`.
+
+Evidências:
+- Play Mode pelo agente: abertura, visão afastada com os níveis fechados, seleção pelo botão e ligação entre colunas (J+2 → G0).
+- Suíte EditMode na Unity: 488/489. A falha era o teste de chaves achar o prefixo "tree.domain." no código; as chaves viraram `domain.*` (via `Loc.DomainName`) e ganharam o teste `EveryAnthillDomainHasItsName`.
+- Depois disso, o servidor MCP caiu junto com o SpaceFall e o uv não reinstalou o pacote (arquivo travado no cache). Os quatro projetos compilaram com `dotnet build` (0 erros) e `UpgradeCatalogTests` passou 25/25 fora da Unity.
+
+Fechamento, com o servidor MCP religado pelo desenvolvedor:
+- setup de localização rodado e as 15 chaves `tree.domain.*` órfãs apagadas da tabela;
+- Play Mode final: nomes dos domínios traduzidos e Q2 → B0 pela galeria;
+- suíte EditMode 490/490 (TestResults de 20:55–21:01 UTC).
+
+Pendente: os nós sumirem de longe (zoom), registrado no documento 46.
+
+Guia: [HudGuide](../Assets/Project/Scripts/Runtime/UI/HudGuide.md) ("Tela Evolução").
 
 ## Riscos e bloqueios
 

@@ -387,6 +387,23 @@ namespace Fabula.Incrementant.EditorTools.Localization
             Add(l, "tree.branch.hive.outside", "EXTERIOR", "OUTSIDE");
             Add(l, "tree.branch.hive.defense", "DEFESA", "DEFENSE");
             Add(l, "tree.root.hive", "CÂMARA REAL", "ROYAL CHAMBER");
+            // Formigueiro em níveis (documento 46): nível do formigueiro e nome de cada domínio (coluna).
+            Add(l, "tree.tier", "NÍVEL {0}", "LEVEL {0}");
+            Add(l, "domain.farm", "FAZENDA", "FARM");
+            Add(l, "domain.foraging", "COLETA", "FORAGING");
+            Add(l, "domain.cultivation", "CULTIVO", "CULTIVATION");
+            Add(l, "domain.dew", "ORVALHO", "DEW");
+            Add(l, "domain.nursery", "BERÇÁRIO", "NURSERY");
+            Add(l, "domain.queen", "RAINHA", "QUEEN");
+            Add(l, "domain.ants", "FORMIGAS", "ANTS");
+            Add(l, "domain.common", "OPERÁRIA", "WORKER");
+            Add(l, "domain.works", "OBRA", "WORKS");
+            Add(l, "domain.digging", "ESCAVAÇÃO", "DIGGING");
+            Add(l, "domain.storage", "DEPÓSITOS", "STORAGE");
+            Add(l, "domain.waste", "RESÍDUOS", "WASTE");
+            Add(l, "domain.guard", "GUARDA", "GUARD");
+            Add(l, "domain.ores", "MINÉRIOS", "ORES");
+            Add(l, "domain.forge", "FORJA", "FORGE");
             Add(l, "tree.controls", "ARRASTE PARA MOVER  ·  RODA DO MOUSE PARA ZOOM", "DRAG TO MOVE  ·  MOUSE WHEEL TO ZOOM");
             Add(l, "tree.max", "MÁX", "MAX");
             Add(l, "tree.depth", "PROFUNDIDADE {0}", "DEPTH {0}");

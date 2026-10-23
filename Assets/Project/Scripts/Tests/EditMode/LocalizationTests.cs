@@ -58,6 +58,15 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
+        public void EveryAnthillDomainHasItsName()
+        {
+            // As chaves dos domínios da tela Evolução são montadas por código (Loc.DomainKey), então o teste de cima não as acha.
+            var known = Collection.SharedData.Entries.Select(e => e.Key).ToHashSet();
+            foreach (Upgrades.UpgradeDomainDef d in Upgrades.UpgradeCatalog.Domains)
+                Assert.IsTrue(known.Contains(Loc.DomainKey(d.Domain)), d.Domain.ToString());
+        }
+
+        [Test]
         public void EveryGlossaryEntryHasItsTexts()
         {
             // As chaves do glossário são montadas por código (GlossaryContent), então o teste de cima não as acha.

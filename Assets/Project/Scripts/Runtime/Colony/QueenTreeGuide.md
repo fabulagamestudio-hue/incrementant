@@ -35,7 +35,7 @@ O que cada classe já fazia antes da árvore (velocidade da classe, escavar em m
 
 ## Tela Evolução
 
-Menu Colônia → EVOLUÇÃO → aba RAINHA E CLASSES (`SkillTreeScreen`, em tela cheia): formigueiro radial arrastável com os 26 nós desta árvore mais as câmaras e galerias novas do documento 39 ([UpgradesGuide](../Upgrades/UpgradesGuide.md)), detalhe do nó escolhido (nome, efeito, requisito) e o botão DESBLOQUEAR, que continua chamando `AntColony.TryBuy` com as regras desta árvore. Como a tela funciona, os estados visuais e a arte: [HudGuide](../UI/HudGuide.md) ("Tela Evolução"). Os nós da rainha usam ícones gerais, porque o kit de arte da árvore só tem os do formigueiro.
+Menu Colônia → EVOLUÇÃO (`SkillTreeScreen`, em tela cheia): desde 2026-10-23, um formigueiro em níveis numa tela só (documento 46), em que os nós desta árvore ficam nas colunas dos domínios (Rainha, Operária, Formigas, e as classes junto das salas delas: cuidadora no Berçário, jardineira e fazendeira no Cultivo e na Fazenda, carregadora nos Depósitos, soldado e cuspideira na Guarda, lixeira nos Resíduos). O botão DESBLOQUEAR continua chamando `AntColony.TryBuy` com as regras desta árvore. Como a tela funciona: [HudGuide](../UI/HudGuide.md) ("Tela Evolução"); posição de cada nó: [UpgradesGuide](../Upgrades/UpgradesGuide.md) ("Formigueiro em níveis").
 
 ## Como estender
 
