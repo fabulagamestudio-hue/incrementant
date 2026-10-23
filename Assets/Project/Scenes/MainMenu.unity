@@ -1204,11 +1204,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Fabula.Incrementant::Fabula.Incrementant.AntFarm.SurfaceSceneryView
   _art: {fileID: 11400000, guid: 168eaf7824c804b48b0ecfce60b4732b, type: 2}
   _settings:
-    _mushrooms: 0.25
-    _twigs: 0.25
-    _dryLeaves: 0.4
-    _pebbles: 4
-    _grains: 8
+    _litterTwigs: 1.2
+    _litterDryLeaves: 2
   _cellMaterial: {fileID: 2100000, guid: c56d89b471eac7f418fb9c5cb24924b9, type: 2}
   _skyTop:
     serializedVersion: 2
@@ -1228,6 +1225,7 @@ MonoBehaviour:
   _plantMarkStrength: 0.5
   _farParallax: 0.75
   _midParallax: 0.5
+  _twigKit: {fileID: 11400000, guid: 6f824301cd49b5346b1d81da2561e96c, type: 2}
 --- !u!4 &134993309
 Transform:
   m_ObjectHideFlags: 0
@@ -3132,6 +3130,27 @@ MonoBehaviour:
   _mushroomStoreColor:
     serializedVersion: 2
     rgba: 4292646600
+  _litterStoreColor:
+    serializedVersion: 2
+    rgba: 4281305046
+  _nectarStoreColor:
+    serializedVersion: 2
+    rgba: 4283487988
+  _oreStoreColor:
+    serializedVersion: 2
+    rgba: 4289369760
+  _smelterColor:
+    serializedVersion: 2
+    rgba: 4281495270
+  _forgeColor:
+    serializedVersion: 2
+    rgba: 4282140360
+  _armoryColor:
+    serializedVersion: 2
+    rgba: 4290683030
+  _wardrobeColor:
+    serializedVersion: 2
+    rgba: 4291335800
   _farmRoomColor:
     serializedVersion: 2
     rgba: 4286105740
@@ -3183,6 +3202,10 @@ MonoBehaviour:
   _tileDetail: 1
   _tileToneStrength: 0.5
   _grassOverhang: {fileID: 2800000, guid: 3def7123e0c6b9b4b8890d4dc138514f, type: 3}
+  _oreItemSprites:
+  - {fileID: 21300000, guid: 88064c7d4ead6c541bc474ee2c1ad85f, type: 3}
+  - {fileID: 21300000, guid: fcf585e405a5c4c4f96802bc2e5751b2, type: 3}
+  - {fileID: 21300000, guid: 891f96aba4a808a40abc4525b7a8bd0f, type: 3}
   _debugSignedDistance: 0
 --- !u!212 &647253885
 SpriteRenderer:
@@ -9475,7 +9498,6 @@ MonoBehaviour:
   _carriedOffsetTop: {x: 1.35, y: 0}
   _carriedSize: 1
   _carriedAsBlock: 1
-  _carriedEdgeDarkening: 0.5
   _carriedBroodOffset: {x: 2.4, y: 0.5}
   _nutrientColor:
     serializedVersion: 2
@@ -9488,6 +9510,10 @@ MonoBehaviour:
     rgba: 4290698992
   _nutrientSprite: {fileID: 21300000, guid: 471256a533937164bb387055f27ba1fc, type: 3}
   _waterSprite: {fileID: 21300000, guid: 3f9bbb428f632024abf33927946c6281, type: 3}
+  _oreSprites:
+  - {fileID: 21300000, guid: 88064c7d4ead6c541bc474ee2c1ad85f, type: 3}
+  - {fileID: 21300000, guid: fcf585e405a5c4c4f96802bc2e5751b2, type: 3}
+  - {fileID: 21300000, guid: 891f96aba4a808a40abc4525b7a8bd0f, type: 3}
   _queenScale: 2
   _layBarHeight: 3
   _layBarWidth: 8
@@ -10419,6 +10445,38 @@ MonoBehaviour:
     _chunkSize: 32
     _generationMargin: 24
     _skyHeadroom: 440
+    _biomes:
+      _litterOffset: 240
+      _litterWidth: 360
+      _flowerOffset: 240
+      _flowerWidth: 360
+      _blendWidth: 24
+      _edgeBiomes: 1
+      _randomSide: 1
+      _desertDepth: 40
+    _ores:
+      _copper:
+        _depth: {x: 12, y: 140}
+        _veinsPer1000Columns: 40
+        _length: {x: 6, y: 14}
+        _radius: {x: 3, y: 5.5}
+        _deepBias: 0
+        _scatterPer1000Columns: 8
+      _iron:
+        _depth: {x: 60, y: 300}
+        _veinsPer1000Columns: 30
+        _length: {x: 6, y: 14}
+        _radius: {x: 3, y: 5.5}
+        _deepBias: 0
+        _scatterPer1000Columns: 8
+      _gold:
+        _depth: {x: 180, y: 0}
+        _veinsPer1000Columns: 40
+        _length: {x: 5, y: 12}
+        _radius: {x: 2.5, y: 4.5}
+        _deepBias: 1
+        _scatterPer1000Columns: 0
+      _turn: 0.6
   _seed: 1234
   _randomizeSeed: 0
   _colonySettings:
@@ -10552,6 +10610,16 @@ MonoBehaviour:
     _initialGrowth: {x: 1, y: 1}
     _clearance: 30
     _minHarvestGrowth: 1
+    _flowerSlotWidth: 50
+  _litterSettings:
+    _secondsPerCell: 4
+    _layerDepth: 2
+  _nectarSettings:
+    _secondsPerDrop: 30
+    _maxPerFlower: 2
+    _reach: 6
+  _oreFallSettings:
+    _secondsPerCell: 0.06
   _cameraMargin: 4
   _cameraSkyHeadroom: 120
   _cameraControl:

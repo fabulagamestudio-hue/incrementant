@@ -1,7 +1,7 @@
 # Solicitações do desenvolvedor
 
 **Projeto:** Incrementant
-**Última atualização:** 2026-10-22
+**Última atualização:** 2026-10-23
 
 ## Índice
 
@@ -75,6 +75,10 @@
 | REQ-065 | 2026-10-22 | Tutorial como tour da interface, com o jogador livre para clicar | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
 | REQ-066 | 2026-10-22 | Glossário com a explicação de tudo | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
 | REQ-067 | 2026-10-22 | Menu Colônia recuado até o cursor chegar perto, visível no tutorial | PROGRAMMING | UNDEFINED | IMPLEMENTED |
+| REQ-068 | 2026-10-22 | Experimento: arte do mundo em 8x8 texels por bloco, mostrada em 2x (branch `experimento/arte-8x8`) | ART, PROGRAMMING | UNDEFINED | IMPLEMENTED |
+| REQ-069 | 2026-10-23 | Graveto montado por peças de 8 px (pontas, casca repetida, nós), no lugar do antigo | ART, PROGRAMMING | UNDEFINED | IMPLEMENTED |
+| REQ-070 | 2026-10-23 | Razão para trabalhar na área externa: biomas laterais com insumos únicos e postos avançados | GAME_DESIGN, ART, PROGRAMMING | UNDEFINED | IN_PROGRESS |
+| REQ-071 | 2026-10-23 | Mundo pequeno no molde do Terraria, minérios em veios, fundição, forja e armazéns de equipamento | GAME_DESIGN, PROGRAMMING, ART | UNDEFINED | IN_PROGRESS |
 
 ## Registros
 
@@ -1282,3 +1286,77 @@
 - **Histórico:**
   - 2026-10-22 — PLANNED: pedido registrado.
   - 2026-10-22 — IMPLEMENTED: `ColonyMenuDrawer`; conferido em Play Mode pelo agente com mouse simulado e nas paradas do tour; falta uma pessoa usar com o mouse.
+
+### REQ-068 — Experimento: arte do mundo em 8x8 texels por bloco, mostrada em 2x
+
+- **Data de registro:** 2026-10-22
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** ART, PROGRAMMING
+- **Descrição:** Na conversa sobre o que afasta a arte do Terraria, o desenvolvedor pediu uma branch nova para "reduzir a escala do mundo em outro experimento" e escolheu a opção "arte 8x8 ampliada 2x": cada bloco desenhado com 8x8 texels em vez de 16x16, com terreno e formigas na mesma escala de pixel. A branch `experimento/arte-8x8` saiu da `experimento/mundo` depois de commitar a junção entre materiais.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** ART-013
+- **Itens relacionados:** ART-024
+- **Referências:** [AntFarmGuide.md](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md) ("Arte 8x8")
+- **Decisões pendentes:** adotar ou não a escala 8x8 com contorno; se adotar, redesenhar à mão o que a redução automática estragou e decidir se a arte de células (Mushrooms, Tufts, Twigs, desenhada pelo shader SceneryCells a 8 texels por célula) será redesenhada como sprite.
+- **Histórico:**
+  - 2026-10-22 — PLANNED: pedido registrado.
+  - 2026-10-22 — IMPLEMENTED: atlas do terreno, transbordo da grama, formigas, crias, itens, cupins e pulgões reduzidos pela metade (`Art/Source~/halve_pixel_art.py`); `CellTileArt` com 8 texels por célula, valores em texels do shader pela metade; suíte EditMode 445/445 e quicksave do desenvolvedor visto em Play Mode pelo agente; falta a avaliação do desenvolvedor.
+  - 2026-10-22 — IMPLEMENTED: pedido seguinte do desenvolvedor, "linha preta ao redor dos elementos", em criaturas, itens e bloco carregado, terreno, cenário e plantas, no preto da paleta (escolhas dele). Contorno de 1 texel por dentro no shader da terra (e por fora das folhas da grama), nos PNGs, no bloco carregado, no cultivo e nas camadas de primeiro plano do cenário; cenário refinado (48 PNGs) e cultivo também reduzidos a 8 px por célula. Visto pelo agente em Play Mode no quicksave e num jogo novo; testes de cenário ajustados à nova densidade.
+  - 2026-10-22 — IMPLEMENTED: assets de ambiente verificados a pedido do desenvolvedor: a arte de células (cogumelos, gravetos, tufos) passou a 8 texels por célula no shader `SceneryCells`, que já tinha contorno preto próprio (o contorno extra na CPU das camadas de perto e da frente foi desfeito); as faixas de grama distante passaram a 8 px por célula. Visto pelo agente em Play Mode num jogo novo (graveto e planta com contorno de 1 texel, igual ao do terreno).
+
+### REQ-069 — Graveto montado por peças de 8 px, no lugar do antigo
+
+- **Data de registro:** 2026-10-23
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** ART, PROGRAMMING
+- **Descrição:** Depois de ver que o cenário a 8 px exigiria redesenhar peças enormes (gravetos de até 364 células), o desenvolvedor confirmou que "a ideia é ver o gameplay como formiga" e escolheu montar os elementos gigantes por peças, como o terreno. Pedido: "Faz o piloto do graveto montado por peças de 8 px (pontas, casca repetida, nós), no mesmo tamanho no mundo, e mostra no jogo ao lado do atual."
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-068
+- **Itens relacionados:** ART-025
+- **Referências:** [AntFarmGuide.md](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md) ("Kit do graveto"); [SceneryKits/README.md](../Assets/Project/Art/SceneryKits/README.md)
+- **Decisões pendentes:** aprovar o visual do kit; decidir quais outros gigantes (cogumelos, tufos, folhas secas, grama, trevos, flores, pedras grandes) seguem o mesmo caminho.
+- **Histórico:**
+  - 2026-10-23 — PLANNED: pedido registrado.
+  - 2026-10-23 — IMPLEMENTED: peças na paleta (`twig_kit.py`), `TwigKit` + `TwigKitBuilder`, piloto ao lado do graveto antigo mais perto da entrada (`SurfaceSceneryView`), setup idempotente e `TwigKitBuilderTests`; visto pelo agente em Play Mode no quicksave, ao lado do antigo; falta a avaliação do desenvolvedor.
+  - 2026-10-23 — IMPLEMENTED: relato do desenvolvedor ao ver o piloto: "Tem problema na parte superior do galho, e ainda tem os modelos antigos". A ponta do galho passou a seguir a direção dele; os gravetos do kit substituem os antigos no cenário (variantes do elemento Graveto, com fundo caminhável e espaço reservado pelo próprio cenário) nas cenas AntFarm e MainMenu; o piloto ao lado saiu. Visto pelo agente em Play Mode no quicksave.
+
+### REQ-070 — Razão para trabalhar na área externa: biomas laterais com insumos únicos e postos avançados
+
+- **Data de registro:** 2026-10-23
+- **Estado:** IN_PROGRESS
+- **Prioridade:** UNDEFINED
+- **Setores:** GAME_DESIGN, ART, PROGRAMMING
+- **Descrição:** Pedido do desenvolvedor: "Hoje o jogador consegue criar salas internas no formigueiro para todos os recursos. Este não é um problema, mas está faltando uma razão de o jogador ter que fazer algo no lado de fora do formigueiro, além do inicio do jogo. Precisamos desta definição para saber que tipo de arte fazemos, seguindo a forma como Terraria monta o mundo". Entre as três opções do agente, ele escolheu: "Fica a opção A (biomas laterais com insumos únicos e postos avançados). Registre a decisão e a lista de arte."
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-068, REQ-069
+- **Itens relacionados:** GD-012, ART-026, PRG-074
+- **Referências:** [44 — Biomas da superfície e postos avançados](../Docs/02_World_Art_UI/44_Biomas_da_superficie_e_postos_avancados.md); [31 — Jardim frutas folhas e visitantes](../Docs/02_World_Art_UI/31_Jardim_frutas_folhas_e_visitantes.md)
+- **Decisões pendentes:** uso da serapilheira, adiado pelo desenvolvedor em 2026-10-23 ("vamos deixar registrado para uma decisão futura de razão"; proposta do agente: estrutura, com salas maiores, pontes e entrada secundária); aprovar a lista de biomas, insumos e usos (proposta do agente); quais biomas entram na demo e de que lado; números e distâncias; forma da entrada secundária; recompensa do ninho de cupins (o design revisado diz que bichos mortos não alimentam o cultivo); lugar dos novos insumos nas árvores de melhoria; se a grama atual fica só no gramado central; quais elementos do cenário atual saem da geração e o bioma de cada um dos que ficam.
+- **Histórico:**
+  - 2026-10-23 — PLANNED: pedido registrado e direção A decidida pelo desenvolvedor; decisão e lista de arte escritas no documento 44, sem implementação.
+  - 2026-10-23 — PLANNED: regra do cenário decidida pelo desenvolvedor: "elementos grandes pertencem a um bioma, gramado central limpo, decoração não imita insumo"; registrada no documento 44 ("Cenário na geração do mapa"), sem implementação.
+  - 2026-10-23 — IN_PROGRESS: pedido do desenvolvedor, "vamos seguir com esta remoção e adição do primeiro bioma"; escolhas dele: Serapilheira à direita, escopo mundo + coletável, pedras e cogumelos fora da geração. Implementado (PRG-074, ART-026): faixa do bioma, chão de serapilheira, depósito de serapilheira, folhas que voltam, cenário por bioma e plantas só no gramado. Suíte EditMode 455/455 (inclui `BiomeTests`) e bioma visto pelo agente em Play Mode; falta a avaliação do desenvolvedor e o uso do insumo.
+  - 2026-10-23 — IN_PROGRESS: o desenvolvedor adiou a decisão do uso da serapilheira e pediu para seguir na geração de mundos.
+  - 2026-10-23 — IN_PROGRESS: segundo bioma, o Canteiro de flores à esquerda (escolhas do desenvolvedor: néctar em gotas que caem, flores só no canteiro, escopo mundo + coletável). Implementado (PRG-074, ART-026): chão de terra adubada, flores como tipo de planta próprio e mais densas, gotas de néctar ao pé das flores inteiras e depósito de néctar; o gramado ficou com grama e trevos. Suíte EditMode 457/457 e gotas vistas pelo agente em Play Mode; falta a avaliação do desenvolvedor e o uso dos insumos.
+
+### REQ-071 — Mundo pequeno no molde do Terraria, minérios em veios, fundição, forja e armazéns de equipamento
+
+- **Data de registro:** 2026-10-23
+- **Estado:** IN_PROGRESS
+- **Prioridade:** UNDEFINED
+- **Setores:** GAME_DESIGN, PROGRAMMING, ART
+- **Descrição:** Pedido do desenvolvedor: "Vamos usar como base horizontal a geração de mapas de terraria, começando com geração de mundo pequeno", e depois: "vamos desconsiderar dungeon e mal. Vamos também desconsiderar o oceano. Vamos fazer um corte de conteúdo para vertical, adicionando minérios à geração, com veios para as formigas. Junto com isso entra o ambiente forja, fundição e os armazéns de ferramentas/armas e de roupas/armaduras." Respostas do mesmo dia: biomas extras areal (deserto) e fruteira (selva); três minérios (cobre, ferro, ouro); a formiga equipa o item do papel dela; a fundição queima serapilheira e graveto.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-070
+- **Itens relacionados:** GD-013, PRG-075, ART-027, ART-028
+- **Referências:** [45 — Minérios fundição forja e equipamento](../Docs/01_Design/45_Minerios_fundicao_forja_e_equipamento.md)
+- **Decisões pendentes:** números e regras marcados como suposição no documento 45; fruto da fruteira; lugar da fundição e da forja nas melhorias; uso próprio das roupas.
+- **Histórico:**
+  - 2026-10-23 — IN_PROGRESS: pedido registrado, decisões do desenvolvedor colhidas e desenho escrito no documento 45; implementação em três etapas começou.
+  - 2026-10-23 — IN_PROGRESS: as três etapas implementadas (PRG-075, ART-027): areal e fruteira nas pontas com lado sorteado, veios de cobre, ferro e ouro, depósito de minério, fundição com serapilheira, forja, armazéns e equipamento por papel, com desgaste que devolve a barra. Transformação automática (mudança do agente, a aprovar). Suíte EditMode verde; não visto em Play Mode; falta a avaliação do desenvolvedor.
+  - 2026-10-23 — IN_PROGRESS: teste de jogo em Play Mode com capturas (cadeia completa rodando sozinha: 45 barras, 20 itens, 19 ferramentas e 1 arma vestidas). Pedido seguinte do desenvolvedor: "Dê visual próprio de sala construída à fundição, à forja e aos armazéns, e desenhe os itens guardados com a textura do atlas em vez da cor chapada. Permita também que os itens colocados possam ficar nas paredes de fundo, não apenas no chão". Feito: famílias próprias (atlas, linhas 51 a 58), itens desenhados pelo shader como objetos com a arte do atlas sobre o fundo; a colocação na parede de fundo já era permitida (todo vão do formigueiro aceita item) e agora se lê no desenho. Visto pelo agente em Play Mode; suíte EditMode verde.
+  - 2026-10-23 — IN_PROGRESS: pedido do desenvolvedor: "Deixe os veios mais grossos, em bolsões como no Terraria, e ponha mais ouro no fundo. Não exclua completamente os outros veios no resto do mapa". Feito: veios em bolsões irregulares (uns 10 a 15 células), ouro mais denso perto do fundo e cobre e ferro esparsos abaixo da faixa principal; valores novos no documento 45 e na cena. Conferido pelo agente num mapa do mundo inteiro (seed 1234: cobre 7089, ferro 5540 e ouro 4157 células, 1% da terra); suíte EditMode verde (464).
+  - 2026-10-23 — IN_PROGRESS: pedido do desenvolvedor: "Vamos fazer a arte dos mínerios soltos, igual fizemos com a água, e também adicionar física quando não estiverem no depósito ou em uso." Feito: sprites 8 × 8 de cobre, ferro e ouro (`Art/Ants/Item_*Ore`), usados na boca da formiga e na grade; minério fora do depósito de minério e da fundição cai e faz monte (`LooseOreFall`). Suíte EditMode verde (467) e visto pelo agente em Play Mode (monte no chão, minério parado no depósito, sprite na boca).
+  - 2026-10-23 — IN_PROGRESS: pedido do desenvolvedor: a arte das formigas que usam ferramentas e roupas/armaduras. Feito em etapas aprovadas por ele (ART-028): prova em ferro, camadas vestidas lateral e superior em cobre, ferro e ouro, nove sprites de item 8 × 8 e cinco ícones de HUD; ligados ao `AntSwarmView`, ao `AntFarmView` e aos botões dos pincéis, vistos em Play Mode pelo agente. Desenvolvedor aprovou camadas, itens e ícones.

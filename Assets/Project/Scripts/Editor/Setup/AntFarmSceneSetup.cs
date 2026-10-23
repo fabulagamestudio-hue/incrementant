@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Fabula.Incrementant.AntFarm;
 using Fabula.Incrementant.Colony;
@@ -165,6 +166,8 @@ namespace Fabula.Incrementant.EditorTools.Setup
             SerializedProperty overhang = serialized.FindProperty("_grassOverhang");
             if (overhang.objectReferenceValue == null)
                 overhang.objectReferenceValue = AssetDatabase.LoadAssetAtPath<Texture2D>(GrassOverhangPath);
+            SetSprites(serialized.FindProperty("_oreItemSprites"), LoadOreItems());
+            SetSprites(serialized.FindProperty("_equipItemSprites"), LoadEquipItems());
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
@@ -204,8 +207,24 @@ namespace Fabula.Incrementant.EditorTools.Setup
                 AssetDatabase.LoadAssetAtPath<Sprite>($"{AntSpriteImporter.AntsFolder}{AntSpriteImporter.ItemPrefix}Nutrient.png");
             antsView.FindProperty("_waterSprite").objectReferenceValue =
                 AssetDatabase.LoadAssetAtPath<Sprite>($"{AntSpriteImporter.AntsFolder}{AntSpriteImporter.ItemPrefix}Water.png");
+            SetSprites(antsView.FindProperty("_oreSprites"), LoadOreItems());
+            SetSprites(antsView.FindProperty("_equipItemSprites"), LoadEquipItems());
+            SetSprites(antsView.FindProperty("_equipWalk"), LoadEquipLayers("Ant_Walk_0.png"));
+            SetSprites(antsView.FindProperty("_equipTop"), LoadEquipLayers(AntSpriteImporter.TopViewPrefix + "0.png"));
             SetSprites(antsView.FindProperty("_queenWalkFrames"), LoadFrames(AntSpriteImporter.QueenFolder, "Ant_Walk_"));
             SetSprites(antsView.FindProperty("_queenTopFrames"), LoadFrames(AntSpriteImporter.QueenFolder, AntSpriteImporter.TopViewPrefix));
+        }
+
+        /// <summary>Camadas do equipamento vestido (Art/Ants/Equipamento): ferramenta, arma e armadura, cada uma em cobre, ferro e ouro.</summary>
+        static Sprite[] LoadEquipLayers(string file)
+        {
+            string[] kinds = { "Ferramenta", "Arma", "Armadura" };
+            string[] metals = { "Cobre", "Ferro", "Ouro" };
+            var layers = new List<Sprite>();
+            foreach (string kind in kinds)
+                foreach (string metal in metals)
+                    layers.Add(AssetDatabase.LoadAssetAtPath<Sprite>($"{AntSpriteImporter.AntsFolder}Equipamento/{metal}/{kind}/{file}"));
+            return layers.ToArray();
         }
 
         /// <summary>Pasta dos cupins (a arte "formiga inimiga alada" do REQ-027).</summary>
@@ -257,6 +276,15 @@ namespace Fabula.Incrementant.EditorTools.Setup
             AssignQueenArt(serialized);
             AssignTermiteArt(serialized);
             serialized.ApplyModifiedPropertiesWithoutUndo();
+            // Minério e equipamento guardados na grade: sprites no AntFarmView (Ore/Equip Item Sprites).
+            AntFarmView farmView = Object.FindFirstObjectByType<AntFarmView>();
+            if (farmView != null)
+            {
+                var farmSerialized = new SerializedObject(farmView);
+                SetSprites(farmSerialized.FindProperty("_oreItemSprites"), LoadOreItems());
+                SetSprites(farmSerialized.FindProperty("_equipItemSprites"), LoadEquipItems());
+                farmSerialized.ApplyModifiedPropertiesWithoutUndo();
+            }
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
             Debug.Log("[AntFarmSceneSetup] Arte por papel e dos cupins ligada em AntSwarmView.");
@@ -332,6 +360,26 @@ namespace Fabula.Incrementant.EditorTools.Setup
             material = new Material(shader) { name = "SceneryCells" };
             AssetDatabase.CreateAsset(material, SceneryCellMaterialPath);
             return material;
+        }
+
+        /// <summary>Minério solto e na boca (REQ-071): cobre, ferro e ouro, na ordem de CellMaterial.</summary>
+        public static Sprite[] LoadOreItems() => new[]
+        {
+            AssetDatabase.LoadAssetAtPath<Sprite>($"{AntSpriteImporter.AntsFolder}{AntSpriteImporter.ItemPrefix}CopperOre.png"),
+            AssetDatabase.LoadAssetAtPath<Sprite>($"{AntSpriteImporter.AntsFolder}{AntSpriteImporter.ItemPrefix}IronOre.png"),
+            AssetDatabase.LoadAssetAtPath<Sprite>($"{AntSpriteImporter.AntsFolder}{AntSpriteImporter.ItemPrefix}GoldOre.png"),
+        };
+
+        /// <summary>Equipamento solto e na boca (REQ-071): ferramenta, arma e armadura, cada uma em cobre, ferro e ouro.</summary>
+        public static Sprite[] LoadEquipItems()
+        {
+            string[] kinds = { "Tool", "Weapon", "Armor" };
+            string[] metals = { "Copper", "Iron", "Gold" };
+            var items = new List<Sprite>();
+            foreach (string kind in kinds)
+                foreach (string metal in metals)
+                    items.Add(AssetDatabase.LoadAssetAtPath<Sprite>($"{AntSpriteImporter.AntsFolder}{AntSpriteImporter.ItemPrefix}{metal}{kind}.png"));
+            return items.ToArray();
         }
 
         static void SetSprites(SerializedProperty list, Sprite[] sprites)

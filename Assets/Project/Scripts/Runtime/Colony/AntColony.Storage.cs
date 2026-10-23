@@ -26,6 +26,16 @@ namespace Fabula.Incrementant.Colony
         FarmWater,
         /// <summary>Cogumelo luminoso (do depósito de construção ou solto) para uma marca do pincel Cogumelo luminoso.</summary>
         Mushroom,
+        /// <summary>Minério do depósito de minério para a fundição (documento 45).</summary>
+        SmelterOre,
+        /// <summary>Serapilheira do depósito de serapilheira para a fundição, o combustível.</summary>
+        SmelterFuel,
+        /// <summary>Ferramenta do armazém de ferramentas e armas para vestir.</summary>
+        EquipTool,
+        /// <summary>Arma do armazém de ferramentas e armas para vestir.</summary>
+        EquipWeapon,
+        /// <summary>Armadura do armazém de roupas e armaduras para vestir.</summary>
+        EquipArmor,
     }
 
     /// <summary>
@@ -37,11 +47,11 @@ namespace Fabula.Incrementant.Colony
     public sealed partial class AntColony
     {
         // Índice = StorageKind (0 sem uso; Waste nunca é pintado, fica parado).
-        const int KindSlots = 7;
+        const int KindSlots = 14;
         // Por tipo (índice = StorageKind; 0 sem uso): campo até as células livres do depósito e até os itens guardados nele.
         readonly FlowField[] _putFields = new FlowField[KindSlots];
         readonly FlowField[] _takeFields = new FlowField[KindSlots];
-        readonly bool[] _storeFieldIdle = { true, true, true, true, true, true, true };
+        readonly bool[] _storeFieldIdle = { true, true, true, true, true, true, true, true, true, true, true, true, true, true };
         // Vagas livres e itens guardados (da última rodada de campos), e formigas levando ou indo buscar (recontadas a cada Tick).
         readonly int[] _storeFree = new int[KindSlots];
         readonly int[] _storeStock = new int[KindSlots];
@@ -57,7 +67,8 @@ namespace Fabula.Incrementant.Colony
         long _slotClaimHash, _builtSlotClaimHash;
         // Itens soltos com destino, por tipo (planta, água, o resto), da última rodada: a vaga de quem vai buscá-los é limitada
         // pelo que o destino ainda aceita (LooseRoom), não pelo número de itens (relato de 2026-10-19).
-        int _looseFoodItems, _looseWaterItems, _looseOtherItems;
+        // _looseHeldItems: néctar e minério soltos com destino (IsHeldUntilDepot), limitados pelas vagas dos depósitos deles.
+        int _looseFoodItems, _looseWaterItems, _looseHeldItems, _looseOtherItems;
         int _looseTakers;
         int _builtStoreVersion = -1;
         // Planta na mão a caminho dos canteiros vinda do depósito de alimentos (com o depósito, a de fora vai para ele).
@@ -80,6 +91,17 @@ namespace Fabula.Incrementant.Colony
         bool FoodDepot => HasDepot(StorageKind.Food);
         bool BlockDepot => HasDepot(StorageKind.Blocks);
         bool WaterDepot => HasDepot(StorageKind.Water);
+        bool LitterDepot => HasDepot(StorageKind.Litter);
+        bool NectarDepot => HasDepot(StorageKind.Nectar);
+        bool OreDepot => HasDepot(StorageKind.Ore);
+
+        /// <summary>
+        /// Itens que só saem do chão para o depósito do tipo deles, com vaga (néctar, minério, barras e equipamentos): sem
+        /// destino, ficam onde estão.
+        /// </summary>
+        static bool IsHeldUntilDepot(StorageKind kind) =>
+            kind == StorageKind.Nectar || kind == StorageKind.Ore || kind == StorageKind.Forge || kind == StorageKind.Armory ||
+            kind == StorageKind.Wardrobe;
 
         /// <summary>Quanto de planta a colheita ainda pode trazer: vagas do depósito de alimentos ou, sem ele, o que os canteiros pedem.</summary>
         int PlantSupplyDemand => FoodDepot ? _storeFree[(int)StorageKind.Food] : PlantDemand;
@@ -109,13 +131,15 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Bloco que o depósito de construção aceita: terra que vira terra fofa (não areia, rocha, planta nem resíduo).</summary>
         static bool IsBlockItem(CellMaterial material) =>
             material != CellMaterial.Empty && material != CellMaterial.Rock && !CellMaterials.IsPlant(material) &&
-            material != CellMaterial.TermiteRemains && material != CellMaterial.Refuse &&
+            material != CellMaterial.TermiteRemains && material != CellMaterial.Refuse && material != CellMaterial.Nectar &&
+            !CellMaterials.IsOre(material) && !Equipment.IsMetalGood(material) &&
             CellMaterials.ToDumped(material) == CellMaterial.Spoil;
 
         void ResetStorageCounts()
         {
             System.Array.Clear(_storeIncoming, 0, KindSlots);
             System.Array.Clear(_storeOutgoing, 0, KindSlots);
+            ResetWorkshopCounts();
             _looseTakers = 0;
             _plantsToBeds = 0;
             _gardenPlants = 0;
@@ -124,6 +148,7 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Conta quem leva ou busca itens dos depósitos (no começo do Tick, junto das outras contagens).</summary>
         void CountStorage(Ant ant)
         {
+            CountWorkshop(ant);
             // Mão vazia fora de uma viagem de água ou de terra da pilha: nada a levar; limpa o destino velho.
             if (ant.CarriedCount == 0 && ant.State != AntState.FetchingWater && ant.State != AntState.CarryingWater &&
                 ant.State != AntState.FetchingSoil && ant.State != AntState.GatheringSoil && ant.State != AntState.TakingStored)
@@ -144,6 +169,11 @@ namespace Fabula.Incrementant.Colony
                     case StoreUse.FarmSand:
                     case StoreUse.FarmWater:
                     case StoreUse.Mushroom: break; // a fazenda conta os seus (CountFarm)
+                    case StoreUse.SmelterOre: _storeOutgoing[(int)StorageKind.Ore]++; break;
+                    case StoreUse.SmelterFuel: _storeOutgoing[(int)StorageKind.Litter]++; break;
+                    case StoreUse.EquipTool:
+                    case StoreUse.EquipWeapon:
+                    case StoreUse.EquipArmor: break; // CountWorkshop conta quem vai vestir
                     default: _storeOutgoing[(int)StorageKind.Blocks]++; break; // terra fofa: CountCultivation conta o destino
                 }
                 return;
@@ -168,6 +198,7 @@ namespace Fabula.Incrementant.Colony
             _builtSlotClaimHash = _slotClaimHash;
             for (int kind = 1; kind < KindSlots; kind++)
                 BuildDepotFields((StorageKind)kind);
+            BuildEquipFields();
             BuildLooseField();
         }
 
@@ -248,9 +279,11 @@ namespace Fabula.Incrementant.Colony
         {
             _looseCount = 0;
             _loosePlants = 0;
-            _looseFoodItems = _looseWaterItems = _looseOtherItems = 0;
+            _looseFoodItems = _looseWaterItems = _looseHeldItems = _looseOtherItems = 0;
             if (_grid.StoredCount(StorageKind.Food) + _grid.StoredCount(StorageKind.Blocks) + _grid.StoredCount(StorageKind.Water) +
-                _grid.StoredCount(StorageKind.Sand) + _grid.StoredCount(StorageKind.Mushroom) == 0)
+                _grid.StoredCount(StorageKind.Sand) + _grid.StoredCount(StorageKind.Mushroom) +
+                _grid.StoredCount(StorageKind.Litter) + _grid.StoredCount(StorageKind.Nectar) + _grid.StoredCount(StorageKind.Ore) +
+                _grid.StoredCount(StorageKind.Forge) + _grid.StoredCount(StorageKind.Armory) + _grid.StoredCount(StorageKind.Wardrobe) == 0)
             {
                 if (!_looseFieldIdle)
                 {
@@ -286,6 +319,8 @@ namespace Fabula.Incrementant.Colony
                         _looseFoodItems++;
                     else if (kind == StorageKind.Water)
                         _looseWaterItems++;
+                    else if (IsHeldUntilDepot(kind))
+                        _looseHeldItems++;
                     else
                         _looseOtherItems++;
                 }
@@ -304,9 +339,11 @@ namespace Fabula.Incrementant.Colony
             byte item = _grid.GetStored(x, y);
             kind = StoredItems.KindOf(item);
             // A folha ou a terra que a área de resíduos está convertendo fica onde está (modo da área, ver WasteMode), e o que
-            // a fazenda segura (cochos, areia sem depósito de areia, cogumelo sem depósito de cogumelos) também.
+            // a fazenda segura (cochos, areia sem depósito de areia, cogumelo sem depósito de cogumelos) também. A gota de
+            // néctar só sai do pé da flor (e o minério, de onde ficou) para um depósito do tipo com vaga.
             return kind != StorageKind.None && kind != StorageKind.Waste && _grid.GetStorageRoom(x, y) != kind &&
-                   !IsConversionInput(x, y, item) && !IsFarmHeld(x, y, item);
+                   !IsConversionInput(x, y, item) && !IsFarmHeld(x, y, item) && !IsWorkshopInput(x, y, item) &&
+                   (!IsHeldUntilDepot(kind) || HasDepot(kind) && _storeFree[(int)kind] > 0);
         }
 
         bool LooseHasDestination(StorageKind kind)
@@ -315,7 +352,7 @@ namespace Fabula.Incrementant.Colony
             {
                 case StorageKind.Food: return FoodDepot ? _storeFree[(int)StorageKind.Food] > 0 : PlantDemand > 0;
                 case StorageKind.Water: return WaterDepot ? _storeFree[(int)StorageKind.Water] > 0 : _bedsAwaitingWater > 0;
-                default: return true;
+                default: return !IsHeldUntilDepot(kind) || HasDepot(kind) && _storeFree[(int)kind] > 0;
             }
         }
 
@@ -334,14 +371,18 @@ namespace Fabula.Incrementant.Colony
                 case StorageKind.Water:
                     return WaterDepot ? _storeFree[water] - _storeIncoming[water] : _bedsAwaitingWater - _waterCarriers;
                 default:
-                    return int.MaxValue;
+                    return IsHeldUntilDepot(kind) ? _storeFree[(int)kind] - _storeIncoming[(int)kind] : int.MaxValue;
             }
         }
 
         /// <summary>Itens soltos que ainda cabem no destino deles, menos as formigas que já saíram para buscar algum.</summary>
         int LooseWanted =>
             Mathf.Clamp(LooseRoom(StorageKind.Food), 0, _looseFoodItems) + Mathf.Clamp(LooseRoom(StorageKind.Water), 0, _looseWaterItems) +
-            _looseOtherItems - _looseTakers;
+            Mathf.Clamp(HeldLooseRoom, 0, _looseHeldItems) + _looseOtherItems - _looseTakers;
+
+        int HeldLooseRoom =>
+            Mathf.Max(0, LooseRoom(StorageKind.Nectar)) + Mathf.Max(0, LooseRoom(StorageKind.Ore)) + Mathf.Max(0, LooseRoom(StorageKind.Forge)) +
+            Mathf.Max(0, LooseRoom(StorageKind.Armory)) + Mathf.Max(0, LooseRoom(StorageKind.Wardrobe));
 
         // ---------------------------------------------------------------- levar ao depósito
 
@@ -595,9 +636,10 @@ namespace Fabula.Incrementant.Colony
                 ant.State = AntState.Carrying;
                 return;
             }
-            if (ant.Carried == CellMaterial.GlowMushroom)
+            if (ant.Carried == CellMaterial.GlowMushroom || ant.Carried == CellMaterial.Nectar || CellMaterials.IsOre(ant.Carried) ||
+                Equipment.IsMetalGood(ant.Carried))
             {
-                ReturnMushroom(ant); // cogumelo não vai ao despejo: fica no chão como item solto
+                ReturnHeldItem(ant); // cogumelo, néctar, minério, barra e equipamento não vão ao despejo: ficam no chão como item solto
                 return;
             }
             ant.State = AntState.Carrying;
@@ -643,6 +685,8 @@ namespace Fabula.Incrementant.Colony
                 case StoreUse.BedPlant: _storeOutgoing[(int)StorageKind.Food]++; _plantsToBeds++; _gardenPlants++; break;
                 case StoreUse.Water: _storeOutgoing[(int)StorageKind.Water]++; _waterCarriers++; break;
                 case StoreUse.Build: _storeOutgoing[(int)StorageKind.Blocks]++; _activeBuilders++; break;
+                case StoreUse.SmelterOre: _storeOutgoing[(int)StorageKind.Ore]++; break;
+                case StoreUse.SmelterFuel: _storeOutgoing[(int)StorageKind.Litter]++; break;
                 default:
                     _storeOutgoing[(int)StorageKind.Blocks]++;
                     if (ant.DewJob)
@@ -663,6 +707,8 @@ namespace Fabula.Incrementant.Colony
                 case StoreUse.BedPlant:
                     return StorageKind.Food;
                 case StoreUse.Water: return StorageKind.Water;
+                case StoreUse.SmelterOre: return StorageKind.Ore;
+                case StoreUse.SmelterFuel: return StorageKind.Litter;
                 default: return StorageKind.Blocks;
             }
         }
@@ -670,6 +716,7 @@ namespace Fabula.Incrementant.Colony
         void UpdateTaking(Ant ant)
         {
             FlowField field = IsFarmUse(ant.StoreUse) ? FarmTakeField(ant.StoreUse)
+                : EquipKindOf(ant.StoreUse) != EquipKind.None ? EquipField(ant.StoreUse)
                 : ant.StoreUse == StoreUse.Loose ? (_looseFieldIdle ? null : _looseField)
                 : _storeFieldIdle[(int)KindOf(ant.StoreUse)] ? null : _takeFields[(int)KindOf(ant.StoreUse)];
             int d = field != null ? field.Get(ant.X, ant.Y) : FlowField.Unreachable;
@@ -706,6 +753,12 @@ namespace Fabula.Incrementant.Colony
                     ant.StoreUse = StoreUse.None;
                     PickFarmItem(ant, item, farmShade, _grid.ToIndex(x, y));
                     return true;
+                }
+                if (EquipKindOf(ant.StoreUse) != EquipKind.None)
+                {
+                    if (TryPickEquip(ant, x, y, item))
+                        return true;
+                    continue;
                 }
                 StorageKind kind = StoredItems.KindOf(item);
                 if (ant.StoreUse == StoreUse.Loose ? !IsLooseItem(x, y, out _) || !LooseHasDestination(kind)
@@ -942,7 +995,7 @@ namespace Fabula.Incrementant.Colony
         /// Trabalho da carregadora que enche os depósitos, na ordem: itens soltos (ao depósito do tipo ou ao destino de sempre),
         /// água do mapa para o depósito de água e terra da pilha de fora para o depósito de construção.
         /// </summary>
-        bool TryStockWork(Ant ant) => TryStartLoose(ant) || TryStartWaterStock(ant) || TryStartRestock(ant);
+        bool TryStockWork(Ant ant) => TryStartLoose(ant) || TryStartWaterStock(ant) || TryStartRestock(ant) || TryStartWorkshopSupply(ant);
 
         /// <summary>
         /// Trabalho da carregadora que esvazia os depósitos para quem consome: planta e água aos canteiros, folha da sala Gotas

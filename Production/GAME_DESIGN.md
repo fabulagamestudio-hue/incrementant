@@ -2,7 +2,7 @@
 
 **Projeto:** Incrementant
 **Setor:** GAME_DESIGN
-**Última avaliação:** 2026-10-22
+**Última avaliação:** 2026-10-23
 
 ## Resumo
 
@@ -22,6 +22,8 @@ Conceito informado pelo desenvolvedor em 2026-10-17: formigueiro visto de lado, 
 | GD-009 | Cuspideira e lixeira: papéis, números e desbloqueio | IMPLEMENTED | UNDEFINED | Valores assumidos pelo agente em 2026-10-21, a aprovar ([RaidGuide.md](../Assets/Project/Scripts/Runtime/Colony/RaidGuide.md)) | REQ-056, REQ-057 | 2026-10-21 |
 | GD-010 | Salas construídas com visual próprio (terra nos slots do ambiente) | IMPLEMENTED | UNDEFINED | Decisões do desenvolvedor em 2026-10-22: sete famílias visuais (os cinco depósitos dividem uma), bloco e fundo por família, slots nas paredes de terra em contato com o vão, em volta e dentro da área pintada (teto incluído, correção do mesmo dia), 1 terra por slot, só visual, fundo com a sala pronta e construção (obra marcada e reboco) antes das automatizações, usando também a terra do depósito de construção; regras em [BuiltRoomsGuide.md](../Assets/Project/Scripts/Runtime/Colony/BuiltRoomsGuide.md) | REQ-058 | 2026-10-22 |
 | GD-011 | Fazenda de pulgões e fazendeira: regras, números e desbloqueio | IMPLEMENTED | UNDEFINED | Decisões do desenvolvedor em 2026-10-22 (origem, cochos, cogumelo, pulgão preto); números assumidos pelo agente ([FarmGuide.md](../Assets/Project/Scripts/Runtime/Colony/FarmGuide.md)) | REQ-061 | 2026-10-22 |
+| GD-012 | Exterior: biomas laterais com insumos únicos e postos avançados | IN_PROGRESS | UNDEFINED | Direção decidida pelo desenvolvedor em 2026-10-23; [Documento 44](../Docs/02_World_Art_UI/44_Biomas_da_superficie_e_postos_avancados.md) | REQ-070 | 2026-10-23 |
+| GD-013 | Mundo pequeno no molde do Terraria, minérios, fundição, forja e equipamento | IN_PROGRESS | UNDEFINED | Direção decidida pelo desenvolvedor em 2026-10-23; [Documento 45](../Docs/01_Design/45_Minerios_fundicao_forja_e_equipamento.md) | REQ-071 | 2026-10-23 |
 | GD-006 | Documento de design revisado organizado em Markdown | VERIFIED | UNDEFINED | Conferência automática em 2026-10-17: 38 seções, 507 parágrafos, 28 tabelas, 209 linhas e 604 células preservados; 156 links locais válidos. [Índice e conferência](../Docs/README.md) | REQ-009 | 2026-10-17 |
 
 ## Detalhes
@@ -65,6 +67,14 @@ Pedido de 2026-10-19 (REQ-039): expandir os upgrades das formigas e do formiguei
 ### GD-011 — Fazenda de pulgões
 
 Decidido pelo desenvolvedor em 2026-10-22, em resposta às perguntas do agente: a fazenda cria os pulgões sozinha até o limite; cada pulgão tem um cocho de areia e um de água (comida e bebida), que a fazendeira enche; a ordenha às vezes rende um cogumelo luminoso, que vira o insumo do pincel Cogumelo luminoso; o pulgão mordido por um cupim fica preto e é inimigo até morrer; areia e cogumelos têm depósitos próprios, separados do depósito de construção. Números, custos e o lugar dos nós nas árvores são suposições do agente, a aprovar ([FarmGuide.md](../Assets/Project/Scripts/Runtime/Colony/FarmGuide.md), "Suposições do agente").
+
+### GD-012 — Exterior: biomas laterais com insumos únicos e postos avançados
+
+Decidido pelo desenvolvedor em 2026-10-23 (REQ-070), entre três opções do agente: "Fica a opção A (biomas laterais com insumos únicos e postos avançados)". O interior produz volume, com teto; cada bioma da superfície tem um insumo que só existe nele e que libera melhorias, salas ou multiplicadores; quanto mais longe, melhor o insumo; entradas secundárias encurtam a viagem. Os seis biomas, os insumos e os usos são proposta do agente, a aprovar. Números, distâncias, biomas da demo, forma da entrada secundária e recompensa do ninho de cupins estão em aberto. Regra do cenário decidida pelo desenvolvedor no mesmo dia: "elementos grandes pertencem a um bioma, gramado central limpo, decoração não imita insumo"; a distribuição dos elementos pelos biomas é proposta do agente ([Documento 44](../Docs/02_World_Art_UI/44_Biomas_da_superficie_e_postos_avancados.md), "Em aberto"). Primeiro e segundo biomas (Serapilheira à direita e Canteiro de flores à esquerda, mundo + coletável) implementados em 2026-10-23 (PRG-074); decisões do desenvolvedor no canteiro: néctar em gotas que caem e flores só nele. Uso dos insumos adiado pelo desenvolvedor. valores assumidos pelo agente, a aprovar: início a 240 células da entrada, 360 de largura, transição de 24, 1 folha a cada 4 s, 1,2 graveto e 2 folhas secas por 100 colunas; canteiro a 240 células à esquerda, 360 de largura, 1 flor a cada 50 colunas, 1 gota a cada 30 s por flor inteira, até 2 em volta. Os insumos ainda não têm uso.
+
+### GD-013 — Mundo pequeno no molde do Terraria, minérios, fundição, forja e equipamento
+
+Decidido pelo desenvolvedor em 2026-10-23 (REQ-071): sem oceano, masmorra e mal; biomas extras areal (deserto) e fruteira (selva); três minérios (cobre, ferro, ouro) em veios; fundição com serapilheira como combustível; forja; armazéns de ferramentas/armas e de roupas/armaduras; a formiga equipa o item do papel dela. Números e regras do documento 45 são suposições do agente, a aprovar. Mudança do agente na implementação, a aprovar: a fundição e a forja transformam sozinhas, com o tempo, e as formigas só fazem a logística. Em aberto: fruto da fruteira, lugar nas melhorias, uso próprio das roupas.
 
 ## Riscos e bloqueios
 

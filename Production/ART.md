@@ -2,9 +2,11 @@
 
 **Projeto:** Incrementant
 **Setor:** ART
-**Última avaliação:** 2026-10-22
+**Última avaliação:** 2026-10-23
 
 ## Resumo
+
+Arte do equipamento das formigas aprovada em 2026-10-23 (ART-028, REQ-071): camadas vestidas, nove itens 8 × 8 e cinco ícones de HUD em cobre, ferro e ouro, vistos em Play Mode; as barras e os minérios do atlas continuam provisórios (ART-027).
 
 Tiles de sala construída no atlas do terreno em 2026-10-22 (ART-023, REQ-058): bloco e parede de fundo para sete famílias (os cinco depósitos dividem uma), na paleta mestra, aprovados pelo desenvolvedor na maquete. Desde o mesmo dia aparecem no jogo quando as formigas rebocam a sala (PRG-071); berçário e depósito conferidos em Play Mode pelo agente.
 
@@ -54,6 +56,11 @@ A direção de arte unificada foi aprovada em 2026-10-21 (ART-013): 16 px por c�
 | ART-021 | Refazer o cenário no padrão de pixel art com limpeza pelo Qwen (piloto: Pebble_05_2x) | PLANNED | UNDEFINED | Piloto: [Pebbles/README.md](../Assets/Project/Art/Scenery/Pebbles/README.md) (Pebble_05_2x redesenhada, master trocado, bake e importação conferidos) | REQ-060, ART-018, ART-019 | 2026-10-21 |
 | ART-022 | Arte da fazendeira (pasta Art/Ants/Fazendeira) | IMPLEMENTED | UNDEFINED | 8 quadros por troca de rampa dos masters da operária, rampa marrom 9-10-11 ([README](../Assets/Project/Art/Ants/README.md)); exportador conferiu dimensões, alpha e paleta; importados e ligados na cena; vistos pelo agente na Game view em 2026-10-22; falta a aprovação do desenvolvedor | REQ-061, ART-020 | 2026-10-22 |
 | ART-023 | Tiles de sala construída no atlas do terreno: bloco e fundo de sete famílias | IMPLEMENTED | UNDEFINED | [Terrain/README.md](../Assets/Project/Art/Terrain/README.md) ("Salas construídas"); [maquete](../Docs/02_World_Art_UI/43_Salas_construidas.png); atlas de 128 × 4224 aceito pela Unity; tiles aprovados pelo desenvolvedor na maquete; berçário e depósito vistos em Play Mode pelo agente com a luz do jogo em 2026-10-22 | REQ-058, ART-013, PRG-071, GD-010 | 2026-10-22 |
+| ART-024 | Experimento 8x8: terreno, formigas, crias, cupins, pulgões, cenário refinado e cultivo com 8 texels por célula, mostrados em 2x, com contorno preto de 1 texel (branch `experimento/arte-8x8`) | IMPLEMENTED | UNDEFINED | [AntFarmGuide.md](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md) ("Arte 8x8"); suíte EditMode 445/445; quicksave visto em Play Mode pelo agente | REQ-068, ART-013, ART-023 | 2026-10-22 |
+| ART-025 | Kit do graveto: gravetos montados por peças de 8 px no tamanho do mundo do antigo, no lugar dele (branch `experimento/arte-8x8`) | IMPLEMENTED | UNDEFINED | [SceneryKits/README.md](../Assets/Project/Art/SceneryKits/README.md); `TwigKitBuilderTests`; visto em Play Mode pelo agente no quicksave | REQ-069, ART-024 | 2026-10-23 |
+| ART-026 | Arte dos biomas da superfície: topo, camada rasa, coletáveis, silhueta, fundo, item, argila e entrada secundária | IN_PROGRESS | UNDEFINED | Tile da serapilheira na linha 18 do [atlas](../Assets/Project/Art/Terrain/README.md), visto em Play Mode pelo agente em 2026-10-23; lista em [Documento 44](../Docs/02_World_Art_UI/44_Biomas_da_superficie_e_postos_avancados.md) | REQ-070, GD-012, REQ-068 | — |
+| ART-027 | Minérios, barras e equipamentos no atlas; fundição e forja | IN_PROGRESS | UNDEFINED | Linhas 21 a 35 do [atlas](../Assets/Project/Art/Terrain/README.md), provisórias, geradas por código em 2026-10-23; sprites 8 × 8 do minério solto ([Art/Ants](../Assets/Project/Art/Ants/README.md)), 2026-10-23; a arte do equipamento ficou em ART-028 | REQ-071 | — |
+| ART-028 | Arte do equipamento das formigas: camadas vestidas, 9 itens 8 × 8 e 5 ícones de HUD (cobre, ferro e ouro) | VERIFIED | UNDEFINED | [Art/Ants/README.md](../Assets/Project/Art/Ants/README.md) ("Equipamento das formigas" e "Itens de equipamento"); pranchas [vestidas](../Docs/02_World_Art_UI/Formigas_equipadas_2026-10-23.png), [itens](../Docs/02_World_Art_UI/Itens_equipamento_2026-10-23.png) e [ícones](../Docs/02_World_Art_UI/Icones_HUD_forja_armazens_2026-10-23.png); importação conferida na Unity e vista em Play Mode pelo agente; aprovada pelo desenvolvedor em 2026-10-23 | REQ-071, ART-027, ART-024 | 2026-10-23 |
 
 ## Detalhes
 
@@ -146,6 +153,31 @@ Arte de 2026-10-18, conforme REQ-027: 16 PNGs de 144x144, quatro por estado (Fly
 
 Feito em 2026-10-22 a pedido do desenvolvedor (REQ-058: "começar com a criação dos tiles, depois a lógica"). Decisões dele no mesmo dia: um visual por família (Rainha, Cultivo, Berçário, Resíduos, Orvalho, Fazenda e Depósito, este para os cinco depósitos) e, para cada uma, o bloco que as formigas montam nos slots e a parede de fundo da sala. São 14 linhas novas no fim do atlas, desenhadas pelo gerador na paleta mestra; o que cada uma desenha está no [README do terreno](../Assets/Project/Art/Terrain/README.md). Os blocos usam unidades alinhadas à grade das células, para o construído se distinguir da terra natural. O desenvolvedor aprovou os tiles na maquete ("os tiles estão bons", 2026-10-22) e a lógica entrou no mesmo dia (PRG-071). Falta ver em jogo as outras cinco famílias (só berçário e depósito foram vistos) e a aprovação delas em jogo.
 
+### ART-024 — Experimento 8x8
+
+Pedido em 2026-10-22 (REQ-068). Toda a arte do mundo que estava a 16 px por célula foi reduzida pela metade por um script que não cria cor nova (cor mais frequente de cada 2x2, a mais escura no empate), e o PPU dos sprites caiu junto, então nada muda de tamanho no jogo; só o pixel fica com o dobro do tamanho. A redução engrossa contornos e juntas: pedra, tijolo do depósito e lajota da rainha ficaram mais escuros, e as pernas das formigas viraram traço escuro. Arte definitiva nessa escala pediria redesenho. Na mesma data o cenário refinado (48 PNGs) e os sprites do cultivo também passaram a 8 px por célula, e tudo no primeiro plano ganhou contorno preto de 1 texel no preto da paleta (pedido: "linha preta ao redor dos elementos"): terra e folhas no shader, sprites no PNG, bloco carregado, cultivo e camadas Near/Front do cenário em código. A arte de células (Mushrooms, Tufts, Twigs) já tinha contorno pelo shader `SceneryCells` e passou a 8 texels por célula; as faixas de grama distante também passaram a 8 px por célula e ficam sem linha, como no Terraria. Contra o túnel escuro, o contorno das formigas quase some.
+
+### ART-025 — Kit do graveto
+
+Piloto de 2026-10-23 (REQ-069): em vez de redesenhar à mão gravetos de 200 a 360 células, um kit de peças a 8 texels por célula (casca repetível de 128 × 64, face do corte, lascas da ponta e do galho, três nós), montado por código com sombreado de cilindro na rampa da própria casca e contorno preto. No jogo, os gravetos do kit substituem os antigos (cinco variantes, posicionados e caminháveis como as pedras refinadas). Comparado ao antigo, sai mais escuro e com fibra fina; o galho tem junta simples, sem calo. A ponta do galho segue a direção dele desde o relato do desenvolvedor no mesmo dia.
+
+### ART-026 — Arte dos biomas da superfície
+
+Lista de arte por bioma, por camada e para os postos avançados, com ordem sugerida de produção, no [Documento 44](../Docs/02_World_Art_UI/44_Biomas_da_superficie_e_postos_avancados.md) (REQ-070). Segue a paleta mestra e a densidade que for adotada (16 px aprovada; 8 px em experimento, REQ-068); elementos grandes montados por peças, como o kit do graveto (ART-025). Depende da aprovação dos biomas em GD-012; a sugestão do agente para a demo é o gramado mais flores à esquerda e serapilheira à direita. Regra decidida em 2026-10-23: elementos grandes só no bioma deles, gramado central limpo e decoração que não imita insumo; com isso, os gigantes refeitos por peças (ART-025) se limitam aos que têm bioma. Em 2026-10-23, tile provisório da serapilheira (cobertura do chão da Serapilheira) gerado por `litter()` em `terrain_atlas.py`, reduzido a 8 px e inserido no atlas; a repetição a cada 8 células é visível. No mesmo dia, linhas 19 (terra adubada) e 20 (néctar) pelo mesmo caminho. Faltam camadas rasas, fundos, transbordos, silhueta do canteiro, item carregado da serapilheira e a aprovação do desenvolvedor.
+
+### ART-027 — Minérios, barras e equipamentos
+
+Linhas 21 a 23 (minérios: a pedra com pintas grandes do metal) e 24 a 35 (barras, ferramentas, armas e armaduras de cada metal, padrões provisórios só para o bloco carregado e o item guardado), geradas por `terrain_atlas.py`, reduzidas a 8 px e inseridas no atlas. Em 2026-10-23, depois do teste de jogo, pedido do desenvolvedor: famílias de sala construída próprias para a fundição, a forja e os dois armazéns de equipamento (linhas 51 a 58 do atlas) e os itens guardados desenhados com a arte do atlas, como objetos sobre a parede de fundo. A arte do equipamento das formigas (camadas vestidas, itens e ícones de HUD) passou para ART-028. Faltam as barras e os minérios do atlas, ainda provisórios. Lista no [Documento 45](../Docs/01_Design/45_Minerios_fundicao_forja_e_equipamento.md).
+
+### ART-028 — Arte do equipamento das formigas
+
+Pedido de REQ-071 ("a arte das formigas que utilizam as ferramentas e as roupas/armaduras"). Três entregas, todas aprovadas pelo desenvolvedor em 2026-10-23, em etapas: a prova em ferro (lateral) e depois o conjunto, os itens e os ícones.
+- **Camadas vestidas:** 18 PNGs 24 × 16 em `Art/Ants/Equipamento/<Metal>/<Tipo>/` (`Ant_Walk_0` e `Ant_Top_0`; uma camada por vista porque o corpo não muda entre os quatro quadros). Ligadas ao `AntSwarmView` (**Equip Walk** e **Equip Top**).
+- **Itens:** 9 sprites 8 × 8 (`Item_<Metal><Tipo>`) na grade e na boca da formiga (**Equip Item Sprites** no `AntFarmView` e no `AntSwarmView`).
+- **Ícones de HUD:** 5 PNGs 40 × 40 (`Art/UI/Sprites/icons/equip_*`) nos botões do depósito de minério, da fundição, da forja e dos dois armazéns.
+
+Validação: importação conferida na Unity, console sem erros e Play Mode pelo agente (camadas lateral e superior, itens na grade e na boca, ícones da fundição, da forja e do depósito de minério; os dois armazéns ficaram abaixo da janela de teste). Suíte EditMode não rodada. O equipamento vindo da forja não foi exercitado com este visual. Guias: [Art/Ants](../Assets/Project/Art/Ants/README.md), [AntFarmGuide](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md), [WorkshopGuide](../Assets/Project/Scripts/Runtime/Colony/WorkshopGuide.md).
+
 ## Riscos e bloqueios
 
 
@@ -153,6 +185,8 @@ Feito em 2026-10-22 a pedido do desenvolvedor (REQ-058: "começar com a criaçã
 
 ## Não verificado
 
+- Kit do graveto (ART-025): desenvolvedor ainda não avaliou a versão que substitui os antigos; formigas andando sobre o graveto não foram observadas.
+- Experimento 8x8 (ART-024): desenvolvedor ainda não avaliou a escala nem o contorno; custo do contorno no shader do terreno não medido.
 - Tiles de sala construída (ART-023): em jogo, só berçário e depósito vistos pelo agente; rainha, cultivo, resíduos, orvalho e fazenda só na maquete.
 - Pebble_05_2x limpa (ART-021): não vista em Play Mode; a densidade fica em 8 px por célula até ser refeita nativa.
 - Aprovação visual e importação/reprodução na Unity das variantes por função (ART-006); integração no jogo adiada a pedido do desenvolvedor.

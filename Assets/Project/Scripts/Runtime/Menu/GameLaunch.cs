@@ -11,10 +11,30 @@ namespace Fabula.Incrementant.Menu
         public const string MenuSceneName = "MainMenu";
 
         static bool _continueRequested;
+        static bool _fromMenu;
 
-        public static void RequestNew() => _continueRequested = false;
+        public static void RequestNew()
+        {
+            _continueRequested = false;
+            _fromMenu = true;
+        }
 
-        public static void RequestContinue() => _continueRequested = true;
+        public static void RequestContinue()
+        {
+            _continueRequested = true;
+            _fromMenu = true;
+        }
+
+        /// <summary>
+        /// Devolve se a cena da partida foi aberta pelo menu principal (Novo jogo ou Continuar) e zera o recado. Falso quando a
+        /// cena AntFarm é aberta direto no Editor: aí o tutorial não roda.
+        /// </summary>
+        public static bool ConsumeFromMenu()
+        {
+            bool fromMenu = _fromMenu;
+            _fromMenu = false;
+            return fromMenu;
+        }
 
         /// <summary>Devolve se o jogador pediu Continuar e zera o pedido.</summary>
         public static bool ConsumeContinue()

@@ -3191,6 +3191,98 @@ MonoBehaviour:
     m_Key: glossary.tips
     m_Metadata:
       m_Items: []
+  - m_Id: 1658939372597248
+    m_Key: brush.litterstore
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1658939401957376
+    m_Key: tip.brush.litterstore
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1658939406151680
+    m_Key: upgrade.D8.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1658939406151681
+    m_Key: upgrade.D8.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1658949350846464
+    m_Key: brush.litterstore.U
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1665864411770880
+    m_Key: brush.nectarstore
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1665864415965184
+    m_Key: tip.brush.nectarstore
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1665873270140928
+    m_Key: brush.nectarstore.U
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1672398994796544
+    m_Key: brush.orestore
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1672398998990848
+    m_Key: tip.brush.orestore
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1672407807029248
+    m_Key: brush.orestore.U
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1675230900776960
+    m_Key: brush.smelter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1675230904971264
+    m_Key: brush.forge
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1675230904971265
+    m_Key: brush.armory
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1675230904971266
+    m_Key: brush.wardrobe
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1675230904971267
+    m_Key: tip.brush.smelter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1675230904971268
+    m_Key: tip.brush.forge
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1675230904971269
+    m_Key: tip.brush.armory
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1675230904971270
+    m_Key: tip.brush.wardrobe
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1675236919603200
+    m_Key: brush.smelter.U
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1675237443891200
+    m_Key: brush.forge.U
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1675240950329344
+    m_Key: brush.armory.U
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1675241487200256
+    m_Key: brush.wardrobe.U
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

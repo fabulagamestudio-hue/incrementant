@@ -19,8 +19,8 @@ namespace Fabula.Incrementant.AntFarm
         readonly int _sortingOrder;
         readonly Material _material;
         Material _detailedMaterial;
-        readonly SceneryStamp[][] _stamps = new SceneryStamp[2][];
-        readonly PlantShape[][] _shapes = new PlantShape[2][];
+        readonly SceneryStamp[][] _stamps = new SceneryStamp[3][];
+        readonly PlantShape[][] _shapes = new PlantShape[3][];
         readonly Dictionary<int, Entry> _entries = new Dictionary<int, Entry>();
         int _structureVersion = -1;
         int _markVersion = -1;
@@ -51,7 +51,9 @@ namespace Fabula.Incrementant.AntFarm
             _material = material;
             // Toda planta da superfície é colhível (o cenário não pinta mais grama, trevo, flor nem tufo).
             Load(PlantKind.Grass, library, SceneryElement.Grass, SceneryElement.Tuft);
-            Load(PlantKind.Leafy, library, SceneryElement.Clover, SceneryElement.Flower);
+            Load(PlantKind.Leafy, library, SceneryElement.Clover);
+            // Flores só no Canteiro de flores (documento 44): tipo próprio, para a vegetação escolher pelo bioma.
+            Load(PlantKind.Flower, library, SceneryElement.Flower);
         }
 
         /// <summary>Forma de cada variante de arte do tipo, na ordem das variantes (passe para <see cref="VegetationSimulation"/>).</summary>

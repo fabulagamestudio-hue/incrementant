@@ -253,6 +253,8 @@ namespace Fabula.Incrementant.Tests
             var settings = new TerrainSettings();
             var grid = new PixelGrid(settings.Width, settings.Height);
             TerrainLayout layout = TerrainGenerator.Generate(grid, settings, 21);
+            // O cenário de perto só existe na Serapilheira (documento 44), e o lado dela é sorteado: mapa inteiro dela.
+            grid.Biomes = SurfaceBiomes.Band(grid.Width, SurfaceBiome.LeafLitter, 0, grid.Width);
             var scenery = new SurfaceScenerySettings();
             Color32 sky = new Color32(120, 170, 215, 255);
             SceneryLayers layers = SurfaceSceneryPainter.Paint(grid, layout, scenery, 21, sky, sky);

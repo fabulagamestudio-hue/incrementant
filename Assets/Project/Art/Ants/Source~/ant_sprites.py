@@ -465,6 +465,33 @@ def water_item():
     return c
 
 
+# Minério solto (REQ-071, pedido de 2026-10-23: "a arte dos minérios soltos, igual fizemos com a água"): um torrão de pedra
+# com pepitas do metal, o mesmo sprite na boca da formiga e no chão (AntFarmView desenha o item com ele). Desenhado direto em
+# 8 x 8 (a redução de um 16 x 16 apagava as pepitas): . vazio, O contorno, S/B/L sombra, base e luz da pedra, d/m/h metal.
+ORE_ROCK_RAMP = (17, 18, 19)
+ORE_METALS = {'CopperOre': (8, 11, 12), 'IronOre': (32, 33, 34), 'GoldOre': (7, 13, 16)}
+ORE_ITEM = (
+    '........',
+    '..OOO...',
+    '.OLhBOO.',
+    'OLBBmBBO',
+    'OBmBBhSO',
+    'OBBdSmSO',
+    '.OSSSSO.',
+    '..OOOO..',
+)
+ORE_TONES = {'O': 3, 'S': 0, 'B': 1, 'L': 2, 'm': 5, 'h': 6, 'd': 7}
+
+
+def ore_item():
+    c = Canvas(1, (8, 8))
+    for y, row in enumerate(ORE_ITEM):
+        for x, ch in enumerate(row):
+            if ch != '.':
+                c.put(x, y, ORE_TONES[ch])
+    return c
+
+
 def brood_and_items():
     out = []
     for f in range(2):
@@ -473,6 +500,8 @@ def brood_and_items():
         out.append(('Pupa_Idle_%d.png' % f, pupa(f), PUPA_RAMP, PUPA_EXTRA))
     out.append(('Item_Nutrient.png', nutrient_item(), NUTRIENT_RAMP, None))
     out.append(('Item_Water.png', water_item(), WATER_RAMP, None))
+    for name, (dark, base, light) in ORE_METALS.items():
+        out.append(('Item_%s.png' % name, ore_item(), ORE_ROCK_RAMP, {5: base, 6: light, 7: dark}))
     return out
 
 

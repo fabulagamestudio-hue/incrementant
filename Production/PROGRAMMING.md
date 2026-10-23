@@ -2,7 +2,7 @@
 
 **Projeto:** Incrementant
 **Setor:** PROGRAMMING
-**Última avaliação:** 2026-10-22
+**Última avaliação:** 2026-10-23
 
 ## Resumo
 
@@ -86,6 +86,8 @@ Protótipo de viabilidade do formigário implementado: grade de pixels com físi
 | PRG-072 | Glossário com a explicação de tudo, aberto por um botão na barra inferior e pelo menu do ESC | IMPLEMENTED | UNDEFINED | [GlossaryScreen.cs](../Assets/Project/Scripts/Runtime/Glossary/GlossaryScreen.cs), [GlossaryContent.cs](../Assets/Project/Scripts/Runtime/Glossary/GlossaryContent.cs), [GlossaryGuide.md](../Assets/Project/Scripts/Runtime/Glossary/GlossaryGuide.md); suíte EditMode 445/445 (inclui `EveryGlossaryEntryHasItsTexts`) e Play Mode pelo agente em 2026-10-22; 30 imagens de entradas em [Art/UI/Glossary](../Assets/Project/Art/UI/Glossary/README.md); textos e imagens não revisados por uma pessoa | REQ-066, PRG-035 | 2026-10-22 |
 | PRG-073 | Menu Colônia recuado (gaveta que entra com o cursor perto), aberto com submenu e nas paradas do tour sobre ele | IMPLEMENTED | UNDEFINED | [ColonyMenuDrawer.cs](../Assets/Project/Scripts/Runtime/UI/ColonyMenuDrawer.cs), [HudGuide.md](../Assets/Project/Scripts/Runtime/UI/HudGuide.md); Play Mode pelo agente em 2026-10-22 (mouse simulado: abre perto, histerese, fecha longe; paradas Ferramenta e Pausa) | REQ-067, PRG-035 | 2026-10-22 |
 | PRG-071 | Salas construídas com visual próprio: slots de reboco em volta da sala, obra das formigas, sala pronta e desenho | IMPLEMENTED | UNDEFINED | [AntColony.Lining.cs](../Assets/Project/Scripts/Runtime/Colony/AntColony.Lining.cs), [BuiltRoomsGuide.md](../Assets/Project/Scripts/Runtime/Colony/BuiltRoomsGuide.md), [RoomLiningTests.cs](../Assets/Project/Scripts/Tests/EditMode/RoomLiningTests.cs) (7 testes); suíte EditMode 447/447 e Play Mode pelo agente em 2026-10-22 (quicksave do desenvolvedor: 182 slots rebocados em ~45 s de jogo, todas as salas prontas) | REQ-058, ART-023, PRG-059 | 2026-10-22 |
+| PRG-074 | Biomas da superfície: Serapilheira e Canteiro de flores (mapa de biomas, chão por bioma, depósitos de serapilheira e de néctar, reposição das folhas, gotas de néctar, cenário e plantas por bioma) | IMPLEMENTED | UNDEFINED | [BiomesGuide.md](../Assets/Project/Scripts/Runtime/World/BiomesGuide.md); `BiomeTests` e suíte EditMode 457/457 em 2026-10-23 | REQ-070, GD-012, ART-026 | 2026-10-23 |
+| PRG-075 | Minérios em veios, fundição, forja, armazéns e equipamento das formigas; areal e fruteira nas pontas do mundo | IMPLEMENTED | UNDEFINED | [WorkshopGuide.md](../Assets/Project/Scripts/Runtime/Colony/WorkshopGuide.md); [BiomesGuide.md](../Assets/Project/Scripts/Runtime/World/BiomesGuide.md); `OreTests`, `WorkshopTests`, suíte EditMode e Play Mode em 2026-10-23 | REQ-071, GD-013, ART-027 | 2026-10-23 |
 
 ## Detalhes
 
@@ -308,6 +310,14 @@ Pedido de 2026-10-22 (REQ-061). Como funciona: [FarmGuide.md](../Assets/Project/
 ### PRG-071 — Salas construídas com visual próprio
 
 Pedido REQ-058, feito em 2026-10-22 em duas etapas: os tiles (atlas com bloco e fundo por família, `CellTileArt.RoomStyle`) e a lógica. Como funciona: [BuiltRoomsGuide.md](../Assets/Project/Scripts/Runtime/Colony/BuiltRoomsGuide.md). Os slots são as paredes de terra em contato com o vão de cada sala, em volta e dentro da área pintada (teto incluído desde a correção do desenvolvedor no mesmo dia); as formigas da seção Obra os rebocam com a terra da obra, sem tirar células vazias da sala; com o reboco completo e nada para cavar, a sala fica pronta e o vão mostra o fundo. Construção primeiro (decisão do desenvolvedor depois de jogar, porque o reboco que esperava as automatizações não acontecia em jogo): a comum constrói antes do cuidado, do ovo, da rega, da comida da rainha, de cavar e do abastecimento; os testes de canteiro, orvalho, depósito e resíduos começam com as salas já rebocadas (`RoomLiningTests.LineAllRooms`). Save versão 25. Limites em [KnownIssues.md](../Assets/Project/Scripts/KnownIssues.md) (KI-059). Falta uma pessoa jogar.
+
+### PRG-074 — Biomas da superfície: Serapilheira e Canteiro de flores
+
+Pedido de 2026-10-23 (REQ-070). `SurfaceBiomes` (bioma por coluna, pela seed), `CellMaterial.Litter` na cobertura do chão do bioma, `StorageKind.Litter` e pincel Depósito de serapilheira, `LitterFall` (folhas voltam sem tapar túneis nem enterrar formigas), cenário só com gravetos e folhas secas na Serapilheira, plantas só no gramado; pedras, cogumelos e grãos fora da geração. No mesmo dia, o Canteiro de flores à esquerda: `CellMaterial.Compost` no chão, `PlantKind.Flower` só nele (faixas de 50 células), `NectarDrip` (gotas ao pé das flores inteiras) e `StorageKind.Nectar` com pincel próprio; o gramado ficou com grama e trevos. Validado pela suíte EditMode (457/457, com `BiomeTests`) e visto pelo agente em Play Mode; falta o playtest do desenvolvedor. Como funciona: [BiomesGuide.md](../Assets/Project/Scripts/Runtime/World/BiomesGuide.md).
+
+### PRG-075 — Minérios, fundição, forja e equipamento
+
+Pedido de 2026-10-23 (REQ-071). `OreVeins` (veios de cobre, ferro e ouro por faixa de profundidade), `StorageKind.Ore`/`Smelter`/`Forge`/`Armory`/`Wardrobe` com pincéis próprios, `AntColony.Workshop.cs` (transformação automática, logística, vestir, efeitos e desgaste), `Equipment` (tabela de metal e efeitos). Mundo: `SurfaceBiomes` com Areal e Fruteira nas pontas e lado sorteado. Corrigido no caminho: `PaintBudget.RoomCount` fixo em 11 deixava os depósitos novos sem barra de área e sem reboco. Validado pela suíte EditMode (com `OreTests` e `WorkshopTests`, inclusive a cadeia minério → barra → ferramenta vestida) e por teste de jogo em Play Mode em 2026-10-23. No mesmo dia: famílias de sala construída da fundição, da forja e dos armazéns e itens guardados desenhados com a arte do atlas (textura `_CellItems` no `TerrainTiles`). Ainda em 2026-10-23, a pedido do desenvolvedor, os veios viraram bolsões como no Terraria, com mais ouro no fundo e cobre e ferro esparsos abaixo da faixa (`OreVeins.Pocket`/`Stamp`, valores novos na cena); e o minério solto ganhou sprite próprio (boca e grade, `_ItemSprites` no `TerrainTiles`) e queda fora do depósito e da fundição (`LooseOreFall`, `LooseOreFallTests`). Como funciona: [WorkshopGuide.md](../Assets/Project/Scripts/Runtime/Colony/WorkshopGuide.md).
 
 ## Riscos e bloqueios
 

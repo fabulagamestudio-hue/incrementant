@@ -15,7 +15,7 @@ namespace Fabula.Incrementant.UI
         // Índices de AntFarmGame.BrushLabels (os mesmos de AntFarmGame.BrushMode).
         const int BrushDig = 0, BrushBuild = 1, BrushQueenRoom = 2, BrushNutrientRoom = 3, BrushNursery = 4, BrushWaste = 5,
             BrushFinger = 6, BrushDew = 7, BrushFoodStore = 8, BrushBlockStore = 9, BrushWaterStore = 10, BrushGlowMushroom = 11,
-            BrushFarm = 12, BrushSandStore = 13, BrushMushroomStore = 14;
+            BrushFarm = 12, BrushSandStore = 13, BrushMushroomStore = 14, BrushLitterStore = 15, BrushNectarStore = 16, BrushOreStore = 17, BrushSmelter = 18, BrushForge = 19, BrushArmory = 20, BrushWardrobe = 21;
 
         static string Join(string description, string status) =>
             string.IsNullOrEmpty(status) ? description : description + "\n\n" + status;
@@ -58,6 +58,20 @@ namespace Fabula.Incrementant.UI
                 case BrushSandStore: return Join(Loc.T("tip.brush.sandstore") + " " + Loc.T("tip.room.paint"), DepotStatus(colony, StorageKind.Sand));
                 case BrushMushroomStore:
                     return Join(Loc.T("tip.brush.mushroomstore") + " " + Loc.T("tip.room.paint"), DepotStatus(colony, StorageKind.Mushroom));
+                case BrushLitterStore:
+                    return Join(Loc.T("tip.brush.litterstore") + " " + Loc.T("tip.room.paint"), DepotStatus(colony, StorageKind.Litter));
+                case BrushNectarStore:
+                    return Join(Loc.T("tip.brush.nectarstore") + " " + Loc.T("tip.room.paint"), DepotStatus(colony, StorageKind.Nectar));
+                case BrushOreStore:
+                    return Join(Loc.T("tip.brush.orestore") + " " + Loc.T("tip.room.paint"), DepotStatus(colony, StorageKind.Ore));
+                case BrushSmelter:
+                    return Join(Loc.T("tip.brush.smelter") + " " + Loc.T("tip.room.paint"), DepotStatus(colony, StorageKind.Smelter));
+                case BrushForge:
+                    return Join(Loc.T("tip.brush.forge") + " " + Loc.T("tip.room.paint"), DepotStatus(colony, StorageKind.Forge));
+                case BrushArmory:
+                    return Join(Loc.T("tip.brush.armory") + " " + Loc.T("tip.room.paint"), DepotStatus(colony, StorageKind.Armory));
+                case BrushWardrobe:
+                    return Join(Loc.T("tip.brush.wardrobe") + " " + Loc.T("tip.room.paint"), DepotStatus(colony, StorageKind.Wardrobe));
                 case BrushFarm:
                     return colony != null && !colony.FarmUnlocked
                         ? Loc.T("tip.brush.farm.locked")

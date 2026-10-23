@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8d092e119fb29748b0e4c431df25fc2, type: 3}
+  m_Name: TwigKit
+  m_EditorClassIdentifier: Fabula.Incrementant::Fabula.Incrementant.AntFarm.TwigKit
+  _bark: {fileID: 2800000, guid: 7ec6a112f9dc4aa4399d2ef6bb15f379, type: 3}
+  _cutEnd: {fileID: 2800000, guid: c6e512621bc937c43bdcf7e2fbf8adcf, type: 3}
+  _brokenEnd: {fileID: 2800000, guid: 5d26e60e28b9e324d90ed01eb3474986, type: 3}
+  _branchTip: {fileID: 2800000, guid: c639e74abf8e40147bdc73915bf8cbe2, type: 3}
+  _knots:
+  - {fileID: 2800000, guid: 4e021c3010f669c49bf8d6c0ab1de0d3, type: 3}
+  - {fileID: 2800000, guid: daebc442e6ef07047a7568bd7c7a3e2a, type: 3}
+  - {fileID: 2800000, guid: 562cb20ed76c29c4c87d81c000389bd5, type: 3}
+  _length: {x: 200, y: 360}
+  _rise: {x: -4, y: 8}
+  _bow: {x: -1.5, y: 2.5}
+  _branchAt: {x: 0.3, y: 0.7}
+  _branchLength: {x: 34, y: 46}
+  _branchAngle: {x: 55, y: 72}
+  _knotCount: {x: 1, y: 3}

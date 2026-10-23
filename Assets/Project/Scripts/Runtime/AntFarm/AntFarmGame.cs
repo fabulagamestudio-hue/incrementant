@@ -77,6 +77,12 @@ namespace Fabula.Incrementant.AntFarm
         [Header("Vegetação")]
         [Tooltip("Grama e mudas da superfície que crescem com o tempo e são colhidas pelas jardineiras para virar nutrientes.")]
         [SerializeField] VegetationSettings _vegetationSettings = new VegetationSettings();
+        [Tooltip("Folhas que voltam a cobrir o chão da Serapilheira (documento 44).")]
+        [SerializeField] LitterSettings _litterSettings = new LitterSettings();
+        [Tooltip("Gotas de néctar que as flores do Canteiro de flores soltam (documento 44).")]
+        [SerializeField] NectarSettings _nectarSettings = new NectarSettings();
+        [Tooltip("Queda do minério solto, fora do depósito de minério e da fundição (documento 45).")]
+        [SerializeField] OreFallSettings _oreFallSettings = new OreFallSettings();
         [Header("Câmera")]
         [Tooltip("Folga, em células, do enquadramento inicial e acima do topo do mundo.")]
         [SerializeField, Min(0f)] float _cameraMargin = 4f;
@@ -111,14 +117,15 @@ namespace Fabula.Incrementant.AntFarm
         enum BrushMode
         {
             Dig, Build, QueenRoom, NutrientRoom, NurseryRoom, WasteRoom, Finger, DewRoom, FoodStore, BlockStore, WaterStore, GlowMushroom,
-            FarmRoom, SandStore, MushroomStore,
+            FarmRoom, SandStore, MushroomStore, LitterStore, NectarStore, OreStore, Smelter, Forge, Armory, Wardrobe,
         }
 
         static readonly string[] BrushLabels =
         {
             "Cavar", "Construir", "Sala da rainha", "Sala de nutrientes", "Berçário", "Resíduos", "Dedo", "Gotas de orvalho",
             "Depósito de alimentos", "Depósito de construção", "Depósito de água", "Cogumelo luminoso", "Fazenda de pulgões",
-            "Depósito de areia", "Depósito de cogumelos",
+            "Depósito de areia", "Depósito de cogumelos", "Depósito de serapilheira", "Depósito de néctar", "Depósito de minério", "Fundição", "Forja",
+            "Armazém de ferramentas e armas", "Armazém de roupas e armaduras",
         };
         static readonly string[] WeatherLabels = { "Seco", "Chuva leve", "Chuva forte" };
 
@@ -127,6 +134,9 @@ namespace Fabula.Incrementant.AntFarm
         RainSimulation _rain;
         WaterSimulation _water;
         VegetationSimulation _vegetation;
+        LitterFall _litter;
+        NectarDrip _nectar;
+        LooseOreFall _oreFall;
         AntColony _colony;
         MenuShowcase _showcaseDirector;
         TerrainLayout _layout;
@@ -261,6 +271,12 @@ namespace Fabula.Incrementant.AntFarm
         /// <summary>A partida começou de um save (Continuar no menu principal): o tutorial não roda.</summary>
         public bool StartedFromSave { get; private set; }
 
+        /// <summary>
+        /// A cena foi aberta pelo menu principal (Novo jogo ou Continuar). Falso ao abrir a cena AntFarm direto no Editor:
+        /// o tutorial só roda vindo do menu.
+        /// </summary>
+        public bool StartedFromMenu { get; private set; }
+
         /// <summary>Vitrine do menu principal: sem jogador, sem HUD de partida.</summary>
         public bool Showcase => _showcase;
 
@@ -332,7 +348,8 @@ namespace Fabula.Incrementant.AntFarm
 
         public static bool IsDepotBrush(int index) =>
             index >= (int)BrushMode.FoodStore && index <= (int)BrushMode.WaterStore || index == (int)BrushMode.SandStore ||
-            index == (int)BrushMode.MushroomStore;
+            index == (int)BrushMode.MushroomStore || index == (int)BrushMode.LitterStore || index == (int)BrushMode.NectarStore ||
+            index == (int)BrushMode.OreStore || index == (int)BrushMode.Armory || index == (int)BrushMode.Wardrobe;
 
         /// <summary>Índice do pincel da fazenda de pulgões (liberado pela câmara A0).</summary>
         public const int FarmBrushIndex = (int)BrushMode.FarmRoom;
@@ -353,6 +370,13 @@ namespace Fabula.Incrementant.AntFarm
                 case BrushMode.FarmRoom: room = PaintRoom.Farm; return true;
                 case BrushMode.SandStore: room = PaintRoom.SandStore; return true;
                 case BrushMode.MushroomStore: room = PaintRoom.MushroomStore; return true;
+                case BrushMode.LitterStore: room = PaintRoom.LitterStore; return true;
+                case BrushMode.NectarStore: room = PaintRoom.NectarStore; return true;
+                case BrushMode.OreStore: room = PaintRoom.OreStore; return true;
+                case BrushMode.Smelter: room = PaintRoom.Smelter; return true;
+                case BrushMode.Forge: room = PaintRoom.Forge; return true;
+                case BrushMode.Armory: room = PaintRoom.Armory; return true;
+                case BrushMode.Wardrobe: room = PaintRoom.Wardrobe; return true;
                 default: room = default; return false;
             }
         }
@@ -418,6 +442,7 @@ namespace Fabula.Incrementant.AntFarm
                 _progressBars = bars.AddComponent<ProgressBarsView>();
             }
             // Continuar (menu principal): o save é lido antes de gerar o mundo, para não gerar o mapa duas vezes.
+            StartedFromMenu = !_showcase && Menu.GameLaunch.ConsumeFromMenu();
             GameSnapshot continued = _showcase ? null : ReadSaveRequestedByMenu();
             StartedFromSave = continued != null;
             Regenerate(continued);
@@ -515,8 +540,12 @@ namespace Fabula.Incrementant.AntFarm
             // cenário, a forma de cada planta na grade é a silhueta do sprite de grama/trevo sorteado para ela.
             _vegetation = _scenery != null
                 ? new VegetationSimulation(_vegetationSettings, _seed, _layout, _grid.Width,
-                                           _scenery.PlantShapes(PlantKind.Grass), _scenery.PlantShapes(PlantKind.Leafy))
-                : new VegetationSimulation(_vegetationSettings, _seed, _layout, _grid.Width);
+                                           _scenery.PlantShapes(PlantKind.Grass), _scenery.PlantShapes(PlantKind.Leafy),
+                                           _scenery.PlantShapes(PlantKind.Flower), _grid.Biomes)
+                : new VegetationSimulation(_vegetationSettings, _seed, _layout, _grid.Width, biomes: _grid.Biomes);
+            _litter = new LitterFall(_litterSettings, _seed);
+            _nectar = new NectarDrip(_nectarSettings, _seed);
+            _oreFall = new LooseOreFall(_oreFallSettings);
             if (snapshot != null)
             {
                 _vegetation.MarkPopulated(_grid.Active);
@@ -756,9 +785,12 @@ namespace Fabula.Incrementant.AntFarm
                 stageStart = SimProfiler.Now();
                 _vegetation.GrowthRate = _colony.Effects.OutdoorGrowthRate;
                 _vegetation.Step(_grid, tickDuration);
+                _litter.Step(_grid, tickDuration, _colony.IsAntAt);
+                _nectar.Step(_grid, _vegetation, tickDuration);
                 profiler.Add(ProfileStage.Vegetation, stageStart);
                 stageStart = SimProfiler.Now();
                 _simulation.Step(_grid);
+                _oreFall.Step(_grid, tickDuration);
                 profiler.Add(ProfileStage.Granular, stageStart);
                 stageStart = SimProfiler.Now();
                 _colony.GameSpeed = SpeedSteps[_speedIndex];
@@ -1166,6 +1198,27 @@ namespace Fabula.Incrementant.AntFarm
                     case BrushMode.MushroomStore:
                         _grid.SetStorageRoom(x, y, StorageKind.Mushroom, marked);
                         break;
+                    case BrushMode.LitterStore:
+                        _grid.SetStorageRoom(x, y, StorageKind.Litter, marked);
+                        break;
+                    case BrushMode.NectarStore:
+                        _grid.SetStorageRoom(x, y, StorageKind.Nectar, marked);
+                        break;
+                    case BrushMode.OreStore:
+                        _grid.SetStorageRoom(x, y, StorageKind.Ore, marked);
+                        break;
+                    case BrushMode.Smelter:
+                        _grid.SetStorageRoom(x, y, StorageKind.Smelter, marked);
+                        break;
+                    case BrushMode.Forge:
+                        _grid.SetStorageRoom(x, y, StorageKind.Forge, marked);
+                        break;
+                    case BrushMode.Armory:
+                        _grid.SetStorageRoom(x, y, StorageKind.Armory, marked);
+                        break;
+                    case BrushMode.Wardrobe:
+                        _grid.SetStorageRoom(x, y, StorageKind.Wardrobe, marked);
+                        break;
                     case BrushMode.FarmRoom:
                         _grid.SetFarmRoom(x, y, marked);
                         break;
@@ -1217,7 +1270,8 @@ namespace Fabula.Incrementant.AntFarm
             GUILayout.Label($"Plantas: {_vegetation.PlantCount} · colhidos: {_colony.HarvestedPixels} px · cresceram: {_vegetation.GrownCells} px");
             GUILayout.Label($"Terra retirada: {_colony.TotalDelivered}");
             GUILayout.Label($"Depósitos (guardado/vagas): alimentos {DepotLine(StorageKind.Food)} · construção {DepotLine(StorageKind.Blocks)} · " +
-                            $"água {DepotLine(StorageKind.Water)} · areia {DepotLine(StorageKind.Sand)} · cogumelos {DepotLine(StorageKind.Mushroom)} · " +
+                            $"água {DepotLine(StorageKind.Water)} · areia {DepotLine(StorageKind.Sand)} · cogumelos {DepotLine(StorageKind.Mushroom)} · serapilheira {DepotLine(StorageKind.Litter)} · néctar {DepotLine(StorageKind.Nectar)} · minério {DepotLine(StorageKind.Ore)} · fundição {DepotLine(StorageKind.Smelter)} · forja {DepotLine(StorageKind.Forge)} · " +
+                            $"armas {DepotLine(StorageKind.Armory)} · armaduras {DepotLine(StorageKind.Wardrobe)} · " +
                             $"soltos {_colony.LooseItems}");
             GUILayout.Label($"Pixels marcados: {_grid.MarkedCount} para cavar · {_grid.BuildMarkedCount} para construir");
             GUILayout.Label($"Rainha: {QueenStatus()}");

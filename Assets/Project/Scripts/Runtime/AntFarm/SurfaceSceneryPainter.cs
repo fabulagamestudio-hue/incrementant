@@ -5,24 +5,22 @@ using UnityEngine;
 
 namespace Fabula.Incrementant.AntFarm
 {
-    /// <summary>Quantidade de cada elemento do cenário da superfície, por 100 células de largura do mapa.</summary>
+    /// <summary>
+    /// Quantidade de cada elemento do cenário da superfície, por 100 colunas do bioma a que ele pertence (documento 44,
+    /// "Cenário na geração do mapa"): elemento grande só no bioma dele e gramado central limpo. Pedras, cogumelos e grãos
+    /// saíram da geração em 2026-10-23 e voltam com a margem úmida.
+    /// </summary>
     [Serializable]
     public sealed class SurfaceScenerySettings
     {
-        // Grama, trevos e flores não são cenário: são plantas colhíveis (VegetationSimulation + PlantSprites).
-        [SerializeField, Min(0f)] float _mushrooms = 0.25f;
-        [SerializeField, Min(0f)] float _twigs = 0.25f;
-        [SerializeField, Min(0f)] float _dryLeaves = 0.4f;
-        [Tooltip("Pedrinhas de 1 a 6 células (a formiga mede 3x2).")]
-        [SerializeField, Min(0f)] float _pebbles = 4f;
-        [Tooltip("Grãos e migalhas de menos de 1 célula.")]
-        [SerializeField, Min(0f)] float _grains = 8f;
+        // Grama, trevos e flores não são cenário: são plantas colhíveis (VegetationSimulation + PlantSprites), só no gramado.
+        [Tooltip("Gravetos por 100 colunas da Serapilheira.")]
+        [SerializeField, Min(0f)] float _litterTwigs = 1.2f;
+        [Tooltip("Folhas secas grandes por 100 colunas da Serapilheira.")]
+        [SerializeField, Min(0f)] float _litterDryLeaves = 2f;
 
-        public float Mushrooms => _mushrooms;
-        public float Twigs => _twigs;
-        public float DryLeaves => _dryLeaves;
-        public float Pebbles => _pebbles;
-        public float Grains => _grains;
+        public float LitterTwigs => _litterTwigs;
+        public float LitterDryLeaves => _litterDryLeaves;
     }
 
     /// <summary>
@@ -129,11 +127,15 @@ namespace Fabula.Incrementant.AntFarm
     {
         /// <summary>
         /// Texels por célula das camadas de perto e da frente e das plantas: cada pixel dos PNGs (1 célula) vira um bloco
-        /// destes. Na tela, o shader Incrementant/SceneryCells desenha cada célula a 16 texels (etapa 10 do documento 40).
+        /// destes. Na tela, o shader Incrementant/SceneryCells desenha cada célula a _DetailTexels texels (8 no experimento 8x8;
+        /// antes 16, etapa 10 do documento 40).
         /// </summary>
         public const int PixelsPerCell = 6;
-        /// <summary>Texels por célula das faixas de grama distante, pintadas por código: a densidade do mundo (documento 40).</summary>
-        public const int BandPixelsPerCell = 16;
+        /// <summary>
+        /// Texels por célula das faixas de grama distante, pintadas por código: a densidade do mundo
+        /// (<see cref="CellTileArt.TexelsPerCell"/>, 8 no experimento 8x8 de 2026-10-22; antes 16, documento 40).
+        /// </summary>
+        public const int BandPixelsPerCell = CellTileArt.TexelsPerCell;
         /// <summary>Células abaixo do solo mais baixo incluídas nas camadas, para as bases ficarem enterradas atrás do terreno.</summary>
         const int Embed = 3;
         /// <summary>Células de céu acima do topo do mapa quando quem chama não informa a folga da câmera.</summary>
@@ -170,7 +172,6 @@ namespace Fabula.Incrementant.AntFarm
 
             var rng = new System.Random(seed);
             var painter = new Painter(grid, originY) { Skip = isLakeColumn };
-            float per100 = grid.Width / 100f;
 
             var sky = new SceneryLayer(1, (grid.Height + Mathf.Max(0, skyAbove) - originY) * PixelsPerCell, originY, PixelsPerCell);
             PaintSky(sky, skyBaseY, grid.Height - 1, skyTop, skyBottom);
@@ -195,30 +196,18 @@ namespace Fabula.Incrementant.AntFarm
             // Sem grama, trevos e flores: toda planta da superfície é colhível e desenhada por PlantSprites.
             // Com a arte em escala de célula (SceneryStamp.ArtScale), cada elemento tem dezenas de células de largura:
             // posições são sorteadas sem sobrepor os já postos (FindX), em vez de caírem umas sobre as outras.
-            // Cogumelos nascem em grupinhos de 1 a 3, mas cada um busca o próprio espaço livre.
+            // Cada elemento grande só nasce inteiro dentro do bioma dele (documento 44); o gramado fica limpo.
+            SurfaceBiomes biomes = grid.Biomes;
+            float litterPer100 = CountColumns(biomes, SurfaceBiome.LeafLitter) / 100f;
             var bigUsed = new List<Vector2>();
-            var pebbleUsed = new List<Vector2>();
-            var grainUsed = new List<Vector2>();
-            void PlaceSpaced(SceneryStamp stamp, List<Vector2> used, float gap, float sink = 0f, float bury = 0f)
+            void PlaceIn(SurfaceBiome biome, SceneryStamp stamp, List<Vector2> used, float gap)
             {
-                if (!FindX(rng, grid.Width, stamp, used, gap, out float x))
-                    return;
-                if (bury > 0f)
-                    PlacePebble(painter, stamp, x, bury);
-                else
-                    painter.Place(stamp, x, sink);
+                if (FindX(rng, grid.Width, stamp, used, gap, out float x, biomes, biome))
+                    painter.Place(stamp, x, 0f);
             }
-            Repeat(rng, settings.Mushrooms * per100, () =>
-            {
-                for (int i = 0, count = rng.Next(1, 4); i < count; i++)
-                    PlaceSpaced(Pick(SceneryElement.Mushroom), bigUsed, 12f);
-            });
-            Repeat(rng, settings.Twigs * per100, () => PlaceSpaced(Pick(SceneryElement.Twig), bigUsed, 12f));
-            Repeat(rng, settings.DryLeaves * per100, () => PlaceSpaced(Pick(SceneryElement.DryLeaf), bigUsed, 12f));
-            Repeat(rng, settings.Pebbles * per100, () => PlaceSpaced(Pick(SceneryElement.Pebble), pebbleUsed, 6f, bury: Range(rng, 0.6f, 1f)));
-            // Antes dos grãos: migalhas de menos de 1 célula não viram fundo caminhável.
+            Repeat(rng, settings.LitterTwigs * litterPer100, () => PlaceIn(SurfaceBiome.LeafLitter, Pick(SceneryElement.Twig), bigUsed, 12f));
+            Repeat(rng, settings.LitterDryLeaves * litterPer100, () => PlaceIn(SurfaceBiome.LeafLitter, Pick(SceneryElement.DryLeaf), bigUsed, 12f));
             bool[] backdrop = CoveredCells(near, grid.Width);
-            Repeat(rng, settings.Grains * per100, () => PlaceSpaced(Pick(SceneryElement.Grain), grainUsed, 3f));
 
             // Camada da frente (na frente das formigas) vazia: os tufos que ficavam nela viraram plantas colhíveis
             // (variantes da grama em PlantSprites), já que tudo o que é grama em primeiro plano pode ser colhido.
@@ -532,13 +521,19 @@ namespace Fabula.Incrementant.AntFarm
         /// Sorteia uma posição em que o carimbo (largura em células, mais <paramref name="gap"/> de cada lado) não cruza
         /// nenhum intervalo de <paramref name="used"/> e a registra. Falha (false) depois de 40 tentativas: o elemento some.
         /// </summary>
-        static bool FindX(System.Random rng, int mapWidth, SceneryStamp stamp, List<Vector2> used, float gap, out float x)
+        /// <param name="biomes">Com ele, só vale x em que o elemento inteiro (sem a folga) fica dentro de <paramref name="biome"/>.</param>
+        static bool FindX(System.Random rng, int mapWidth, SceneryStamp stamp, List<Vector2> used, float gap, out float x,
+                          SurfaceBiomes biomes = null, SurfaceBiome biome = SurfaceBiome.Meadow)
         {
             float left = -stamp.PivotX / (float)PixelsPerCell - gap;
             float right = (stamp.Width - stamp.PivotX) / (float)PixelsPerCell + gap;
-            for (int attempt = 0; attempt < 40; attempt++)
+            // O bioma ocupa só parte do mapa: mais tentativas, para a mesma chance de achar lugar.
+            int attempts = biomes == null ? 40 : 160;
+            for (int attempt = 0; attempt < attempts; attempt++)
             {
                 x = RandomX(rng, mapWidth);
+                if (biomes != null && !Inside(biomes, biome, x + left + gap, x + right - gap))
+                    continue;
                 bool free = true;
                 foreach (Vector2 u in used)
                 {
@@ -555,6 +550,23 @@ namespace Fabula.Incrementant.AntFarm
             }
             x = 0f;
             return false;
+        }
+
+        static bool Inside(SurfaceBiomes biomes, SurfaceBiome biome, float from, float to)
+        {
+            for (int c = Mathf.FloorToInt(from), end = Mathf.FloorToInt(to); c <= end; c++)
+                if (biomes.At(c) != biome)
+                    return false;
+            return true;
+        }
+
+        static int CountColumns(SurfaceBiomes biomes, SurfaceBiome biome)
+        {
+            int count = 0;
+            for (int x = 0; x < biomes.Width; x++)
+                if (biomes.At(x) == biome)
+                    count++;
+            return count;
         }
 
         static float RandomX(System.Random rng, int mapWidth) => Range(rng, 2f, mapWidth - 2f);

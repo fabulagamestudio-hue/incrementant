@@ -99,9 +99,12 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Segundos no ar até acertar (distância ÷ <see cref="RaidSettings.SpitSpeed"/>).</summary>
         public readonly float Duration;
         public float Elapsed;
+        /// <summary>Multiplicador do dano pela arma da cuspideira que atirou (documento 45).</summary>
+        public readonly float DamageFactor;
 
-        public SpitShot(int fromX, int fromY, Termite target, float duration)
+        public SpitShot(int fromX, int fromY, Termite target, float duration, float damageFactor = 1f)
         {
+            DamageFactor = damageFactor;
             FromX = fromX;
             FromY = fromY;
             Target = target;

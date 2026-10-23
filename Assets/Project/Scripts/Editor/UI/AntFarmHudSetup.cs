@@ -180,12 +180,14 @@ namespace Fabula.Incrementant.EditorTools.UI
             {
                 "icons/shovel", "icons/crate", "icons/crown", "icons/mushroom", "icons/egg", "icons/close", "icons/hand_index_up", "icons/leaf",
                 "icons/leaf", "icons/crate", "icons/arrow_down", "icons/mushroom", "icons/ant", "icons/crate", "icons/mushroom",
+                "icons/leaf", "icons/crate", "icons/equip_ore", "icons/equip_smelter", "icons/equip_forge", "icons/equip_armory", "icons/equip_wardrobe",
             };
             int[] paintBrushes = { 0, 1, 11, 6 };   // Cavar, Construir, Cogumelo luminoso, Dedo
-            // Sala da rainha, Sala de nutrientes, Berçário, Resíduos, Gotas de orvalho, Fazenda de pulgões
-            int[] environmentBrushes = { 2, 3, 4, 5, 7, 12 };
-            // Depósitos de alimentos, de construção, de água, de areia e de cogumelos (submenu DEPÓSITO)
-            int[] depotBrushes = { 8, 9, 10, 13, 14 };
+            // Sala da rainha, Sala de nutrientes, Berçário, Resíduos, Gotas de orvalho, Fazenda de pulgões, Fundição, Forja
+            int[] environmentBrushes = { 2, 3, 4, 5, 7, 12, 18, 19 };
+            // Depósitos de alimentos, construção, água, areia, cogumelos, serapilheira, néctar e minério e os armazéns de
+            // ferramentas e armas e de roupas e armaduras (submenu DEPÓSITO)
+            int[] depotBrushes = { 8, 9, 10, 13, 14, 15, 16, 17, 20, 21 };
             var brushButtons = new Button[brushCount];
             var brushImages = new Image[brushCount];
             var brushFills = new Image[brushCount];

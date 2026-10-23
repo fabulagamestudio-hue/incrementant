@@ -1,5 +1,15 @@
 # Arte e variantes de cor das formigas
 
+> **Experimento 8x8 (branch `experimento/arte-8x8`, 2026-10-22):** os PNGs desta pasta (e de `Aphids`) estão com metade do tamanho descrito abaixo (adultos 24×16, rainha 48×32, cupins 32×32, itens 8×8), reduzidos com `../Source~/halve_pixel_art.py`, e o PPU do `AntSpriteImporter` caiu junto (8; rainha 16). Depois receberam o contorno preto de 1 texel por dentro (`../Source~/outline_pixel_art.py`). Os exportadores ainda geram a 16 px por célula. Ver `AntFarmGuide.md`, "Arte 8x8".
+
+## Equipamento das formigas — 2026-10-23 (REQ-071)
+
+Camadas 24×16 (mesmo canvas, PPU e pivô do papel) para desenhar **por cima** do sprite da formiga: `Equipamento/<Ferro|Cobre|Ouro>/<Ferramenta|Arma|Armadura>/Ant_Walk_0.png` (lateral) e `Ant_Top_0.png` (superior). Uma camada por vista, porque o corpo não muda entre os quatro quadros (só as patas, que ficam por baixo). Ferramenta é a ponteira nas mandíbulas (escavadora e comum), arma é a lâmina nas costas e armadura é capacete e placa no tórax (soldado e cuspideira). Metal por troca de rampa (ferro em aço cinza-azulado para não sumir no corpo vermelho). Gerar de novo: `python Source~/equip_layers.py [--sheet prancha.png]`. [Prancha](../../../../Docs/02_World_Art_UI/Formigas_equipadas_2026-10-23.png). Ligadas no `AntSwarmView` (**Equip Walk** e **Equip Top**, 9 sprites cada) por **Incrementant/Arte/Ligar arte das formigas por papel e dos cupins**.
+
+### Itens de equipamento (8 × 8)
+
+`Item_<Copper|Iron|Gold><Tool|Weapon|Armor>.png` (9 PNGs, 8×8, RGBA32 sem compressão, centrados): o mesmo desenho das camadas vestidas, como objeto (picareta, espada, capacete), com o contorno de 1 texel. Aparecem na boca da formiga a caminho do armazém e guardados na grade, no lugar da arte provisória do atlas. Gerar de novo: `python Source~/equip_items.py [--sheet prancha.png]`. [Prancha](../../../../Docs/02_World_Art_UI/Itens_equipamento_2026-10-23.png). Ligados em **Equip Item Sprites** do `AntSwarmView` e do `AntFarmView`.
+
 ## Refinamento de aparência — 2026-10-21 (REQ-049)
 
 A amostra refinada de `Ant_Top_0.png` foi aprovada pelo desenvolvedor, que pediu aplicar a aparência às formigas e à Rainha. A entrega usa 16 masters (Top/Walk 0–3 para operária e Rainha) em `Source~/Refined/`, com carapaça em volumes e segmentos mais legíveis, luz superior esquerda e a rampa vermelha existente. As funções derivam dos mesmos masters por troca exata da rampa da tabela abaixo: 64 quadros em 48×32 e 8 da Rainha em 96×64, nos mesmos caminhos e com os mesmos GUIDs, PPU e pivôs.
@@ -39,6 +49,8 @@ O grupo `brood` do gerador procedural descrito abaixo sobrescreve este refinamen
 `Egg_Idle_0–1`, `Larva_Idle_0–1` e `Pupa_Idle_0–1` foram redesenhados em **48 × 32** (as mesmas 3 × 2 células do 18 × 12 a 6 px), apoiados na linha de baixo, na paleta mestra com contorno 0: ovo nos cremes (14, 15, 16), larva em gomos curvados com a cabeça em 6 e a boca escura, pupa em casulo (6, 7, 15) com as duas faixas escuras (8). Mesmos caminhos e GUIDs; `AntSpriteImporter` importa a 16 PPU (os de 18 × 12 continuariam a 6).
 
 Itens novos que a formiga leva na boca, 16 × 16 (1 célula), pivô no centro: `Item_Nutrient.png` (grão amarelo: 12, 13, 28) e `Item_Water.png` (gota: 29, 30, 31). Ligados em `AntSwarmView` → **Nutrient Sprite** / **Water Sprite**; vazios, volta o quadrado na cor do Inspector. O ovo na boca já usa a arte da cria.
+
+Minério solto (REQ-071, 2026-10-23): `Item_CopperOre.png`, `Item_IronOre.png` e `Item_GoldOre.png`, 8 × 8 desenhados direto nessa escala (a redução de um 16 × 16 apagava as pepitas): torrão de pedra (17, 18, 19) com pepitas do metal (cobre 8, 11, 12; ferro 32, 33, 34; ouro 7, 13, 16). Gerador: `ore_item` em `Source~/ant_sprites.py` (grupo `brood`). O mesmo sprite vai na boca (`AntSwarmView` → **Ore Sprites**) e no chão ou no depósito (`AntFarmView` → **Ore Item Sprites**).
 
 Gerados por `Source~/ant_sprites.py` com o grupo `brood`:
 

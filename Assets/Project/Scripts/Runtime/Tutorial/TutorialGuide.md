@@ -6,6 +6,7 @@ Como o tutorial funciona e como mexer nele. Onde estão os arquivos: [Runtime/RE
 
 - Em **todo jogo novo** (Novo jogo no menu principal), mesmo que o jogador já o tenha concluído ou pulado antes: não há marca de "já visto" (decisão de 2026-10-22).
 - Não roda ao **continuar um save** (`AntFarmGame.StartedFromSave`) nem na **vitrine** do menu principal (`AntFarmGame.Showcase`).
+- Só roda se a cena da partida veio do **menu principal** (`AntFarmGame.StartedFromMenu`, lido de `GameLaunch.ConsumeFromMenu`, pedido do desenvolvedor em 2026-10-23). Abrir a cena `AntFarm` direto no Editor e dar Play começa uma colônia nova sem o tutorial; para testá-lo, entre pelo `MainMenu`. O recado vale uma vez: voltar ao menu e escolher Novo jogo de novo liga outra vez.
 - Se o mapa for regenerado dentro da cena (R, ou "novo mapa" na tela de fim de jogo) ou um save for carregado no meio do tour (`AntFarmGame.Generation` mudou), ele termina e não recomeça nesse mapa; só no próximo Novo jogo (decisão de 2026-10-22).
 
 ## Como funciona

@@ -9,6 +9,9 @@ namespace Fabula.Incrementant.Tests
     {
         static readonly Color32 Sky = new Color32(120, 170, 215, 255);
 
+        /// <summary>Densidade da arte detalhada: a do mundo (8 px por célula no experimento 8x8; antes 16).</summary>
+        const int Detail = CellTileArt.TexelsPerCell;
+
         [Test]
         public void PlantMask_AlignsFractionalPivotToArtPixelWithoutChangingSprite()
         {
@@ -31,11 +34,12 @@ namespace Fabula.Incrementant.Tests
         [Test]
         public void DetailedStamp_PreservesOnePixelPlantTips()
         {
-            var texture = new Texture2D(32, 64, TextureFormat.RGBA32, false);
-            texture.SetPixels32(new Color32[32 * 64]);
-            for (int y = 0; y < 64; y++) texture.SetPixel(0, y, Color.green);
+            // 2 × 4 células.
+            var texture = new Texture2D(2 * Detail, 4 * Detail, TextureFormat.RGBA32, false);
+            texture.SetPixels32(new Color32[8 * Detail * Detail]);
+            for (int y = 0; y < 4 * Detail; y++) texture.SetPixel(0, y, Color.green);
             texture.Apply();
-            Sprite sprite = Sprite.Create(texture, new Rect(0,0,32,64), Vector2.zero, 16f);
+            Sprite sprite = Sprite.Create(texture, new Rect(0, 0, 2 * Detail, 4 * Detail), Vector2.zero, Detail);
             try
             {
                 SceneryStamp stamp = SceneryStamp.FromSprite(sprite);
@@ -126,8 +130,9 @@ namespace Fabula.Incrementant.Tests
         [Test]
         public void DetailedStamp_KeepsWorldSizeAndCustomPivot()
         {
-            var texture = new Texture2D(128, 80, TextureFormat.RGBA32, false);
-            Sprite sprite = Sprite.Create(texture, new Rect(0, 0, 128, 80), new Vector2(0.25f, 0.2f), 16f);
+            // 8 × 5 células.
+            var texture = new Texture2D(8 * Detail, 5 * Detail, TextureFormat.RGBA32, false);
+            Sprite sprite = Sprite.Create(texture, new Rect(0, 0, 8 * Detail, 5 * Detail), new Vector2(0.25f, 0.2f), Detail);
             try
             {
                 SceneryStamp stamp = SceneryStamp.FromSprite(sprite);
@@ -145,29 +150,30 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
-        public void DetailedPebbles_PreserveBackdropWithoutPaintingCoarsePixels()
+        public void DetailedStamps_PreserveBackdropWithoutPaintingCoarsePixels()
         {
-            var texture = new Texture2D(128, 80, TextureFormat.RGBA32, false);
+            var texture = new Texture2D(8 * Detail, 5 * Detail, TextureFormat.RGBA32, false);
             var marker = new Color32(255, 0, 1, 255);
-            var pixels = new Color32[128 * 80];
+            var pixels = new Color32[40 * Detail * Detail];
             System.Array.Fill(pixels, marker);
             texture.SetPixels32(pixels);
             texture.Apply();
-            Sprite sprite = Sprite.Create(texture, new Rect(0, 0, 128, 80), new Vector2(0.5f, 0f), 16f);
+            Sprite sprite = Sprite.Create(texture, new Rect(0, 0, 8 * Detail, 5 * Detail), new Vector2(0.5f, 0f), Detail);
             try
             {
                 var (grid, layout) = MakeMap(13);
                 var art = new SceneryStampLibrary();
-                art.Set(SceneryElement.Pebble, new[] { SceneryStamp.FromSprite(sprite) });
+                // Folha seca: elemento da Serapilheira (pedras saíram da geração com o documento 44).
+                art.Set(SceneryElement.DryLeaf, new[] { SceneryStamp.FromSprite(sprite) });
                 SceneryLayers layers = SurfaceSceneryPainter.Paint(grid, layout, new SurfaceScenerySettings(), 13, Sky, Sky, art: art);
                 Assert.Greater(layers.Near.SpriteStamps.Count, 0);
-                Assert.IsFalse(System.Array.Exists(layers.Near.Pixels, c => c.Equals(marker)), "A pedra detalhada não deve deixar um carimbo grosseiro sob o sprite.");
+                Assert.IsFalse(System.Array.Exists(layers.Near.Pixels, c => c.Equals(marker)), "O carimbo detalhado não deve deixar um carimbo grosseiro sob o sprite.");
                 foreach (var placed in layers.Near.SpriteStamps)
                 {
                     int x = placed.Left + placed.Stamp.Width / 2;
                     int y = placed.Bottom + placed.Stamp.Height / 2;
                     int ppc = layers.Near.PixelsPerCell;
-                    Assert.IsTrue(layers.Backdrop[(y / ppc) * grid.Width + x / ppc], "A área caminhável da pedra precisa continuar presente.");
+                    Assert.IsTrue(layers.Backdrop[(y / ppc) * grid.Width + x / ppc], "A área caminhável do elemento precisa continuar presente.");
                 }
             }
             finally
@@ -182,6 +188,8 @@ namespace Fabula.Incrementant.Tests
             var settings = new TerrainSettings();
             var grid = new PixelGrid(settings.Width, settings.Height);
             TerrainLayout layout = TerrainGenerator.Generate(grid, settings, seed);
+            // Mapa inteiro de Serapilheira: o cenário de perto só existe nela (documento 44), e o lado dela é sorteado.
+            grid.Biomes = SurfaceBiomes.Band(grid.Width, SurfaceBiome.LeafLitter, 0, grid.Width);
             return (grid, layout);
         }
 
@@ -263,14 +271,14 @@ namespace Fabula.Incrementant.Tests
             for (int i = 0; i < pixels.Length; i++)
                 pixels[i] = red;
             var art = new SceneryStampLibrary();
-            art.Set(SceneryElement.Pebble, new[] { new SceneryStamp(4, 4, pixels, 2, 0) });
+            art.Set(SceneryElement.DryLeaf, new[] { new SceneryStamp(4, 4, pixels, 2, 0) });
 
             SceneryLayer near = SurfaceSceneryPainter.Paint(grid, layout, new SurfaceScenerySettings(), 13, Sky, Sky, art: art).Near;
             int redCount = 0;
             foreach (Color32 c in near.Pixels)
                 if (c.Equals(red))
                     redCount++;
-            Assert.Greater(redCount, 0, "As pedrinhas precisam vir da biblioteca dada.");
+            Assert.Greater(redCount, 0, "As folhas secas precisam vir da biblioteca dada.");
 
             // Os outros elementos, sem carimbos na biblioteca, caem na arte procedural.
             SceneryLayer fallback = SurfaceSceneryPainter.Paint(grid, layout, new SurfaceScenerySettings(), 13, Sky, Sky).Near;

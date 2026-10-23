@@ -30,9 +30,9 @@ Material:
     m_Ints: []
     m_Floats:
     - _ArtPixelsPerCell: 6
-    - _BevelTexels: 2
+    - _BevelTexels: 1
     - _BlendWidth: 0
-    - _DetailTexels: 16
+    - _DetailTexels: 8
     - _Grain: 0.08
     - _Highlight: 0.22
     - _OutlineStrength: 1

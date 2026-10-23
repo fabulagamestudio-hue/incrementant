@@ -28,6 +28,8 @@ Entrada rápida para os 38 arquivos de design derivados do documento revisado e 
 | Menus, HUD ou configurações | [33 — Menus fluxo de telas e configurações](02_World_Art_UI/33_Menus_fluxo_de_telas_e_configuracoes.md) | [34 — Interface durante a partida](02_World_Art_UI/34_Interface_durante_a_partida.md), [37 — Continuidade pausa e game over](01_Design/37_Continuidade_pausa_e_game_over.md) |
 | Áudio e feedback visual | [35 — Áudio atmosfera e juice](02_World_Art_UI/35_Audio_atmosfera_e_juice.md) | [34 — Interface durante a partida](02_World_Art_UI/34_Interface_durante_a_partida.md) |
 | Direção de arte, densidade de pixel, paleta, shader e luz do terreno | [40 — Direção de arte unificada e terreno iluminado](02_World_Art_UI/40_Direcao_de_arte_unificada_e_terreno_iluminado.md) | [35 — Áudio atmosfera e juice](02_World_Art_UI/35_Audio_atmosfera_e_juice.md) |
+| Área externa, biomas, insumos da superfície, postos avançados e arte da superfície | [44 — Biomas da superfície e postos avançados](02_World_Art_UI/44_Biomas_da_superficie_e_postos_avancados.md) | [31 — Jardim frutas folhas e visitantes](02_World_Art_UI/31_Jardim_frutas_folhas_e_visitantes.md), [40 — Direção de arte unificada e terreno iluminado](02_World_Art_UI/40_Direcao_de_arte_unificada_e_terreno_iluminado.md) |
+| Minérios, veios, fundição, forja, armazéns e equipamento das formigas | [45 — Minérios fundição forja e equipamento](01_Design/45_Minerios_fundicao_forja_e_equipamento.md) | [44 — Biomas da superfície e postos avançados](02_World_Art_UI/44_Biomas_da_superficie_e_postos_avancados.md), [25 — Escavadora habilidades e números](01_Design/25_Escavadora_habilidades_e_numeros.md), [27 — Soldado habilidades e números](01_Design/27_Soldado_habilidades_e_numeros.md) |
 | Jam, demonstração ou escopo | [36 — Escopo completo e demonstração da jam](03_Production/36_Escopo_completo_e_demonstracao_da_jam.md) | [06 — Fluxo completo do início do jogo](01_Design/06_Fluxo_completo_do_inicio_do_jogo.md), [07 — Garantias do tutorial e primeiros objetivos](01_Design/07_Garantias_do_tutorial_e_primeiros_objetivos.md), [29 — Consistência econômica e cenários de teste](04_Data/29_Consistencia_economica_e_cenarios_de_teste.md) |
 | Salvar, continuar, pausar ou perder | [37 — Continuidade pausa e game over](01_Design/37_Continuidade_pausa_e_game_over.md) | [12 — Ciclo de vida contadores e recuperação](01_Design/12_Ciclo_de_vida_contadores_e_recuperacao.md), [13 — Capacidade superlotação e morte da rainha](01_Design/13_Capacidade_superlotacao_e_morte_da_rainha.md) |
 | Pesquisa de biologia e ambientação | [38 — Referências da ambientação](05_Narrative/38_Referencias_da_ambientacao.md) | [02 — Identidade mundo e papel do jogador](01_Design/02_Identidade_mundo_e_papel_do_jogador.md) |
@@ -67,6 +69,7 @@ Os caminhos dos links são relativos a `Docs/`. Cada arquivo aparece uma vez no 
 | [32_Invasoras_combate_e_consequencias.md](01_Design/32_Invasoras_combate_e_consequencias.md) | Invasoras; percurso da invasão; combate, consequências e exposição da rainha. |
 | [37_Continuidade_pausa_e_game_over.md](01_Design/37_Continuidade_pausa_e_game_over.md) | Save e continuar; pontos de retorno; pausa; game over; reinício; estados preservados e ausência de progresso offline definido. |
 | [39_Melhorias_incrementais_e_formigueiro_de_dependencias.md](01_Design/39_Melhorias_incrementais_e_formigueiro_de_dependencias.md) | Proposta de 2026-10-19 (projeto, não transcrição): câmaras, galerias com nível, marcos, profundidade e túneis de dependência nas duas abas da tela Evolução. |
+| [45_Minerios_fundicao_forja_e_equipamento.md](01_Design/45_Minerios_fundicao_forja_e_equipamento.md) | Mundo pequeno no molde do Terraria (sem oceano, masmorra e mal), minérios em veios, fundição com serapilheira, forja, armazéns e equipamento por papel. |
 
 ### 02_World_Art_UI/ — Mundo, arte, interface e áudio
 
@@ -78,6 +81,7 @@ Os caminhos dos links são relativos a `Docs/`. Cada arquivo aparece uma vez no 
 | [34_Interface_durante_a_partida.md](02_World_Art_UI/34_Interface_durante_a_partida.md) | HUD e informação permanente; painéis por seleção; estados das ações e leitura da colônia. |
 | [35_Audio_atmosfera_e_juice.md](02_World_Art_UI/35_Audio_atmosfera_e_juice.md) | Áudio, atmosfera, feedback visual e juice; sensação e legibilidade. |
 | [40_Direcao_de_arte_unificada_e_terreno_iluminado.md](02_World_Art_UI/40_Direcao_de_arte_unificada_e_terreno_iluminado.md) | Diagnóstico das regras de arte divergentes; padrão proposto de 16 px por célula; camadas do visual do terreno (textura, borda, fundo, luz); plano em etapas. |
+| [44_Biomas_da_superficie_e_postos_avancados.md](02_World_Art_UI/44_Biomas_da_superficie_e_postos_avancados.md) | Papel do exterior (insumos únicos por bioma), montagem do mundo em biomas laterais e camadas, postos avançados e lista de arte por bioma. |
 
 ### 03_Production/ — Planejamento
 

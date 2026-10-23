@@ -22,6 +22,23 @@ namespace Fabula.Incrementant.World
         /// 2026-10-22: depósito separado do de construção).
         /// </summary>
         Mushroom = 6,
+        /// <summary>Serapilheira cavada no bioma Serapilheira, o insumo único dele (REQ-070, 2026-10-23).</summary>
+        Litter = 7,
+        /// <summary>Néctar que as flores do Canteiro de flores soltam, o insumo único dele (REQ-070, 2026-10-23).</summary>
+        Nectar = 8,
+        /// <summary>Minério cavado dos veios: cobre, ferro e ouro (documento 45).</summary>
+        Ore = 9,
+        /// <summary>
+        /// Fundição (documento 45): sala pintada como depósito. Guarda minério e serapilheira (a entrada) e, depois de fundidos,
+        /// as barras (a saída), que vão à forja.
+        /// </summary>
+        Smelter = 10,
+        /// <summary>Forja: guarda as barras (a entrada) e, depois de forjados, os equipamentos (a saída), que vão aos armazéns.</summary>
+        Forge = 11,
+        /// <summary>Armazém de ferramentas e armas.</summary>
+        Armory = 12,
+        /// <summary>Armazém de roupas e armaduras.</summary>
+        Wardrobe = 13,
     }
 
     /// <summary>Item guardado numa célula (<see cref="PixelGrid.GetStored"/>): o valor do material, ou <see cref="Water"/>.</summary>
@@ -37,6 +54,10 @@ namespace Fabula.Incrementant.World
         /// solto onde a ordenha o deixou, sem ele).
         /// </summary>
         public const byte Mushroom = (byte)CellMaterial.GlowMushroom;
+        /// <summary>Serapilheira guardada no depósito de serapilheira.</summary>
+        public const byte Litter = (byte)CellMaterial.Litter;
+        /// <summary>Gota de néctar: no chão, ao pé da flor que a soltou, ou no depósito de néctar.</summary>
+        public const byte Nectar = (byte)CellMaterial.Nectar;
 
         public static byte Of(CellMaterial material) => (byte)material;
 
@@ -56,6 +77,20 @@ namespace Fabula.Incrementant.World
                 return StorageKind.Sand;
             if (m == CellMaterial.GlowMushroom)
                 return StorageKind.Mushroom;
+            if (m == CellMaterial.Litter)
+                return StorageKind.Litter;
+            if (m == CellMaterial.Nectar)
+                return StorageKind.Nectar;
+            if (CellMaterials.IsOre(m))
+                return StorageKind.Ore;
+            if (Equipment.IsBar(m))
+                return StorageKind.Forge;
+            switch (Equipment.KindOf(m))
+            {
+                case EquipKind.Tool:
+                case EquipKind.Weapon: return StorageKind.Armory;
+                case EquipKind.Armor: return StorageKind.Wardrobe;
+            }
             return CellMaterials.IsDepositedWaste(m) ? StorageKind.Waste : StorageKind.Blocks;
         }
     }
@@ -66,7 +101,7 @@ namespace Fabula.Incrementant.World
     /// </summary>
     public sealed partial class PixelGrid
     {
-        const int StorageKinds = 7;
+        const int StorageKinds = 14;
         byte[] _storageRoom;
         byte[] _stored;
         byte[] _storedShade;

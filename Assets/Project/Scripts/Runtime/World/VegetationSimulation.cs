@@ -9,8 +9,13 @@ namespace Fabula.Incrementant.World
     {
         /// <summary>Folha de grama: coluna de <see cref="CellMaterial.PlantGrass"/>.</summary>
         Grass = 0,
-        /// <summary>Muda folhosa: caule de <see cref="CellMaterial.PlantLeaf"/> com folhas alternadas dos lados.</summary>
+        /// <summary>Muda folhosa: caule de <see cref="CellMaterial.PlantLeaf"/> com folhas alternadas dos lados (trevos).</summary>
         Leafy = 1,
+        /// <summary>
+        /// Flor (<see cref="CellMaterial.PlantLeaf"/>, arte das flores): só no Canteiro de flores (documento 44). Crescida
+        /// por inteiro, solta néctar (<see cref="NectarDrip"/>).
+        /// </summary>
+        Flower = 2,
     }
 
     [Serializable]
@@ -39,6 +44,8 @@ namespace Fabula.Incrementant.World
         [Tooltip("Parte da altura da forma que a planta precisa ter crescido (linhas para fora do chão) para as jardineiras " +
                  "a escolherem. 1 = só planta completa. Vale para escolher a planta; uma vez escolhida, a jardineira a colhe até o fim.")]
         [SerializeField, Range(0.05f, 1f)] float _minHarvestGrowth = 1f;
+        [Tooltip("Largura (em células) da faixa de cada flor no Canteiro de flores (documento 44): o canteiro é mais cheio que o gramado.")]
+        [SerializeField, Min(4)] int _flowerSlotWidth = 50;
 
         public int SlotWidth => Mathf.Max(4, _slotWidth);
         public float Density => _density;
@@ -49,6 +56,7 @@ namespace Fabula.Incrementant.World
         public Vector2 InitialGrowth => _initialGrowth;
         public int Clearance => _clearance;
         public float MinHarvestGrowth => _minHarvestGrowth;
+        public int FlowerSlotWidth => Mathf.Max(4, _flowerSlotWidth);
     }
 
     /// <summary>
@@ -124,7 +132,7 @@ namespace Fabula.Incrementant.World
             for (int i = 0; i < height; i++)
             {
                 cells.Add(new Vector2Int(0, i));
-                if (kind == PlantKind.Leafy && i >= 2 && i % 2 == 0)
+                if (kind != PlantKind.Grass && i >= 2 && i % 2 == 0)
                     cells.Add(new Vector2Int((i / 2) % 2 == 0 ? 1 : -1, i));
             }
             return new PlantShape(cells);
@@ -155,6 +163,9 @@ namespace Fabula.Incrementant.World
         // Formas de arte de cada tipo; vazio = forma procedural (Procedural), guardada por altura.
         readonly PlantShape[] _grassShapes;
         readonly PlantShape[] _leafyShapes;
+        readonly PlantShape[] _flowerShapes;
+        // Bioma de cada coluna (documento 44): flores só no Canteiro, nada na Serapilheira. Sem ele, tudo é gramado.
+        SurfaceBiomes _biomes;
         readonly Dictionary<int, PlantShape> _proceduralShapes = new Dictionary<int, PlantShape>();
         RectInt _populatedArea;
         float _time;
@@ -176,7 +187,8 @@ namespace Fabula.Incrementant.World
         /// </param>
         /// <param name="leafyShapes">Idem para a muda folhosa.</param>
         public VegetationSimulation(VegetationSettings settings, int seed, TerrainLayout layout, int worldWidth,
-                                    PlantShape[] grassShapes = null, PlantShape[] leafyShapes = null)
+                                    PlantShape[] grassShapes = null, PlantShape[] leafyShapes = null,
+                                    PlantShape[] flowerShapes = null, SurfaceBiomes biomes = null)
         {
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _seed = seed;
@@ -185,6 +197,8 @@ namespace Fabula.Incrementant.World
             _sunk = new int[worldWidth];
             _grassShapes = grassShapes ?? Array.Empty<PlantShape>();
             _leafyShapes = leafyShapes ?? Array.Empty<PlantShape>();
+            _flowerShapes = flowerShapes ?? Array.Empty<PlantShape>();
+            _biomes = biomes;
             AnchorX = FindAnchor();
         }
 
@@ -350,20 +364,27 @@ namespace Fabula.Incrementant.World
             variant = 0;
             if (x < 0)
                 return false;
+            SurfaceBiome biome = _biomes?.At(x) ?? SurfaceBiome.Meadow;
             if (x == AnchorX)
             {
-                PickShape(AnchorKey, out kind, out shape, out variant);
+                PickShape(AnchorKey, SurfaceBiome.Meadow, out kind, out shape, out variant);
                 return true;
             }
-            int width = _settings.SlotWidth;
+            // A Serapilheira e o Areal não têm plantas colhíveis: o insumo da Serapilheira é o chão; o Areal é deserto.
+            if (biome == SurfaceBiome.LeafLitter || biome == SurfaceBiome.Desert)
+                return false;
+            // O Canteiro de flores e a Fruteira têm faixas mais estreitas (mais cheios), numeradas à parte das do gramado.
+            bool flowerBed = biome == SurfaceBiome.FlowerBed || biome == SurfaceBiome.FruitGrove;
+            int width = flowerBed ? _settings.FlowerSlotWidth : _settings.SlotWidth;
             int slot = x / width;
-            int plantX = slot * width + (int)(Hash(slot, 1) % (uint)(width - 3));
-            if (x != plantX || Hash01(slot, 2) >= _settings.Density)
+            int key = flowerBed ? slot + FlowerSlotKeys : slot;
+            int plantX = slot * width + (int)(Hash(key, 1) % (uint)(width - 3));
+            if (x != plantX || Hash01(key, 2) >= _settings.Density)
                 return false;
 
-            PickShape(slot, out kind, out shape, out variant);
+            PickShape(key, biome, out kind, out shape, out variant);
             // A planta da entrada (AnchorX) toma o lugar da sorteada na mesma faixa.
-            if (AnchorX >= 0 && slot == AnchorX / width)
+            if (!flowerBed && AnchorX >= 0 && slot == AnchorX / width)
                 return false;
 
             for (int cx = x + shape.MinDx; cx <= x + shape.MaxDx; cx++)
@@ -386,9 +407,12 @@ namespace Fabula.Incrementant.World
         /// </summary>
         public int AnchorX { get; }
 
+        /// <summary>Soma às faixas do Canteiro de flores, para os sorteios delas não repetirem os das faixas do gramado.</summary>
+        const int FlowerSlotKeys = 1 << 20;
+
         int FindAnchor()
         {
-            PickShape(AnchorKey, out _, out PlantShape shape, out _);
+            PickShape(AnchorKey, SurfaceBiome.Meadow, out _, out PlantShape shape, out _);
             int first = Hash(AnchorKey, 9) % 2 == 0 ? 1 : -1;
             for (int side = 0; side < 2; side++)
             {
@@ -406,11 +430,15 @@ namespace Fabula.Incrementant.World
         }
 
         /// <summary>Tipo, variante e forma da planta sorteados para a chave (faixa ou <see cref="AnchorKey"/>).</summary>
-        void PickShape(int key, out PlantKind kind, out PlantShape shape, out int variant)
+        void PickShape(int key, SurfaceBiome biome, out PlantKind kind, out PlantShape shape, out int variant)
         {
             variant = 0;
-            kind = Hash01(key, 3) < _settings.GrassShare ? PlantKind.Grass : PlantKind.Leafy;
-            PlantShape[] shapes = kind == PlantKind.Grass ? _grassShapes : _leafyShapes;
+            // No Canteiro de flores, só flores; no gramado, grama e trevos (as flores saíram dele, documento 44).
+            // Na Fruteira, só mudas folhosas, a selva do documento 45.
+            kind = biome == SurfaceBiome.FlowerBed ? PlantKind.Flower
+                : biome == SurfaceBiome.FruitGrove ? PlantKind.Leafy
+                : Hash01(key, 3) < _settings.GrassShare ? PlantKind.Grass : PlantKind.Leafy;
+            PlantShape[] shapes = kind == PlantKind.Grass ? _grassShapes : kind == PlantKind.Leafy ? _leafyShapes : _flowerShapes;
             if (shapes.Length > 0)
             {
                 variant = (int)(Hash(key, 8) % (uint)shapes.Length);
@@ -421,7 +449,7 @@ namespace Fabula.Incrementant.World
             int min = Mathf.Max(2, Mathf.Min(range.x, range.y));
             int max = Mathf.Max(min, range.y);
             int height = min + (int)(Hash(key, 4) % (uint)(max - min + 1));
-            int shapeKey = height * 2 + (int)kind;
+            int shapeKey = height * 3 + (int)kind;
             if (!_proceduralShapes.TryGetValue(shapeKey, out shape))
                 _proceduralShapes[shapeKey] = shape = PlantShape.Procedural(kind, height);
         }
@@ -462,6 +490,7 @@ namespace Fabula.Incrementant.World
         /// </summary>
         public void Populate(PixelGrid grid)
         {
+            _biomes ??= grid.Biomes;
             RectInt area = grid.Active;
             if (area.Equals(_populatedArea))
                 return;

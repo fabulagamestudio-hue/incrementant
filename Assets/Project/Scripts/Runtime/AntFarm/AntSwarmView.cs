@@ -19,7 +19,7 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField] Sprite[] _topFrames;
         [Tooltip("Arte própria de cada papel (pastas Art/Ants/<Papel>). Papel sem entrada usa os quadros acima; a rainha usa os dela, abaixo.")]
         [SerializeField] RoleArt[] _roleArt;
-        [Tooltip("Quadros de lado da rainha (Art/Ants/Rainha, 96x64 a 32 px por unidade com Queen Scale 2 = pixel de 1/16 de célula). Vazio = os quadros de cima, ampliados.")]
+        [Tooltip("Quadros de lado da rainha (Art/Ants/Rainha, 48x32 a 16 px por unidade com Queen Scale 2 = pixel do tamanho do texel do terreno, experimento 8x8). Vazio = os quadros de cima, ampliados.")]
         [SerializeField] Sprite[] _queenWalkFrames;
         [Tooltip("Quadros vista de cima da rainha. Vazio = os de cima, ampliados.")]
         [SerializeField] Sprite[] _queenTopFrames;
@@ -64,8 +64,6 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField, Range(0.2f, 1.5f)] float _carriedSize = 1f;
         [Tooltip("Desenha a terra/planta carregada como o bloco 16x16 da célula de onde saiu (textura do material, CellTileArt). Desligado: um quadrado da cor do pixel.")]
         [SerializeField] bool _carriedAsBlock = true;
-        [Tooltip("Contorno de 1 texel do bloco carregado (o mesmo escurecimento da borda do terreno).")]
-        [SerializeField, Range(0f, 1f)] float _carriedEdgeDarkening = 0.5f;
         [Tooltip("Posição da cria carregada (arte do BroodView, 3x2 células) em relação ao pivô, formiga virada para a direita.")]
         [SerializeField] Vector2 _carriedBroodOffset = new Vector2(2.4f, 0.5f);
         [Tooltip("Cor do nutriente que a formiga leva à rainha (a mesma do nutriente guardado no AntFarmView).")]
@@ -78,6 +76,14 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField] Sprite _nutrientSprite;
         [Tooltip("Gota de água na boca da formiga (Art/Ants/Item_Water). Vazio = quadrado na cor acima.")]
         [SerializeField] Sprite _waterSprite;
+        [Tooltip("Minério na boca da formiga: cobre, ferro e ouro, nesta ordem (Art/Ants/Item_*Ore, o mesmo sprite do minério solto no AntFarmView). Vazio = o bloco do material.")]
+        [SerializeField] Sprite[] _oreSprites = new Sprite[0];
+        [Tooltip("Ferramenta, arma e armadura na boca da formiga a caminho do armazém (Art/Ants/Item_<Metal><Tipo>): ferramenta, arma, armadura, cada uma em cobre, ferro e ouro (9). Vazio = o bloco do material.")]
+        [SerializeField] Sprite[] _equipItemSprites = new Sprite[0];
+        [Tooltip("Camadas do equipamento vestido, desenhadas sobre a formiga (Art/Ants/Equipamento), de lado. Ordem: ferramenta, arma, armadura, cada uma em cobre, ferro e ouro (9). Vazio = não mostra.")]
+        [SerializeField] Sprite[] _equipWalk = new Sprite[0];
+        [Tooltip("As mesmas 9 camadas, vista de cima.")]
+        [SerializeField] Sprite[] _equipTop = new Sprite[0];
         [Tooltip("Tamanho da rainha em relação às formigas (mesmos quadros, escalados).")]
         [SerializeField, Min(1f)] float _queenScale = 2f;
 
@@ -106,6 +112,8 @@ namespace Fabula.Incrementant.AntFarm
             public Transform Transform;
             public SpriteRenderer Body;
             public SpriteRenderer Carried;
+            /// <summary>Camadas do equipamento (ferramenta, arma, armadura), criadas na primeira vez que a formiga veste algo.</summary>
+            public SpriteRenderer[] Equip;
             public float Angle;
             public bool FlipX;
             public float Walked;
@@ -428,6 +436,12 @@ namespace Fabula.Incrementant.AntFarm
                 : (int)(visual.Walked * _framesPerCell);
             Sprite[] frames = topView ? topFrames : walkFrames;
             visual.Body.sprite = frames[frame % frames.Length];
+            if (!visual.IsQueen)
+            {
+                UpdateEquipLayer(visual, 0, ant.Tool, topView);
+                UpdateEquipLayer(visual, 1, ant.Weapon, topView);
+                UpdateEquipLayer(visual, 2, ant.Armor, topView);
+            }
 
             bool delivering = ant.State == AntState.Delivering;
             bool carryingEgg = ant.State == AntState.CarryingEgg || ant.State == AntState.MovingBrood;
@@ -445,7 +459,7 @@ namespace Fabula.Incrementant.AntFarm
                     broodArt = _broodView.FrameOf(carriedBrood);
                 bool block = broodArt == null && !carryingEgg && !delivering && !carryingWater && _carriedAsBlock;
                 // Nutriente e água com a arte da paleta (etapa 9); sem ela, o quadrado tingido de antes.
-                Sprite item = broodArt == null && !carryingEgg ? (delivering ? _nutrientSprite : carryingWater ? _waterSprite : null) : null;
+                Sprite item = broodArt == null && !carryingEgg ? (delivering ? _nutrientSprite : carryingWater ? _waterSprite : OreSprite(ant.Carried)) : null;
                 visual.Carried.sprite = broodArt != null ? broodArt
                     : item != null ? item
                     : block ? BlockSprite(ant.Carried, ant.CarriedShade, ant.CarriedFrom >= 0 ? ant.CarriedFrom % grid.Width : ant.X,
@@ -466,6 +480,59 @@ namespace Fabula.Incrementant.AntFarm
                 Vector2 offset = broodArt != null ? _carriedBroodOffset : topView ? _carriedOffsetTop : _carriedOffset;
                 visual.Carried.transform.localPosition = new Vector3(visual.FlipX ? -offset.x : offset.x, offset.y, 0f);
             }
+        }
+
+        /// <summary>
+        /// Camada do equipamento vestido (REQ-071): mesmo canvas e pivô do corpo, então basta herdar a rotação do pai e o espelho.
+        /// O corpo não muda entre os quadros de caminhada, por isso uma camada por vista serve para todos.
+        /// </summary>
+        void UpdateEquipLayer(AntVisual visual, int slot, CellMaterial item, bool topView)
+        {
+            Sprite sprite = null;
+            Sprite[] set = topView ? _equipTop : _equipWalk;
+            int tier = Equipment.IsItem(item) ? Equipment.TierOf(item) : -1;
+            if (tier >= 0 && set != null)
+            {
+                int index = slot * Equipment.Tiers + tier;
+                if (index < set.Length)
+                    sprite = set[index];
+            }
+
+            SpriteRenderer layer = visual.Equip?[slot];
+            if (sprite == null)
+            {
+                if (layer != null && layer.gameObject.activeSelf)
+                    layer.gameObject.SetActive(false);
+                return;
+            }
+            if (layer == null)
+            {
+                visual.Equip ??= new SpriteRenderer[3];
+                var go = new GameObject("Equip" + slot);
+                go.transform.SetParent(visual.Transform, false);
+                layer = go.AddComponent<SpriteRenderer>();
+                layer.sortingOrder = visual.Body.sortingOrder + 1;
+                visual.Equip[slot] = layer;
+            }
+            if (!layer.gameObject.activeSelf)
+                layer.gameObject.SetActive(true);
+            layer.sprite = sprite;
+            layer.flipX = visual.FlipX;
+        }
+
+        /// <summary>Sprite do minério ou do equipamento carregado (REQ-071), ou null se é outra coisa ou falta o sprite dele.</summary>
+        Sprite OreSprite(CellMaterial carried)
+        {
+            if (CellMaterials.IsOre(carried))
+            {
+                int ore = (int)carried - (int)CellMaterial.CopperOre;
+                return _oreSprites != null && ore < _oreSprites.Length ? _oreSprites[ore] : null;
+            }
+            EquipKind kind = Equipment.KindOf(carried);
+            if (kind == EquipKind.None)
+                return null;
+            int index = ((int)kind - 1) * Equipment.Tiers + Equipment.TierOf(carried);
+            return _equipItemSprites != null && index < _equipItemSprites.Length ? _equipItemSprites[index] : null;
         }
 
         /// <summary>
@@ -585,7 +652,7 @@ namespace Fabula.Incrementant.AntFarm
             carriedGo.transform.localScale = new Vector3(_carriedSize, _carriedSize, 1f);
             var carried = carriedGo.AddComponent<SpriteRenderer>();
             carried.sprite = _pixelSprite;
-            carried.sortingOrder = sortingOrder + 1;
+            carried.sortingOrder = sortingOrder + 2; // acima das camadas do equipamento (+1)
             carriedGo.SetActive(false);
 
             return new AntVisual { GameObject = root, Transform = root.transform, Body = body, Carried = carried, Scale = scale };
@@ -633,10 +700,15 @@ namespace Fabula.Incrementant.AntFarm
                 Color texel = _tileAtlas != null
                     ? ((Color)_tileAtlas.Texel((int)material, ox * size + tx, oy * size + ty)).linear
                     : cell;
-                float edge = tx == 0 || ty == 0 || tx == size - 1 || ty == size - 1 ? 1f - _carriedEdgeDarkening : 1f;
+                // Contorno de 1 texel no preto da paleta, como o da terra e o dos sprites (experimento 8x8).
+                if (tx == 0 || ty == 0 || tx == size - 1 || ty == size - 1)
+                {
+                    pixels[ty * size + tx] = CellTileArt.OutlineColor;
+                    continue;
+                }
                 if (_tileAtlas != null)
                     texel = new Color(texel.r * tone.x, texel.g * tone.y, texel.b * tone.z);
-                pixels[ty * size + tx] = new Color(texel.r * edge, texel.g * edge, texel.b * edge, 1f).gamma;
+                pixels[ty * size + tx] = new Color(texel.r, texel.g, texel.b, 1f).gamma;
             }
             var texture = new Texture2D(size, size, TextureFormat.RGBA32, false)
             {

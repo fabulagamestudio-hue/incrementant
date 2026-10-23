@@ -1,16 +1,17 @@
-# Guia — Depósitos (alimentos, construção, água, areia e cogumelos)
+# Guia — Depósitos (alimentos, construção, água, areia, cogumelos, serapilheira e néctar)
 
 Pedido do desenvolvedor em 2026-10-19. Código em `Colony/AntColony.Storage.cs` (campos, levar, pegar, itens soltos), a camada em `World/PixelGrid.Storage.cs` (`StorageKind`, `StoredItems`, `SetStorageRoom`, `SetStored`) e ganchos em `AntColony.cs` (entrega, obra, ociosa), `AntColony.Cultivation.cs` (terra fofa, planta, água) e `AntColony.Waste.cs`. Testes: `Tests/EditMode/StorageTests.cs`.
 
 ## O que o jogador vê
 
-Menu Colônia → Ambientes → **DEPÓSITO** abre um submenu ao lado com cinco pincéis: **Depósito de alimentos**, **Depósito de construção**, **Depósito de água**, **Depósito de areia** e **Depósito de cogumelos** (índices 8, 9, 10, 13 e 14 de `AntFarmGame.BrushLabels`; os de areia e de cogumelos vieram com a fazenda de pulgões em 2026-10-22, ver [FarmGuide](FarmGuide.md)). Pintam como as outras salas: só no formigueiro (no solo original ou abaixo), nunca sobre outra sala nem sobre outro depósito; o botão direito apaga só o depósito do pincel escolhido. Cada célula vazia do depósito guarda **um item**, desenhado com a cor do material (água em azul) por cima da tinta da sala.
+Menu Colônia → Ambientes → **DEPÓSITO** abre um submenu ao lado com sete pincéis: **Depósito de alimentos**, **Depósito de construção**, **Depósito de água**, **Depósito de areia**, **Depósito de cogumelos**, **Depósito de serapilheira** e **Depósito de néctar** (índices 8, 9, 10, 13, 14, 15 e 16 de `AntFarmGame.BrushLabels`; os de areia e de cogumelos vieram com a fazenda de pulgões em 2026-10-22, ver [FarmGuide](FarmGuide.md); os de serapilheira e de néctar, com os biomas da superfície em 2026-10-23, ver [BiomesGuide](../World/BiomesGuide.md)). Pintam como as outras salas: só no formigueiro (no solo original ou abaixo), nunca sobre outra sala nem sobre outro depósito; o botão direito apaga só o depósito do pincel escolhido. Cada célula vazia do depósito guarda **um item**, desenhado com a cor do material (água em azul) por cima da tinta da sala.
 
 ## Item guardado (não bloqueia a passagem)
 
 O item é uma camada à parte, como o nutriente: a célula continua vazia para estrutura, física, água e navegação, então as formigas passam por cima e o depósito enche inteiro, inclusive no meio da sala. Valores em `StoredItems`: o material como byte (planta, `Spoil`, `Refuse`, `TermiteRemains`) ou `StoredItems.Water`. Muda `PixelGrid.StoreVersion`, que refaz os campos.
 
 - Material sólido entrando na célula (grão caindo, obra, canteiro) **destrói** o item (`LoseStoredAt`), como faz com o nutriente.
+- O item fica em qualquer célula vazia do depósito, no chão ou na parede de fundo (no formigueiro todo vão é caminhável). Exceção: o minério fora do depósito de minério e da fundição cai até apoiar ([WorkshopGuide](WorkshopGuide.md), "Minério solto"). Com o atlas, é desenhado como um objeto com a arte do material sobre o fundo da sala ([AntFarmGuide](../AntFarm/AntFarmGuide.md), "Itens guardados com a arte do atlas").
 - Nutriente, canteiro e item não dividem célula (`SetStored`, `SetNutrient`, `FreeBedSides`, `IsBedSpot`).
 
 ## Regra de consumo
@@ -24,6 +25,10 @@ Com o depósito do tipo pintado, quem consome **só usa o que está guardado nel
 | Água | Água do mapa: laguinho, poças, sala Gotas de Orvalho (`TryStartWaterStock`, `FetchingWater` com `Ant.StoreTarget`) | Canteiros com planta esperando água, pelas formigas da sala de nutrientes (`TryStartGardenSupply`, `StoreUse.Water`); cochos de água dos pulgões, pela fazendeira (`StoreUse.FarmWater`) | Água vai direto ao canteiro |
 | Areia (2026-10-22) | Areia cavada (`StartDelivery`; com o depósito, a mão não mistura areia com terra), areia solta da fazenda e da área de resíduos | Cochos de areia dos pulgões, pela fazendeira (`StoreUse.FarmSand`; ela também usa areia solta) | Areia vai ao despejo (a da fazenda fica nela, como comida) |
 | Cogumelos (2026-10-22) | Cogumelo luminoso que a ordenha dos pulgões solta (item solto levado para lá quando há vaga) | Marca do pincel Cogumelo luminoso (`StoreUse.Mushroom`, que também usa o cogumelo solto) | Cogumelo fica onde a ordenha o deixou; nunca vai ao depósito de construção nem ao despejo |
+| Serapilheira (2026-10-23) | Serapilheira cavada no bioma Serapilheira (`StartDelivery`; com o depósito, a mão não mistura serapilheira com terra) | A fundição, como combustível (`StoreUse.SmelterFuel`, documento 45) | Vai como terra (depósito de construção, canteiro ou despejo) |
+| Néctar (2026-10-23) | Gotas que as flores do Canteiro de flores soltam no chão (item solto só com vaga no depósito de néctar; na mão vai sozinha, `ReturnHeldItem`) | Ninguém ainda: o uso do insumo foi adiado pelo desenvolvedor | A gota fica onde caiu; nunca vai ao depósito de construção nem ao despejo |
+| Minério (2026-10-23) | Minério cavado dos veios, quando a fundição não pede (`StartDelivery`; na mão, só com o mesmo metal) | A fundição, pelas comuns e carregadoras (`StoreUse.SmelterOre`) | Fica onde foi cavado; nunca vai ao despejo |
+| Fundição, forja e armazéns de ferramentas e armas e de roupas e armaduras (2026-10-23) | Salas pintadas como depósito; ver [WorkshopGuide](WorkshopGuide.md) | — | — |
 
 ### Carregadora: estoque primeiro (pedido do desenvolvedor em 2026-10-21)
 

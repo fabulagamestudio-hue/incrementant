@@ -140,6 +140,17 @@ namespace Fabula.Incrementant.Colony
 
         public IReadOnlyList<Ant> Ants => _ants;
 
+        /// <summary>Há formiga (ou a rainha) na célula. Varre a lista: para consultas raras, como a folha que volta a cobrir o chão.</summary>
+        public bool IsAntAt(int x, int y)
+        {
+            if (Queen != null && Queen.X == x && Queen.Y == y)
+                return true;
+            for (int i = 0; i < _ants.Count; i++)
+                if (_ants[i].X == x && _ants[i].Y == y)
+                    return true;
+            return false;
+        }
+
         /// <summary>
         /// Quem roda vários passos num mesmo frame liga isto em todos menos no último: a rodada de campos de navegação (cara, e
         /// em tempo simulado) acontece no máximo uma vez por frame em vez de uma a cada 0,1 s simulado. Em x8, ou com o frame
@@ -752,6 +763,7 @@ namespace Fabula.Incrementant.Colony
             TickWaste(deltaTime);
             TickDew(deltaTime);
             TickFarm(deltaTime);
+            TickWorkshops(deltaTime);
             Profiler.Add(ProfileStage.Termites, stageStart);
             SampleRates();
         }
@@ -827,6 +839,7 @@ namespace Fabula.Incrementant.Colony
         void RemoveAnt(int index)
         {
             Ant ant = _ants[index];
+            DropEquipment(ant);
             ant.Buried = false;
             ReleaseRescue(ant);
             ReleaseDumpSide(ant);
@@ -1306,7 +1319,7 @@ namespace Fabula.Incrementant.Colony
                            Tree.CutTimeFactor(ant.Role);
             bool plant = CellMaterials.IsPlant(material);
             if (!plant)
-                factor *= Effects.AllDigTime;
+                factor *= Effects.AllDigTime * ToolFactor(ant);
             switch (ant.Role)
             {
                 case AntRole.Worker: return plant ? factor * Effects.WorkerCutTime : factor;
@@ -2786,6 +2799,10 @@ namespace Fabula.Incrementant.Colony
             if (role == AntRole.Worker && TryStartRescue(ant))
                 return true;
 
+            // Sem o equipamento do papel, busca no armazém antes de trabalhar (documento 45).
+            if (TryStartEquip(ant))
+                return true;
+
             // As guerreiras só lutam: fora do ataque, tiram as partes dos cupins mortos.
             if (AntRoles.IsWarrior(role))
                 return TryStartDismember(ant);
@@ -2817,6 +2834,9 @@ namespace Fabula.Incrementant.Colony
             // Só a comum (e quem age como ela): a escavadora cava antes de construir, cuidadora e jardineira ficam no papel.
             _stepMark = 22;
             if (role == AntRole.Worker && _hasSite && TryBuildWork(ant))
+                return true;
+            // A comum também abastece a fundição com o minério e a serapilheira dos depósitos.
+            if (role == AntRole.Worker && TryStartWorkshopSupply(ant))
                 return true;
 
             // Ovo vem antes de tudo; a escavadora não leva ovo nem nutriente, ela prioriza as obras.
@@ -3460,6 +3480,9 @@ namespace Fabula.Incrementant.Colony
             ant.Cooldown = rock
                 ? _settings.RockBreakSeconds * Effects.RockBreakTime * _settings.DigTimeMultiplier
                 : CellMaterials.DigSeconds(_grid.Get(ant.DigX, ant.DigY)) * _settings.DigTimeMultiplier * WorkTimeFactor(ant, _grid.Get(ant.DigX, ant.DigY));
+            // Cada célula cavada gasta um uso da ferramenta (documento 45); planta e rocha não.
+            if (!rock && !CellMaterials.IsAnyPlant(_grid.Get(ant.DigX, ant.DigY)))
+                WearTool(ant);
         }
 
         /// <summary>Com a mão cheia pela metade, só vale o que é do mesmo tipo do que já se leva (terra com terra, planta com planta).</summary>
@@ -3472,7 +3495,14 @@ namespace Fabula.Incrementant.Colony
             if (ant.Carried == CellMaterial.TermiteRemains || ant.Carried == CellMaterial.Refuse || (ant.Carried == CellMaterial.Rubble) != (target == CellMaterial.Rubble))
                 return false;
             // Com depósito de areia, areia só com areia: cada uma vai ao seu depósito. O cogumelo dos pulgões vai sozinho.
-            if (SandDepot && IsSand(ant.Carried) != IsSand(target) || ant.Carried == CellMaterial.GlowMushroom)
+            if (SandDepot && IsSand(ant.Carried) != IsSand(target) || ant.Carried == CellMaterial.GlowMushroom ||
+                ant.Carried == CellMaterial.Nectar || Equipment.IsMetalGood(ant.Carried))
+                return false;
+            // Com depósito de serapilheira, serapilheira só com serapilheira (REQ-070).
+            if (LitterDepot && (ant.Carried == CellMaterial.Litter) != (target == CellMaterial.Litter))
+                return false;
+            // Minério só com minério do mesmo metal (documento 45).
+            if ((CellMaterials.IsOre(ant.Carried) || CellMaterials.IsOre(target)) && ant.Carried != target)
                 return false;
             return CellMaterials.IsPlant(ant.Carried) == CellMaterials.IsPlantDebris(target);
         }
@@ -3503,16 +3533,24 @@ namespace Fabula.Incrementant.Colony
                     TryStartStock(ant, StorageKind.Food);
                 return;
             }
-            // O cogumelo dos pulgões não é terra: vai ao depósito de cogumelos ou fica no chão como item solto.
-            if (ant.Carried == CellMaterial.GlowMushroom)
+            // O cogumelo dos pulgões, o néctar das flores e o minério dos veios não são terra: vão ao depósito deles ou ficam no
+            // chão como item solto (documentos 44 e 45).
+            // Minério e serapilheira vão primeiro à fundição, se ela pede (documento 45).
+            if (TryStartSmelterDelivery(ant))
+                return;
+            if (ant.Carried == CellMaterial.GlowMushroom || ant.Carried == CellMaterial.Nectar || CellMaterials.IsOre(ant.Carried) ||
+                Equipment.IsMetalGood(ant.Carried))
             {
-                ReturnMushroom(ant);
+                ReturnHeldItem(ant);
                 return;
             }
             if (TryStartWaste(ant))
                 return;
             // Areia vai ao depósito de areia (a comida dos pulgões); sem ele, ao despejo como antes.
             if (IsSand(ant.Carried) && SandDepot && TryStartStock(ant, StorageKind.Sand))
+                return;
+            // Serapilheira, o insumo do bioma Serapilheira, vai ao depósito dela; sem ele (ou cheio), segue como terra.
+            if (ant.Carried == CellMaterial.Litter && LitterDepot && TryStartStock(ant, StorageKind.Litter))
                 return;
             if (BlockDepot ? IsBlockItem(ant.Carried) && TryStartStock(ant, StorageKind.Blocks) : TryStartBedSoil(ant))
                 return;

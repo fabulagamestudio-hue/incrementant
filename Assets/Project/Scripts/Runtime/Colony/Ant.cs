@@ -443,6 +443,11 @@ namespace Fabula.Incrementant.Colony
 
         /// <summary>Dano levado de cupins (0 = inteira). Ao chegar na vida do papel, morre. Recupera fora de combate; não vai para o save.</summary>
         public float Wounds;
+
+        // Equipamento (documento 45): o item vestido de cada tipo (Empty = nenhum) e quantos usos ainda tem. Não vai para o save,
+        // como os ferimentos: ao carregar, a formiga volta sem nada e busca de novo no armazém.
+        public CellMaterial Tool, Weapon, Armor;
+        public int ToolUses, WeaponUses, ArmorUses;
         /// <summary>Tempo simulado da última mordida recebida (a recuperação só começa um tempo depois).</summary>
         public float LastHitTime = float.NegativeInfinity;
         /// <summary>Está mordendo um cupim neste momento (só para o desenho: anima como quem trabalha, virada para DigX/DigY).</summary>

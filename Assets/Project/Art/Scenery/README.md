@@ -1,5 +1,7 @@
 # Elementos de cenário — pixel art
 
+> **Experimento 8x8 (branch `experimento/arte-8x8`, 2026-10-22):** os 48 PNGs refinados (Clovers, DryLeaves, Flowers, Grains, Grass, Pebbles) estão com metade do tamanho descrito abaixo, a 8 px por célula (`../Source~/halve_pixel_art.py`), e com contorno preto de 1 texel por dentro (`../Source~/outline_pixel_art.py`). Os legados de 6 PPU (Mushrooms, Tufts, Twigs) não mudaram: 1 pixel deles = 1 célula, e o shader `SceneryCells` desenha cada célula a 8 texels com o contorno preto (antes 16). Os exportadores ainda geram a 16. Ver `Scripts/Runtime/AntFarm/AntFarmGuide.md`, "Arte 8x8" e "Contorno preto". Desde 2026-10-23 os gravetos do jogo são montados por peças ([`../SceneryKits/`](../SceneryKits/README.md)); os PNGs de `Twigs/` só voltam se o campo **Twig Kit** do `SurfaceSceneryView` ficar vazio.
+
 ## Atualização de 2026-10-21 — Pebbles
 
 As 14 [pedras](Pebbles/README.md) foram refinadas a 16 pixels por célula, com tamanho físico preservado, no estilo das formigas. São desenhadas como sprites separados da máscara de navegação, sem ampliar a camada inteira. Fontes, prompts e reexportação em `Source~/Pebbles`. O restante desta página descreve a entrega anterior e as famílias que continuam no caminho legado.

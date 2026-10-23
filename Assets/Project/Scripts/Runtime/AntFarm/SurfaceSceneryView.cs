@@ -1,5 +1,6 @@
 using Fabula.Incrementant.World;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Fabula.Incrementant.AntFarm
 {
@@ -37,6 +38,10 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField, Range(0f, 1f)] float _farParallax = 0.75f;
         [Tooltip("Quanto a grama média acompanha a câmera (0 = presa ao mapa, 1 = presa à tela).")]
         [SerializeField, Range(0f, 1f)] float _midParallax = 0.5f;
+        [Header("Kit do graveto (experimento 8x8)")]
+        [Tooltip("Kit de peças a 8 texels por célula: os gravetos do cenário passam a ser montados por ele (variantes do elemento Graveto), no lugar dos PNGs de Art/Scenery/Twigs. Vazio = os PNGs.")]
+        [FormerlySerializedAs("_twigKitPilot")]
+        [SerializeField] TwigKit _twigKit;
 
         sealed class LayerView
         {
@@ -56,6 +61,7 @@ namespace Fabula.Incrementant.AntFarm
         Vector3 _mapOrigin;
         Vector2 _parallaxAnchor;
         readonly System.Collections.Generic.List<GameObject> _detailedProps = new();
+        readonly System.Collections.Generic.List<Object> _twigKitAssets = new();
 
         /// <summary>
         /// Pinta o cenário para o mapa atual. <paramref name="mapOrigin"/> é a posição do canto inferior esquerdo do mapa;
@@ -118,8 +124,44 @@ namespace Fabula.Incrementant.AntFarm
 
         void EnsureLibrary()
         {
-            if (_library == null && _art != null)
-                _library = _art.CreateLibrary();
+            if (_library != null || _art == null)
+                return;
+            _library = _art.CreateLibrary();
+            if (_twigKit != null)
+                UseTwigKit(_library);
+        }
+
+        /// <summary>
+        /// Troca as variantes do elemento Graveto por gravetos montados pelo <see cref="TwigKit"/> (2026-10-23): cada um vira
+        /// um sprite a 8 texels por célula e um carimbo detalhado (<see cref="SceneryStamp.FromSprite"/>), então o cenário o
+        /// posiciona, apoia e transforma em fundo caminhável como faz com as pedras refinadas. Pivô no meio do comprimento, meia
+        /// célula acima do ponto mais baixo do tronco (afunda meia célula no chão). Seeds fixas: os mesmos gravetos sempre.
+        /// </summary>
+        void UseTwigKit(SceneryStampLibrary library)
+        {
+            const int texels = CellTileArt.TexelsPerCell;
+            int count = SceneryStampLibrary.VariantCount(SceneryElement.Twig);
+            var stamps = new System.Collections.Generic.List<SceneryStamp>(count);
+            for (int i = 0; i < count; i++)
+            {
+                PixelImage image = _twigKit.Build(SceneryStampLibrary.DefaultSeed + i);
+                if (image == null)
+                    return;
+                var texture = new Texture2D(image.Width, image.Height, TextureFormat.RGBA32, false)
+                {
+                    name = $"TwigKit_{i}", filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp, hideFlags = HideFlags.DontSave,
+                };
+                texture.SetPixels32(image.Pixels);
+                // Continua legível: FromSprite lê os texels para a máscara de navegação.
+                texture.Apply(false, false);
+                var pivot = new Vector2(0.5f, (TwigKitBuilder.Margin + texels * 0.5f) / image.Height);
+                Sprite sprite = Sprite.Create(texture, new Rect(0, 0, image.Width, image.Height), pivot, texels, 0, SpriteMeshType.FullRect);
+                sprite.name = texture.name;
+                _twigKitAssets.Add(texture);
+                _twigKitAssets.Add(sprite);
+                stamps.Add(SceneryStamp.FromSprite(sprite));
+            }
+            library.Set(SceneryElement.Twig, stamps.ToArray());
         }
 
         PlantSprites Plants()
@@ -227,6 +269,9 @@ namespace Fabula.Incrementant.AntFarm
             if (_mid != null) Release(_mid);
             if (_near != null) Release(_near);
             if (_front != null) Release(_front);
+            foreach (Object asset in _twigKitAssets)
+                Destroy(asset);
+            _twigKitAssets.Clear();
             _plants?.Dispose();
         }
     }

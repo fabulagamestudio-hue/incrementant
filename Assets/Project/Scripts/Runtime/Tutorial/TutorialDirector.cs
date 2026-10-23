@@ -149,8 +149,9 @@ namespace Fabula.Incrementant.Tutorial
 
         void Start()
         {
-            // Todo jogo novo abre com o tutorial; só a vitrine do menu principal e a partida continuada de um save ficam sem.
-            if (_game.Showcase || _game.StartedFromSave || _game.Colony == null)
+            // Todo jogo novo aberto pelo menu principal (Novo jogo) abre com o tutorial. Ficam sem: a vitrine do menu, a partida
+            // continuada de um save e a cena AntFarm aberta direto no Editor (pedido do desenvolvedor em 2026-10-23).
+            if (_game.Showcase || !_game.StartedFromMenu || _game.StartedFromSave || _game.Colony == null)
             {
                 enabled = false;
                 return;

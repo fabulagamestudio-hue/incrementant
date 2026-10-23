@@ -97,9 +97,10 @@ namespace Fabula.Incrementant.AntFarm
             int w = Mathf.RoundToInt(r.width), h = Mathf.RoundToInt(r.height);
             Color32[] colors = texture.GetPixels32();
             int sourceX = Mathf.RoundToInt(r.x), sourceY = Mathf.RoundToInt(r.y);
-            if (Mathf.Approximately(sprite.pixelsPerUnit, 16f))
+            if (Mathf.Approximately(sprite.pixelsPerUnit, CellTileArt.TexelsPerCell))
             {
-                // A máscara continua na grade de 6 px/célula; a arte conserva os 16 px/célula.
+                // A máscara continua na grade de 6 px/célula; a arte conserva a densidade do mundo (8 px/célula no
+                // experimento 8x8, antes 16).
                 int maskWidth = Mathf.Max(1, Mathf.RoundToInt(w * ArtScale / sprite.pixelsPerUnit));
                 int maskHeight = Mathf.Max(1, Mathf.RoundToInt(h * ArtScale / sprite.pixelsPerUnit));
                 var mask = new Color32[maskWidth * maskHeight];

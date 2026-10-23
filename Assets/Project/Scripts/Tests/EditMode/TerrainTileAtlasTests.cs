@@ -15,7 +15,9 @@ namespace Fabula.Incrementant.Tests
         {
             var references = new Color32[CellTileArt.RowCount];
             for (int row = 0; row < references.Length; row++)
-                references[row] = new Color32((byte)(40 + row * 8), (byte)(120 - row * 3), 90, 255);
+                // Cores diferentes por linha, sempre no meio da faixa: com mais de 40 linhas a conta antiga (120 - 3 × linha)
+                // dava a volta no byte e encostava no branco, onde o brilho satura e a média não segue a referência.
+                references[row] = new Color32((byte)(40 + row * 8 % 160), (byte)(60 + row * 3 % 60), 90, 255);
             return references;
         }
 
@@ -57,7 +59,7 @@ namespace Fabula.Incrementant.Tests
                 Assert.AreEqual(block + 1, back);
                 Assert.IsTrue(seen.Add(block) && seen.Add(back), $"estilo {(RoomStyle)style}");
             }
-            Assert.AreEqual(CellTileArt.RowCount - 1, CellTileArt.RoomBackRow(RoomStyle.Store));
+            Assert.AreEqual(CellTileArt.RowCount - 1, CellTileArt.RoomBackRow(RoomStyle.Wardrobe), "A última família fecha o atlas.");
             Assert.AreEqual(CellTileArt.RowCount - CellTileArt.MaterialCount, seen.Count);
         }
 
@@ -69,6 +71,12 @@ namespace Fabula.Incrementant.Tests
             foreach (Colony.PaintRoom depot in new[] { Colony.PaintRoom.FoodStore, Colony.PaintRoom.BlockStore, Colony.PaintRoom.WaterStore,
                                                        Colony.PaintRoom.SandStore, Colony.PaintRoom.MushroomStore })
                 Assert.AreEqual(RoomStyle.Store, CellTileArt.StyleOf(depot));
+            // Fundição, forja e armazéns de equipamento com visual próprio (2026-10-23).
+            Assert.AreEqual(RoomStyle.Smelter, CellTileArt.StyleOf(Colony.PaintRoom.Smelter));
+            Assert.AreEqual(RoomStyle.Forge, CellTileArt.StyleOf(Colony.PaintRoom.Forge));
+            Assert.AreEqual(RoomStyle.Armory, CellTileArt.StyleOf(Colony.PaintRoom.Armory));
+            Assert.AreEqual(RoomStyle.Wardrobe, CellTileArt.StyleOf(Colony.PaintRoom.Wardrobe));
+            Assert.AreEqual(RoomStyle.Store, CellTileArt.StyleOf(Colony.PaintRoom.OreStore));
         }
 
         [Test]

@@ -1092,17 +1092,19 @@ namespace Fabula.Incrementant.Colony
             }
             if (d != FlowField.Unreachable && StepDownhill(ant, _mushroomSiteField))
                 return;
-            ReturnMushroom(ant);
+            ReturnHeldItem(ant);
         }
 
-        /// <summary>Cogumelo sem marca para ele: vai ao depósito de cogumelos (com vaga) ou fica no chão, como item solto.</summary>
-        void ReturnMushroom(Ant ant)
+        /// <summary>Cogumelo sem marca para ele, néctar ou minério: vai ao depósito do tipo (com vaga) ou fica no chão, como item solto.</summary>
+        void ReturnHeldItem(Ant ant)
         {
             ant.State = AntState.Carrying;
             ant.StoreTarget = StorageKind.None;
-            if (TryStartStock(ant, StorageKind.Mushroom))
+            // O néctar do Canteiro de flores segue a mesma regra do cogumelo (REQ-070): depósito dele, senão o chão.
+            byte item = StoredItems.Of(ant.Carried);
+            if (TryStartStock(ant, StoredItems.KindOf(item)))
                 return;
-            if (DropItemNear(ant.X, ant.Y, StoredItems.Mushroom, ant.CarriedShade))
+            if (DropItemNear(ant.X, ant.Y, item, ant.CarriedShade))
             {
                 ant.DropTop();
                 ant.State = ant.CarriedCount > 0 ? AntState.Carrying : AntState.Idle;
@@ -1177,7 +1179,7 @@ namespace Fabula.Incrementant.Colony
                 if (t.AttackTimer <= 0f)
                 {
                     t.AttackTimer = RaidSettings.AttackSeconds;
-                    victim.Wounds += _settings.BlackAphidDamage;
+                    victim.Wounds += _settings.BlackAphidDamage * ArmorFactor(victim);
                     victim.LastHitTime = SimulationTime;
                     Emit(SfxId.AntHurt, victim.X, victim.Y);
                     EmitFx(FxId.AntHurt, victim.X, victim.Y);

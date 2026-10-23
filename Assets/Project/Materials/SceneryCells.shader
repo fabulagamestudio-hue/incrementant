@@ -1,11 +1,12 @@
-// Cenário da superfície e plantas colhíveis a 16 texels por célula (etapa 10 do documento 40), como o terreno.
+// Cenário da superfície e plantas colhíveis a 8 texels por célula (experimento 8x8 de 2026-10-22; antes 16, etapa 10 do
+// documento 40), como o terreno.
 // A arte continua em células (cada pixel dos PNGs de Art/Scenery = 1 célula, desenhado em _ArtPixelsPerCell texels da
 // textura da camada); este shader desenha cada célula num bloco de _DetailTexels x _DetailTexels. Dentro da arte, a
 // passagem de uma célula para a vizinha pode virar um pontilhado ordenado (Bayer 4x4) entre as duas cores, na faixa
 // _BlendWidth perto da borda da célula (desligado por padrão: em teste, virou linhas de pontos nas bordas de contraste): cada texel fica com a cor de uma das células vizinhas, então nada sai da paleta e
 // a silhueta não muda (só entram vizinhas opacas). Na silhueta, contorno de 1 texel na cor _OutlineColor (por dentro,
 // para não engordar a forma), realce nos texels de cima/esquerda que dão para o vazio, sombra nos de baixo/direita, e um
-// granulado em manchas de 2x2 texels. A posição é presa à grade de 16, então
+// granulado em manchas de 2x2 texels. A posição é presa à grade de _DetailTexels, então
 // os grãos menores que uma célula (desenhados a 1/6) também caem nela. As cores vêm da paleta mestra nos PNGs; realce,
 // sombra e granulado só clareiam ou escurecem, como a luz do terreno.
 Shader "Incrementant/SceneryCells"
@@ -14,12 +15,12 @@ Shader "Incrementant/SceneryCells"
     {
         [PerRendererData] _MainTex ("Textura da camada", 2D) = "white" {}
         _ArtPixelsPerCell ("Texels da textura por célula (SurfaceSceneryPainter.PixelsPerCell)", Float) = 6
-        _DetailTexels ("Texels desenhados por célula", Float) = 16
+        _DetailTexels ("Texels desenhados por célula", Float) = 8
         _OutlineColor ("Contorno (cor 0 da paleta mestra)", Color) = (0.106, 0.094, 0.082, 1)
         _OutlineStrength ("Força do contorno", Range(0, 1)) = 1
         _Highlight ("Realce de cima/esquerda", Range(0, 1)) = 0.22
         _Shade ("Sombra de baixo/direita", Range(0, 1)) = 0.3
-        _BevelTexels ("Largura do realce e da sombra, em texels", Range(1, 4)) = 2
+        _BevelTexels ("Largura do realce e da sombra, em texels", Range(1, 4)) = 1
         _Grain ("Granulado (manchas de 2x2 texels)", Range(0, 0.3)) = 0.08
         _BlendWidth ("Pontilhado entre células: largura (0 = desligado, 1 = gradiente na célula toda)", Range(0, 1)) = 0
     }

@@ -12,8 +12,8 @@ from PIL import Image, ImageDraw
 
 N = 128
 CELL = 16  # texels por célula: os blocos de sala alinham as juntas a esta grade
-ROOM_STYLES = ['Queen', 'Nutrient', 'Nursery', 'Waste', 'Dew', 'Farm', 'Store']  # ordem de RoomStyle
-ROWS = 19 + 2 * len(ROOM_STYLES)  # 18 materiais + parede de fundo + bloco e fundo por sala
+ROOM_STYLES = ['Queen', 'Nutrient', 'Nursery', 'Waste', 'Dew', 'Farm', 'Store', 'Smelter', 'Forge', 'Armory', 'Wardrobe']  # ordem de RoomStyle
+ROWS = 37 + 2 * len(ROOM_STYLES)  # 36 materiais + parede de fundo + bloco e fundo por sala
 
 
 def load_palette(path):
@@ -216,6 +216,101 @@ def chunks(seed, per_side, tones, gap, hi, lo, extra=None):
     e = light_edges(inside)
     out = np.where(e == 1, hi, np.where(e == -1, lo, out))
     return np.where(inside, out, gap)
+
+
+def litter(seed):
+    """Serapilheira (REQ-070): folhas secas sobrepostas, com nervura e luz na borda, e gravetos miúdos sobre húmus escuro."""
+    r = rng(seed)
+    out = earth(seed + 1, [2, 3, 9], smooth=2)
+    yy, xx = np.mgrid[0:N, 0:N]
+    for k in range(120):
+        cx, cy = r.uniform(0, N, 2)
+        length, width = r.uniform(14, 26), r.uniform(7, 11)
+        angle = r.uniform(0, np.pi)
+        ca, sa = np.cos(angle), np.sin(angle)
+        # Distância periódica ao centro: a folha que sai de um lado do tile entra no outro.
+        dx = (xx - cx + N / 2) % N - N / 2
+        dy = (yy - cy + N / 2) % N - N / 2
+        u, v = dx * ca + dy * sa, -dx * sa + dy * ca
+        # Folha em ponta dos dois lados: a largura cai com o quadrado da posição ao longo dela.
+        inside = (np.abs(u) <= length / 2) & (np.abs(v) <= (width / 2) * (1 - (2 * u / length) ** 2))
+        tone = [8, 10, 11, 11, 12, 9][r.integers(0, 6)]
+        e = light_edges(inside)
+        cast = roll(inside, 1, 1) & ~inside
+        out = np.where(cast, 1, out)
+        out = np.where(inside, np.where(e == 1, min(tone + 1, 13), np.where(e == -1, 3, tone)), out)
+        out = np.where(inside & (np.abs(v) < 1.0) & (np.abs(u) < length * 0.42), 3 if tone != 9 else 8, out)
+    for k in range(10):
+        x, y = r.integers(0, N, 2)
+        dx, dy = (1, 0) if r.random() < 0.5 else (1, 1 if r.random() < 0.5 else -1)
+        for i in range(r.integers(6, 14)):
+            for w in (0, 1):
+                out[(y + i * dy + w) % N, (x + i * dx) % N] = 5
+            out[(y + i * dy + 2) % N, (x + i * dx) % N] = 3
+    return out
+
+
+def compost(seed):
+    """Terra adubada (REQ-070): terra escura e fofa com torrões, palha picada e pontas de folha verde, em traços de 2 texels."""
+    r = rng(seed)
+    out = earth(seed, [1, 2, 3], smooth=2, thresholds=(0.34, 0.62))
+    clods_mask = blobs(seed + 5, 40, 1.6, 3.2)
+    e = light_edges(clods_mask)
+    out = np.where(clods_mask, np.where(e == 1, 4, np.where(e == -1, 1, 3)), out)
+    for k in range(70):
+        x, y = r.integers(0, N, 2)
+        tone = [7, 6, 6, 25][r.integers(0, 4)]
+        dx, dy = [(1, 0), (1, 1), (1, -1), (0, 1)][r.integers(0, 4)]
+        for i in range(r.integers(3, 7)):
+            for w in (0, 1):
+                out[(y + i * dy + w * (dx != 0)) % N, (x + i * dx + w * (dx == 0)) % N] = tone
+    return out
+
+
+def nectar(seed):
+    """Néctar (REQ-070): mel âmbar com bolhas de luz; só aparece na mão da formiga e no item guardado."""
+    out = earth(seed, [12, 13, 7], smooth=3, thresholds=(0.3, 0.7))
+    mask = blobs(seed + 3, 26, 1.8, 3.4)
+    e = light_edges(mask)
+    return np.where(mask, np.where(e == 1, 16, np.where(e == -1, 12, 15)), out)
+
+
+def ore(seed, base, hi, lo):
+    """Minério (REQ-071): a pedra com pintas do metal, com luz e sombra, em grãos de 2 texels ou mais para sobreviver à redução."""
+    out = stones(seed, 9, 1, [17, 18, 18, 19], 20, 17)
+    mask = blobs(seed + 7, 20, 4.0, 7.0)
+    e = light_edges(mask)
+    tone = np.array(base)[rng(seed + 8).integers(0, len(base), (N, N))]
+    return np.where(mask, np.where(e == 1, hi, np.where(e == -1, lo, tone)), out)
+
+
+def copperore(seed):
+    return ore(seed, [33, 34, 12], 12, 8)
+
+
+def ironore(seed):
+    return ore(seed, [8, 33, 9], 10, 32)
+
+
+def goldore(seed):
+    return ore(seed, [13, 7, 12], 16, 11)
+
+
+METALS = {'Copper': ([8, 34, 12], 12, 8), 'Iron': ([17, 18, 19], 20, 1), 'Gold': ([12, 13, 7], 16, 11)}
+
+
+def metal_good(seed, metal, kind):
+    """Barra e equipamentos (REQ-071), provisórios: só aparecem no bloco carregado e no item guardado. O padrão diz o tipo
+    (barra em lingotes, ferramenta em lascas, arma em lâminas verticais, armadura em escamas) e as cores dizem o metal."""
+    tones, hi, lo = METALS[metal]
+    if kind == 'Bar':
+        return masonry(seed, 32, 16, tones, lo, hi, lo, offset=8, bevel=2)[0]
+    if kind == 'Tool':
+        return chunks(seed, 7, tones, lo, hi, lo)
+    if kind == 'Weapon':
+        out = fibers(seed, [tones[1], tones[0], tones[2], hi], vertical=True, density=0.9)
+        return out
+    return masonry(seed, 16, 16, tones, lo, hi, lo, offset=8, bevel=1, rounded=True)[0]
 
 
 # ---------------------------------------------------------------- salas construídas (REQ-058)
@@ -435,15 +530,99 @@ def store_back(seed):
     return out
 
 
+def smelter_block(seed):
+    """Fundição (REQ-071): tijolo refratário vermelho-escuro em fiadas, com fuligem nas juntas e na face de baixo."""
+    out, ix, iy, _ = masonry(seed, 16, 8, [32, 33, 33], 0, 34, 8, offset=8, flecks=[(1, 0.03, 2)])
+    return np.where((iy >= 6) & specks(seed + 3, 0.35), 1, out)
+
+
+def smelter_back(seed):
+    """Fundição: parede escura de fuligem, com brasa nas frestas perto do chão de cada célula (a sala ferve)."""
+    out = calm_back(seed, (0, 1, 2), (0.25, 0.85))
+    yy, xx = np.mgrid[0:N, 0:N]
+    cracks = walks(seed + 1, 30, (6, 22))
+    low = (yy % CELL) >= CELL - 6
+    out = np.where(cracks, 0, out)
+    out = np.where(cracks & low, 34, out)
+    return np.where(cracks & low & specks(seed + 2, 0.4), 12, out)
+
+
+def forge_block(seed):
+    """Forja: blocos grandes de pedra escura (um por célula) com cinta de ferro e rebites nas quinas."""
+    out, ix, iy, _ = masonry(seed, 16, 16, [17, 17, 1], 0, 18, 0, bevel=2)
+    band = (iy == 7) | (iy == 8)
+    out = np.where(band & (ix > 0), 18, out)
+    out = np.where((iy == 9) & (ix > 0), 0, out)
+    rivet = ((ix == 3) | (ix == 12)) & ((iy == 3) | (iy == 12))
+    return np.where(rivet, 20, out)
+
+
+def forge_back(seed):
+    """Forja: pedra escura com o brilho alaranjado do fogo subindo pelo meio da parede e ferramentas penduradas em silhueta."""
+    out = calm_back(seed, (0, 1, 1), (0.3, 0.9))
+    yy, xx = np.mgrid[0:N, 0:N]
+    glow = majority((fbm(seed + 1) > 0.62).astype(int), 2).astype(bool)
+    out = np.where(glow, 8, out)
+    out = np.where(glow & specks(seed + 2, 0.25), 33, out)
+    # Pregos a cada duas células, com uma tenaz em silhueta pendurada.
+    lx, ly = xx % 32, yy % 32
+    hook = (lx == 16) & (ly >= 4) & (ly <= 5)
+    tool = ((lx == 15) | (lx == 17)) & (ly >= 6) & (ly <= 13)
+    return np.where(hook, 20, np.where(tool, 0, out))
+
+
+def armory_block(seed):
+    """Armazém de ferramentas e armas: tábuas verticais de madeira escura com pregos."""
+    uid, ix, iy = grid_units(8, 16, offset=8)
+    tone_of = rng(seed).integers(0, 3, uid.max() + 1)
+    out = np.array([9, 9, 4])[tone_of[uid]]
+    out = np.where(ix == 1, 10, np.where(ix == 7, 3, out))
+    out = np.where((iy == 2) & (ix == 4), 18, out)
+    return np.where(ix == 0, 2, out)
+
+
+def armory_back(seed):
+    """Armazém de ferramentas e armas: parede de tábuas com um cabideiro (barra e ganchos) a cada duas células."""
+    out = calm_back(seed, (1, 2, 3), (0.15, 0.85))
+    yy, xx = np.mgrid[0:N, 0:N]
+    out = np.where(xx % 8 == 0, 1, out)  # junta das tábuas
+    ly = yy % 32
+    out = np.where(ly == 26, 10, np.where(ly == 25, 4, out))  # barra do cabideiro
+    hook = (ly >= 27) & (ly <= 28) & (xx % 16 == 8)
+    return np.where(hook, 18, out)
+
+
+def wardrobe_block(seed):
+    """Armazém de roupas e armaduras: madeira clara em painéis almofadados, um por célula."""
+    out, ix, iy, _ = masonry(seed, 16, 16, [5, 5, 6], 3, 14, 4, bevel=1)
+    inset = (ix >= 4) & (ix <= 12) & (iy >= 4) & (iy <= 12)
+    edge = inset & ((ix == 4) | (iy == 4) | (ix == 12) | (iy == 12))
+    return np.where(edge, 4, np.where(inset, 6, out))
+
+
+def wardrobe_back(seed):
+    """Armazém de roupas e armaduras: tecido azul-escuro em trama, com uma faixa clara de costura a cada duas células."""
+    out = calm_back(seed, (1, 2, 1), (0.2, 0.85))
+    yy, xx = np.mgrid[0:N, 0:N]
+    weave = ((xx // 2) + (yy // 2)) % 2 == 0
+    out = np.where(weave, 29, out)
+    out = np.where(yy % 32 == 16, 30, out)
+    return np.where((yy % 32 == 16) & (xx % 4 == 0), 1, out)
+
+
 ROOM_TILES = {
     'Queen': (queen_block, queen_back), 'Nutrient': (nutrient_block, nutrient_back),
     'Nursery': (nursery_block, nursery_back), 'Waste': (waste_block, waste_back), 'Dew': (dew_block, dew_back),
     'Farm': (farm_block, farm_back), 'Store': (store_block, store_back),
+    'Smelter': (smelter_block, smelter_back), 'Forge': (forge_block, forge_back),
+    'Armory': (armory_block, armory_back), 'Wardrobe': (wardrobe_block, wardrobe_back),
 }
 
 ORDER = ['Empty', 'Dirt', 'Grass', 'Sand', 'Rock', 'Spoil', 'Bedrock', 'PackedSpoil', 'PackedSand', 'Mud',
          'PlantGrass', 'PlantLeaf', 'FallenGrass', 'FallenLeaf', 'Rubble', 'Refuse', 'TermiteRemains',
-         'GlowMushroom', 'Background'] + [s + part for s in ROOM_STYLES for part in ('Block', 'Back')]
+         'GlowMushroom', 'Litter', 'Compost', 'Nectar', 'CopperOre', 'IronOre', 'GoldOre',
+         'CopperBar', 'IronBar', 'GoldBar', 'CopperTool', 'IronTool', 'GoldTool', 'CopperWeapon', 'IronWeapon', 'GoldWeapon',
+         'CopperArmor', 'IronArmor', 'GoldArmor', 'Background'] + [s + part for s in ROOM_STYLES for part in ('Block', 'Back')]
 
 
 def build():
@@ -468,6 +647,15 @@ def build():
     t['Refuse'] = chunks(1500, 12, [3, 4, 17, 2], 1, 5, 1)
     t['TermiteRemains'] = chunks(1600, 12, [8, 9, 3, 10], 1, 11, 0, extra=5)
     t['GlowMushroom'] = earth(1700, [7, 15, 16], speck=(13, 16), smooth=2)
+    t['Litter'] = litter(1750)
+    t['Compost'] = compost(1760)
+    t['Nectar'] = nectar(1770)
+    t['CopperOre'] = copperore(1780)
+    t['IronOre'] = ironore(1790)
+    t['GoldOre'] = goldore(1800)
+    for k, kind in enumerate(('Bar', 'Tool', 'Weapon', 'Armor')):
+        for m, metal in enumerate(('Copper', 'Iron', 'Gold')):
+            t[metal + kind] = metal_good(1810 + 10 * (3 * k + m), metal, kind)
     for k, style in enumerate(ROOM_STYLES):
         block, back = ROOM_TILES[style]
         t[style + 'Block'] = block(1900 + 200 * k)
@@ -496,7 +684,8 @@ def preview(pal, tiles, path):
 
 
 ROOM_NAMES = {'Queen': 'Rainha', 'Nutrient': 'Cultivo', 'Nursery': 'Berçário', 'Waste': 'Resíduos', 'Dew': 'Orvalho',
-              'Farm': 'Fazenda', 'Store': 'Depósito'}
+              'Farm': 'Fazenda', 'Store': 'Depósito', 'Smelter': 'Fundição', 'Forge': 'Forja', 'Armory': 'Armas',
+              'Wardrobe': 'Armaduras'}
 
 # Maquete da sala: 12 x 8 células. '.' = vão da sala, 'B' = terra em contato com o vão (rebocada quando a sala é
 # construída: piso, teto, lados, quinas e o torrão dentro da área pintada), 't' = túnel que chega à sala, '#' = terra.
@@ -562,7 +751,8 @@ def rooms_preview(pal, tiles, path, scale=2):
         panels.append((ROOM_NAMES[style], room_scene(pal, tiles, style + 'Block', style + 'Back')))
     ph, pw = panels[0][1].shape[0] * scale, panels[0][1].shape[1] * scale
     cols, gap, label = 4, 8, 22
-    img = Image.new('RGB', (cols * (pw + gap) + gap, 2 * (ph + label + gap) + gap), (24, 22, 26))
+    rows = (len(panels) + cols - 1) // cols
+    img = Image.new('RGB', (cols * (pw + gap) + gap, rows * (ph + label + gap) + gap), (24, 22, 26))
     draw = ImageDraw.Draw(img)
     font = None
     for name in ('arial.ttf', 'DejaVuSans.ttf'):  # fonte com acentos; a padrão do Pillow pode não ter

@@ -61,7 +61,7 @@ Os caminhos desta seção são relativos a `Sprites/`.
 | `buttons/` | 9 | `button_normal`, `button_focus`, `button_pressed`, `button_disabled`: estados gerais; `button_action`: ação principal; `button_danger`: ação destrutiva; `icon_button`, `icon_button_focus`, `icon_button_disabled`: botões com ícone |
 | `controls/` | 4 | `checkbox_on/off` e `toggle_on/off`: opções de configuração |
 | `decor/` | 2 | `moss_corner` e `seedling`: acabamento visual |
-| `icons/` | 22 | `ant`, `crown`, `egg`, `larva`, `pupa`, `leaf`, `mushroom`, `crate`, `shovel`, `warning`, `lock`, `gear`, `speaker`, `play`, `pause`, `plus`, `minus`, `close` e quatro `arrow_*` |
+| `icons/` | 22 | `ant`, `crown`, `egg`, `larva`, `pupa`, `leaf`, `mushroom`, `crate`, `shovel`, `warning`, `lock`, `gear`, `speaker`, `play`, `pause`, `plus`, `minus`, `close` e quatro `arrow_*`; mais cinco `equip_*` (minério, fundição, forja, armazéns), gerados por `Source~/hud_equip_icons.py` |
 | `indicators/` | 1 | `badge`: base de contador ou indicador de aviso; número composto como texto |
 | `panels/` | 7 | `hud_card`, `panel_plain`, `panel_moss`, `panel_header`, `notification`, `tooltip`, `tooltip_pointer` |
 | `progress/` | 3 | `progress_track`, `progress_green`, `progress_amber` |

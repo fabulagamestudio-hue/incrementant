@@ -18,13 +18,16 @@ namespace Fabula.Incrementant.EditorTools.AntFarm
         public const int AdultArtScale = 6;
         public const float AdultPixelsPerCell = PixelsPerCell * AdultArtScale;
         public const string TopViewPrefix = "Ant_Top_";
-        /// <summary>Densidade do mundo (documento 40): 16 px de arte por célula. Os adultos redesenhados (48x32 = 3x2 células) usam esta.</summary>
-        public const float WorldPixelsPerCell = 16f;
-        /// <summary>Quadros próprios da rainha (96x64).</summary>
+        /// <summary>
+        /// Densidade do mundo: px de arte por célula, a mesma do terreno (<see cref="Fabula.Incrementant.AntFarm.CellTileArt.TexelsPerCell"/>).
+        /// Experimento 8x8 de 2026-10-22: 8 (antes 16, documento 40); os adultos (24x16 = 3x2 células) usam esta.
+        /// </summary>
+        public const float WorldPixelsPerCell = Fabula.Incrementant.AntFarm.CellTileArt.TexelsPerCell;
+        /// <summary>Quadros próprios da rainha (48x32 no experimento 8x8; 96x64 antes).</summary>
         public const string QueenFolder = AntsFolder + "Rainha/";
         /// <summary>
-        /// A rainha é desenhada com o dobro do tamanho (<c>AntSwarmView</c> → <b>Queen Scale</b> 2): a 32 px por unidade,
-        /// cada pixel dos quadros de 96x64 continua sendo 1/16 de célula. Mudar o Queen Scale pede mudar este valor junto.
+        /// A rainha é desenhada com o dobro do tamanho (<c>AntSwarmView</c> → <b>Queen Scale</b> 2): a 2 × WorldPixelsPerCell px por unidade,
+        /// cada pixel dos quadros continua do tamanho do texel do terreno. Mudar o Queen Scale pede mudar este valor junto.
         /// </summary>
         public const float QueenPixelsPerUnit = WorldPixelsPerCell * 2f;
 
@@ -38,7 +41,7 @@ namespace Fabula.Incrementant.EditorTools.AntFarm
             return (width == 108 && height == 72) || (width == 144 && height == 144);
         }
 
-        /// <summary>Itens que a formiga leva na boca (16x16 = 1 célula, etapa 9): pivô no centro.</summary>
+        /// <summary>Itens que a formiga leva na boca (1 célula, etapa 9; 8x8 no experimento 8x8): pivô no centro.</summary>
         public const string ItemPrefix = "Item_";
 
         /// <summary>Ovo, larva ou pupa ainda na arte antiga (18x12 a 6 px por célula); os redesenhados (48x32) usam 16.</summary>

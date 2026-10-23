@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Fabula.Incrementant.Colony
 {
     /// <summary>Ambiente que o pincel pinta e que tem limite de área (KI-043). Os cinco depósitos têm limites separados.</summary>
-    public enum PaintRoom { Queen, Nutrient, Nursery, Waste, Dew, FoodStore, BlockStore, WaterStore, Farm, SandStore, MushroomStore }
+    public enum PaintRoom { Queen, Nutrient, Nursery, Waste, Dew, FoodStore, BlockStore, WaterStore, Farm, SandStore, MushroomStore, LitterStore, NectarStore, OreStore, Smelter, Forge, Armory, Wardrobe }
 
     /// <summary>Por que o pincel não pode pintar uma célula do ambiente.</summary>
     public enum PaintBlock
@@ -27,7 +27,8 @@ namespace Fabula.Incrementant.Colony
     /// </summary>
     public sealed class PaintBudget
     {
-        public const int RoomCount = 11;
+        /// <summary>Ambientes com limite de área: todos os valores de <see cref="PaintRoom"/> (antes fixo em 11, o que deixava os depósitos novos de fora).</summary>
+        public static readonly int RoomCount = System.Enum.GetValues(typeof(PaintRoom)).Length;
 
         readonly PixelGrid _grid;
         readonly ColonySettings _settings;
@@ -156,6 +157,13 @@ namespace Fabula.Incrementant.Colony
                     case StorageKind.Water: room = PaintRoom.WaterStore; break;
                     case StorageKind.Sand: room = PaintRoom.SandStore; break;
                     case StorageKind.Mushroom: room = PaintRoom.MushroomStore; break;
+                    case StorageKind.Litter: room = PaintRoom.LitterStore; break;
+                    case StorageKind.Nectar: room = PaintRoom.NectarStore; break;
+                    case StorageKind.Ore: room = PaintRoom.OreStore; break;
+                    case StorageKind.Smelter: room = PaintRoom.Smelter; break;
+                    case StorageKind.Forge: room = PaintRoom.Forge; break;
+                    case StorageKind.Armory: room = PaintRoom.Armory; break;
+                    case StorageKind.Wardrobe: room = PaintRoom.Wardrobe; break;
                     default: return false;
                 }
             }
@@ -170,6 +178,13 @@ namespace Fabula.Incrementant.Colony
                 case PaintRoom.WaterStore: return StorageKind.Water;
                 case PaintRoom.SandStore: return StorageKind.Sand;
                 case PaintRoom.MushroomStore: return StorageKind.Mushroom;
+                case PaintRoom.LitterStore: return StorageKind.Litter;
+                case PaintRoom.NectarStore: return StorageKind.Nectar;
+                case PaintRoom.OreStore: return StorageKind.Ore;
+                case PaintRoom.Smelter: return StorageKind.Smelter;
+                case PaintRoom.Forge: return StorageKind.Forge;
+                case PaintRoom.Armory: return StorageKind.Armory;
+                case PaintRoom.Wardrobe: return StorageKind.Wardrobe;
                 default: return StorageKind.Food;
             }
         }

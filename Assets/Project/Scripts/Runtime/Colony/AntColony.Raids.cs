@@ -693,7 +693,7 @@ namespace Fabula.Incrementant.Colony
                 if (t.AttackTimer <= 0f)
                 {
                     t.AttackTimer = RaidSettings.AttackSeconds;
-                    victim.Wounds += RaidSettings.TermiteDamage;
+                    victim.Wounds += RaidSettings.TermiteDamage * ArmorFactor(victim);
                     Emit(SfxId.AntHurt, victim.X, victim.Y);
                     EmitFx(FxId.AntHurt, victim.X, victim.Y);
                     victim.LastHitTime = SimulationTime;
@@ -1751,7 +1751,7 @@ namespace Fabula.Incrementant.Colony
                 ant.DigY = target.Y;
                 if (target.X != ant.X)
                     ant.FacingX = target.X > ant.X ? 1 : -1;
-                HitTermite(target, DamageOf(ant.Role) * RaidSettings.AttackSeconds);
+                HitTermite(target, DamageOf(ant.Role) * WeaponFactor(ant) * RaidSettings.AttackSeconds);
                 ant.Cooldown = RaidSettings.AttackSeconds;
                 return;
             }
@@ -1861,7 +1861,7 @@ namespace Fabula.Incrementant.Colony
             if (target.X != ant.X)
                 ant.FacingX = target.X > ant.X ? 1 : -1;
             float distance = Mathf.Sqrt((target.X - ant.X) * (target.X - ant.X) + (target.Y - ant.Y) * (target.Y - ant.Y));
-            _spits.Add(new SpitShot(ant.X, ant.Y, target, distance / RaidSettings.SpitSpeed));
+            _spits.Add(new SpitShot(ant.X, ant.Y, target, distance / RaidSettings.SpitSpeed, WeaponFactor(ant)));
             ant.Cooldown = RaidSettings.SpitSeconds;
             return true;
         }
@@ -1922,7 +1922,7 @@ namespace Fabula.Incrementant.Colony
                     continue;
                 _spits.RemoveAt(i);
                 if (spit.Target.OnGround)
-                    HitTermite(spit.Target, RaidSettings.SpitDamage);
+                    HitTermite(spit.Target, RaidSettings.SpitDamage * spit.DamageFactor);
             }
         }
 

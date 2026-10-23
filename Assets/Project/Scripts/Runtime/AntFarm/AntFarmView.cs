@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Fabula.Incrementant.Colony;
 using Fabula.Incrementant.Settings;
 using Fabula.Incrementant.World;
@@ -25,6 +26,13 @@ namespace Fabula.Incrementant.AntFarm
         FarmRoom,
         SandStore,
         MushroomStore,
+        LitterStore,
+        NectarStore,
+        OreStore,
+        Smelter,
+        Forge,
+        Armory,
+        Wardrobe,
     }
 
     /// <summary>
@@ -69,6 +77,13 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField] Color32 _sandStoreColor = new Color32(230, 200, 110, 255);
         [Tooltip("Cor do depósito de cogumelos pintado e do pincel no modo depósito de cogumelos.")]
         [SerializeField] Color32 _mushroomStoreColor = new Color32(200, 150, 220, 255);
+        [SerializeField] Color32 _litterStoreColor = new Color32(214, 135, 47, 255);
+        [SerializeField] Color32 _nectarStoreColor = new Color32(244, 214, 80, 255);
+        [SerializeField] Color32 _oreStoreColor = new Color32(160, 150, 170, 255);
+        [SerializeField] Color32 _smelterColor = new Color32(230, 110, 50, 255);
+        [SerializeField] Color32 _forgeColor = new Color32(200, 70, 60, 255);
+        [SerializeField] Color32 _armoryColor = new Color32(150, 160, 190, 255);
+        [SerializeField] Color32 _wardrobeColor = new Color32(120, 150, 200, 255);
         [Tooltip("Cor da fazenda de pulgões pintada e do pincel no modo fazenda.")]
         [SerializeField] Color32 _farmRoomColor = new Color32(140, 200, 120, 255);
         [Tooltip("Quanto o item guardado (depósitos e resíduos) mistura a cor dele com o fundo do túnel: 1 = a cor do material.")]
@@ -121,6 +136,10 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField, Range(0f, 1f)] float _tileToneStrength = 0.5f;
         [Tooltip("Grama que passa do topo do bloco de grama para a célula vazia de cima, só no desenho: 1 célula de altura, largura repetida no x do mundo, alpha = folha. Vazio: sem transbordo.")]
         [SerializeField] Texture2D _grassOverhang;
+        [Tooltip("Minério guardado ou solto desenhado com o sprite da boca da formiga (Art/Ants/Item_CopperOre, Item_IronOre e Item_GoldOre, nesta ordem, 8 x 8, sem compressão). Vazio ou incompleto: a arte da linha do atlas, como os outros itens.")]
+        [SerializeField] Sprite[] _oreItemSprites = new Sprite[0];
+        [Tooltip("Ferramenta, arma e armadura guardadas ou soltas com o sprite da boca da formiga (Art/Ants/Item_<Metal><Tipo>), 9 de 8 x 8 sem compressão: ferramenta, arma, armadura, cada uma em cobre, ferro e ouro. Vazio ou incompleto: a arte da linha do atlas.")]
+        [SerializeField] Sprite[] _equipItemSprites = new Sprite[0];
         [Tooltip("Depuração: pinta cada célula pela distância com sinal até a borda terra/vazio (quente = terra, frio = vazio, claro = perto da borda). Só com Tile Material.")]
         [SerializeField] bool _debugSignedDistance;
 
@@ -145,8 +164,8 @@ namespace Fabula.Incrementant.AntFarm
         public static int SignedDistanceOf(byte g) => (g >= SignedDistanceZero + MergeFlag / 2 ? g - MergeFlag : g) - SignedDistanceZero;
 
         /// <summary>
-        /// Família de junção do material, a mesma do shader (<c>MergeFamily</c> em TerrainTiles): 0 terra e terra mole, 1 grama,
-        /// 2 terra despejada (solta e compactada), 3 areia (solta e compactada), 4 pedra; -1 não mistura com as vizinhas.
+        /// Família de junção do material, a mesma do shader (<c>MergeFamily</c> em TerrainTiles): 0 terra e terra mole, 1 grama
+        /// serapilheira e terra adubada (as três cobrem o chão), 2 terra despejada (solta e compactada), 3 areia (solta e compactada), 4 pedra e minérios; -1 não mistura com as vizinhas.
         /// </summary>
         public static int MergeFamily(CellMaterial material)
         {
@@ -156,6 +175,8 @@ namespace Fabula.Incrementant.AntFarm
                 case CellMaterial.Mud:
                     return 0;
                 case CellMaterial.Grass:
+                case CellMaterial.Litter:
+                case CellMaterial.Compost:
                     return 1;
                 case CellMaterial.Spoil:
                 case CellMaterial.PackedSpoil:
@@ -164,6 +185,9 @@ namespace Fabula.Incrementant.AntFarm
                 case CellMaterial.PackedSand:
                     return 3;
                 case CellMaterial.Rock:
+                case CellMaterial.CopperOre:
+                case CellMaterial.IronOre:
+                case CellMaterial.GoldOre:
                     return 4;
                 default:
                     return -1;
@@ -196,10 +220,20 @@ namespace Fabula.Incrementant.AntFarm
         // da CPU) e o material instanciado do shader.
         Texture2D _materialTexture;
         byte[] _materialIds;
+        // Item guardado de cada célula da janela para o shader (R8: linha do atlas + 1, 0 = nenhum), pedido de 2026-10-23: o
+        // item é desenhado com a arte do atlas sobre o fundo, em vez de tingir a célula com a cor chapada.
+        Texture2D _itemTexture;
+        byte[] _itemIds;
+        // Sprites dos itens com arte própria, lado a lado (_ItemSprites no shader), e quantos há (0 = nenhum, os itens usam o atlas).
+        Texture2D _itemSprites;
+        int _itemSpriteCount;
+        /// <summary>Valor de _CellItems a partir do qual o item é um sprite de _ItemSprites (o mesmo ItemSpriteBase do shader).</summary>
+        public const int ItemSpriteBase = 200;
         Material _tileInstance;
         TerrainTileAtlas _atlas;
         static readonly int WindowOriginId = Shader.PropertyToID("_WindowOrigin");
         static readonly int CellMaterialsId = Shader.PropertyToID("_CellMaterials");
+        static readonly int CellItemsId = Shader.PropertyToID("_CellItems");
         static readonly int DebugSignedDistanceId = Shader.PropertyToID("_DebugSignedDistance");
         static readonly int InteriorAmbientId = Shader.PropertyToID("_InteriorAmbient");
         static readonly int GlowMaterialId = Shader.PropertyToID("_GlowMaterialId");
@@ -220,6 +254,8 @@ namespace Fabula.Incrementant.AntFarm
         bool _cachedHasColony;
         Color32[] _cellColors;
         byte[] _cellTiles;
+        // Item que o shader desenha em cada célula da grade (ver _itemIds).
+        byte[] _cellItems;
         // Luz de cada célula no último desenho do bloco dela (só muda com a forma do terreno e com as fontes, que sobem a
         // versão do bloco: PixelGrid.DirtyShape).
         byte[] _cellLight;
@@ -289,7 +325,87 @@ namespace Fabula.Incrementant.AntFarm
                 _tileInstance.SetFloat("_OverhangSize", _grassOverhang.width);
             }
             _tileInstance.SetFloat("_OverhangMaterialId", _grassOverhang != null ? (float)CellMaterial.Grass : -1f);
+            _itemSpriteCount = BuildItemSprites();
+            if (_itemSpriteCount > 0)
+                _tileInstance.SetTexture("_ItemSprites", _itemSprites);
+            _tileInstance.SetFloat("_ItemSpriteCount", _itemSpriteCount);
             return _tileInstance;
+        }
+
+        /// <summary>
+        /// Junta os sprites dos minérios numa textura só, lado a lado, copiando na GPU (os PNGs não precisam de Read/Write).
+        /// Devolve quantos entraram: 0 se faltar algum, se um não for 8 x 8 RGBA32 sem compressão ou se a plataforma não copia
+        /// textura; aí o minério segue com a arte do atlas.
+        /// </summary>
+        int BuildItemSprites()
+        {
+            if (_itemSprites != null)
+                Destroy(_itemSprites);
+            _itemSprites = null;
+            int size = CellTileArt.TexelsPerCell;
+            if (SystemInfo.copyTextureSupport == UnityEngine.Rendering.CopyTextureSupport.None)
+                return 0;
+            // Minérios (índices 0 a 2) e, se completos, os equipamentos (3 a 11): o índice do sprite é o do item em ItemSpriteIndex.
+            Sprite[] sprites = JoinItemSprites(size);
+            int count = sprites == null ? 0 : sprites.Length;
+            if (count == 0)
+                return 0;
+            _itemSprites = new Texture2D(size * count, size, TextureFormat.RGBA32, false)
+            {
+                name = "AntFarmItemSprites",
+                filterMode = FilterMode.Point,
+                wrapMode = TextureWrapMode.Clamp,
+                hideFlags = HideFlags.DontSave,
+            };
+            _itemSprites.Apply(false);
+            for (int i = 0; i < count; i++)
+            {
+                Rect rect = sprites[i].rect;
+                Graphics.CopyTexture(sprites[i].texture, 0, 0, (int)rect.x, (int)rect.y, size, size, _itemSprites, 0, 0, i * size, 0);
+            }
+            return count;
+        }
+
+        const int OreCount = (int)CellMaterial.GoldOre - (int)CellMaterial.CopperOre + 1;
+        const int EquipCount = 3 * Equipment.Tiers;
+
+        /// <summary>
+        /// Os sprites que entram na textura: os minérios e, se os 9 equipamentos também estão certos, eles em seguida. Sem os
+        /// minérios certos, nenhum (o minério segue com o atlas); sem os equipamentos, só os minérios.
+        /// </summary>
+        Sprite[] JoinItemSprites(int size)
+        {
+            if (!ItemSpritesValid(_oreItemSprites, OreCount, size, "Ore Item Sprites", "Item_*Ore"))
+                return null;
+            if (!ItemSpritesValid(_equipItemSprites, EquipCount, size, "Equip Item Sprites", "Item_<Metal><Tipo>"))
+                return _oreItemSprites.Take(OreCount).ToArray();
+            return _oreItemSprites.Take(OreCount).Concat(_equipItemSprites.Take(EquipCount)).ToArray();
+        }
+
+        bool ItemSpritesValid(Sprite[] list, int count, int size, string field, string files)
+        {
+            if (list == null || list.Length < count)
+                return false;
+            for (int i = 0; i < count; i++)
+            {
+                Sprite sprite = list[i];
+                if (sprite == null || sprite.texture.format != TextureFormat.RGBA32 || (int)sprite.rect.width != size || (int)sprite.rect.height != size)
+                {
+                    if (list.Length > 0)
+                        Debug.LogWarning($"{name}: {field}[{i}] precisa ser um sprite {size} x {size} RGBA32 sem compressão (Art/Ants/{files}); esses itens ficam com a arte do atlas.", this);
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>Índice do item em <c>_ItemSprites</c>: minério 0 a 2, ferramenta, arma e armadura (cobre, ferro, ouro) 3 a 11; -1 sem sprite.</summary>
+        public static int ItemSpriteIndex(CellMaterial material)
+        {
+            if (CellMaterials.IsOre(material))
+                return (int)material - (int)CellMaterial.CopperOre;
+            EquipKind kind = Equipment.KindOf(material);
+            return kind == EquipKind.None ? -1 : OreCount + ((int)kind - 1) * Equipment.Tiers + Equipment.TierOf(material);
         }
 
         /// <summary>Atlas do terreno em uso (null sem Tile Material): o bloco carregado lê o mesmo.</summary>
@@ -377,6 +493,8 @@ namespace Fabula.Incrementant.AntFarm
             {
                 _materialTexture.SetPixelData(_materialIds, 0);
                 _materialTexture.Apply(false);
+                _itemTexture.SetPixelData(_itemIds, 0);
+                _itemTexture.Apply(false);
             }
         }
 
@@ -403,6 +521,13 @@ namespace Fabula.Incrementant.AntFarm
                 case BrushTint.FarmRoom: return _farmRoomColor;
                 case BrushTint.SandStore: return _sandStoreColor;
                 case BrushTint.MushroomStore: return _mushroomStoreColor;
+                case BrushTint.LitterStore: return _litterStoreColor;
+                case BrushTint.NectarStore: return _nectarStoreColor;
+                case BrushTint.OreStore: return _oreStoreColor;
+                case BrushTint.Smelter: return _smelterColor;
+                case BrushTint.Forge: return _forgeColor;
+                case BrushTint.Armory: return _armoryColor;
+                case BrushTint.Wardrobe: return _wardrobeColor;
                 default: return _brushColor;
             }
         }
@@ -432,6 +557,14 @@ namespace Fabula.Incrementant.AntFarm
                     wrapMode = TextureWrapMode.Clamp,
                 };
                 _tileInstance.SetTexture(CellMaterialsId, _materialTexture);
+                _itemIds = new byte[width * height];
+                _itemTexture = new Texture2D(width, height, TextureFormat.R8, false, true)
+                {
+                    name = "AntFarmCellItems",
+                    filterMode = FilterMode.Point,
+                    wrapMode = TextureWrapMode.Clamp,
+                };
+                _tileInstance.SetTexture(CellItemsId, _itemTexture);
             }
         }
 
@@ -448,6 +581,7 @@ namespace Fabula.Incrementant.AntFarm
                 _cachedHasColony = hasColony;
                 _cellColors = new Color32[grid.Width * grid.Height];
                 _cellTiles = tiles ? new byte[TileBytes * grid.Width * grid.Height] : null;
+                _cellItems = tiles ? new byte[grid.Width * grid.Height] : null;
                 _cellLight = new byte[grid.Width * grid.Height];
                 _cellGlowLight = new bool[grid.Width * grid.Height];
                 _drawnVersion = new int[grid.ChunkColumns * grid.ChunkRows];
@@ -552,6 +686,7 @@ namespace Fabula.Incrementant.AntFarm
             {
                 _cellTiles[TileBytes * index] = tileId;
                 _cellTiles[TileBytes * index + 3] = LightFlags(lit, _cellGlowLight[index]);
+                _cellItems[index] = ShaderItem(grid, x, y, tileId);
             }
             LastRedrawnCells++;
         }
@@ -565,7 +700,10 @@ namespace Fabula.Incrementant.AntFarm
                 int source = (_originY + wy) * gridWidth + _originX;
                 System.Array.Copy(_cellColors, source, _pixels, wy * _width, _width);
                 if (tiles)
+                {
                     System.Array.Copy(_cellTiles, TileBytes * source, _materialIds, TileBytes * wy * _width, TileBytes * _width);
+                    System.Array.Copy(_cellItems, source, _itemIds, wy * _width, _width);
+                }
             }
         }
 
@@ -598,6 +736,7 @@ namespace Fabula.Incrementant.AntFarm
                                                    + (IsMergeBoundary(grid, x, y) ? MergeFlag : 0));
                         _cellTiles[t + 2] = LightByte(light);
                         _cellTiles[t + 3] = LightFlags(lit, _cellGlowLight[row + lx]);
+                        _cellItems[row + lx] = ShaderItem(grid, x, y, tileId);
                     }
                 }
             }
@@ -718,7 +857,7 @@ namespace Fabula.Incrementant.AntFarm
                 if (grid.HasNutrient(x, y))
                     color = Darken(NutrientAt(x, y), tunnelLight);
                 byte stored = grid.GetStored(x, y);
-                if (stored != StoredItems.None)
+                if (stored != StoredItems.None && !DrawsItemInShader(stored, tileId))
                     color = StoredAt(color, stored, grid.GetStoredShade(x, y), x, y, tunnelLight);
                 if (grid.HasWater(x, y))
                     color = WaterOver(color, Darken(grid.HasWater(x, y + 1) ? _waterColor : _waterSurfaceColor, tunnelLight));
@@ -789,6 +928,13 @@ namespace Fabula.Incrementant.AntFarm
                 case StorageKind.Blocks: return _blockStoreColor;
                 case StorageKind.Sand: return _sandStoreColor;
                 case StorageKind.Mushroom: return _mushroomStoreColor;
+                case StorageKind.Litter: return _litterStoreColor;
+                case StorageKind.Nectar: return _nectarStoreColor;
+                case StorageKind.Ore: return _oreStoreColor;
+                case StorageKind.Smelter: return _smelterColor;
+                case StorageKind.Forge: return _forgeColor;
+                case StorageKind.Armory: return _armoryColor;
+                case StorageKind.Wardrobe: return _wardrobeColor;
                 default: return _waterStoreColor;
             }
         }
@@ -807,6 +953,25 @@ namespace Fabula.Incrementant.AntFarm
                 return Color32.Lerp(background, Darken(water, light), _storedStrength);
             }
             return Color32.Lerp(background, Darken(CellMaterials.ShadedColor(StoredItems.MaterialOf(item), shade), light), _storedStrength);
+        }
+
+        /// <summary>
+        /// O shader desenha o item com a arte do atlas (com tiles, fora do céu, menos a água, que segue na cor da CPU); senão a
+        /// CPU tinge a célula com a cor dele (<see cref="StoredAt"/>).
+        /// </summary>
+        bool DrawsItemInShader(byte item, byte tileId) =>
+            _cellTiles != null && item != StoredItems.Water && tileId != CellTileArt.SkyId;
+
+        /// <summary>Valor da célula em <see cref="_itemIds"/>: linha do atlas do item + 1, ou 0.</summary>
+        byte ShaderItem(PixelGrid grid, int x, int y, byte tileId)
+        {
+            if (grid.IsSolid(x, y))
+                return 0;
+            byte item = grid.GetStored(x, y);
+            if (item == StoredItems.None || !DrawsItemInShader(item, tileId))
+                return 0;
+            int sprite = ItemSpriteIndex((CellMaterial)item);
+            return sprite >= 0 && sprite < _itemSpriteCount ? (byte)(ItemSpriteBase + sprite) : (byte)(item + 1);
         }
 
         /// <summary>Nutriente pronto: a cor fixa com um leve granulado por posição, para vários juntos não virarem um bloco liso.</summary>
@@ -946,6 +1111,8 @@ namespace Fabula.Incrementant.AntFarm
 
         void OnDestroy()
         {
+            if (_itemSprites != null)
+                Destroy(_itemSprites);
             ReleaseTexture();
             if (_tileInstance != null)
                 Destroy(_tileInstance);
@@ -960,9 +1127,12 @@ namespace Fabula.Incrementant.AntFarm
                 Destroy(_texture);
             if (_materialTexture != null)
                 Destroy(_materialTexture);
+            if (_itemTexture != null)
+                Destroy(_itemTexture);
             _sprite = null;
             _texture = null;
             _materialTexture = null;
+            _itemTexture = null;
         }
     }
 }

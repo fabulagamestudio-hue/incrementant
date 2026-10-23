@@ -1,4 +1,5 @@
-// Terreno do formigário com cada célula da grade desenhada como um bloco de 16x16 texels.
+// Terreno do formigário com cada célula da grade desenhada como um bloco de 8x8 texels (experimento 8x8 de 2026-10-22,
+// branch experimento/arte-8x8; antes 16x16). Todos os valores em texels abaixo estão nessa escala: metade dos aprovados a 16.
 // _MainTex: cor de cada célula (1 texel por célula, montada na CPU pelo AntFarmView: tom, marcas, salas, água), sem a luz.
 // _CellMaterials: 1 texel por célula (RGBA32). R = material (255 = céu, sem textura); G = 128 + distância de xadrez com sinal
 // até a borda terra/vazio (1..4 na terra, -1..-4 no vazio, 4 = 4 ou mais; AntFarmView.SignedDistanceRange), + 64 na célula
@@ -10,7 +11,7 @@
 // vertical (linha = id do material; depois deles, _BackTileId é a parede de fundo; por último, de 2 em 2, bloco e fundo de
 // cada sala construída, CellTileArt.RoomBlockRow/RoomBackRow). O R da célula é a linha: o bloco é sólido e o fundo de sala é
 // vazio como o túnel (sombra de canto, luz mínima), só com outra arte. O texel é a cor do material. A textura é
-// lida em coordenadas de mundo (texel = célula * 16), então células vizinhas do mesmo material formam uma superfície
+// lida em coordenadas de mundo (texel = célula * _TexelsPerCell), então células vizinhas do mesmo material formam uma superfície
 // contínua; a borda só aparece onde o material muda.
 // _MaterialColors: 2 texels por linha do atlas: x = 0 a cor de referência (a que a CPU grava numa célula do material sem
 // tom nem marca), x = 1 a média do atlas. A cor desenhada é lerp(média, texel, força) × (cor da célula / referência), em
@@ -33,23 +34,35 @@
 // Junção (experimento de 2026-10-22): na fronteira entre terra, grama, terra despejada, areia e pedra, texels da beira
 // passam ao material vizinho (BoundaryOffset), com a cor da célula de origem; grama sobre terra usa línguas e montinhos
 // próprios (MergeProfile). Só nas células que a CPU marca no canal G (+64, AntFarmView.MergeFlag).
+// Contorno (experimento 8x8 de 2026-10-22, pedido do desenvolvedor: "linha preta ao redor dos elementos", preto da paleta):
+// o texel sólido que encosta, nas 4 direções, num texel vazio sai em _OutlineColor (por dentro do bloco, depois das lascas);
+// as folhas do transbordo contam como cheias, e o texel vazio que encosta numa folha sai em _OutlineColor (por fora dela).
+// Itens guardados (2026-10-23, pedido do desenvolvedor: "desenhe os itens guardados com a textura do atlas"): _CellItems tem
+// 1 texel por célula, R = linha do atlas do item + 1 (0 = sem item; a água guardada continua na cor da CPU). Na célula vazia
+// com item, o item é um objeto de _TexelsPerCell - 2 texels de lado, com 1 texel de folga da borda, a arte da linha dele e
+// contorno _OutlineColor, desenhado sobre o fundo (parede do túnel ou fundo de sala): fica "na parede de fundo".
+// Valores a partir de ItemSpriteBase (200) apontam para um sprite de _ItemSprites (8 x 8 cada, lado a lado), desenhado na
+// célula inteira com o alfa dele: o minério solto usa o mesmo sprite da boca da formiga (Art/Ants/Item_*Ore).
 Shader "Incrementant/TerrainTiles"
 {
     Properties
     {
         [PerRendererData] _MainTex ("Cores das células", 2D) = "white" {}
         _CellMaterials ("Material das células", 2D) = "black" {}
+        _CellItems ("Item guardado das células (o AntFarmView sobrescreve)", 2D) = "black" {}
+        _ItemSprites ("Sprites dos itens com arte própria, lado a lado (o AntFarmView sobrescreve)", 2D) = "clear" {}
+        _ItemSpriteCount ("Quantos sprites há em _ItemSprites", Float) = 0
         _TileAtlas ("Atlas RGB de materiais (o AntFarmView sobrescreve)", 2D) = "gray" {}
         _MaterialColors ("Referência e média de cada linha do atlas (o AntFarmView sobrescreve)", 2D) = "gray" {}
         _TileCount ("Linhas do atlas (o AntFarmView sobrescreve)", Float) = 33
-        _TileSize ("Lado da textura de cada linha, em texels", Float) = 128
-        _TexelsPerCell ("Texels por célula", Float) = 16
+        _TileSize ("Lado da textura de cada linha, em texels", Float) = 64
+        _TexelsPerCell ("Texels por célula", Float) = 8
         _WindowOrigin ("Janela: xy = célula (0,0) no mundo, zw = largura e altura em células", Vector) = (0, 0, 0, 0)
         _DetailStrength ("Força da textura", Range(0, 2)) = 1
         _BackTileId ("Linha do atlas usada como parede de fundo do túnel (o AntFarmView sobrescreve)", Float) = 18
         _BackDetail ("Força da textura da parede de fundo", Range(0, 2)) = 0.6
         _WallShadowStrength ("Sombra de canto: escurecimento junto da terra", Range(0, 1)) = 0.45
-        _WallShadowWidth ("Sombra de canto: alcance, em texels", Range(1, 16)) = 6
+        _WallShadowWidth ("Sombra de canto: alcance, em texels", Range(1, 8)) = 3
         _WallShadowSteps ("Sombra de canto: degraus", Range(1, 6)) = 3
         _InteriorAmbient ("Brilho mínimo do túnel longe da luz (o AntFarmView sobrescreve)", Range(0, 1)) = 0.22
         _LightTint ("Cor da luz cheia", Color) = (1.06, 1, 0.9, 1)
@@ -59,25 +72,27 @@ Shader "Incrementant/TerrainTiles"
         _GlowEmission ("Emissão do material emissivo (o AntFarmView sobrescreve)", Range(1, 8)) = 2.5
         _ShadowTint ("Cor da penumbra", Color) = (0.8, 0.85, 1, 1)
         _OverhangTex ("Transbordo da grama (o AntFarmView sobrescreve)", 2D) = "black" {}
-        _OverhangSize ("Transbordo: largura da textura, em texels", Float) = 128
+        _OverhangSize ("Transbordo: largura da textura, em texels", Float) = 64
         _OverhangMaterialId ("Transbordo: material de baixo que o desenha (o AntFarmView sobrescreve; -1 = desligado)", Float) = -1
         [Toggle] _ChipEnabled ("Borda lascada: ligada", Float) = 1
-        _ChipDirt ("Borda lascada, terra e terra mole: profundidade, topo, quina, trecho (texels)", Vector) = (8, 2, 12, 9)
-        _ChipSpoil ("Borda lascada, terra despejada (solta e compactada): profundidade, topo, quina, trecho", Vector) = (6, 2, 6, 6)
-        _ChipSand ("Borda lascada, areia (solta e compactada): profundidade, topo, quina, trecho", Vector) = (4, 1, 6, 3)
-        _ChipRock ("Borda lascada, pedra: profundidade, topo, quina, trecho", Vector) = (6, 1, 10, 12)
-        _ChipGrass ("Borda lascada, grama: profundidade, topo, quina, trecho (topo 0: as folhas do transbordo já quebram a linha)", Vector) = (6, 0, 8, 7)
+        _ChipDirt ("Borda lascada, terra e terra mole: profundidade, topo, quina, trecho (texels)", Vector) = (4, 1, 6, 5)
+        _ChipSpoil ("Borda lascada, terra despejada (solta e compactada): profundidade, topo, quina, trecho", Vector) = (3, 1, 3, 3)
+        _ChipSand ("Borda lascada, areia (solta e compactada): profundidade, topo, quina, trecho", Vector) = (2, 1, 3, 2)
+        _ChipRock ("Borda lascada, pedra: profundidade, topo, quina, trecho", Vector) = (3, 1, 5, 6)
+        _ChipGrass ("Borda lascada, grama: profundidade, topo, quina, trecho (topo 0: as folhas do transbordo já quebram a linha)", Vector) = (3, 0, 4, 4)
         _ChipGrassStyle ("Borda lascada, grama: chance de mordida, inclinação", Vector) = (0.75, 1, 0, 0)
         _ChipChance ("Borda lascada: chance de mordida por trecho (terra, despejada, areia, pedra)", Vector) = (0.75, 0.8, 0.9, 0.5)
         _ChipSlope ("Borda lascada: inclinação da mordida, 1 = degraus de 1 texel, menor = arredondada, maior = reta (terra, despejada, areia, pedra)", Vector) = (1, 0.8, 1, 3)
         [Toggle] _MergeEnabled ("Junção: grama escorre na terra de baixo", Float) = 1
-        _Drip ("Junção grama/terra: comprimento máximo da língua, trecho, chance de língua, linha base máxima (texels)", Vector) = (9, 7, 0.7, 2)
-        _Rise ("Junção grama/terra: montinho de terra subindo na grama: altura máxima, trecho, chance (texels)", Vector) = (5, 10, 0.6, 0)
-        _MergeDirt ("Junção, terra avançando na vizinha: altura máxima, trecho, chance, 1 = lasca reta", Vector) = (8, 11, 0.8, 0)
-        _MergeGrass ("Junção, grama avançando de lado ou para cima: altura máxima, trecho, chance, 1 = lasca reta", Vector) = (5, 10, 0.7, 0)
-        _MergeSpoil ("Junção, terra despejada: altura máxima, trecho, chance, 1 = lasca reta", Vector) = (8, 10, 0.85, 0)
-        _MergeSand ("Junção, areia: altura máxima, trecho, chance, 1 = lasca reta", Vector) = (6, 9, 0.9, 0)
-        _MergeRock ("Junção, pedra (ninguém avança nela): altura máxima, trecho, chance, 1 = lasca reta", Vector) = (5, 12, 0.6, 1)
+        _Drip ("Junção grama/terra: comprimento máximo da língua, trecho, chance de língua, linha base máxima (texels)", Vector) = (5, 4, 0.7, 1)
+        _Rise ("Junção grama/terra: montinho de terra subindo na grama: altura máxima, trecho, chance (texels)", Vector) = (3, 5, 0.6, 0)
+        _MergeDirt ("Junção, terra avançando na vizinha: altura máxima, trecho, chance, 1 = lasca reta", Vector) = (4, 6, 0.8, 0)
+        _MergeGrass ("Junção, grama avançando de lado ou para cima: altura máxima, trecho, chance, 1 = lasca reta", Vector) = (3, 5, 0.7, 0)
+        _MergeSpoil ("Junção, terra despejada: altura máxima, trecho, chance, 1 = lasca reta", Vector) = (4, 5, 0.85, 0)
+        _MergeSand ("Junção, areia: altura máxima, trecho, chance, 1 = lasca reta", Vector) = (3, 5, 0.9, 0)
+        _MergeRock ("Junção, pedra (ninguém avança nela): altura máxima, trecho, chance, 1 = lasca reta", Vector) = (3, 6, 0.6, 1)
+        [Toggle] _OutlineEnabled ("Contorno: ligado", Float) = 1
+        _OutlineColor ("Contorno: cor (preto da paleta mestra, índice 0)", Color) = (0.106, 0.094, 0.082, 1)
         [Toggle] _DebugSignedDistance ("Depuração: distância com sinal", Float) = 0
     }
 
@@ -111,6 +126,8 @@ Shader "Incrementant/TerrainTiles"
 
             TEXTURE2D(_MainTex); SAMPLER(sampler_MainTex);
             TEXTURE2D(_CellMaterials); SAMPLER(sampler_CellMaterials);
+            TEXTURE2D(_CellItems); SAMPLER(sampler_CellItems);
+            TEXTURE2D(_ItemSprites); SAMPLER(sampler_ItemSprites);
             TEXTURE2D(_TileAtlas); SAMPLER(sampler_TileAtlas);
             TEXTURE2D(_MaterialColors); SAMPLER(sampler_MaterialColors);
             TEXTURE2D(_OverhangTex); SAMPLER(sampler_OverhangTex);
@@ -119,6 +136,7 @@ Shader "Incrementant/TerrainTiles"
                 float _TileCount;
                 float _TileSize;
                 float _TexelsPerCell;
+                float _ItemSpriteCount;
                 float4 _WindowOrigin;
                 float _DetailStrength;
                 float _BackTileId;
@@ -137,6 +155,8 @@ Shader "Incrementant/TerrainTiles"
                 float _OverhangSize;
                 float _OverhangMaterialId;
                 float _ChipEnabled;
+                float _OutlineEnabled;
+                half4 _OutlineColor;
                 float4 _ChipDirt;
                 float4 _ChipSpoil;
                 float4 _ChipSand;
@@ -167,6 +187,16 @@ Shader "Incrementant/TerrainTiles"
                 output.uv = input.uv;
                 output.color = input.color;
                 return output;
+            }
+
+            // Valor de _CellItems a partir do qual o item é o sprite (valor - ItemSpriteBase) de _ItemSprites (AntFarmView.ItemSpriteBase).
+            #define ItemSpriteBase 200
+
+            // Linha do atlas do item guardado na célula, ou -1 sem item.
+            float ItemAt(float2 cell)
+            {
+                float2 uv = (cell + 0.5) / _WindowOrigin.zw;
+                return round(SAMPLE_TEXTURE2D_LOD(_CellItems, sampler_CellItems, uv, 0).r * 255.0) - 1.0;
             }
 
             float MaterialAt(float2 cell)
@@ -366,12 +396,12 @@ Shader "Incrementant/TerrainTiles"
                     style = MakeChipStyle(_ChipSand, _ChipChance.z, _ChipSlope.z);
                     return true;
                 }
-                if (id == 2)                     // Grass
+                if (id == 2 || id == 18 || id == 19) // Grass, Litter, Compost
                 {
                     style = MakeChipStyle(_ChipGrass, _ChipGrassStyle.x, _ChipGrassStyle.y);
                     return true;
                 }
-                if (id == 4)                     // Rock
+                if (id == 4 || (id >= 21 && id <= 23)) // Rock, minérios
                 {
                     style = MakeChipStyle(_ChipRock, _ChipChance.w, _ChipSlope.w);
                     return true;
@@ -418,7 +448,7 @@ Shader "Incrementant/TerrainTiles"
                 bool down = IsVoid(cell - float2(0, 1));
                 bool left = IsVoid(cell - float2(1, 0));
                 bool right = IsVoid(cell + float2(1, 0));
-                // Quina convexa: as duas faces expostas. O desbaste cresce em degraus rumo ao canto (de 2 texels; de 4 nos
+                // Quina convexa: as duas faces expostas. O desbaste cresce em degraus rumo ao canto (de 1 texel; de 2 nos
                 // materiais de mordida reta, para a quina sair em lasca angulosa), com tamanho sorteado por quina (de metade
                 // a todo style.corner).
                 float fromTop = last - inner.y;
@@ -434,7 +464,7 @@ Shader "Incrementant/TerrainTiles"
                     cornerX = max(cornerX, corner * (0.5 + 0.5 * Hash(cell + _WindowOrigin.xy + float2(side, 1))) - fromTop);
                 if ((left || right) && down)
                     cornerX = max(cornerX, corner * (0.5 + 0.5 * Hash(cell + _WindowOrigin.xy + float2(side, -1))) + 1 - fromBottom);
-                float step = style.slope >= 2 ? 4 : 2;
+                float step = style.slope >= 2 ? 2 : 1;
                 cornerX = floor(max(cornerX, 0) / step) * step;
                 if (left && inner.x < ChipDepth(world.y, 3, depth, style) + (up || down ? cornerX : 0))
                     return float2(-1, 0);
@@ -447,26 +477,26 @@ Shader "Incrementant/TerrainTiles"
                 return float2(0, 0);
             }
 
-            // Uma língua num trecho de 'len' texels: com chance 'chance' (sorteio pelo 'salt'), de 1 a 3 texels de largura em
-            // posição sorteada no trecho, com comprimento de 3 a 'maxLength'; nas línguas largas as colunas de fora são 2 mais
-            // curtas, para a ponta afinar. 0 fora da língua.
+            // Uma língua num trecho de 'len' texels: com chance 'chance' (sorteio pelo 'salt'), de 1 a 2 texels de largura em
+            // posição sorteada no trecho, com comprimento de 2 a 'maxLength'; nas línguas largas as colunas de fora são 1 mais
+            // curtas, para a ponta afinar (escala 8x8: metade dos 1 a 3 e 3 de antes). 0 fora da língua.
             float Tongue(float x, float len, float chance, float maxLength, float salt)
             {
                 float seg = floor(x / len);
                 if (Hash(float2(seg, salt)) >= chance)
                     return 0;
-                float width = 1 + floor(Hash(float2(seg, salt + 4.0)) * 3);
+                float width = 1 + floor(Hash(float2(seg, salt + 4.0)) * 2);
                 float start = floor(Hash(float2(seg, salt + 10.0)) * (len - width + 1));
                 float t = x - seg * len - start;
                 if (t < 0 || t >= width)
                     return 0;
-                float tongue = 3 + floor(Hash(float2(seg, salt + 16.0)) * max(maxLength - 2, 1));
+                float tongue = 2 + floor(Hash(float2(seg, salt + 16.0)) * max(maxLength - 1, 1));
                 float edge = min(t, width - 1 - t);
-                return tongue - (width >= 3 && edge == 0 ? 2 : 0);
+                return tongue - (width >= 2 && edge == 0 ? 1 : 0);
             }
 
             // Um montinho num trecho de 'len' texels: com chance 'chance', de 'minWidth' a minWidth + widthRange - 1 texels de
-            // largura, com altura de 2 a 'maxHeight' no meio, caindo em degraus inteiros para as pontas (perfil de cúpula). 0 fora.
+            // largura, com altura de 1 a 'maxHeight' no meio, caindo em degraus inteiros para as pontas (perfil de cúpula). 0 fora.
             float Mound(float x, float len, float chance, float maxHeight, float salt, float minWidth, float widthRange)
             {
                 float seg = floor(x / len);
@@ -477,7 +507,7 @@ Shader "Incrementant/TerrainTiles"
                 float t = x - seg * len - start;
                 if (t < 0 || t >= width)
                     return 0;
-                float height = 2 + floor(Hash(float2(seg, salt + 16.0)) * max(maxHeight - 1, 1));
+                float height = 1 + floor(Hash(float2(seg, salt + 16.0)) * maxHeight);
                 float d = (t + 0.5) / width * 2 - 1;   // -1..1 do começo ao fim do montinho
                 return max(floor(height * sqrt(saturate(1 - d * d)) + 0.5), 1);
             }
@@ -488,35 +518,35 @@ Shader "Incrementant/TerrainTiles"
             // tem preferência); fora delas, uma linha base irregular de 0 a _Drip.w texels de grama na terra.
             float2 MergeProfile(float x)
             {
-                float down = Tongue(x, max(_Drip.y, 3), _Drip.z, _Drip.x, 43.0);
+                float down = Tongue(x, max(_Drip.y, 2), _Drip.z, _Drip.x, 43.0);
                 if (down > 0)
                     return float2(down, 0);
-                float up = Mound(x + 5, max(_Rise.y, 6), _Rise.z, _Rise.x, 71.0, 3, 4);
+                float up = Mound(x + 3, max(_Rise.y, 3), _Rise.z, _Rise.x, 71.0, 2, 2);
                 if (up > 0)
                     return float2(0, up);
-                return float2(floor(Hash(float2(floor(x / 2), 41.0)) * (_Drip.w + 1)), 0);
+                return float2(floor(Hash(float2(x, 41.0)) * (_Drip.w + 1)), 0);
             }
 
-            // Família de junção do material (a mesma de AntFarmView.MergeFamily): 0 terra e terra mole, 1 grama, 2 terra
-            // despejada, 3 areia (soltas e compactadas), 4 pedra; -1 não mistura.
+            // Família de junção do material (a mesma de AntFarmView.MergeFamily): 0 terra e terra mole, 1 grama, serapilheira e terra adubada, 2 terra
+            // despejada, 3 areia (soltas e compactadas), 4 pedra e minérios; -1 não mistura.
             float MergeFamily(float id)
             {
                 if (id == 1 || id == 9) return 0;
-                if (id == 2) return 1;
+                if (id == 2 || id == 18 || id == 19) return 1;
                 if (id == 5 || id == 7) return 2;
                 if (id == 3 || id == 8) return 3;
-                if (id == 4) return 4;
+                if (id == 4 || (id >= 21 && id <= 23)) return 4;
                 return -1;
             }
 
-            // Uma lasca reta num trecho de 'len' texels: com chance 'chance', de 4 a 8 texels de largura e altura constante de 1
+            // Uma lasca reta num trecho de 'len' texels: com chance 'chance', de 2 a 4 texels de largura e altura constante de 1
             // a 'maxHeight' (bloco anguloso, como a pedra). 0 fora dela.
             float Slab(float x, float len, float chance, float maxHeight, float salt)
             {
                 float seg = floor(x / len);
                 if (Hash(float2(seg, salt)) >= chance)
                     return 0;
-                float width = 4 + floor(Hash(float2(seg, salt + 4.0)) * 5);
+                float width = 2 + floor(Hash(float2(seg, salt + 4.0)) * 3);
                 float start = floor(Hash(float2(seg, salt + 10.0)) * (len - width + 1));
                 float t = x - seg * len - start;
                 if (t < 0 || t >= width)
@@ -528,7 +558,7 @@ Shader "Incrementant/TerrainTiles"
             float Reach(float f, float a, float salt)
             {
                 float4 m = f == 0 ? _MergeDirt : (f == 1 ? _MergeGrass : (f == 2 ? _MergeSpoil : (f == 3 ? _MergeSand : _MergeRock)));
-                return m.w > 0.5 ? Slab(a, max(m.y, 9), m.z, m.x, salt) : Mound(a, max(m.y, 9), m.z, m.x, salt, 4, 5);
+                return m.w > 0.5 ? Slab(a, max(m.y, 5), m.z, m.x, salt) : Mound(a, max(m.y, 5), m.z, m.x, salt, 2, 3);
             }
 
             // Fronteira entre P (em cima ou à esquerda) e Q (embaixo ou à direita), no texel 'a' ao longo dela: > 0 = P avança
@@ -548,15 +578,81 @@ Shader "Incrementant/TerrainTiles"
                     float salt = 101.0 + frac(boundary * 0.1373) * 977.0 + (vertical ? 0 : 53.0);
                     float p = fq == 4 ? 0 : Reach(fp, a, salt);
                     float q = fp == 4 ? 0 : Reach(fq, a + 3, salt + 29.0);
-                    bool pFirst = Hash(float2(floor(a / 16), salt + 7.0)) < 0.5;
-                    // Fora dos avanços, a linha ainda oscila ±1 texel em trechos de 2, para nenhuma emenda ficar reta (pedra
+                    bool pFirst = Hash(float2(floor(a / 8), salt + 7.0)) < 0.5;
+                    // Fora dos avanços, a linha ainda oscila ±1 texel por texel (trechos de 2 a 16x16), para nenhuma emenda ficar reta (pedra
                     // não é invadida nem na oscilação).
-                    float wobble = floor(Hash(float2(floor(a / 2), salt + 13.0)) * 3) - 1;
+                    float wobble = floor(Hash(float2(a, salt + 13.0)) * 3) - 1;
                     if (fq == 4) wobble = min(wobble, 0);
                     if (fp == 4) wobble = max(wobble, 0);
                     offset = p > 0 && (pFirst || q == 0) ? p : (q > 0 ? -q : wobble);
                 }
                 return offset;
+            }
+
+            // Texel vizinho: anda 'step' texels a partir de (cell, inner) e passa para a célula ao lado quando sai da célula.
+            void StepTexel(inout float2 cell, inout float2 inner, float2 step)
+            {
+                inner += step;
+                float2 carry = floor(inner / _TexelsPerCell);
+                cell += carry;
+                inner -= carry * _TexelsPerCell;
+            }
+
+            // O texel é terra no desenho: célula sólida (distância com sinal positiva) e não entalhado pela borda lascada.
+            bool SolidTexel(float2 cell, float2 inner)
+            {
+                if (IsVoid(cell))
+                    return false;
+                ChipStyle style;
+                if (_ChipEnabled > 0.5 && SignedDistanceAt(cell) == 1.0 && ChipStyleOf(MaterialAt(cell), style))
+                    return all(ChipFrom(cell, inner, style) == 0);
+                return true;
+            }
+
+            // O texel é folha do transbordo da grama (mesmo teste e mesmo corte da quina roída do desenho).
+            bool LeafTexel(float2 cell, float2 inner)
+            {
+                if (_OverhangMaterialId < 0)
+                    return false;
+                float id = MaterialAt(cell);
+                float2 below = cell - float2(0, 1);
+                if ((id != SkyId && id != EmptyId) || MaterialAt(below) != _OverhangMaterialId)
+                    return false;
+                float worldX = (_WindowOrigin.x + cell.x) * _TexelsPerCell + inner.x;
+                float2 uv = float2((fmod(worldX, _OverhangSize) + 0.5) / _OverhangSize, (inner.y + 0.5) / _TexelsPerCell);
+                if (SAMPLE_TEXTURE2D_LOD(_OverhangTex, sampler_OverhangTex, uv, 0).a < 0.5)
+                    return false;
+                ChipStyle style;
+                return !(_ChipEnabled > 0.5 && SignedDistanceAt(below) == 1.0 && ChipStyleOf(MaterialAt(below), style)
+                         && any(ChipFrom(below, float2(inner.x, _TexelsPerCell - 1), style) != 0));
+            }
+
+            // Contorno da terra: algum dos 4 texels vizinhos não é terra nem folha.
+            bool SolidOutline(float2 cell, float2 inner)
+            {
+                const float2 steps[4] = { float2(1, 0), float2(-1, 0), float2(0, 1), float2(0, -1) };
+                [unroll] for (int i = 0; i < 4; i++)
+                {
+                    float2 c = cell, t = inner;
+                    StepTexel(c, t, steps[i]);
+                    if (!SolidTexel(c, t) && !LeafTexel(c, t))
+                        return true;
+                }
+                return false;
+            }
+
+            // Contorno das folhas, por fora: o texel vazio encosta numa folha.
+            bool LeafOutline(float2 cell, float2 inner)
+            {
+                const float2 steps[4] = { float2(1, 0), float2(-1, 0), float2(0, 1), float2(0, -1) };
+                [unroll] for (int i = 0; i < 4; i++)
+                {
+                    float2 c = cell, t = inner;
+                    StepTexel(c, t, steps[i]);
+                    if (LeafTexel(c, t))
+                        return true;
+                }
+                return false;
             }
 
             // over por cima de base (alpha comum, sem pré-multiplicar).
@@ -593,6 +689,11 @@ Shader "Incrementant/TerrainTiles"
                         && any(ChipFrom(below, float2(inner.x, _TexelsPerCell - 1), belowStyle) != 0))
                         over = half4(0, 0, 0, 0);
                 }
+                // Contorno das folhas, por fora: só nas células vazias com grama embaixo ou ao lado de uma (a folha vizinha
+                // pode estar na célula da esquerda, da direita ou de cima, que também é vazia).
+                bool outline = _OutlineEnabled > 0.5 && fade > 0.5;
+                if (outline && over.a <= 0 && (id == SkyId || id == EmptyId) && SignedDistanceAt(cell) >= -2.0 && LeafOutline(cell, inner))
+                    return half4(_OutlineColor.rgb, 1);
                 if (id == SkyId)
                     return over.a > 0 ? OverlayOn(over, cellColor) : cellColor;
                 // Borda lascada: o texel entalhado é desenhado como a vizinha vazia (céu, túnel ou fundo de sala), com a cor
@@ -674,6 +775,41 @@ Shader "Incrementant/TerrainTiles"
                 float3 surface = lerp(RowColor(row, 1), texel, detailStrength * fade) * tone;
                 half emission = id == _GlowMaterialId ? _GlowEmission : 1.0;
                 half4 result = half4(surface * light * emission, cellColor.a);
+                // Contorno da terra: só as células a até 2 da borda podem encostar num texel vazio (as lascas ficam na de
+                // distância 1 e podem chegar perto da de distância 2 nas quinas).
+                float sd = SignedDistanceAt(cell);
+                if (outline && solid && sd > 0 && sd <= 2.0 && SolidOutline(cell, inner))
+                    result.rgb = _OutlineColor.rgb;
+                // Item guardado: objeto com a arte da linha dele sobre o fundo, 1 texel de folga e contorno por dentro. Com o
+                // zoom aberto, a média da linha no lugar da arte, como a terra.
+                if (!solid && !chipped)
+                {
+                    float item = ItemAt(cell);
+                    float last = _TexelsPerCell - 1;
+                    // Item com sprite próprio (minério solto, 2026-10-23): o mesmo sprite da boca da formiga, célula inteira,
+                    // recortado pelo alfa, sobre o fundo e com a luz do vão.
+                    float sprite = item - (ItemSpriteBase - 1);
+                    if (sprite >= 0 && sprite < _ItemSpriteCount)
+                    {
+                        float2 spriteUv = (float2(sprite * _TexelsPerCell + inner.x, inner.y) + 0.5)
+                                          / float2(_ItemSpriteCount * _TexelsPerCell, _TexelsPerCell);
+                        half4 spriteTexel = SAMPLE_TEXTURE2D_LOD(_ItemSprites, sampler_ItemSprites, spriteUv, 0);
+                        if (spriteTexel.a > 0.5)
+                            result.rgb = spriteTexel.rgb * (data.a < 0.75 ? MapLight(cell, inner, false) : half3(1, 1, 1));
+                    }
+                    else if (item >= 0 && all(inner >= 1) && all(inner <= last - 1))
+                    {
+                        if (outline && (inner.x == 1 || inner.y == 1 || inner.x == last - 1 || inner.y == last - 1))
+                            result.rgb = _OutlineColor.rgb;
+                        else
+                        {
+                            float3 itemTexel = SAMPLE_TEXTURE2D_LOD(_TileAtlas, sampler_TileAtlas, AtlasUv(item, inner, cell), 0).rgb;
+                            float3 itemSurface = lerp(RowColor(item, 1), itemTexel, _DetailStrength * fade);
+                            // A luz é a do vão (com a penumbra do formigueiro), não a da terra: o item está na frente da parede de fundo.
+                            result.rgb = itemSurface * (data.a < 0.75 ? MapLight(cell, inner, false) : half3(1, 1, 1));
+                        }
+                    }
+                }
                 return over.a > 0 ? OverlayOn(over, result) : result;
             }
             ENDHLSL

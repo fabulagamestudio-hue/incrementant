@@ -3428,6 +3428,107 @@ MonoBehaviour:
       quando o mouse chega perto. O ESC abre o menu do jogo e fecha janelas."
     m_Metadata:
       m_Items: []
+  - m_Id: 1658939372597248
+    m_Localized: "Dep\xF3sito de serapilheira"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1658939401957376
+    m_Localized: "Dep\xF3sito de serapilheira: guarda as folhas secas e os gravetos
+      mi\xFAdos cavados no bioma Serapilheira, \xE0 direita do formigueiro."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1658939406151680
+    m_Localized: "Dep\xF3sito de serapilheira"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1658939406151681
+    m_Localized: "Libera o pincel do dep\xF3sito de serapilheira, o insumo do bioma
+      Serapilheira"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1658949350846464
+    m_Localized: "DEP\xD3SITO DE SERAPILHEIRA"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1665864411770880
+    m_Localized: "Dep\xF3sito de n\xE9ctar"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1665864415965184
+    m_Localized: "Dep\xF3sito de n\xE9ctar: guarda as gotas que as flores do Canteiro
+      de flores, \xE0 esquerda do formigueiro, soltam no ch\xE3o. Sem ele, as gotas
+      ficam onde ca\xEDram."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1665873270140928
+    m_Localized: "DEP\xD3SITO DE N\xC9CTAR"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1672398994796544
+    m_Localized: "Dep\xF3sito de min\xE9rio"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1672398998990848
+    m_Localized: "Dep\xF3sito de min\xE9rio: guarda o cobre, o ferro e o ouro cavados
+      dos veios. Sem ele, o min\xE9rio fica onde foi cavado."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1672407807029248
+    m_Localized: "DEP\xD3SITO DE MIN\xC9RIO"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1675230900776960
+    m_Localized: "Fundi\xE7\xE3o"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1675230904971264
+    m_Localized: Forja
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1675230904971265
+    m_Localized: "Armaz\xE9m de ferramentas e armas"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1675230904971266
+    m_Localized: "Armaz\xE9m de roupas e armaduras"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1675230904971267
+    m_Localized: "Fundi\xE7\xE3o: as formigas trazem min\xE9rio e serapilheira; cada
+      min\xE9rio com uma serapilheira vira uma barra do mesmo metal em 20 s."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1675230904971268
+    m_Localized: 'Forja: as formigas trazem as barras; duas barras do mesmo metal
+      viram, em 30 s, a ferramenta, a arma ou a armadura que mais falta.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1675230904971269
+    m_Localized: "Armaz\xE9m de ferramentas e armas: a escavadora e a oper\xE1ria
+      buscam aqui a ferramenta; soldado e cuspideira, a arma."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1675230904971270
+    m_Localized: "Armaz\xE9m de roupas e armaduras: soldado e cuspideira buscam aqui
+      a armadura."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1675236919603200
+    m_Localized: "FUNDI\xC7\xC3O"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1675237443891200
+    m_Localized: FORJA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1675240950329344
+    m_Localized: "ARMAZ\xC9M DE FERRAMENTAS E ARMAS"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1675241487200256
+    m_Localized: "ARMAZ\xC9M DE ROUPAS E ARMADURAS"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

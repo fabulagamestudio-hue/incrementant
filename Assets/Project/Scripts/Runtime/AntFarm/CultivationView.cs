@@ -30,6 +30,7 @@ namespace Fabula.Incrementant.AntFarm
         [Tooltip("Cor do nutriente brotando (a mesma do nutriente pronto no AntFarmView).")]
         [SerializeField] Color32 _nutrientColor = new Color32(232, 214, 92, 255);
 
+        /// <summary>Lado da pintura dos sprites; o sprite sai com a metade (8 texels por célula, experimento 8x8).</summary>
         const int Texels = 16;
 
         readonly List<SpriteRenderer> _renderers = new List<SpriteRenderer>();
@@ -135,9 +136,13 @@ namespace Fabula.Incrementant.AntFarm
 
         static Sprite MakeSprite(string spriteName, Vector2 pivot, System.Action<Color32[]> paint)
         {
-            var pixels = new Color32[Texels * Texels];
-            paint(pixels);
-            var texture = new Texture2D(Texels, Texels, TextureFormat.RGBA32, false)
+            var painted = new Color32[Texels * Texels];
+            paint(painted);
+            // Experimento 8x8: pinta a 16, reduz para a densidade do mundo e põe o contorno preto, como os PNGs.
+            const int size = Texels / 2;
+            Color32[] pixels = PixelArtFilters.Halve(painted, Texels, Texels);
+            PixelArtFilters.Outline(pixels, size, size);
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false)
             {
                 name = spriteName,
                 filterMode = FilterMode.Point,
@@ -145,7 +150,7 @@ namespace Fabula.Incrementant.AntFarm
             };
             texture.SetPixels32(pixels);
             texture.Apply(false, true);
-            Sprite sprite = Sprite.Create(texture, new Rect(0, 0, Texels, Texels), pivot, Texels);
+            Sprite sprite = Sprite.Create(texture, new Rect(0, 0, size, size), pivot, size);
             sprite.name = spriteName;
             return sprite;
         }

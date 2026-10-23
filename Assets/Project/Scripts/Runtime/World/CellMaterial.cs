@@ -44,6 +44,46 @@ namespace Fabula.Incrementant.World
         /// Arte provisória: um cubo da cor de <see cref="CellMaterials.BaseColor"/>.
         /// </summary>
         GlowMushroom = 17,
+        /// <summary>
+        /// Serapilheira: folhas secas e gravetos miúdos que cobrem o chão do bioma Serapilheira (REQ-070), no lugar da grama.
+        /// Fixa e escavável; é o insumo único do bioma, levado ao depósito de serapilheira (sem ele, vai ao despejo como terra).
+        /// Volta a cobrir o chão com o tempo (<see cref="LitterFall"/>).
+        /// </summary>
+        Litter = 18,
+        /// <summary>
+        /// Terra adubada: a cobertura do chão do Canteiro de flores (documento 44), no lugar da grama. Fixa e escavável;
+        /// cavada, vai como terra.
+        /// </summary>
+        Compost = 19,
+        /// <summary>
+        /// Néctar, o insumo do Canteiro de flores: nunca fica na grade, só como item no chão (as flores o soltam), na mão
+        /// da formiga e no depósito de néctar. Sem depósito com vaga, a gota fica onde caiu.
+        /// </summary>
+        Nectar = 20,
+        /// <summary>Minério de cobre (documento 45): veios rasos. Fixo e escavável; cavado, vai ao depósito de minério (ou à fundição).</summary>
+        CopperOre = 21,
+        /// <summary>Minério de ferro: veios na profundidade média.</summary>
+        IronOre = 22,
+        /// <summary>Minério de ouro: veios fundos e finos.</summary>
+        GoldOre = 23,
+        // Itens da fundição e da forja (documento 45): nunca ficam na grade, só como item guardado e na mão da formiga.
+        // Ordem fixa por metal (cobre, ferro, ouro): Equipment calcula o metal e o tipo pelo valor.
+        /// <summary>Barra de cobre, saída da fundição.</summary>
+        CopperBar = 24,
+        IronBar = 25,
+        GoldBar = 26,
+        /// <summary>Ferramenta de cobre, da forja: a escavadora e a operária comum cavam mais rápido.</summary>
+        CopperTool = 27,
+        IronTool = 28,
+        GoldTool = 29,
+        /// <summary>Arma de cobre, da forja: soldado e cuspideira dão mais dano.</summary>
+        CopperWeapon = 30,
+        IronWeapon = 31,
+        GoldWeapon = 32,
+        /// <summary>Armadura de cobre, da forja: soldado e cuspideira recebem menos dano.</summary>
+        CopperArmor = 33,
+        IronArmor = 34,
+        GoldArmor = 35,
     }
 
     /// <summary>Regras e cores por material. Tabela fixa enquanto o protótipo não pede dados configuráveis.</summary>
@@ -58,7 +98,7 @@ namespace Fabula.Incrementant.World
 
         /// <summary>Terra fixa que a água amolece (vira <see cref="CellMaterial.Mud"/>) dentro do formigueiro.</summary>
         public static bool IsErodible(CellMaterial material) =>
-            material == CellMaterial.Dirt || material == CellMaterial.Grass ||
+            material == CellMaterial.Dirt || material == CellMaterial.Grass || material == CellMaterial.Compost ||
             material == CellMaterial.PackedSpoil || material == CellMaterial.PackedSand;
 
         /// <summary>No que um material granular vira quando a chuva forte o compacta (os demais não mudam).</summary>
@@ -88,6 +128,10 @@ namespace Fabula.Incrementant.World
         public static bool IsPlantDebris(CellMaterial material) =>
             material == CellMaterial.FallenGrass || material == CellMaterial.FallenLeaf;
 
+        /// <summary>Minério dos veios (documento 45): nunca vai ao despejo nem vira terra.</summary>
+        public static bool IsOre(CellMaterial material) =>
+            material == CellMaterial.CopperOre || material == CellMaterial.IronOre || material == CellMaterial.GoldOre;
+
         /// <summary>Planta em pé ou já solta: o que o pincel Colher marca.</summary>
         public static bool IsAnyPlant(CellMaterial material) => IsPlant(material) || IsPlantDebris(material);
 
@@ -108,7 +152,8 @@ namespace Fabula.Incrementant.World
             material == CellMaterial.Dirt || material == CellMaterial.Grass ||
             material == CellMaterial.Sand || material == CellMaterial.Spoil ||
             material == CellMaterial.PackedSpoil || material == CellMaterial.PackedSand ||
-            material == CellMaterial.Mud || material == CellMaterial.Rubble || material == CellMaterial.GlowMushroom;
+            material == CellMaterial.Mud || material == CellMaterial.Rubble || material == CellMaterial.GlowMushroom ||
+            material == CellMaterial.Litter || material == CellMaterial.Compost || IsOre(material);
 
         /// <summary>O que a formiga leva na mão ao cavar a célula: o cogumelo luminoso volta a ser o substrato (terra solta).</summary>
         public static CellMaterial ToCarried(CellMaterial dug) =>
@@ -132,6 +177,11 @@ namespace Fabula.Incrementant.World
                 case CellMaterial.FallenGrass: return 0.15f;
                 case CellMaterial.FallenLeaf: return 0.2f;
                 case CellMaterial.GlowMushroom: return 0.3f;
+                case CellMaterial.Litter: return 0.15f;
+                case CellMaterial.Compost: return 0.25f;
+                case CellMaterial.CopperOre: return 0.5f;
+                case CellMaterial.IronOre: return 0.8f;
+                case CellMaterial.GoldOre: return 1.1f;
                 default: return float.PositiveInfinity;
             }
         }
@@ -172,6 +222,24 @@ namespace Fabula.Incrementant.World
                 case CellMaterial.Refuse: return new Color32(92, 80, 70, 255);
                 case CellMaterial.TermiteRemains: return new Color32(112, 66, 58, 255);
                 case CellMaterial.GlowMushroom: return new Color32(240, 214, 130, 255);
+                case CellMaterial.Litter: return new Color32(158, 101, 52, 255);
+                case CellMaterial.Compost: return new Color32(84, 58, 38, 255);
+                case CellMaterial.Nectar: return new Color32(244, 184, 21, 255);
+                case CellMaterial.CopperOre: return new Color32(176, 104, 66, 255);
+                case CellMaterial.IronOre: return new Color32(132, 100, 92, 255);
+                case CellMaterial.GoldOre: return new Color32(196, 160, 70, 255);
+                case CellMaterial.CopperBar:
+                case CellMaterial.CopperTool:
+                case CellMaterial.CopperWeapon:
+                case CellMaterial.CopperArmor: return new Color32(211, 89, 42, 255);
+                case CellMaterial.IronBar:
+                case CellMaterial.IronTool:
+                case CellMaterial.IronWeapon:
+                case CellMaterial.IronArmor: return new Color32(125, 118, 118, 255);
+                case CellMaterial.GoldBar:
+                case CellMaterial.GoldTool:
+                case CellMaterial.GoldWeapon:
+                case CellMaterial.GoldArmor: return new Color32(244, 184, 21, 255);
                 default: return new Color32(0, 0, 0, 0);
             }
         }

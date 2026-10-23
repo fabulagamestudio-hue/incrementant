@@ -54,6 +54,10 @@ namespace Fabula.Incrementant.World
         [SerializeField, Min(0)] int _generationMargin = 24;
         [Tooltip("Linhas de céu extras acima da área inicial, para as plantas e a arte caberem inteiras (a arte é 6x maior que a grade). Soma-se à altura do mundo.")]
         [SerializeField, Min(0)] int _skyHeadroom = 440;
+        [Header("Biomas da superfície (documento 44)")]
+        [SerializeField] BiomeSettings _biomes = new BiomeSettings();
+        [Header("Minérios em veios (documento 45)")]
+        [SerializeField] OreSettings _ores = new OreSettings();
 
         public int Width => _width;
         public int Height => _height;
@@ -81,6 +85,8 @@ namespace Fabula.Incrementant.World
         public int WorldHeight => Mathf.Max(_maxHeight, _height) + _skyHeadroom;
         public int ChunkSize => _chunkSize;
         public int GenerationMargin => _generationMargin;
+        public BiomeSettings Biomes => _biomes ??= new BiomeSettings();
+        public OreSettings Ores => _ores ??= new OreSettings();
 
         /// <summary>
         /// Área inicial dentro do mundo: no topo (céu) e centralizada na horizontal. Inclui as linhas de céu extras
@@ -144,6 +150,10 @@ namespace Fabula.Incrementant.World
         public int WorldWidth { get; }
         public int WorldHeight { get; }
         public RectInt StartArea { get; }
+        /// <summary>Bioma de cada coluna, gravado na grade por <see cref="Begin"/>.</summary>
+        public SurfaceBiomes Biomes { get; }
+        /// <summary>Veios de minério do mundo inteiro (documento 45).</summary>
+        public OreVeins Ores { get; }
 
         /// <param name="startArea">Área gerada de início; nível do solo, entrada e despejo são relativos a ela.</param>
         /// <param name="skyHeadroom">Linhas de céu extras no alto de <paramref name="startArea"/>: o nível do solo conta só as de baixo.</param>
@@ -191,6 +201,8 @@ namespace Fabula.Incrementant.World
 
             _pocketColumn = new bool[worldWidth];
             CarveWaterPockets(seed);
+            Biomes = SurfaceBiomes.Generate(worldWidth, _entranceX, settings.Biomes, seed);
+            Ores = new OreVeins(settings.Ores, seed, _surface, worldHeight);
         }
 
         /// <summary>
@@ -331,6 +343,7 @@ namespace Fabula.Incrementant.World
                 grid.SetSurfaceY(x, _surface[x]);
                 grid.SetLakeLevelY(x, _lakeLevel[x]);
             }
+            grid.Biomes = Biomes;
             grid.SetActive(StartArea);
             Fill(grid, StartArea);
 
@@ -403,15 +416,41 @@ namespace Fabula.Incrementant.World
 
             float scale = _settings.PocketScale;
             int depth = surface - y;
-            // Fundo de laguinho: areia compactada, que não absorve a água (WaterSimulation.IsPorous).
-            CellMaterial material = depth >= 2 ? CellMaterial.Dirt : _lakeLevel[x] >= 0 ? CellMaterial.PackedSand : CellMaterial.Grass;
+            // Fundo de laguinho: areia compactada, que não absorve a água (WaterSimulation.IsPorous). A cobertura do chão é a
+            // do bioma: grama no gramado, folhas secas na Serapilheira, terra adubada no Canteiro de flores.
+            SurfaceBiome biome = Biomes.At(x);
+            CellMaterial material = depth >= 2 ? CellMaterial.Dirt
+                : _lakeLevel[x] >= 0 ? CellMaterial.PackedSand
+                : GroundCover(biome);
+            // Sob o Areal, areia até a profundidade do deserto (o deserto subterrâneo do Terraria).
+            if (biome == SurfaceBiome.Desert && depth < _settings.Biomes.DesertDepth && _lakeLevel[x] < 0)
+                material = CellMaterial.Sand;
             if (depth > 6 && Mathf.PerlinNoise(_rockSeed + x * scale, _rockSeed + y * scale * 1.4f) > _settings.RockThreshold)
                 material = CellMaterial.Rock;
             else if (depth > 4 && Mathf.PerlinNoise(_sandSeed + x * scale * 1.2f, _sandSeed + y * scale * 1.6f) > _settings.SandThreshold)
                 material = _sandFreeZone.Contains(new Vector2Int(x, y)) ? CellMaterial.Dirt : CellMaterial.Sand;
+            // Veio de minério: corta terra e areia, nunca pedra.
+            if (material == CellMaterial.Dirt || material == CellMaterial.Sand)
+            {
+                CellMaterial ore = Ores.At(x, y);
+                if (ore != CellMaterial.Empty)
+                    material = ore;
+            }
 
             shade = TerrainMapCodec.ShadeAt(x, y, surface);
             return pocket == PocketShell ? CellMaterial.Rock : material;
+        }
+
+        static CellMaterial GroundCover(SurfaceBiome biome)
+        {
+            switch (biome)
+            {
+                case SurfaceBiome.LeafLitter: return CellMaterial.Litter;
+                case SurfaceBiome.FlowerBed:
+                case SurfaceBiome.FruitGrove: return CellMaterial.Compost;
+                case SurfaceBiome.Desert: return CellMaterial.Sand;
+                default: return CellMaterial.Grass;
+            }
         }
 
         Vector2Int CarveStarterNest(PixelGrid grid)

@@ -94,6 +94,13 @@ namespace Fabula.Incrementant.EditorTools.Localization
             Add(l, "brush.farm", "Fazenda de pulgões", "Aphid farm");
             Add(l, "brush.sandstore", "Depósito de areia", "Sand storage");
             Add(l, "brush.mushroomstore", "Depósito de cogumelos", "Mushroom storage");
+            Add(l, "brush.litterstore", "Depósito de serapilheira", "Leaf litter storage");
+            Add(l, "brush.nectarstore", "Depósito de néctar", "Nectar storage");
+            Add(l, "brush.orestore", "Depósito de minério", "Ore storage");
+            Add(l, "brush.smelter", "Fundição", "Smelter");
+            Add(l, "brush.forge", "Forja", "Forge");
+            Add(l, "brush.armory", "Armazém de ferramentas e armas", "Tools and weapons storage");
+            Add(l, "brush.wardrobe", "Armazém de roupas e armaduras", "Clothing and armor storage");
             Add(l, "ui.depots", "DEPÓSITO", "STORAGE");
             Add(l, "queen.mode.auto", "AUTOMÁTICO", "AUTOMATIC");
             Add(l, "queen.mode.specific", "TIPO ESPECÍFICO", "SPECIFIC TYPE");
@@ -246,6 +253,13 @@ namespace Fabula.Incrementant.EditorTools.Localization
             Add(l, "tip.brush.waterstore", "Depósito de água: guarda a água tirada do mapa. Com ele, os canteiros só são regados com a água daqui.", "Water storage: keeps the water taken from the map. With it, the beds are only watered with the water from here.");
             Add(l, "tip.brush.sandstore", "Depósito de areia: guarda a areia cavada e a que sai da fazenda e dos resíduos. É a comida dos pulgões.", "Sand storage: keeps the dug sand and the sand from the farm and the waste area. It is the aphids' food.");
             Add(l, "tip.brush.mushroomstore", "Depósito de cogumelos: guarda os cogumelos luminosos que os pulgões dão na ordenha. O pincel Cogumelo luminoso busca os cogumelos daqui.", "Mushroom storage: keeps the glowing mushrooms the aphids give when milked. The Glowing mushroom brush takes them from here.");
+            Add(l, "tip.brush.litterstore", "Depósito de serapilheira: guarda as folhas secas e os gravetos miúdos cavados no bioma Serapilheira, à direita do formigueiro.", "Leaf litter storage: keeps the dry leaves and small twigs dug in the Leaf Litter biome, to the right of the nest.");
+            Add(l, "tip.brush.nectarstore", "Depósito de néctar: guarda as gotas que as flores do Canteiro de flores, à esquerda do formigueiro, soltam no chão. Sem ele, as gotas ficam onde caíram.", "Nectar storage: keeps the drops that the flowers of the Flower Bed, to the left of the nest, let fall. Without it, the drops stay where they fell.");
+            Add(l, "tip.brush.orestore", "Depósito de minério: guarda o cobre, o ferro e o ouro cavados dos veios. Sem ele, o minério fica onde foi cavado.", "Ore storage: keeps the copper, iron and gold dug from the veins. Without it, the ore stays where it was dug.");
+            Add(l, "tip.brush.smelter", "Fundição: as formigas trazem minério e serapilheira; cada minério com uma serapilheira vira uma barra do mesmo metal em 20 s.", "Smelter: ants bring ore and leaf litter; each ore with one leaf litter becomes a bar of the same metal in 20 s.");
+            Add(l, "tip.brush.forge", "Forja: as formigas trazem as barras; duas barras do mesmo metal viram, em 30 s, a ferramenta, a arma ou a armadura que mais falta.", "Forge: ants bring the bars; two bars of the same metal become, in 30 s, the tool, weapon or armor most needed.");
+            Add(l, "tip.brush.armory", "Armazém de ferramentas e armas: a escavadora e a operária buscam aqui a ferramenta; soldado e cuspideira, a arma.", "Tools and weapons storage: diggers and workers fetch their tool here; soldiers and spitters, their weapon.");
+            Add(l, "tip.brush.wardrobe", "Armazém de roupas e armaduras: soldado e cuspideira buscam aqui a armadura.", "Clothing and armor storage: soldiers and spitters fetch their armor here.");
             Add(l, "tip.brush.farm", "Fazenda de pulgões: os pulgões nascem nas baias do chão, cada uma com um cocho de areia e um de água. Sozinhos, só pingam água; ordenhados pela fazendeira, comem e dão areia, folhas, água e às vezes cogumelos luminosos.", "Aphid farm: aphids are born in the stalls on the floor, each with a sand trough and a water trough. On their own they only drip water; milked by the farmer, they eat and give sand, leaves, water and sometimes glowing mushrooms.");
             Add(l, "tip.brush.farm.locked", "Fazenda de pulgões: bloqueada até você comprar a câmara Fazenda de pulgões em Evolução.", "Aphid farm: locked until you buy the Aphid farm chamber in Evolution.");
             Add(l, "tip.st.farm.paint", "Falta: pintar a fazenda (Ambientes > Fazenda de pulgões).", "Missing: paint the farm (Environments > Aphid farm).");

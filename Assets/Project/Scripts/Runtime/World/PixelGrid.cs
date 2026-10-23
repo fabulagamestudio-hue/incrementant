@@ -1275,6 +1275,15 @@ namespace Fabula.Incrementant.World
         /// Altura do solo original na coluna; acima dela o vazio é céu, abaixo é túnel.
         /// Vale para todas as colunas da grade, mesmo fora da área ativa (o gerador calcula o relevo inteiro de início).
         /// </summary>
+        SurfaceBiomes _biomes;
+
+        /// <summary>Bioma da superfície por coluna (documento 44). O gerador o define; sem gerador, tudo é gramado. Não vai para o save.</summary>
+        public SurfaceBiomes Biomes
+        {
+            get => _biomes ??= SurfaceBiomes.Uniform(Width);
+            set => _biomes = value;
+        }
+
         public int GetSurfaceY(int x) => (uint)x < (uint)Width ? _surfaceY[x] : -1;
 
         public void SetSurfaceY(int x, int y)

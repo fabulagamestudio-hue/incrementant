@@ -6,7 +6,8 @@ namespace Fabula.Incrementant.EditorTools.AntFarm
 {
     /// <summary>
     /// PNGs em <see cref="SceneryFolder"/> são elementos do cenário da superfície: sprite Point, sem compressão nem mipmap,
-    /// Read/Write ligado (o cenário lê a máscara), 16 px/célula na arte refinada e 6 PPU na arte legada.
+    /// Read/Write ligado (o cenário lê a máscara), <see cref="AntSpriteImporter.WorldPixelsPerCell"/> px/célula na arte refinada
+    /// (8 no experimento 8x8 de 2026-10-22; antes 16) e 6 PPU na arte legada.
     /// O pivô é o ponto de apoio no chão: PNG novo começa no centro da base; ajuste no Sprite Editor se parte dele
     /// deve ficar enterrada. Adicionar, remover ou mover PNGs atualiza o catálogo (<see cref="SceneryArtExporter.RefreshArtSet"/>).
     /// </summary>
@@ -36,7 +37,9 @@ namespace Fabula.Incrementant.EditorTools.AntFarm
             var settings = new TextureImporterSettings();
             importer.ReadTextureSettings(settings);
             importer.GetSourceTextureWidthAndHeight(out int width, out int height);
-            bool detailed = width >= 64 && height >= 64 && width % 16 == 0 && height % 16 == 0;
+            // Arte refinada: lados múltiplos de 8 e de pelo menos 32 (a de 16 px/célula reduzida pela metade no experimento
+            // 8x8); nenhum PNG legado (6 PPU, Mushrooms, Tufts, Twigs) tem os dois lados múltiplos de 8.
+            bool detailed = width >= 32 && height >= 32 && width % 8 == 0 && height % 8 == 0;
             settings.spritePixelsPerUnit = detailed ? AntSpriteImporter.WorldPixelsPerCell : AntSpriteImporter.PixelsPerCell;
             // Durante a migração, os PNGs antigos conservam a importação anterior.
             if (detailed)

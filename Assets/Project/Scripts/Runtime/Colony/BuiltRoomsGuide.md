@@ -41,6 +41,7 @@ Versão 25: o reboco vai nos bits 3-6 do bloco `Marked` (`RoomLining.KindOf` = a
 
 ## Como estender
 
+- **Famílias da fundição, da forja e dos armazéns de equipamento (pedido do desenvolvedor em 2026-10-23, depois do teste de jogo):** `RoomStyle.Smelter`, `Forge`, `Armory` e `Wardrobe` (linhas 51 a 58 do atlas). Fundição: tijolo refratário vermelho com fuligem e brasa nas frestas do fundo. Forja: pedra escura com cinta e rebites e o brilho do fogo no fundo, com tenazes penduradas. Armas: tábuas verticais e, no fundo, tábuas com cabideiro. Armaduras: painéis de madeira clara e tecido azul em trama. Os outros depósitos (alimentos, construção, água, areia, cogumelos, serapilheira, néctar e minério) seguem com a família `Store`.
 - **Visual próprio para um depósito:** acrescente a família em `RoomStyle` (as linhas do atlas crescem 2 no fim), o par no gerador do atlas (`Art/Terrain/Source~/terrain_atlas.py`) e o caso em `CellTileArt.StyleOf`.
 - **Bônus de sala pronta:** a sala pronta já existe por célula (`PixelGrid.IsRoomFinished`); um bônus pode ler a fração de células prontas de cada ambiente. Hoje nada lê isso fora do desenho (decisão de 2026-10-22: só visual).
 - **Deixar alguma parede natural** (ex.: o teto): filtrar a direção em `ScanRoomPart` (o laço das 8 vizinhas) e em `LiningKindAt`.

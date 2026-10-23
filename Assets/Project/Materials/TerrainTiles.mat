@@ -50,12 +50,12 @@ Material:
     - _GlowMaterialId: 17
     - _InteriorAmbient: 0.22
     - _LightFadeStart: 0.09375
-    - _TexelsPerCell: 16
+    - _TexelsPerCell: 8
     - _TileCount: 19
-    - _TileSize: 128
+    - _TileSize: 64
     - _WallShadowSteps: 3
     - _WallShadowStrength: 0.45
-    - _WallShadowWidth: 6
+    - _WallShadowWidth: 3
     m_Colors:
     - _GlowLightTint: {r: 1, g: 0.93, b: 0.72, a: 1}
     - _LightTint: {r: 1.06, g: 1, b: 0.9, a: 1}

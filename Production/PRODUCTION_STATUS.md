@@ -7,9 +7,13 @@
 - **Engine:** Unity 6000.3.11f1, URP 17.3.0
 - **Plataformas-alvo:** Pendente de definição
 - **Marco atual:** Pendente de definição
-- **Última avaliação:** 2026-10-22
+- **Última avaliação:** 2026-10-23
 
 ## Resumo executivo
+
+Papel da área externa decidido em 2026-10-23 (REQ-070; GD-012, ART-026): o interior produz volume, com teto, e cada bioma da superfície, em faixas para os lados do formigueiro, fornece um insumo que só existe nele; entradas secundárias (postos avançados) encurtam a viagem. Biomas, insumos e lista de arte são proposta do agente no [documento 44](../Docs/02_World_Art_UI/44_Biomas_da_superficie_e_postos_avancados.md), a aprovar; nada implementado. No mesmo dia foram implementados os dois primeiros biomas (PRG-074): a Serapilheira à direita (chão de serapilheira como insumo, folhas que voltam) e o Canteiro de flores à esquerda (terra adubada, flores que soltam gotas de néctar), cada um com depósito próprio, cenário só no bioma e gramado limpo; suíte EditMode 457/457, falta o playtest do desenvolvedor. O uso dos insumos foi adiado pelo desenvolvedor.
+
+Mundo pequeno no molde do Terraria e corte vertical implementados em 2026-10-23 (REQ-071; GD-013, PRG-075, ART-027): areal e fruteira nas pontas, veios de cobre, ferro e ouro (em bolsões, com mais ouro no fundo), fundição que queima serapilheira, forja, armazéns e equipamento das formigas por papel. Números e a transformação automática são suposições do agente; suíte EditMode verde, sem Play Mode nem avaliação do desenvolvedor.
 
 Salas construídas com visual próprio implementadas em 2026-10-22 (REQ-058; ART-023, PRG-071, GD-010): as formigas rebocam com terra todas as paredes em contato com o vão de cada sala pintada (piso, teto, lados e a terra de dentro da área), que passam a mostrar o bloco da família, e a sala pronta troca o fundo do vão; só visual, sem tirar células vazias da sala, com a construção antes das automatizações (decisão do desenvolvedor depois de jogar). Suíte EditMode 447/447 e quicksave do desenvolvedor rebocado em Play Mode pelo agente; falta a aprovação final.
 
@@ -81,6 +85,10 @@ Melhorias incrementais documentadas (GD-008, REQ-039): o [documento 39](../Docs/
 
 ### Arte
 
+- **Equipamento das formigas:** ART-028 verificado (REQ-071): camadas vestidas, nove itens 8 × 8 e cinco ícones de HUD em cobre, ferro e ouro, aprovados pelo desenvolvedor em 2026-10-23 e vistos em Play Mode; barras e minérios do atlas seguem provisórios (ART-027).
+- **Biomas da superfície:** ART-026 em andamento (tiles provisórios de serapilheira, terra adubada e néctar no atlas em 2026-10-23); (REQ-070): lista de arte por bioma (topo, camada rasa, coletáveis, silhueta, fundo, item), argila no subsolo e entrada secundária, no [documento 44](../Docs/02_World_Art_UI/44_Biomas_da_superficie_e_postos_avancados.md); depende da aprovação dos biomas (GD-012).
+- **Kit do graveto:** ART-025 implementado na branch `experimento/arte-8x8` (REQ-069): os gravetos do cenário são montados por peças de 8 px, no tamanho do mundo dos antigos, que saíram; falta a avaliação do desenvolvedor.
+- **Experimento 8x8:** ART-024 implementado na branch `experimento/arte-8x8` (REQ-068): terreno, formigas, crias, cupins, pulgões, cenário (refinado, arte de células e faixas distantes) e cultivo com 8 texels por célula, mostrados em 2x, e contorno preto de 1 texel em tudo no primeiro plano; falta a avaliação do desenvolvedor.
 - **Salas construídas:** ART-023 implementado (REQ-058): bloco e fundo de sete famílias no atlas do terreno, aprovados na maquete; em jogo, berçário e depósito vistos pelo agente.
 
 - **Pulgão:** em jogo desde 2026-10-22 pela fazenda (REQ-061, ART-017); fazendeira com arte por troca de rampa (ART-022), aguardando aprovação. ART-012 implementado (REQ-033): oito sprites transparentes (lateral e superior), 72x48 a 36 PPU, dois terços do canvas das formigas. Dimensões, paleta, alpha e importação validados na Unity em 2026-10-18. Aprovação visual e integração em gameplay pendentes; novo importador aguarda compilação ao encerrar Play Mode.
@@ -101,6 +109,8 @@ Melhorias incrementais documentadas (GD-008, REQ-039): o [documento 39](../Docs/
 
 ### Programação
 
+- **Minérios e forja:** PRG-075 implementado (REQ-071): veios, fundição, forja, armazéns e equipamento; suíte EditMode verde, sem Play Mode.
+- **Biomas da superfície:** PRG-074 implementado (REQ-070): Serapilheira à direita e Canteiro de flores à esquerda, com insumos (serapilheira e néctar) e depósitos próprios, folhas que voltam, gotas de néctar, cenário e plantas por bioma; EditMode 457/457 e Play Mode visto pelo agente em 2026-10-23.
 - **Salas construídas:** PRG-071 implementado (REQ-058): slots de reboco, obra das formigas, sala pronta e save versão 25; testado em EditMode e em Play Mode pelo agente, limites em KI-059.
 
 - **Entregas verificadas:** PRG-001 Grade e física granular; PRG-002 Formigas; PRG-004 Cena por setup; PRG-005 Modo do mapa; PRG-006 Formigas em sprite; PRG-007 Agarre em paredes; PRG-008 Andar no fundo do formigueiro; PRG-009 Cenário da superfície em camadas; PRG-010 Mundo expansível; PRG-012 Simulação por blocos (8x no mesmo FPS); PRG-013 Chuva leve e forte; PRG-014 Água; PRG-015 Rainha e sala da rainha; PRG-016 Plantas, sala de nutrientes e nutrientes
@@ -110,6 +120,7 @@ Melhorias incrementais documentadas (GD-008, REQ-039): o [documento 39](../Docs/
 
 ### Game design
 
+- **Exterior:** GD-012 em andamento (dois biomas implementados, PRG-074, com valores assumidos); (REQ-070): direção A decidida pelo desenvolvedor em 2026-10-23 (biomas laterais com insumos únicos e postos avançados) e regra do cenário (elementos grandes só no bioma deles, gramado central limpo, decoração não imita insumo); biomas, insumos, números e biomas da demo a aprovar.
 - **Entregas verificadas:** GD-006 Documento revisado convertido e conferido contra o DOCX (38 seções e 28 tabelas); [índice](../Docs/README.md)
 - **Pendências:** GD-001 Conceito (alinhamento do protótipo à referência revisada e validação do loop); GD-002 Regras da chuva (interpretações a confirmar); GD-003 Regras da água (valores de X/Y e interpretações a confirmar); GD-004 Regras da rainha (interpretações a confirmar); GD-005 Regras das plantas e nutrientes (interpretações a confirmar); GD-008 Melhorias incrementais (proposta sem balanceamento, construção não pedida)
 - **Bloqueios:** Nenhum
@@ -244,6 +255,8 @@ Melhorias incrementais documentadas (GD-008, REQ-039): o [documento 39](../Docs/
 | REQ-065 | Tutorial como tour da interface, com o jogador livre para clicar | IMPLEMENTED | UNDEFINED |
 | REQ-066 | Glossário com a explicação de tudo | IMPLEMENTED | UNDEFINED |
 | REQ-067 | Menu Colônia recuado até o cursor chegar perto, visível no tutorial | IMPLEMENTED | UNDEFINED |
+| REQ-070 | Razão para trabalhar na área externa: biomas laterais com insumos únicos e postos avançados | IN_PROGRESS | UNDEFINED |
+| REQ-071 | Mundo pequeno no molde do Terraria, minérios em veios, fundição, forja e armazéns de equipamento | IN_PROGRESS | UNDEFINED |
 
 Registro completo: [REQUESTS.md](REQUESTS.md)
 
@@ -277,6 +290,11 @@ Registro completo: [REQUESTS.md](REQUESTS.md)
 
 ## Decisões necessárias
 
+- Minérios e forja (REQ-071, GD-013): aprovar os números do documento 45 e a transformação automática da fundição e da forja; fruto da fruteira; lugar nas melhorias; uso das roupas.
+- Uso da serapilheira e do néctar (REQ-070): adiado pelo desenvolvedor em 2026-10-23; hoje os insumos só se acumulam.
+- Exterior (REQ-070, GD-012): aprovar os biomas, insumos e usos do documento 44; escolher os biomas da demo e o lado de cada um; definir a forma da entrada secundária e a recompensa do ninho de cupins.
+- Gigantes de cenário (REQ-069): aprovar o kit do graveto e decidir se cogumelos, tufos, folhas secas, grama, trevos, flores e pedras grandes seguem o mesmo caminho.
+- Escala da arte (REQ-068): adotar ou não os 8 texels por célula e o contorno preto do experimento (ART-024).
 - Fazenda de pulgões (REQ-061, GD-011): valores e custos assumidos.
 - Carregadora (REQ-059, KI-057): se deve levar vários nutrientes e crias por viagem, quantas águas por viagem (hoje 4, como a planta) e se encher o depósito de água deve mesmo vir antes de entregar aos canteiros.
 - Cuspideira e lixeira (GD-009): custos de K0 (260) e W0 (160), alcance, dano e ritmo do cuspe, vida e custo de cria, se ganham galerias próprias e se a lixeira acelera a área de resíduos.

@@ -73,6 +73,7 @@ Os textos preservam a distinção original entre regras definidas, propostas de 
 | 32 | [Invasoras combate e consequências](01_Design/32_Invasoras_combate_e_consequencias.md) | Documento revisado de 2026-10-17; estado das definições preservado conforme a fonte |
 | 37 | [Continuidade pausa e game over](01_Design/37_Continuidade_pausa_e_game_over.md) | Documento revisado de 2026-10-17; estado das definições preservado conforme a fonte |
 | 39 | [Melhorias incrementais e formigueiro de dependências](01_Design/39_Melhorias_incrementais_e_formigueiro_de_dependencias.md) | Documento do projeto de 2026-10-19 (REQ-039); proposta, sem balanceamento nem construção |
+| 45 | [Minérios fundição forja e equipamento](01_Design/45_Minerios_fundicao_forja_e_equipamento.md) | Documento do projeto de 2026-10-23 (REQ-071); direção decidida pelo desenvolvedor, números e regras marcados como suposição do agente |
 
 ### 02_World_Art_UI/ — Mundo, arte, interface e áudio
 
@@ -84,6 +85,7 @@ Os textos preservam a distinção original entre regras definidas, propostas de 
 | 34 | [Interface durante a partida](02_World_Art_UI/34_Interface_durante_a_partida.md) | Documento revisado de 2026-10-17; estado das definições preservado conforme a fonte |
 | 35 | [Áudio atmosfera e juice](02_World_Art_UI/35_Audio_atmosfera_e_juice.md) | Documento revisado de 2026-10-17; estado das definições preservado conforme a fonte |
 | 40 | [Direção de arte unificada e terreno iluminado](02_World_Art_UI/40_Direcao_de_arte_unificada_e_terreno_iluminado.md) | Documento do projeto de 2026-10-21; plano em etapas, regras aprovadas; prancha da paleta mestra em [41_Paleta_mestra.png](02_World_Art_UI/41_Paleta_mestra.png) e prévia do atlas do terreno em [42_Atlas_do_terreno.png](02_World_Art_UI/42_Atlas_do_terreno.png); maquete das salas construídas em [43_Salas_construidas.png](02_World_Art_UI/43_Salas_construidas.png) |
+| 44 | [Biomas da superfície e postos avançados](02_World_Art_UI/44_Biomas_da_superficie_e_postos_avancados.md) | Documento do projeto de 2026-10-23 (REQ-070); direção decidida pelo desenvolvedor, biomas, insumos e lista de arte propostos pelo agente, a aprovar |
 
 ### 03_Production/ — Planejamento da demonstração
 

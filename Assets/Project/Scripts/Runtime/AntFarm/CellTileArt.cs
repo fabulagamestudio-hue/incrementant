@@ -9,7 +9,7 @@ namespace Fabula.Incrementant.AntFarm
     /// Visual de sala construída (REQ-058): cada família tem no atlas um bloco (a terra que as formigas põem nos slots do
     /// ambiente) e uma parede de fundo. Os cinco depósitos dividem <see cref="Store"/> (decisão de 2026-10-22).
     /// </summary>
-    public enum RoomStyle { Queen, Nutrient, Nursery, Waste, Dew, Farm, Store }
+    public enum RoomStyle { Queen, Nutrient, Nursery, Waste, Dew, Farm, Store, Smelter, Forge, Armory, Wardrobe }
 
     /// <summary>
     /// Formato do atlas RGB do terreno (etapa 4 do documento 40) e o atlas gerado por código usado enquanto não há arte.
@@ -22,14 +22,20 @@ namespace Fabula.Incrementant.AntFarm
     /// </summary>
     public static class CellTileArt
     {
-        /// <summary>Texels por célula da grade (a célula vira um bloco de 16x16 na tela).</summary>
-        public const int TexelsPerCell = 16;
+        /// <summary>Texels por célula da grade (experimento 8x8 de 2026-10-22: a célula vira um bloco de 8x8 texels, mostrado em 2x a 16 px por célula).</summary>
+        public const int TexelsPerCell = 8;
 
         /// <summary>Lado da textura repetível de cada linha: 8x8 células.</summary>
-        public const int TileSize = 128;
+        public const int TileSize = 64;
 
         /// <summary>Células por lado da textura repetível (o padrão se repete a cada tantas células).</summary>
         public const int TileCells = TileSize / TexelsPerCell;
+
+        /// <summary>
+        /// Contorno de 1 texel dos elementos (experimento 8x8 de 2026-10-22): preto da paleta mestra (índice 0). O mesmo valor
+        /// está em <c>_OutlineColor</c> do shader TerrainTiles e em <c>Art/Source~/outline_pixel_art.py</c>.
+        /// </summary>
+        public static readonly Color32 OutlineColor = new Color32(0x1B, 0x18, 0x15, 255);
 
         /// <summary>Valor gravado na textura de materiais para células de céu (sem textura).</summary>
         public const byte SkyId = 255;
@@ -60,6 +66,11 @@ namespace Fabula.Incrementant.AntFarm
                 case PaintRoom.Waste: return RoomStyle.Waste;
                 case PaintRoom.Dew: return RoomStyle.Dew;
                 case PaintRoom.Farm: return RoomStyle.Farm;
+                // Fundição, forja e armazéns de equipamento com visual próprio (pedido de 2026-10-23); os outros depósitos dividem Store.
+                case PaintRoom.Smelter: return RoomStyle.Smelter;
+                case PaintRoom.Forge: return RoomStyle.Forge;
+                case PaintRoom.Armory: return RoomStyle.Armory;
+                case PaintRoom.Wardrobe: return RoomStyle.Wardrobe;
                 default: return RoomStyle.Store;
             }
         }
