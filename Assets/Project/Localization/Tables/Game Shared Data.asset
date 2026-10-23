@@ -3351,6 +3351,114 @@ MonoBehaviour:
     m_Key: buy.depth
     m_Metadata:
       m_Items: []
+  - m_Id: 1817226948767744
+    m_Key: tip.brush.orestore.locked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226952962048
+    m_Key: tip.brush.smelter.locked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226952962049
+    m_Key: tip.brush.forge.locked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226952962050
+    m_Key: tip.brush.armory.locked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226952962051
+    m_Key: tip.brush.wardrobe.locked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156352
+    m_Key: upgrade.V0.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156353
+    m_Key: upgrade.V0.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156354
+    m_Key: upgrade.V1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156355
+    m_Key: upgrade.V1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156356
+    m_Key: upgrade.V+1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156357
+    m_Key: upgrade.V+1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156358
+    m_Key: upgrade.Y0.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156359
+    m_Key: upgrade.Y0.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156360
+    m_Key: upgrade.Y1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156361
+    m_Key: upgrade.Y1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156362
+    m_Key: upgrade.Y2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156363
+    m_Key: upgrade.Y2.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156364
+    m_Key: upgrade.Y+1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156365
+    m_Key: upgrade.Y+1.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156366
+    m_Key: upgrade.Y+2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156367
+    m_Key: upgrade.Y+2.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156368
+    m_Key: upgrade.O+4.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156369
+    m_Key: upgrade.O+4.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156370
+    m_Key: upgrade.E+4.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156371
+    m_Key: upgrade.E+4.effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156372
+    m_Key: upgrade.S+5.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156373
+    m_Key: upgrade.S+5.effect
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

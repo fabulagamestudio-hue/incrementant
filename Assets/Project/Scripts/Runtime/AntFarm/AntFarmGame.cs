@@ -398,6 +398,11 @@ namespace Fabula.Incrementant.AntFarm
             {
                 case BrushMode.WasteRoom: return _colony != null && _colony.WasteUnlocked;
                 case BrushMode.FarmRoom: return _colony != null && _colony.FarmUnlocked;
+                case BrushMode.OreStore: return _colony != null && _colony.OreStoreUnlocked;
+                case BrushMode.Smelter: return _colony != null && _colony.SmelterUnlocked;
+                case BrushMode.Forge: return _colony != null && _colony.ForgeUnlocked;
+                case BrushMode.Armory: return _colony != null && _colony.ArmoryUnlocked;
+                case BrushMode.Wardrobe: return _colony != null && _colony.WardrobeUnlocked;
                 default: return true;
             }
         }

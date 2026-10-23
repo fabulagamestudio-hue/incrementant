@@ -36,6 +36,8 @@ namespace Fabula.Incrementant.Upgrades
             "Q+4", "C+4", "B+3", "D+3", "R+1", "G+3", "T+3",
             // Fazenda de pulgões e fazendeira (2026-10-22).
             "A0", "A1", "A+1", "A+2", "A+3", "Z+1",
+            // Minérios, forja e o equipamento forjado (REQ-071, documento 46, etapa 4).
+            "V0", "V1", "V+1", "Y0", "Y1", "Y2", "Y+1", "Y+2", "O+4", "E+4", "S+5",
         };
 
         QueenTree _tree;

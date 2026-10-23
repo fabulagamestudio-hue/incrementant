@@ -18,6 +18,13 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Segundos de jogo para forjar 2 barras do mesmo metal num equipamento (suposição do agente).</summary>
         public const float ForgeSeconds = 30f;
 
+        /// <summary>Pincéis do depósito de minério, da fundição, da forja e dos armazéns: só com a câmara comprada (V0, V1, Y0, Y1, Y2).</summary>
+        public bool OreStoreUnlocked => Effects.OreStoreUnlocked;
+        public bool SmelterUnlocked => Effects.SmelterUnlocked;
+        public bool ForgeUnlocked => Effects.ForgeUnlocked;
+        public bool ArmoryUnlocked => Effects.ArmoryUnlocked;
+        public bool WardrobeUnlocked => Effects.WardrobeUnlocked;
+
         // Itens nas salas, relidos quando os itens guardados mudam (StoreVersion).
         int _workshopVersion = -1;
         readonly List<int> _smelterOre = new List<int>();
@@ -171,7 +178,7 @@ namespace Fabula.Incrementant.Colony
                 int ore = _smelterOre[i];
                 _smeltTimers.TryGetValue(ore, out float t);
                 t += deltaTime;
-                if (t < SmeltSeconds)
+                if (t < SmeltSeconds * Effects.SmeltTime)
                 {
                     _smeltTimers[ore] = t;
                     continue;
@@ -204,7 +211,7 @@ namespace Fabula.Incrementant.Colony
                 int first = bars[0];
                 _forgeTimers.TryGetValue(first, out float t);
                 t += deltaTime;
-                if (t < ForgeSeconds)
+                if (t < ForgeSeconds * Effects.ForgeTime)
                 {
                     _forgeTimers[first] = t;
                     return;
@@ -374,7 +381,7 @@ namespace Fabula.Incrementant.Colony
             if (Equipment.KindOf(material) != kind || _grid.GetStorageRoom(x, y) != EquipRoomOf(kind))
                 return false;
             _grid.SetStored(x, y, StoredItems.None);
-            int uses = Equipment.Uses(kind, Equipment.TierOf(material));
+            int uses = Mathf.Max(1, Mathf.RoundToInt(Equipment.Uses(kind, Equipment.TierOf(material)) * Effects.EquipDurability));
             switch (kind)
             {
                 case EquipKind.Tool: ant.Tool = material; ant.ToolUses = uses; break;
@@ -389,7 +396,8 @@ namespace Fabula.Incrementant.Colony
             return true;
         }
 
-        float ToolFactor(Ant ant) => Equipment.ToolTimeFactor(Equipment.TierOf(ant.Tool));
+        float ToolFactor(Ant ant) =>
+            ant.Tool == CellMaterial.Empty ? 1f : Equipment.ToolTimeFactor(Equipment.TierOf(ant.Tool)) * Effects.SharpToolTime;
 
         /// <summary>Um uso da ferramenta (uma célula cavada); gasta, volta como barra.</summary>
         void WearTool(Ant ant)
@@ -405,7 +413,7 @@ namespace Fabula.Incrementant.Colony
         {
             if (ant.Weapon == CellMaterial.Empty)
                 return 1f;
-            float factor = Equipment.WeaponDamageFactor(Equipment.TierOf(ant.Weapon));
+            float factor = Equipment.WeaponDamageFactor(Equipment.TierOf(ant.Weapon)) * Effects.WeaponDamageBoost;
             if (--ant.WeaponUses <= 0)
             {
                 ScrapEquip(ant, ant.Weapon);
@@ -419,7 +427,7 @@ namespace Fabula.Incrementant.Colony
         {
             if (ant.Armor == CellMaterial.Empty)
                 return 1f;
-            float factor = Equipment.ArmorTakenFactor(Equipment.TierOf(ant.Armor));
+            float factor = Equipment.ArmorTakenFactor(Equipment.TierOf(ant.Armor)) * Effects.ArmorTakenBoost;
             if (--ant.ArmorUses <= 0)
             {
                 ScrapEquip(ant, ant.Armor);

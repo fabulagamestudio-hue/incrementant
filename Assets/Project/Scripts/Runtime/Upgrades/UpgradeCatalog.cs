@@ -170,7 +170,7 @@ namespace Fabula.Incrementant.Upgrades
         public const int PointsPerChamber = 1;
         public const int PointsPerLevel = 1;
         public const int PointsPerCompletedGallery = 3;
-        static readonly int[] RingDepth = { 0, 0, 5, 20, 50 };
+        static readonly int[] RingDepth = { 0, 0, 5, 20, 50, 100 };
 
         /// <summary>Profundidade que abre cada nível do formigueiro (documento 46, "Níveis"; o 100 do nível 5 é suposição).</summary>
         static readonly int[] TierDepth = { 0, 0, 5, 20, 50, 100 };
@@ -266,6 +266,13 @@ namespace Fabula.Incrementant.Upgrades
             Chamber(H, "D7", Deposito, 1, 40, "T0", initial: true);
             Chamber(H, "A0", Exterior, 1, 150, "T0");
             Chamber(H, "A1", Exterior, 2, 300, "A0");
+            // Minérios e forja (REQ-071, pedido de 2026-10-23; documento 46, etapa 4; custos assumidos). Cada câmara libera o
+            // pincel da sala (antes livre). O ramo Depósito é só a origem do dado; a posição vem do domínio.
+            Chamber(H, "V0", Deposito, 4, 1200, "D0");
+            Chamber(H, "V1", Deposito, 4, 1800, "V0");
+            Chamber(H, "Y0", Deposito, 5, 3500, "V1");
+            Chamber(H, "Y1", Deposito, 5, 2500, "Y0");
+            Chamber(H, "Y2", Deposito, 5, 2500, "Y0");
 
             // ---------------- aba Formigueiro: galerias
             Gallery(H, "H+1", Obra, 1, 60, "P0", GalleryType.Physical, 10, 24f, -0.04f);
@@ -299,6 +306,11 @@ namespace Fabula.Incrementant.Upgrades
             Gallery(H, "A+1", Exterior, 2, 120, "A0", GalleryType.Physical, 10, 2f, 1f, additive: true);
             Gallery(H, "A+2", Exterior, 2, 100, "A0", GalleryType.Physical, 10, 20f, -0.05f);
             Gallery(H, "A+3", Exterior, 1, 60, "A0", GalleryType.Physical, 10, 120f, 20f, additive: true);
+            // Fundição rápida (base = AntColony.SmeltSeconds), forja rápida (base = ForgeSeconds) e têmpera (a durabilidade do
+            // equipamento novo sobe 10% por nível).
+            Gallery(H, "V+1", Deposito, 4, 400, "V1", GalleryType.Physical, 10, 20f, -0.05f);
+            Gallery(H, "Y+1", Deposito, 5, 600, "Y0", GalleryType.Physical, 10, 30f, -0.04f);
+            Gallery(H, "Y+2", Deposito, 5, 700, "Y0", GalleryType.Physical, 10, 1f, 0.10f);
 
             // ---------------- aba Rainha e classes: câmaras (custos dos nós existentes = QueenTree)
             Center(Q, "Q0", Rainha, Colony.QueenNode.Q0);
@@ -366,6 +378,10 @@ namespace Fabula.Incrementant.Upgrades
             Gallery(Q, "S+3", Soldado, 3, 150, "S0,N0", GalleryType.Physical, 10, 10f, -0.05f);
             Gallery(Q, "S+4", Soldado, 3, 160, "S0", GalleryType.Physical, 10, 1f, 0.05f);
             Gallery(Q, "Z+1", Jardineira, 2, 100, "Z0", GalleryType.Physical, 10, 22f, 0.04f);
+            // Nível 5 do documento 46 (REQ-071): o equipamento forjado ganha efeito extra, no domínio de quem o usa.
+            Gallery(Q, "O+4", Comum, 5, 800, "Y2", GalleryType.Physical, 10, 1f, -0.02f);       // armadura: menos dano recebido
+            Gallery(Q, "E+4", Escavadora, 5, 800, "Y1", GalleryType.Physical, 10, 1f, -0.03f);  // ferramenta: cava mais rápido
+            Gallery(Q, "S+5", Soldado, 5, 900, "Y1", GalleryType.Physical, 10, 1f, 0.04f);      // arma: mais dano
 
             // ---------------- posição no formigueiro do documento 46 (uma linha por câmara lateral, como as tabelas dele).
             // O nível é o anel do documento 39, menos O+2, que desce para o nível 2 por exigir B1.
@@ -408,6 +424,11 @@ namespace Fabula.Incrementant.Upgrades
             Place(UpgradeDomain.Digging, 4, "E3");
             Place(UpgradeDomain.Farm, 1, "A0,Z0,A+3");
             Place(UpgradeDomain.Farm, 2, "A1,Z1,A+1,A+2,Z+1");
+            Place(UpgradeDomain.Ores, 4, "V0,V1,V+1");
+            Place(UpgradeDomain.Forge, 5, "Y0,Y1,Y2,Y+1,Y+2");
+            Place(UpgradeDomain.Ants, 5, "O+4");
+            Place(UpgradeDomain.Digging, 5, "E+4");
+            Place(UpgradeDomain.Guard, 5, "S+5");
             Place(UpgradeDomain.Guard, 2, "S0,K0,S1,S2,M0,M2,M+1,M+2");
             Place(UpgradeDomain.Guard, 3, "S3,M1,S+1,S+2,S+3,S+4");
             Place(UpgradeDomain.Guard, 4, "S4");

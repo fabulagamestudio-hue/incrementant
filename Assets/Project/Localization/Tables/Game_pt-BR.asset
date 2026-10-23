@@ -3597,6 +3597,123 @@ MonoBehaviour:
     m_Localized: "PROFUNDIDADE INSUFICIENTE PARA ESTE N\xCDVEL"
     m_Metadata:
       m_Items: []
+  - m_Id: 1817226948767744
+    m_Localized: "Dep\xF3sito de min\xE9rio: bloqueado at\xE9 voc\xEA comprar a c\xE2mara
+      Dep\xF3sito de min\xE9rio em Evolu\xE7\xE3o."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226952962048
+    m_Localized: "Fundi\xE7\xE3o: bloqueada at\xE9 voc\xEA comprar a c\xE2mara Fundi\xE7\xE3o
+      em Evolu\xE7\xE3o."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226952962049
+    m_Localized: "Forja: bloqueada at\xE9 voc\xEA comprar a c\xE2mara Forja em Evolu\xE7\xE3o."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226952962050
+    m_Localized: "Armaz\xE9m de ferramentas e armas: bloqueado at\xE9 voc\xEA comprar
+      a c\xE2mara correspondente em Evolu\xE7\xE3o."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226952962051
+    m_Localized: "Armaz\xE9m de roupas e armaduras: bloqueado at\xE9 voc\xEA comprar
+      a c\xE2mara correspondente em Evolu\xE7\xE3o."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156352
+    m_Localized: "Dep\xF3sito de min\xE9rio"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156353
+    m_Localized: "Libera o pincel do dep\xF3sito de min\xE9rio, onde ficam o cobre,
+      o ferro e o ouro cavados"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156354
+    m_Localized: "Fundi\xE7\xE3o"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156355
+    m_Localized: "Libera o pincel da fundi\xE7\xE3o: min\xE9rio com serapilheira
+      vira barra do mesmo metal"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156356
+    m_Localized: "Fundi\xE7\xE3o r\xE1pida"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156357
+    m_Localized: "As barras ficam prontas 5% mais r\xE1pido por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156358
+    m_Localized: Forja
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156359
+    m_Localized: 'Libera o pincel da forja: duas barras do mesmo metal viram a ferramenta,
+      a arma ou a armadura que mais falta'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156360
+    m_Localized: "Armaz\xE9m de ferramentas e armas"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156361
+    m_Localized: "Libera o pincel do armaz\xE9m onde a escavadora e a oper\xE1ria
+      buscam a ferramenta, e o soldado e a cuspideira, a arma"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156362
+    m_Localized: "Armaz\xE9m de roupas e armaduras"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156363
+    m_Localized: "Libera o pincel do armaz\xE9m onde o soldado e a cuspideira buscam
+      a armadura"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156364
+    m_Localized: "Forja r\xE1pida"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156365
+    m_Localized: "O equipamento fica pronto 4% mais r\xE1pido por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156366
+    m_Localized: "T\xEAmpera"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156367
+    m_Localized: "O equipamento novo dura 10% mais por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156368
+    m_Localized: "Armadura refor\xE7ada"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156369
+    m_Localized: "Quem veste armadura recebe 2% menos dano por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156370
+    m_Localized: Ferramentas afiadas
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156371
+    m_Localized: "Quem usa ferramenta cava 3% mais r\xE1pido por n\xEDvel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156372
+    m_Localized: Armas balanceadas
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156373
+    m_Localized: "Quem empunha arma d\xE1 4% mais dano por n\xEDvel"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -22,9 +22,9 @@ namespace Fabula.Incrementant.Tests
             }
             // 65 do documento 39 + R2 (pedido do desenvolvedor em 2026-10-20, KI-045) + K0 e W0 (classes de 2026-10-21) + a
             // fazenda de pulgões (A0, A1), os depósitos de areia (D6) e de cogumelos (D7) e a fazendeira (Z0, Z1), de 2026-10-22.
-            Assert.AreEqual(74, chambers);
+            Assert.AreEqual(79, chambers); // + V0, V1, Y0, Y1, Y2 (minérios e forja, 2026-10-23)
             // 38 do documento 39 + as 6 de área pintável e a de salas extras (KI-043) + A+1, A+2, A+3 e Z+1 (2026-10-22).
-            Assert.AreEqual(49, galleries);
+            Assert.AreEqual(55, galleries); // + V+1, Y+1, Y+2, O+4, E+4, S+5
         }
 
         [Test]

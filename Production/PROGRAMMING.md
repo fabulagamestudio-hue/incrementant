@@ -92,7 +92,8 @@ Protótipo de viabilidade do formigário implementado: grade de pixels com físi
 | PRG-077 | Preenchimento vertical dos depósitos: pilha de itens iguais por célula, capacidade por depósito, vagas e contas em itens, save e desenho (etapa 2 do REQ-072) | VERIFIED | UNDEFINED | [StorageGuide.md](../Assets/Project/Scripts/Runtime/Colony/StorageGuide.md) ("Pilha por célula"); `StorageStackTests` (7) e suíte EditMode 482/482; Play Mode pelo agente em 2026-10-23 | REQ-072, PRG-076 | 2026-10-23 |
 | PRG-078 | Árvore de evolução em níveis, etapa 1 (dados): domínio e nível do formigueiro de cada nó, colunas e testes | VERIFIED | UNDEFINED | [UpgradeCatalog.cs](../Assets/Project/Scripts/Runtime/Upgrades/UpgradeCatalog.cs); suíte EditMode 489/489 em 2026-10-23 | REQ-073, GD-014 | 2026-10-23 |
 | PRG-079 | Árvore de evolução em níveis, etapa 2 (layout e tela): formigueiro numa tela só, colunas por domínio, faixas por nível, galeria e ligações entre colunas só na seleção | VERIFIED | UNDEFINED | [SkillTreeScreen.cs](../Assets/Project/Scripts/Runtime/UI/SkillTreeScreen.cs), [UpgradeLayout.cs](../Assets/Project/Scripts/Runtime/Upgrades/UpgradeLayout.cs); suíte EditMode 490/490 e Play Mode pelo agente em 2026-10-23 | REQ-073, GD-014, PRG-078 | 2026-10-23 |
-| PRG-080 | Árvore de evolução em níveis, etapa 3: compra dos nós da rainha pela regra única (nível, condição e requisitos do catálogo) | IMPLEMENTED | UNDEFINED | [AntColony.cs](../Assets/Project/Scripts/Runtime/Colony/AntColony.cs) (`CheckBuy`, `GateBlock`); suíte EditMode 489/493 antes de ajustar os testes antigos; falta a rodada final na Unity | REQ-073, GD-014, PRG-079 | 2026-10-23 |
+| PRG-080 | Árvore de evolução em níveis, etapa 3: compra dos nós da rainha pela regra única (nível, condição e requisitos do catálogo) | VERIFIED | UNDEFINED | [AntColony.cs](../Assets/Project/Scripts/Runtime/Colony/AntColony.cs) (`CheckBuy`, `GateBlock`); suíte EditMode 493/493 em 2026-10-23 | REQ-073, GD-014, PRG-079 | 2026-10-23 |
+| PRG-081 | Árvore de evolução em níveis, etapa 4: nós de Minérios e Forja (câmaras V0, V1, Y0, Y1, Y2 que liberam os pincéis; galerias V+1, Y+1, Y+2) e as galerias de nível 5 O+4, E+4 e S+5 | IMPLEMENTED | UNDEFINED | [UpgradeCatalog.cs](../Assets/Project/Scripts/Runtime/Upgrades/UpgradeCatalog.cs), [UpgradeEffects.cs](../Assets/Project/Scripts/Runtime/Upgrades/UpgradeEffects.cs), [AntColony.Workshop.cs](../Assets/Project/Scripts/Runtime/Colony/AntColony.Workshop.cs); `WorkshopUpgradeTests` (8 testes novos); suíte EditMode 501/501 em 2026-10-23; colunas Minérios e Forja vistas em Play Mode pelo agente | REQ-073, REQ-071, GD-014, PRG-075, PRG-080 | 2026-10-23 |
 
 ## Detalhes
 
@@ -377,6 +378,15 @@ Evidências:
 
 Pendente: rodar `GalleryTests`, `QueenTreeTests` e `FarmTests` na Unity (precisam dela) e conferir em Play Mode.
 
+
+### PRG-081 — Árvore de evolução em níveis, etapa 4 (minérios e forja)
+
+Pedido do desenvolvedor em 2026-10-23: "Podemos fazer as evoluções para incluir forjas e criação de armaduras e ferramentas". Decisões dele: os pincéis do depósito de minério, da fundição, da forja e dos dois armazéns viram câmaras pagas, e entram os dois domínios e as três galerias do nível 5.
+- Câmaras `V0` (depósito de minério) e `V1` (fundição) no nível 4; `Y0` (forja), `Y1` (armazém de ferramentas e armas) e `Y2` (armazém de roupas e armaduras) no nível 5. Cada uma libera o pincel (`AntFarmGame.IsBrushUnlocked`); sala já pintada num save continua funcionando.
+- Galerias `V+1` (tempo da barra), `Y+1` (tempo do equipamento) e `Y+2` (durabilidade); no nível 5 dos domínios de quem usa o equipamento, `O+4` (armadura), `E+4` (ferramenta) e `S+5` (arma). Efeitos em `UpgradeEffects`, aplicados em `AntColony.Workshop`.
+- `RingDepth` ganhou o anel 5 (profundidade 100); catálogo com 134 nós (79 câmaras, 55 galerias); textos pt-BR e en; HUD e tabelas de localização regerados.
+- Custos e efeitos são suposições do agente. As condições "1º minério cavado" e "1ª barra fundida" do documento 46 não foram implementadas (pediriam um contador no save). Guia: [UpgradesGuide](../Assets/Project/Scripts/Runtime/Upgrades/UpgradesGuide.md), [WorkshopGuide](../Assets/Project/Scripts/Runtime/Colony/WorkshopGuide.md).
+- Não visto: compra das câmaras e das galerias pela tela, e o efeito de cada galeria em jogo real (só pelos testes).
 ## Riscos e bloqueios
 
 - PRG-070 — O ataque só termina quando o pulgão preto morre; preso num bolsão que as formigas não alcançam, ele segura o ataque (KI-058).

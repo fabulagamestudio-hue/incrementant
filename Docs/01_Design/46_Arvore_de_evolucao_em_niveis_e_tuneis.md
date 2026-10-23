@@ -205,21 +205,35 @@ D1 e D+1 são o lugar natural da pilha por célula do REQ-072 (o nome e o efeito
 
 ### Minérios (domínio novo; REQ-071)
 
-Hoje o depósito de minério e a fundição são pincéis livres, e não há nó nenhum. Proposta (**suposição**, custos a definir):
+**Feito em 2026-10-23** (etapa 4). Os pincéis do depósito de minério e da fundição eram livres e passaram a ser liberados por câmaras pagas (decisão do desenvolvedor no mesmo dia). Custos e efeitos são **suposições** do agente, a aprovar.
 
-| Nível | Nós |
-|---|---|
-| 4 | Depósito de minério (C, i) · Fundição (C) · Fundição rápida (G: tempo da barra) |
+| Nível | Nó | Custo | Requisito | Efeito |
+|---|---|---|---|---|
+| 4 | V0 Depósito de minério (C) | 1200 | D0 | libera o pincel do depósito de minério |
+| 4 | V1 Fundição (C) | 1800 | V0 | libera o pincel da fundição |
+| 4 | V+1 Fundição rápida (G, teto 10) | 400 | V1 | a barra fica pronta 5% mais rápido por nível (base 20 s) |
 
 ### Forja (domínio novo; REQ-071)
 
-Proposta (**suposição**, custos a definir):
+**Feito em 2026-10-23** (etapa 4), com custos e efeitos **suposição** do agente. Os ids usam as letras livres: **V** (veios) para Minérios e **Y** para a Forja.
 
-| Nível | Nós |
-|---|---|
-| 5 | Forja (C) · Armazém de ferramentas e armas (C) · Armazém de roupas e armaduras (C) · Forja rápida (G: tempo do equipamento) · Têmpera (G: durabilidade) |
+| Nível | Nó | Custo | Requisito | Efeito |
+|---|---|---|---|---|
+| 5 | Y0 Forja (C) | 3500 | V1 | libera o pincel da forja |
+| 5 | Y1 Armazém de ferramentas e armas (C) | 2500 | Y0 | libera o pincel do armazém |
+| 5 | Y2 Armazém de roupas e armaduras (C) | 2500 | Y0 | libera o pincel do armazém |
+| 5 | Y+1 Forja rápida (G, teto 10) | 600 | Y0 | o equipamento fica pronto 4% mais rápido por nível (base 30 s) |
+| 5 | Y+2 Têmpera (G, teto 10) | 700 | Y0 | o equipamento novo dura 10% mais por nível |
 
-Os ids dos nós novos seguem a convenção do catálogo e são escolhidos na implementação, sem reaproveitar letras em uso.
+### Nível 5 nos domínios de quem usa o equipamento
+
+| Domínio | Nó | Custo | Requisito | Efeito (teto 10 níveis) |
+|---|---|---|---|---|
+| Formigas | O+4 Armadura reforçada (G) | 800 | Y2 | quem veste armadura recebe 2% menos dano por nível |
+| Escavação | E+4 Ferramentas afiadas (G) | 800 | Y1 | quem usa ferramenta cava 3% mais rápido por nível |
+| Guarda | S+5 Armas balanceadas (G) | 900 | Y1 | quem empunha arma dá 4% mais dano por nível |
+
+As condições do mundo "1º minério cavado" e "1ª barra fundida" **não foram implementadas** (pediriam um contador novo no save): o nível 4 e o 5 abrem pela profundidade (50 e 100) e a cadeia V0 → V1 → Y0 faz o resto.
 
 ## Tela
 
@@ -257,13 +271,13 @@ Uma regra só para todos os nós: nível aberto, condição do mundo, requisitos
    - zoom em duas leituras e ligações só na seleção;
    - remontar o HUD.
 3. **Compra unificada** por `UpgradeBoard.Unlockable` (**feito em 2026-10-23**). Os nós da rainha também passam pelo nível, pela condição e pelos requisitos do catálogo (`AntColony.CheckBuy`). Mudanças para o jogador: as melhorias de classe no nível 2 esperam profundidade 5; Q2 e N0 pedem a câmara B0 (50 N); J1 pede C1; E2 (quebrar rocha) pede T+2 no nível 3.
-4. **Nós novos:** Minérios, Forja e os nós de nível 5 de Formigas, Escavação e Guarda, com custos e efeitos aprovados.
+4. **Nós novos:** Minérios, Forja e os nós de nível 5 de Formigas, Escavação e Guarda. **Feito em 2026-10-23**, com custos e efeitos assumidos (a aprovar).
 
 ## Em aberto
 
 - Limite de profundidade do nível 5 (100 é suposição).
 - Ordem das colunas.
-- Nós, custos e efeitos dos domínios Minérios e Forja e dos nós de nível 5.
-- Se os pincéis do depósito de minério e da fundição continuam livres ou viram câmaras pagas.
+- Aprovar os custos e os efeitos dos nós de Minérios, Forja e do nível 5 (hoje suposições do agente).
+- As condições do mundo "1º minério cavado" e "1ª barra fundida" dos salões (não implementadas).
 - Pilha por célula do REQ-072 em D1/D+1: quais depósitos e que tamanho.
 - Abrir a tela continua sem pausar o jogo (seção 34).

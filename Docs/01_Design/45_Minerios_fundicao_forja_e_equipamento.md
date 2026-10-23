@@ -106,7 +106,7 @@ Em 2026-10-23 foram implementadas as três etapas, com os números deste documen
 
 - Os números marcados como suposição.
 - O fruto da fruteira.
-- O lugar da fundição e da forja na árvore de melhorias.
+- Aprovar os custos e efeitos dos nós de minérios e forja da árvore (documento 46; os pincéis viraram câmaras pagas em 2026-10-23).
 - O que acontece com o excesso de barras.
 - Se as roupas, diferentes da armadura, terão uso próprio para as operárias (proteção contra a chuva, por exemplo).
 

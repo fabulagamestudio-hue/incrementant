@@ -75,6 +75,15 @@ namespace Fabula.Incrementant.Upgrades
         /// <summary>Z+1: velocidade da fazendeira.</summary>
         public float FarmerSpeedRate;
 
+        // ---- minérios, forja e equipamento (REQ-071)
+        /// <summary>V0, V1, Y0, Y1, Y2: libera o pincel do depósito de minério, da fundição, da forja e dos dois armazéns.</summary>
+        public bool OreStoreUnlocked, SmelterUnlocked, ForgeUnlocked, ArmoryUnlocked, WardrobeUnlocked;
+        /// <summary>V+1 e Y+1: fator sobre o tempo da barra e do equipamento. Y+2: fator sobre a durabilidade do equipamento novo.</summary>
+        public float SmeltTime, ForgeTime, EquipDurability;
+        /// <summary>E+4: fator sobre o tempo de cavar de quem tem ferramenta. S+5: fator sobre o dano de quem tem arma.
+        /// O+4: fator sobre o dano recebido de quem tem armadura.</summary>
+        public float SharpToolTime, WeaponDamageBoost, ArmorTakenBoost;
+
         public int PaintCellsBonus(PaintRoom room)
         {
             switch (room)
@@ -174,6 +183,18 @@ namespace Fabula.Incrementant.Upgrades
             AphidBreedTime = Owns("A1") ? 0.5f : 1f;
             MilkTime = M("A+2");
             FarmerSpeedRate = M("Z+1");
+
+            OreStoreUnlocked = Owns("V0");
+            SmelterUnlocked = Owns("V1");
+            ForgeUnlocked = Owns("Y0");
+            ArmoryUnlocked = Owns("Y1");
+            WardrobeUnlocked = Owns("Y2");
+            SmeltTime = M("V+1");
+            ForgeTime = M("Y+1");
+            EquipDurability = M("Y+2");
+            SharpToolTime = M("E+4");
+            WeaponDamageBoost = M("S+5");
+            ArmorTakenBoost = M("O+4");
         }
     }
 }

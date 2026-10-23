@@ -18,6 +18,9 @@ Testes: `Tests/EditMode/OreTests.cs`, `WorkshopTests.cs` e `LooseOreFallTests.cs
 
 ## O que o jogador vê
 
+- **Pincéis bloqueados até comprar a câmara em Evolução** (2026-10-23, documento 46, etapa 4): depósito de minério (**V0**), fundição (**V1**), forja (**Y0**), armazém de ferramentas e armas (**Y1**) e armazém de roupas e armaduras (**Y2**), nos níveis 4 e 5 do formigueiro. Sala já pintada num save continua funcionando; só o pincel fica bloqueado (`AntFarmGame.IsBrushUnlocked`, `AntColony.OreStoreUnlocked`/`SmelterUnlocked`/`ForgeUnlocked`/`ArmoryUnlocked`/`WardrobeUnlocked`, lidos de `UpgradeEffects`).
+- **Galerias:** **V+1** encurta o tempo da barra e **Y+1** o do equipamento (`Effects.SmeltTime`, `ForgeTime`, aplicados em `TickSmelter`/`TickForge`); **Y+2** aumenta a durabilidade do equipamento novo (`EquipDurability`, em `TryPickEquip`); **E+4**, **S+5** e **O+4** reforçam ferramenta, arma e armadura (`SharpToolTime`, `WeaponDamageBoost`, `ArmorTakenBoost`, em `ToolFactor`, `WeaponFactor` e `ArmorFactor`). Sem compra, todos os fatores valem 1.
+
 - **Veios:** cavando para baixo, aparecem bolsões de minério de uns 10 a 15 células, em três metais:
   - cobre (laranja), raso;
   - ferro (vermelho-escuro), no meio;
@@ -132,4 +135,4 @@ Pedido do desenvolvedor em 2026-10-23: "adicionar física quando não estiverem 
 - Ícones da HUD: os botões do depósito de minério, da fundição, da forja e dos dois armazéns usam `Art/UI/Sprites/icons/equip_*` (40 × 40, gerados por `Art/UI/Source~/hud_equip_icons.py`; índices 17 a 21 de `brushIcons` em `AntFarmHudSetup`). Não há ícone para ferramenta, arma e armadura soltas: a HUD não mostra esses itens.
 - Sprite da formiga equipada: as camadas existem em `Art/Ants/Equipamento` (ver [README de Art/Ants](../../../Art/Ants/README.md)), e o `AntSwarmView` as desenha sobre a formiga que veste o item (`Ant.Tool`/`Weapon`/`Armor`). Falta só o ícone da HUD. O equipamento solto ou na boca usa os sprites `Art/Ants/Item_<Metal><Tipo>` (8 × 8), não as linhas 27 a 35 do atlas.
 - O equipamento não vai para o save.
-- Sem lugar na árvore de melhorias.
+- Os custos e efeitos dos nós da árvore são suposições do agente (documento 46).

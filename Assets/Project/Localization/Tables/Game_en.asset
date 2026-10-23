@@ -3556,6 +3556,121 @@ MonoBehaviour:
     m_Localized: NOT ENOUGH DEPTH FOR THIS LEVEL
     m_Metadata:
       m_Items: []
+  - m_Id: 1817226948767744
+    m_Localized: 'Ore storage: locked until you buy the Ore storage chamber in Evolution.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226952962048
+    m_Localized: 'Smelter: locked until you buy the Smelter chamber in Evolution.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226952962049
+    m_Localized: 'Forge: locked until you buy the Forge chamber in Evolution.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226952962050
+    m_Localized: 'Tools and weapons storage: locked until you buy its chamber in
+      Evolution.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226952962051
+    m_Localized: 'Clothing and armor storage: locked until you buy its chamber in
+      Evolution.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156352
+    m_Localized: Ore storage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156353
+    m_Localized: Unlocks the ore storage brush, where the dug copper, iron and gold
+      are kept
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156354
+    m_Localized: Smelter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156355
+    m_Localized: 'Unlocks the smelter brush: ore with leaf litter becomes a bar of
+      the same metal'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156356
+    m_Localized: Fast smelting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156357
+    m_Localized: Bars are ready 5% faster per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156358
+    m_Localized: Forge
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156359
+    m_Localized: 'Unlocks the forge brush: two bars of the same metal become the
+      tool, weapon or armor that is most needed'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156360
+    m_Localized: Tools and weapons storage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156361
+    m_Localized: Unlocks the storage brush where diggers and workers fetch their
+      tool, and soldiers and spitters their weapon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156362
+    m_Localized: Clothing and armor storage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156363
+    m_Localized: Unlocks the storage brush where soldiers and spitters fetch their
+      armor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156364
+    m_Localized: Fast forging
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156365
+    m_Localized: Equipment is ready 4% faster per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156366
+    m_Localized: Tempering
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156367
+    m_Localized: New equipment lasts 10% longer per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156368
+    m_Localized: Reinforced armor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156369
+    m_Localized: Ants wearing armor take 2% less damage per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156370
+    m_Localized: Sharpened tools
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156371
+    m_Localized: Ants using a tool dig 3% faster per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156372
+    m_Localized: Balanced weapons
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1817226957156373
+    m_Localized: Ants wielding a weapon deal 4% more damage per level
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
