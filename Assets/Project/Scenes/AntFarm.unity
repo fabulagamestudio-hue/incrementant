@@ -140134,6 +140134,28 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 4585ffa00d84c6546b4f9a74ae7b4696, type: 3}
   - {fileID: 21300000, guid: dcfa609024fab3c4ca852e589f36484f, type: 3}
   - {fileID: 21300000, guid: f584754ea2b710b498446ac046acdcb6, type: 3}
+  _roleEquip:
+  - Role: 6
+    Walk:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 21300000, guid: e93f8a9e28badb445a156394c862cd07, type: 3}
+    - {fileID: 21300000, guid: e11831dc35aefdc46b636434686003ab, type: 3}
+    - {fileID: 21300000, guid: 4ad6c85509cb2eb49a8ba4e9f7145272, type: 3}
+    Top:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 21300000, guid: 13ad5d8f100f6bd46ac86b9655401775, type: 3}
+    - {fileID: 21300000, guid: 0be636c34ae1b9c42bf0911dd5cf3500, type: 3}
+    - {fileID: 21300000, guid: fd431bb32b460cf478d9ec3c0e8377e0, type: 3}
   _queenScale: 2
   _layBarHeight: 3
   _layBarWidth: 8

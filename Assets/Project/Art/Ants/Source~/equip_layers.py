@@ -44,6 +44,25 @@ TOP = {
                       9: "...........oddmoddmmo", 10: "...........ooooo.oooo"}),
 }
 
+def put(d, y, x, text):
+    """Escreve text na linha y a partir da coluna x (para montar camadas por papel)."""
+    r = d.get(y, "." * 24).ljust(24, ".")
+    d[y] = r[:x] + text + r[x + len(text):]
+
+def soldier_armor():
+    """Armadura do soldado (cabeção): placa no tórax como a padrão, mais um capacete que cobre só o alto da cabeça
+    em vez da placa de rosto, que atravessava o cabeção. Camadas em Equipamento/<Metal>/Armadura/Soldado/."""
+    side = {}
+    put(side, 8, 10, "ooo"); put(side, 9, 9, "ollmo"); put(side, 10, 9, "odddo"); put(side, 11, 10, "ooo")
+    put(side, 4, 16, "ooooo"); put(side, 5, 15, "ollllmo"); put(side, 6, 15, "oddddmo"); put(side, 7, 15, "od")
+    top = {}
+    put(top, 6, 11, "ooooo"); put(top, 7, 11, "olllo"); put(top, 8, 11, "ollmo"); put(top, 9, 11, "oddmo"); put(top, 10, 11, "ooooo")
+    for y, t in ((4, ".ooo"), (5, "ollmo"), (6, "ollmo"), (7, "olmmo"), (8, "olmmo"), (9, "odmmo"), (10, "oddmo"), (11, ".ooo")):
+        put(top, y, 15, t)
+    return rows(side), rows(top)
+
+ROLE_ARMOR = {"Soldado": soldier_armor}
+
 def layer(grid, ramp):
     pal = {"o": OUTLINE, "d": ramp[0], "m": ramp[1], "l": ramp[2]}
     im = Image.new("RGBA", (24, 16), (0, 0, 0, 0))
@@ -63,6 +82,13 @@ def main():
                 d = OUT + metal + "/" + kind + "/"
                 os.makedirs(d, exist_ok=True)
                 im.save(d + "Ant_%s_0.png" % view)
+    for metal, ramp in METALS.items():
+        for role, build in ROLE_ARMOR.items():
+            side, top = build()
+            d = OUT + metal + "/Armadura/" + role + "/"
+            os.makedirs(d, exist_ok=True)
+            layer(side, ramp).save(d + "Ant_Walk_0.png")
+            layer(top, ramp).save(d + "Ant_Top_0.png")
     if "--sheet" in sys.argv:
         sheet(layers, sys.argv[sys.argv.index("--sheet") + 1])
 

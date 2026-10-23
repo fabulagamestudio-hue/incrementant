@@ -84,6 +84,8 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField] Sprite[] _equipWalk = new Sprite[0];
         [Tooltip("As mesmas 9 camadas, vista de cima.")]
         [SerializeField] Sprite[] _equipTop = new Sprite[0];
+        [Tooltip("Camadas próprias de um papel, no lugar das gerais quando o papel tem corpo diferente (ex.: o capacete do soldado, de cabeção). Posição vazia = usa a geral.")]
+        [SerializeField] RoleEquip[] _roleEquip = new RoleEquip[0];
         [Tooltip("Tamanho da rainha em relação às formigas (mesmos quadros, escalados).")]
         [SerializeField, Min(1f)] float _queenScale = 2f;
 
@@ -100,6 +102,15 @@ namespace Fabula.Incrementant.AntFarm
         /// <summary>Quadros de um papel: caminhada de lado e vista de cima, virados para a direita.</summary>
         [System.Serializable]
         public sealed class RoleArt
+        {
+            public AntRole Role;
+            public Sprite[] Walk;
+            public Sprite[] Top;
+        }
+
+        /// <summary>Camadas de equipamento de um papel: as mesmas 9 posições de <c>_equipWalk</c> e <c>_equipTop</c>, com null onde vale a geral.</summary>
+        [System.Serializable]
+        public sealed class RoleEquip
         {
             public AntRole Role;
             public Sprite[] Walk;
@@ -438,9 +449,9 @@ namespace Fabula.Incrementant.AntFarm
             visual.Body.sprite = frames[frame % frames.Length];
             if (!visual.IsQueen)
             {
-                UpdateEquipLayer(visual, 0, ant.Tool, topView);
-                UpdateEquipLayer(visual, 1, ant.Weapon, topView);
-                UpdateEquipLayer(visual, 2, ant.Armor, topView);
+                UpdateEquipLayer(visual, 0, ant.Tool, topView, ant.Role);
+                UpdateEquipLayer(visual, 1, ant.Weapon, topView, ant.Role);
+                UpdateEquipLayer(visual, 2, ant.Armor, topView, ant.Role);
             }
 
             bool delivering = ant.State == AntState.Delivering;
@@ -486,7 +497,7 @@ namespace Fabula.Incrementant.AntFarm
         /// Camada do equipamento vestido (REQ-071): mesmo canvas e pivô do corpo, então basta herdar a rotação do pai e o espelho.
         /// O corpo não muda entre os quadros de caminhada, por isso uma camada por vista serve para todos.
         /// </summary>
-        void UpdateEquipLayer(AntVisual visual, int slot, CellMaterial item, bool topView)
+        void UpdateEquipLayer(AntVisual visual, int slot, CellMaterial item, bool topView, AntRole role)
         {
             Sprite sprite = null;
             Sprite[] set = topView ? _equipTop : _equipWalk;
@@ -496,6 +507,9 @@ namespace Fabula.Incrementant.AntFarm
                 int index = slot * Equipment.Tiers + tier;
                 if (index < set.Length)
                     sprite = set[index];
+                Sprite[] own = RoleEquipSet(role, topView);
+                if (own != null && index < own.Length && own[index] != null)
+                    sprite = own[index];
             }
 
             SpriteRenderer layer = visual.Equip?[slot];
@@ -518,6 +532,18 @@ namespace Fabula.Incrementant.AntFarm
                 layer.gameObject.SetActive(true);
             layer.sprite = sprite;
             layer.flipX = visual.FlipX;
+        }
+
+        Sprite[] RoleEquipSet(AntRole role, bool topView)
+        {
+            if (_roleEquip == null)
+                return null;
+            for (int i = 0; i < _roleEquip.Length; i++)
+            {
+                if (_roleEquip[i] != null && _roleEquip[i].Role == role)
+                    return topView ? _roleEquip[i].Top : _roleEquip[i].Walk;
+            }
+            return null;
         }
 
         /// <summary>Sprite do minério ou do equipamento carregado (REQ-071), ou null se é outra coisa ou falta o sprite dele.</summary>

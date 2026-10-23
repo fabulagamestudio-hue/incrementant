@@ -211,20 +211,37 @@ namespace Fabula.Incrementant.EditorTools.Setup
             SetSprites(antsView.FindProperty("_equipItemSprites"), LoadEquipItems());
             SetSprites(antsView.FindProperty("_equipWalk"), LoadEquipLayers("Ant_Walk_0.png"));
             SetSprites(antsView.FindProperty("_equipTop"), LoadEquipLayers(AntSpriteImporter.TopViewPrefix + "0.png"));
+            AssignRoleEquip(antsView.FindProperty("_roleEquip"));
             SetSprites(antsView.FindProperty("_queenWalkFrames"), LoadFrames(AntSpriteImporter.QueenFolder, "Ant_Walk_"));
             SetSprites(antsView.FindProperty("_queenTopFrames"), LoadFrames(AntSpriteImporter.QueenFolder, AntSpriteImporter.TopViewPrefix));
         }
 
         /// <summary>Camadas do equipamento vestido (Art/Ants/Equipamento): ferramenta, arma e armadura, cada uma em cobre, ferro e ouro.</summary>
-        static Sprite[] LoadEquipLayers(string file)
+        /// <param name="roleFolder">Subpasta do papel (ex.: "Soldado") com camadas próprias; null = as gerais. Camada que falta fica null.</param>
+        static Sprite[] LoadEquipLayers(string file, string roleFolder = null)
         {
             string[] kinds = { "Ferramenta", "Arma", "Armadura" };
             string[] metals = { "Cobre", "Ferro", "Ouro" };
+            string sub = roleFolder == null ? "" : roleFolder + "/";
             var layers = new List<Sprite>();
             foreach (string kind in kinds)
                 foreach (string metal in metals)
-                    layers.Add(AssetDatabase.LoadAssetAtPath<Sprite>($"{AntSpriteImporter.AntsFolder}Equipamento/{metal}/{kind}/{file}"));
+                    layers.Add(AssetDatabase.LoadAssetAtPath<Sprite>($"{AntSpriteImporter.AntsFolder}Equipamento/{metal}/{kind}/{sub}{file}"));
             return layers.ToArray();
+        }
+
+        /// <summary>Camadas de equipamento próprias de papéis de corpo diferente (hoje o capacete do soldado, de cabeção).</summary>
+        static void AssignRoleEquip(SerializedProperty list)
+        {
+            (AntRole role, string folder)[] roles = { (AntRole.Soldier, "Soldado") };
+            list.arraySize = roles.Length;
+            for (int i = 0; i < roles.Length; i++)
+            {
+                SerializedProperty entry = list.GetArrayElementAtIndex(i);
+                entry.FindPropertyRelative("Role").enumValueIndex = (int)roles[i].role;
+                SetSprites(entry.FindPropertyRelative("Walk"), LoadEquipLayers("Ant_Walk_0.png", roles[i].folder));
+                SetSprites(entry.FindPropertyRelative("Top"), LoadEquipLayers(AntSpriteImporter.TopViewPrefix + "0.png", roles[i].folder));
+            }
         }
 
         /// <summary>Pasta dos cupins (a arte "formiga inimiga alada" do REQ-027).</summary>
