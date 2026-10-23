@@ -67,8 +67,10 @@ namespace Fabula.Incrementant.Save
         /// (<see cref="AphidBreedTimer"/>); o depósito de areia (5 em <see cref="StorageRoom"/>) e os itens areia e cogumelo não mudam o formato.
         /// 25: reboco de sala construída (<c>PixelGrid.GetLining</c>, <c>RoomLining</c>) nos bits 3-6 de <see cref="Marked"/>.
         /// 26: fome de cada pulgão (<see cref="AphidFed"/>), um bool por pulgão depois de <see cref="AphidBreedTimer"/>.
+        /// 27: itens na pilha de cada célula (<see cref="StoredAmounts"/>, preenchimento vertical do REQ-072), depois de
+        /// <see cref="AphidFed"/>. Antes dela, cada célula com item tem um.
         /// </summary>
-        public const int CurrentVersion = 26;
+        public const int CurrentVersion = 27;
         /// <summary>
         /// Versão mais antiga que ainda carrega (a 2 volta sem sala pintada e com a rainha no ninho; a 2 e a 3 voltam sem
         /// sala de nutrientes e com 0 nutrientes).
@@ -166,6 +168,8 @@ namespace Fabula.Incrementant.Save
         /// </summary>
         public byte[] Stored = Array.Empty<byte>();
         public byte[] StoredShades = Array.Empty<byte>();
+        /// <summary>Versão 27: itens na pilha de cada célula (0 = sem item). Vazio antes: um item por célula com item.</summary>
+        public byte[] StoredAmounts = Array.Empty<byte>();
         /// <summary>Versão 18: galerias com nível (id textual, ex.: "O+1") e os níveis. Vazios antes: nenhuma galeria comprada.</summary>
         public string[] GalleryIds = Array.Empty<string>();
         public int[] GalleryLevels = Array.Empty<int>();
@@ -232,6 +236,7 @@ namespace Fabula.Incrementant.Save
                 StorageRoom = new byte[count],
                 Stored = new byte[count],
                 StoredShades = new byte[count],
+                StoredAmounts = new byte[count],
                 RaidsUnlocked = colony.RaidsUnlocked,
                 RaidsSurvived = colony.RaidsSurvived,
                 QueenStance = (byte)colony.QueenStance,
@@ -274,6 +279,7 @@ namespace Fabula.Incrementant.Save
                 snapshot.StorageRoom[i] = (byte)grid.GetStorageRoom(x, y);
                 snapshot.Stored[i] = grid.GetStored(x, y);
                 snapshot.StoredShades[i] = grid.GetStoredShade(x, y);
+                snapshot.StoredAmounts[i] = (byte)grid.GetStoredAmount(x, y);
             }
 
             var beds = new List<BedRecord>(grid.BedCount);
@@ -369,9 +375,9 @@ namespace Fabula.Incrementant.Save
                     grid.SetStorageRoom(x, y, room, false);
                     grid.SetStorageRoom(x, y, savedRoom, true);
                 }
-                grid.SetStored(x, y, StoredItems.None);
+                grid.ClearStored(x, y);
                 if (Stored.Length != 0 && Stored[i] != StoredItems.None)
-                    grid.SetStored(x, y, Stored[i], StoredShades[i]);
+                    grid.RestoreStored(x, y, Stored[i], StoredShades[i], StoredAmounts.Length != 0 ? Mathf.Max(1, (int)StoredAmounts[i]) : 1);
             }
             // Depois das células: só terra fofa vira canteiro.
             foreach (BedRecord bed in Beds)
@@ -512,6 +518,12 @@ namespace Fabula.Incrementant.Save
                 w.Write(AphidBreedTimer);
                 for (int i = 0; i < Aphids.Length; i++)
                     w.Write(i < AphidFed.Length && AphidFed[i]);
+                // Snapshot lido de um save antigo (sem a pilha): um item em cada célula com item.
+                if (StoredAmounts.Length == Stored.Length)
+                    w.Write(StoredAmounts);
+                else
+                    foreach (byte item in Stored)
+                        w.Write(item != StoredItems.None ? (byte)1 : (byte)0);
             }
         }
 
@@ -693,6 +705,8 @@ namespace Fabula.Incrementant.Save
                                 s.AphidFed[i] = r.ReadBoolean();
                         }
                     }
+                    if (version >= 27)
+                        s.StoredAmounts = ReadBlock(r, count);
                     return s;
                 }
             }

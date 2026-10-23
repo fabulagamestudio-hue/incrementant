@@ -303,6 +303,12 @@ namespace Fabula.Incrementant.Colony
         public float Cooldown;
         public int DigX;
         public int DigY;
+        /// <summary>
+        /// Golpes no bloco (REQ-072): célula (índice) que a formiga está golpeando e o tempo de soltá-la inteira, sem o dano que
+        /// ela já tinha. -1 = nenhuma (planta, mordida de cupim, golpe rápido demais para rachar). Não vai para o save.
+        /// </summary>
+        public int HitCell = -1;
+        public float HitTotal;
         public int DumpTargetX;
         /// <summary>Faixa de despejo escolhida ao pegar o pixel (índice em <see cref="AntColony.DumpStrips"/>; -1 = nenhuma).</summary>
         public int DumpSide = -1;

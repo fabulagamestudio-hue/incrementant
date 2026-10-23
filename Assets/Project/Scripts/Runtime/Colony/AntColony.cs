@@ -2606,6 +2606,8 @@ namespace Fabula.Incrementant.Colony
                 InterruptForCombat(ant);
 
             ant.Cooldown -= deltaTime;
+            if (ant.HitCell >= 0)
+                UpdateHits(ant);
             if (ant.Cooldown > 0f)
                 return;
 
@@ -3483,6 +3485,11 @@ namespace Fabula.Incrementant.Colony
             // Cada célula cavada gasta um uso da ferramenta (documento 45); planta e rocha não.
             if (!rock && !CellMaterials.IsAnyPlant(_grid.Get(ant.DigX, ant.DigY)))
                 WearTool(ant);
+            // Bloco inteiro racha com os golpes (REQ-072); planta em pé e pedaço de planta não.
+            if (!CellMaterials.IsAnyPlant(_grid.Get(ant.DigX, ant.DigY)))
+                StartHits(ant);
+            else
+                ant.HitCell = -1;
         }
 
         /// <summary>Com a mão cheia pela metade, só vale o que é do mesmo tipo do que já se leva (terra com terra, planta com planta).</summary>
@@ -3654,6 +3661,7 @@ namespace Fabula.Incrementant.Colony
                 ant.FacingX = ant.DigX > ant.X ? 1 : -1;
             ant.State = AntState.Gathering;
             ant.Cooldown = CellMaterials.DigSeconds(_grid.Get(ant.DigX, ant.DigY)) * _settings.DigTimeMultiplier * WorkTimeFactor(ant, _grid.Get(ant.DigX, ant.DigY));
+            StartHits(ant);
             // Quem chegou com o pedido de obra já foi contado ao aceitá-lo.
             if (!continuing && ant.Errand != AntErrand.Build)
                 _activeBuilders++;

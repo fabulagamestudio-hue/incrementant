@@ -86,6 +86,7 @@ Melhorias incrementais documentadas (GD-008, REQ-039): o [documento 39](../Docs/
 ### Arte
 
 - **Silhuetas das formigas por papel:** ART-029 verificado: cada papel e a rainha têm traço próprio (coroa, cabeção, chapéu etc.), lixeira branca e fazendeira azul, aprovados pelo desenvolvedor em 2026-10-23.
+- **Rachadura dos blocos:** ART-030 implementado (REQ-072): máscaras provisórias do agente, vistas em Play Mode; falta a avaliação do desenvolvedor.
 - **Equipamento das formigas:** ART-028 verificado (REQ-071): camadas vestidas, nove itens 8 × 8 e cinco ícones de HUD em cobre, ferro e ouro, aprovados pelo desenvolvedor em 2026-10-23 e vistos em Play Mode; barras e minérios do atlas seguem provisórios (ART-027).
 - **Biomas da superfície:** ART-026 em andamento (tiles provisórios de serapilheira, terra adubada e néctar no atlas em 2026-10-23); (REQ-070): lista de arte por bioma (topo, camada rasa, coletáveis, silhueta, fundo, item), argila no subsolo e entrada secundária, no [documento 44](../Docs/02_World_Art_UI/44_Biomas_da_superficie_e_postos_avancados.md); depende da aprovação dos biomas (GD-012).
 - **Kit do graveto:** ART-025 implementado na branch `experimento/arte-8x8` (REQ-069): os gravetos do cenário são montados por peças de 8 px, no tamanho do mundo dos antigos, que saíram; falta a avaliação do desenvolvedor.
@@ -110,6 +111,7 @@ Melhorias incrementais documentadas (GD-008, REQ-039): o [documento 39](../Docs/
 
 ### Programação
 
+- **Rachadura dos blocos:** PRG-076 verificado (REQ-072, etapa 1): golpes, dano na célula e desenho no shader; suíte EditMode 474/475 (falha da máscara corrigida, `BlockCrackTests` 5/5 depois) e Play Mode pelo agente em 2026-10-23. Etapa 2 (preenchimento vertical dos depósitos) em PRG-077, verificado: pilha de itens iguais por célula com capacidade por depósito, save versão 27, suíte EditMode 482/482 e Play Mode; sem o nó da melhoria nas árvores, a capacidade segue 1 no jogo.
 - **Minérios e forja:** PRG-075 implementado (REQ-071): veios, fundição, forja, armazéns e equipamento; suíte EditMode verde, sem Play Mode.
 - **Biomas da superfície:** PRG-074 implementado (REQ-070): Serapilheira à direita e Canteiro de flores à esquerda, com insumos (serapilheira e néctar) e depósitos próprios, folhas que voltam, gotas de néctar, cenário e plantas por bioma; EditMode 457/457 e Play Mode visto pelo agente em 2026-10-23.
 - **Salas construídas:** PRG-071 implementado (REQ-058): slots de reboco, obra das formigas, sala pronta e save versão 25; testado em EditMode e em Play Mode pelo agente, limites em KI-059.
@@ -258,6 +260,7 @@ Melhorias incrementais documentadas (GD-008, REQ-039): o [documento 39](../Docs/
 | REQ-067 | Menu Colônia recuado até o cursor chegar perto, visível no tutorial | IMPLEMENTED | UNDEFINED |
 | REQ-070 | Razão para trabalhar na área externa: biomas laterais com insumos únicos e postos avançados | IN_PROGRESS | UNDEFINED |
 | REQ-071 | Mundo pequeno no molde do Terraria, minérios em veios, fundição, forja e armazéns de equipamento | IN_PROGRESS | UNDEFINED |
+| REQ-072 | Blocos em porcentagem: rachadura na coleta e preenchimento vertical nos depósitos | IMPLEMENTED | UNDEFINED |
 
 Registro completo: [REQUESTS.md](REQUESTS.md)
 
@@ -291,6 +294,7 @@ Registro completo: [REQUESTS.md](REQUESTS.md)
 
 ## Decisões necessárias
 
+- Blocos em porcentagem (REQ-072): lugar da melhoria de tamanho nas árvores de melhoria (árvore incompleta, a trabalhar no futuro pelo desenvolvedor) e quais depósitos a ganham; avaliação da arte da rachadura (ART-030).
 - Minérios e forja (REQ-071, GD-013): aprovar os números do documento 45 e a transformação automática da fundição e da forja; fruto da fruteira; lugar nas melhorias; uso das roupas.
 - Uso da serapilheira e do néctar (REQ-070): adiado pelo desenvolvedor em 2026-10-23; hoje os insumos só se acumulam.
 - Exterior (REQ-070, GD-012): aprovar os biomas, insumos e usos do documento 44; escolher os biomas da demo e o lado de cada um; definir a forma da entrada secundária e a recompensa do ninho de cupins.

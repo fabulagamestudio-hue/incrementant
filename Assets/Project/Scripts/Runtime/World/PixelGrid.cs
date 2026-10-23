@@ -596,6 +596,8 @@ namespace Fabula.Incrementant.World
             _cells[i] = material;
             _shades[i] = shade;
             SetWetnessAt(i, 0);
+            // Material trocado: a rachadura dos golpes some com o bloco que ela rachava.
+            ClearDamageAt(i);
             // A obra é a peça encaixada: trocar o material (cavar, virar lama) desfaz a marca. Quem constrói marca de novo.
             bool wasBuilt = _built[i];
             _built[i] = false;
@@ -1027,6 +1029,9 @@ namespace Fabula.Incrementant.World
                 _chunkDebris[ChunkOf(from)]--;
                 _chunkDebris[ChunkOf(to)]++;
             }
+            // O grão que cai não leva a rachadura (o golpe era no lugar dele); a de quem estava no destino também some.
+            ClearDamageAt(from);
+            ClearDamageAt(to);
             _cells[to] = _cells[from];
             _shades[to] = _shades[from];
             if (_marked[from])

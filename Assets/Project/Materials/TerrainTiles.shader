@@ -43,6 +43,12 @@
 // contorno _OutlineColor, desenhado sobre o fundo (parede do túnel ou fundo de sala): fica "na parede de fundo".
 // Valores a partir de ItemSpriteBase (200) apontam para um sprite de _ItemSprites (8 x 8 cada, lado a lado), desenhado na
 // célula inteira com o alfa dele: o minério solto usa o mesmo sprite da boca da formiga (Art/Ants/Item_*Ore).
+// Rachadura (REQ-072, 2026-10-23): na célula sólida, o R de _CellItems é o estágio da rachadura dos golpes (0 = nenhuma,
+// PixelGrid.GetCrackStage). _CrackSprites tem uma máscara de 8 x 8 por estágio, lado a lado (CrackArt); o texel marcado sai em
+// _OutlineColor, como o contorno, e a máscara é espelhada por célula (hash da posição no mundo).
+// Preenchimento vertical (REQ-072, etapa 2): o G de _CellItems é quanto da altura da célula a pilha de itens ocupa (0..1; cada
+// item ocupa 1/capacidade do depósito, PixelGrid.GetStoredFill). O objeto do atlas cresce de baixo para cima até essa altura,
+// com o contorno no topo dela; o sprite próprio é cortado nela.
 Shader "Incrementant/TerrainTiles"
 {
     Properties
@@ -52,6 +58,8 @@ Shader "Incrementant/TerrainTiles"
         _CellItems ("Item guardado das células (o AntFarmView sobrescreve)", 2D) = "black" {}
         _ItemSprites ("Sprites dos itens com arte própria, lado a lado (o AntFarmView sobrescreve)", 2D) = "clear" {}
         _ItemSpriteCount ("Quantos sprites há em _ItemSprites", Float) = 0
+        _CrackSprites ("Máscaras da rachadura por estágio, lado a lado (o AntFarmView sobrescreve)", 2D) = "clear" {}
+        _CrackStageCount ("Quantos estágios há em _CrackSprites", Float) = 0
         _TileAtlas ("Atlas RGB de materiais (o AntFarmView sobrescreve)", 2D) = "gray" {}
         _MaterialColors ("Referência e média de cada linha do atlas (o AntFarmView sobrescreve)", 2D) = "gray" {}
         _TileCount ("Linhas do atlas (o AntFarmView sobrescreve)", Float) = 33
@@ -128,6 +136,7 @@ Shader "Incrementant/TerrainTiles"
             TEXTURE2D(_CellMaterials); SAMPLER(sampler_CellMaterials);
             TEXTURE2D(_CellItems); SAMPLER(sampler_CellItems);
             TEXTURE2D(_ItemSprites); SAMPLER(sampler_ItemSprites);
+            TEXTURE2D(_CrackSprites); SAMPLER(sampler_CrackSprites);
             TEXTURE2D(_TileAtlas); SAMPLER(sampler_TileAtlas);
             TEXTURE2D(_MaterialColors); SAMPLER(sampler_MaterialColors);
             TEXTURE2D(_OverhangTex); SAMPLER(sampler_OverhangTex);
@@ -137,6 +146,7 @@ Shader "Incrementant/TerrainTiles"
                 float _TileSize;
                 float _TexelsPerCell;
                 float _ItemSpriteCount;
+                float _CrackStageCount;
                 float4 _WindowOrigin;
                 float _DetailStrength;
                 float _BackTileId;
@@ -197,6 +207,13 @@ Shader "Incrementant/TerrainTiles"
             {
                 float2 uv = (cell + 0.5) / _WindowOrigin.zw;
                 return round(SAMPLE_TEXTURE2D_LOD(_CellItems, sampler_CellItems, uv, 0).r * 255.0) - 1.0;
+            }
+
+            // Altura da pilha de itens da célula, de 0 a 1 (REQ-072).
+            float FillAt(float2 cell)
+            {
+                float2 uv = (cell + 0.5) / _WindowOrigin.zw;
+                return SAMPLE_TEXTURE2D_LOD(_CellItems, sampler_CellItems, uv, 0).g;
             }
 
             float MaterialAt(float2 cell)
@@ -780,12 +797,28 @@ Shader "Incrementant/TerrainTiles"
                 float sd = SignedDistanceAt(cell);
                 if (outline && solid && sd > 0 && sd <= 2.0 && SolidOutline(cell, inner))
                     result.rgb = _OutlineColor.rgb;
+                // Rachadura do bloco golpeado: a máscara do estágio, espelhada por célula. Com o zoom aberto, some com a textura.
+                if (solid && fade > 0.5 && _CrackStageCount > 0)
+                {
+                    float stage = ItemAt(cell) + 1.0;
+                    if (stage >= 1 && stage <= _CrackStageCount)
+                    {
+                        float flips = floor(Hash(_WindowOrigin.xy + cell) * 4.0);
+                        float last = _TexelsPerCell - 1;
+                        float2 t = float2(fmod(flips, 2.0) >= 1.0 ? last - inner.x : inner.x, flips >= 2.0 ? last - inner.y : inner.y);
+                        float2 crackUv = (float2((stage - 1) * _TexelsPerCell + t.x, t.y) + 0.5)
+                                         / float2(_CrackStageCount * _TexelsPerCell, _TexelsPerCell);
+                        if (SAMPLE_TEXTURE2D_LOD(_CrackSprites, sampler_CrackSprites, crackUv, 0).a > 0.5)
+                            result.rgb = _OutlineColor.rgb;
+                    }
+                }
                 // Item guardado: objeto com a arte da linha dele sobre o fundo, 1 texel de folga e contorno por dentro. Com o
                 // zoom aberto, a média da linha no lugar da arte, como a terra.
                 if (!solid && !chipped)
                 {
                     float item = ItemAt(cell);
                     float last = _TexelsPerCell - 1;
+                    float fill = FillAt(cell);
                     // Item com sprite próprio (minério solto, 2026-10-23): o mesmo sprite da boca da formiga, célula inteira,
                     // recortado pelo alfa, sobre o fundo e com a luz do vão.
                     float sprite = item - (ItemSpriteBase - 1);
@@ -794,12 +827,16 @@ Shader "Incrementant/TerrainTiles"
                         float2 spriteUv = (float2(sprite * _TexelsPerCell + inner.x, inner.y) + 0.5)
                                           / float2(_ItemSpriteCount * _TexelsPerCell, _TexelsPerCell);
                         half4 spriteTexel = SAMPLE_TEXTURE2D_LOD(_ItemSprites, sampler_ItemSprites, spriteUv, 0);
-                        if (spriteTexel.a > 0.5)
+                        // Pilha mais baixa que a célula: o sprite só aparece até a altura dela.
+                        if (spriteTexel.a > 0.5 && inner.y < round(_TexelsPerCell * fill))
                             result.rgb = spriteTexel.rgb * (data.a < 0.75 ? MapLight(cell, inner, false) : half3(1, 1, 1));
                     }
-                    else if (item >= 0 && all(inner >= 1) && all(inner <= last - 1))
+                    else if (item >= 0 && all(inner >= 1) && inner.x <= last - 1
+                             && inner.y <= max(2.0, round((last - 1) * fill)))
                     {
-                        if (outline && (inner.x == 1 || inner.y == 1 || inner.x == last - 1 || inner.y == last - 1))
+                        // O topo do objeto acompanha a altura da pilha (cheia: a linha last - 1, como antes).
+                        float top = max(2.0, round((last - 1) * fill));
+                        if (outline && (inner.x == 1 || inner.y == 1 || inner.x == last - 1 || inner.y == top))
                             result.rgb = _OutlineColor.rgb;
                         else
                         {

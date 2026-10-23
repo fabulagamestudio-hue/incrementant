@@ -62,6 +62,7 @@ A direção de arte unificada foi aprovada em 2026-10-21 (ART-013): 16 px por c�
 | ART-027 | Minérios, barras e equipamentos no atlas; fundição e forja | IN_PROGRESS | UNDEFINED | Linhas 21 a 35 do [atlas](../Assets/Project/Art/Terrain/README.md), provisórias, geradas por código em 2026-10-23; sprites 8 × 8 do minério solto ([Art/Ants](../Assets/Project/Art/Ants/README.md)), 2026-10-23; a arte do equipamento ficou em ART-028 | REQ-071 | — |
 | ART-028 | Arte do equipamento das formigas: camadas vestidas, 9 itens 8 × 8 e 5 ícones de HUD (cobre, ferro e ouro) | VERIFIED | UNDEFINED | [Art/Ants/README.md](../Assets/Project/Art/Ants/README.md) ("Equipamento das formigas" e "Itens de equipamento"); pranchas [vestidas](../Docs/02_World_Art_UI/Formigas_equipadas_2026-10-23.png), [itens](../Docs/02_World_Art_UI/Itens_equipamento_2026-10-23.png) e [ícones](../Docs/02_World_Art_UI/Icones_HUD_forja_armazens_2026-10-23.png); importação conferida na Unity e vista em Play Mode pelo agente; aprovada pelo desenvolvedor em 2026-10-23 | REQ-071, ART-027, ART-024 | 2026-10-23 |
 | ART-029 | Silhuetas por papel das formigas: rainha com coroa e gáster enorme, soldado com cabeção, cuspideira, coletora, cortadeira, escavadora, cuidadora, jardineira, lixeira (branca) e fazendeira (azul, chapéu de palha) | VERIFIED | UNDEFINED | [Art/Ants/README.md](../Assets/Project/Art/Ants/README.md) ("Variantes de silhueta por papel"); gerador [ant_variants.py](../Assets/Project/Art/Ants/Source~/ant_variants.py); 80 PNGs importados sem erros na Unity, vistos em Play Mode pelo agente (baixa ampliação); aprovado pelo desenvolvedor em 2026-10-23 | ART-014, ART-022 | 2026-10-23 |
+| ART-030 | Rachadura dos blocos golpeados: máscaras 8 × 8 de 4 estágios, na cor do contorno (provisória do agente) | IMPLEMENTED | UNDEFINED | [CrackArt.cs](../Assets/Project/Scripts/Runtime/AntFarm/CrackArt.cs); vista em Play Mode pelo agente em 2026-10-23; sem avaliação do desenvolvedor | REQ-072, PRG-076 | 2026-10-23 |
 
 ## Detalhes
 
@@ -178,6 +179,10 @@ Pedido de REQ-071 ("a arte das formigas que utilizam as ferramentas e as roupas/
 - **Ícones de HUD:** 5 PNGs 40 × 40 (`Art/UI/Sprites/icons/equip_*`) nos botões do depósito de minério, da fundição, da forja e dos dois armazéns.
 
 Validação: importação conferida na Unity, console sem erros e Play Mode pelo agente (camadas lateral e superior, itens na grade e na boca, ícones da fundição, da forja e do depósito de minério; os dois armazéns ficaram abaixo da janela de teste). Suíte EditMode não rodada. O equipamento vindo da forja não foi exercitado com este visual. Guias: [Art/Ants](../Assets/Project/Art/Ants/README.md), [AntFarmGuide](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md), [WorkshopGuide](../Assets/Project/Scripts/Runtime/Colony/WorkshopGuide.md).
+
+### ART-030 — Rachadura dos blocos golpeados
+
+Arte provisória feita pelo agente em 2026-10-23 (REQ-072): quatro máscaras 8 × 8 desenhadas em texto em `CrackArt.cs`, cada uma contendo a anterior, pintadas pelo shader com o preto do contorno e espelhadas por célula. Falta a avaliação do desenvolvedor (forma, cor, se cada material deve ter a sua). Como trocar: [AntFarmGuide.md](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md) ("Rachadura dos blocos").
 
 ## Riscos e bloqueios
 

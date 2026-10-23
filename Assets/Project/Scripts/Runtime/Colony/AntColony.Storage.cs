@@ -222,7 +222,7 @@ namespace Fabula.Incrementant.Colony
             _takeFields[k] ??= new FlowField(_grid.Width, _grid.Height, _fieldScratch);
             _sources.Clear();
             _buildSources.Clear();
-            int reservedFree = 0;
+            int reservedFree = 0, free = 0, stock = 0;
             RectInt area = _grid.Active;
             int cxMin = area.xMin >> PixelGrid.ChunkShift, cxMax = (area.xMax - 1) >> PixelGrid.ChunkShift;
             int cyMin = area.yMin >> PixelGrid.ChunkShift, cyMax = (area.yMax - 1) >> PixelGrid.ChunkShift;
@@ -241,34 +241,58 @@ namespace Fabula.Incrementant.Colony
                     if (_grid.GetStorageRoom(x, y) != kind || !_walkability.IsWalkable(x, y))
                         continue;
                     byte item = _grid.GetStored(x, y);
-                    if (item != StoredItems.None)
+                    if (item != StoredItems.None && StoredItems.KindOf(item) == kind)
                     {
-                        if (StoredItems.KindOf(item) == kind)
-                            _buildSources.Add(_grid.ToIndex(x, y));
+                        _buildSources.Add(_grid.ToIndex(x, y));
+                        stock += _grid.GetStoredAmount(x, y);
                     }
-                    else if (IsPutSpot(x, y, kind))
+                    // Com pilha (REQ-072), a célula com item ainda pode ter vaga para mais um igual: conta o que falta nela.
+                    if (IsPutSpot(x, y, kind))
                     {
+                        int room = item == StoredItems.None ? _grid.ItemsPerCell(kind) : _grid.ItemsPerCell(kind) - _grid.GetStoredAmount(x, y);
                         // A vaga reservada por uma ordem conta como livre (quem vai a ela está em _storeIncoming), mas sai do
                         // campo: as outras formigas descem para outra.
                         if (_slotClaims.Contains(_grid.ToIndex(x, y)))
-                            reservedFree++;
+                            reservedFree += room;
                         else
+                        {
                             _sources.Add(_grid.ToIndex(x, y));
+                            free += room;
+                        }
                     }
                 }
             }
-            _storeFree[k] = _sources.Count + reservedFree;
-            _storeStock[k] = _buildSources.Count;
+            _storeFree[k] = free + reservedFree;
+            _storeStock[k] = stock;
             UpdateField(_putFields[k], _sources);
             UpdateField(_takeFields[k], _buildSources);
             _sources.Clear();
             _buildSources.Clear();
         }
 
-        /// <summary>Vaga livre do depósito: célula dele sem material, item, nutriente nem água, caminhável.</summary>
-        bool IsPutSpot(int x, int y, StorageKind kind) =>
-            _grid.GetStorageRoom(x, y) == kind && !_grid.IsSolid(x, y) && _grid.GetStored(x, y) == StoredItems.None &&
-            !_grid.HasNutrient(x, y) && !_grid.HasWater(x, y) && _walkability.IsWalkable(x, y);
+        /// <summary>
+        /// Vaga livre do depósito: célula dele sem material, nutriente nem água, caminhável, livre ou com uma pilha de item
+        /// do tipo que ainda não a enche (REQ-072). Não diz qual item cabe: só itens iguais dividem a célula
+        /// (<see cref="IsPutSpotFor"/>).
+        /// </summary>
+        bool IsPutSpot(int x, int y, StorageKind kind)
+        {
+            if (_grid.GetStorageRoom(x, y) != kind || _grid.IsSolid(x, y) || _grid.HasNutrient(x, y) || _grid.HasWater(x, y) ||
+                !_walkability.IsWalkable(x, y))
+                return false;
+            byte item = _grid.GetStored(x, y);
+            return item == StoredItems.None || StoredItems.KindOf(item) == kind && _grid.HasStoredRoom(x, y);
+        }
+
+        /// <summary>Vaga do depósito em que o item cabe: livre, ou com uma pilha do mesmo item que ainda não a enche.</summary>
+        bool IsPutSpotFor(int x, int y, StorageKind kind, byte item) =>
+            IsPutSpot(x, y, kind) && _grid.StoredRoomFor(x, y, item) > 0;
+
+        /// <summary>O item que a formiga guarda no depósito do tipo: água, areia, terra fofa ou o que tem na mão.</summary>
+        static byte StockItemOf(Ant ant, StorageKind kind) =>
+            kind == StorageKind.Water ? StoredItems.Water
+            : kind == StorageKind.Sand ? StoredItems.Sand
+            : StoredItems.Of(kind == StorageKind.Blocks ? CellMaterial.Spoil : ant.Carried);
 
         /// <summary>
         /// Item solto: fora do depósito do tipo dele (e fora da área de resíduos, se for resíduo, que se decompõe onde está).
@@ -415,7 +439,7 @@ namespace Fabula.Incrementant.Colony
             FlowField field = _putFields[(int)kind];
             int d = field != null && HasDepot(kind) && !_storeFieldIdle[(int)kind] ? field.Get(ant.X, ant.Y) : FlowField.Unreachable;
             int w = _grid.Width;
-            if (ant.OrderSlot >= 0 && !IsPutSpot(ant.OrderSlot % w, ant.OrderSlot / w, kind))
+            if (ant.OrderSlot >= 0 && !IsPutSpotFor(ant.OrderSlot % w, ant.OrderSlot / w, kind, StockItemOf(ant, kind)))
                 ReleaseSlot(ant);
             if (ant.OrderSlot < 0)
             {
@@ -456,17 +480,18 @@ namespace Fabula.Incrementant.Colony
         {
             if (!TracePath(ant, field, out int x, out int y, out _))
                 return false;
+            byte item = StockItemOf(ant, kind);
             for (int k = -1; k < 8; k++)
             {
                 int tx = k < 0 ? x : x + AntNavigation.Dx[k], ty = k < 0 ? y : y + AntNavigation.Dy[k];
-                if (!_grid.InBounds(tx, ty) || !IsPutSpot(tx, ty, kind) || _slotClaims.Contains(_grid.ToIndex(tx, ty)))
+                if (!_grid.InBounds(tx, ty) || !IsPutSpotFor(tx, ty, kind, item) || _slotClaims.Contains(_grid.ToIndex(tx, ty)))
                     continue;
                 ant.OrderSlot = _grid.ToIndex(tx, ty);
                 ClaimSlot(ant.OrderSlot);
                 return true;
             }
             // Várias chegaram juntas ao mesmo ponto do campo (de antes das reservas): a vaga livre mais perto dali.
-            int slot = NearestFreeSlot(x, y, kind);
+            int slot = NearestFreeSlot(x, y, kind, item);
             int end = ant.SeekLast >= 0 ? ant.SeekLast : _grid.ToIndex(ant.X, ant.Y);
             if (slot < 0 || !AppendPathTo(ant, end, slot, SlotSearchLimit))
             {
@@ -481,8 +506,11 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Teto de células da busca local de vaga livre (<see cref="NearestFreeSlot"/>).</summary>
         const int SlotSearchLimit = 4000;
 
-        /// <summary>Vaga livre e sem dona mais perto de (<paramref name="x"/>, <paramref name="y"/>) andando pelas células caminháveis; -1 = nenhuma.</summary>
-        int NearestFreeSlot(int x, int y, StorageKind kind)
+        /// <summary>
+        /// Vaga livre e sem dona em que <paramref name="item"/> cabe, mais perto de (<paramref name="x"/>, <paramref name="y"/>)
+        /// andando pelas células caminháveis; -1 = nenhuma.
+        /// </summary>
+        int NearestFreeSlot(int x, int y, StorageKind kind, byte item)
         {
             int w = _grid.Width;
             int start = y * w + x;
@@ -496,7 +524,7 @@ namespace Fabula.Incrementant.Colony
             {
                 int i = _floodQueue[head++];
                 int cx = i % w, cy = i / w;
-                if (IsPutSpot(cx, cy, kind) && !_slotClaims.Contains(i))
+                if (IsPutSpotFor(cx, cy, kind, item) && !_slotClaims.Contains(i))
                     return i;
                 for (int k = 0; k < 8; k++)
                 {
@@ -517,7 +545,7 @@ namespace Fabula.Incrementant.Colony
         /// Vaga livre e sem dona mais perto de (<paramref name="x"/>, <paramref name="y"/>) pelo campo das vagas, sem guardar
         /// caminho (a formiga ainda vai buscar o item). -1 = nenhuma.
         /// </summary>
-        int FindFreeSlot(StorageKind kind, int x, int y)
+        int FindFreeSlot(StorageKind kind, int x, int y, byte item)
         {
             FlowField field = _putFields[(int)kind];
             if (field == null || _storeFieldIdle[(int)kind])
@@ -538,10 +566,10 @@ namespace Fabula.Incrementant.Colony
             for (int k = -1; k < 8; k++)
             {
                 int tx = k < 0 ? x : x + AntNavigation.Dx[k], ty = k < 0 ? y : y + AntNavigation.Dy[k];
-                if (_grid.InBounds(tx, ty) && IsPutSpot(tx, ty, kind) && !_slotClaims.Contains(_grid.ToIndex(tx, ty)))
+                if (_grid.InBounds(tx, ty) && IsPutSpotFor(tx, ty, kind, item) && !_slotClaims.Contains(_grid.ToIndex(tx, ty)))
                     return _grid.ToIndex(tx, ty);
             }
-            return NearestFreeSlot(x, y, kind);
+            return NearestFreeSlot(x, y, kind, item);
         }
 
         /// <summary>Trava a vaga do depósito para a ordem de uma formiga; o campo das vagas a tira na próxima rodada.</summary>
@@ -578,19 +606,17 @@ namespace Fabula.Incrementant.Colony
 
         bool TryPutStored(Ant ant, StorageKind kind)
         {
+            byte item = StockItemOf(ant, kind);
             for (int k = -1; k < 8; k++)
             {
                 int x = k < 0 ? ant.X : ant.X + AntNavigation.Dx[k];
                 int y = k < 0 ? ant.Y : ant.Y + AntNavigation.Dy[k];
-                if (!_grid.InBounds(x, y) || !IsPutSpot(x, y, kind))
+                if (!_grid.InBounds(x, y) || !IsPutSpotFor(x, y, kind, item))
                     continue;
                 // Com ordem, só a vaga dela; sem ordem, nunca a vaga de outra.
                 int index = _grid.ToIndex(x, y);
                 if (ant.OrderSlot >= 0 ? index != ant.OrderSlot : _slotClaims.Contains(index))
                     continue;
-                byte item = kind == StorageKind.Water ? StoredItems.Water
-                    : kind == StorageKind.Sand ? StoredItems.Sand
-                    : StoredItems.Of(kind == StorageKind.Blocks ? CellMaterial.Spoil : ant.Carried);
                 _grid.SetStored(x, y, item, kind == StorageKind.Water ? (byte)128 : ant.CarriedShade);
                 Emit(SfxId.Drop, x, y);
                 StoredItemsTotal++;
@@ -778,7 +804,7 @@ namespace Fabula.Incrementant.Colony
                     ant.WaterLoad = 1;
                     ant.ClearSeek();
                     if (ant.Role == AntRole.Carrier)
-                        TakeMoreStored(ant, use, kind, item);
+                        TakeMoreStored(ant, use, kind, item, x, y);
                     // Solto e com depósito de água com vaga: vai para o depósito; senão rega um canteiro.
                     if (use == StoreUse.Loose && TryStartStock(ant, StorageKind.Water))
                         return true;
@@ -787,7 +813,7 @@ namespace Fabula.Incrementant.Colony
                 }
                 ant.PickUp(StoredItems.MaterialOf(item), shade, _grid.ToIndex(x, y));
                 if (ant.Role == AntRole.Carrier)
-                    TakeMoreStored(ant, use, kind, item);
+                    TakeMoreStored(ant, use, kind, item, x, y);
                 switch (use)
                 {
                     case StoreUse.Plant:
@@ -814,30 +840,34 @@ namespace Fabula.Incrementant.Colony
 
         /// <summary>
         /// A carregadora leva mais de cada item (pedido do desenvolvedor em 2026-10-21): depois do primeiro, recolhe os iguais
-        /// a até <see cref="TakeMoreReach"/> células dela (o depósito guarda um item por célula, lado a lado; encostada só no
-        /// primeiro, os outros ficam a 2) até a carga do papel e só o que o destino ainda pede, para não voltar com sobra. Os
-        /// mais perto vêm primeiro; cada item a mais custa o tempo de mais uma pegada.
+        /// da mesma pilha (<paramref name="firstX"/>, <paramref name="firstY"/>, REQ-072) e depois os de até
+        /// <see cref="TakeMoreReach"/> células dela (encostada só no primeiro, os outros ficam a 2), até a carga do papel e só o
+        /// que o destino ainda pede, para não voltar com sobra. Os mais perto vêm primeiro; cada item a mais custa o tempo de
+        /// mais uma pegada.
         /// </summary>
-        void TakeMoreStored(Ant ant, StoreUse use, StorageKind kind, byte item)
+        void TakeMoreStored(Ant ant, StoreUse use, StorageKind kind, byte item, int firstX, int firstY)
         {
             bool water = kind == StorageKind.Water;
             int extra = water ? Mathf.Min(WaterCapacity(ant) - 1, ExtraWanted(use, kind))
                               : Mathf.Min(LoadCapacity(ant) - ant.CarriedCount, ExtraWanted(use, kind));
-            for (int i = 0; i < TakeMoreOffsets.Length && extra > 0; i++)
+            for (int i = -1; i < TakeMoreOffsets.Length && extra > 0; i++)
             {
-                int x = ant.X + TakeMoreOffsets[i].x, y = ant.Y + TakeMoreOffsets[i].y;
+                int x = i < 0 ? firstX : ant.X + TakeMoreOffsets[i].x, y = i < 0 ? firstY : ant.Y + TakeMoreOffsets[i].y;
                 if (!_grid.InBounds(x, y) || _grid.GetStored(x, y) != item)
                     continue;
                 if (use == StoreUse.Loose ? !IsLooseItem(x, y, out _) : _grid.GetStorageRoom(x, y) != kind)
                     continue;
                 byte shade = _grid.GetStoredShade(x, y);
-                _grid.SetStored(x, y, StoredItems.None);
-                if (water)
-                    ant.WaterLoad++;
-                else
-                    ant.PickUp(StoredItems.MaterialOf(item), shade, _grid.ToIndex(x, y));
-                ant.Cooldown += _settings.DropSeconds;
-                extra--;
+                while (extra > 0 && _grid.GetStored(x, y) == item)
+                {
+                    _grid.SetStored(x, y, StoredItems.None);
+                    if (water)
+                        ant.WaterLoad++;
+                    else
+                        ant.PickUp(StoredItems.MaterialOf(item), shade, _grid.ToIndex(x, y));
+                    ant.Cooldown += _settings.DropSeconds;
+                    extra--;
+                }
             }
             // Água para os canteiros: as a mais já contam como levadas, para as outras não buscarem a mesma rega.
             if (water && use == StoreUse.Water)
@@ -936,7 +966,7 @@ namespace Fabula.Incrementant.Colony
             if (_grid.WaterCount - _waterClaims.Count <= 0 || _waterStockFailedAt == SimulationTime)
                 return false;
             // A ordem nasce com as duas pontas travadas: a vaga do depósito e o bloco de água.
-            int slot = FindFreeSlot(StorageKind.Water, ant.X, ant.Y);
+            int slot = FindFreeSlot(StorageKind.Water, ant.X, ant.Y, StoredItems.Water);
             if (slot < 0)
             {
                 // Sem vaga livre (as do depósito já têm dona): a busca desce o campo e varre as vizinhas, e a das outras

@@ -220,13 +220,17 @@ namespace Fabula.Incrementant.AntFarm
         // da CPU) e o material instanciado do shader.
         Texture2D _materialTexture;
         byte[] _materialIds;
-        // Item guardado de cada célula da janela para o shader (R8: linha do atlas + 1, 0 = nenhum), pedido de 2026-10-23: o
-        // item é desenhado com a arte do atlas sobre o fundo, em vez de tingir a célula com a cor chapada.
+        // Item guardado de cada célula da janela para o shader (RG16, 2 bytes por célula), pedido de 2026-10-23: o item é
+        // desenhado com a arte do atlas sobre o fundo, em vez de tingir a célula com a cor chapada. R: linha do atlas + 1, 0 =
+        // nenhum; na célula sólida, o estágio da rachadura (REQ-072). G: quanto da altura da célula a pilha ocupa (0..255 =
+        // 0..1, preenchimento vertical do REQ-072).
         Texture2D _itemTexture;
         byte[] _itemIds;
         // Sprites dos itens com arte própria, lado a lado (_ItemSprites no shader), e quantos há (0 = nenhum, os itens usam o atlas).
         Texture2D _itemSprites;
         int _itemSpriteCount;
+        // Máscaras da rachadura dos blocos golpeados (_CrackSprites no shader, CrackArt), REQ-072.
+        Texture2D _crackSprites;
         /// <summary>Valor de _CellItems a partir do qual o item é um sprite de _ItemSprites (o mesmo ItemSpriteBase do shader).</summary>
         public const int ItemSpriteBase = 200;
         Material _tileInstance;
@@ -254,7 +258,7 @@ namespace Fabula.Incrementant.AntFarm
         bool _cachedHasColony;
         Color32[] _cellColors;
         byte[] _cellTiles;
-        // Item que o shader desenha em cada célula da grade (ver _itemIds).
+        // Item que o shader desenha em cada célula da grade, 2 bytes por célula (ver _itemIds).
         byte[] _cellItems;
         // Luz de cada célula no último desenho do bloco dela (só muda com a forma do terreno e com as fontes, que sobem a
         // versão do bloco: PixelGrid.DirtyShape).
@@ -329,6 +333,10 @@ namespace Fabula.Incrementant.AntFarm
             if (_itemSpriteCount > 0)
                 _tileInstance.SetTexture("_ItemSprites", _itemSprites);
             _tileInstance.SetFloat("_ItemSpriteCount", _itemSpriteCount);
+            if (_crackSprites == null)
+                _crackSprites = CrackArt.CreateTexture();
+            _tileInstance.SetTexture("_CrackSprites", _crackSprites);
+            _tileInstance.SetFloat("_CrackStageCount", CrackArt.StageCount);
             return _tileInstance;
         }
 
@@ -557,8 +565,8 @@ namespace Fabula.Incrementant.AntFarm
                     wrapMode = TextureWrapMode.Clamp,
                 };
                 _tileInstance.SetTexture(CellMaterialsId, _materialTexture);
-                _itemIds = new byte[width * height];
-                _itemTexture = new Texture2D(width, height, TextureFormat.R8, false, true)
+                _itemIds = new byte[2 * width * height];
+                _itemTexture = new Texture2D(width, height, TextureFormat.RG16, false, true)
                 {
                     name = "AntFarmCellItems",
                     filterMode = FilterMode.Point,
@@ -581,7 +589,7 @@ namespace Fabula.Incrementant.AntFarm
                 _cachedHasColony = hasColony;
                 _cellColors = new Color32[grid.Width * grid.Height];
                 _cellTiles = tiles ? new byte[TileBytes * grid.Width * grid.Height] : null;
-                _cellItems = tiles ? new byte[grid.Width * grid.Height] : null;
+                _cellItems = tiles ? new byte[2 * grid.Width * grid.Height] : null;
                 _cellLight = new byte[grid.Width * grid.Height];
                 _cellGlowLight = new bool[grid.Width * grid.Height];
                 _drawnVersion = new int[grid.ChunkColumns * grid.ChunkRows];
@@ -686,7 +694,8 @@ namespace Fabula.Incrementant.AntFarm
             {
                 _cellTiles[TileBytes * index] = tileId;
                 _cellTiles[TileBytes * index + 3] = LightFlags(lit, _cellGlowLight[index]);
-                _cellItems[index] = ShaderItem(grid, x, y, tileId);
+                _cellItems[2 * index] = ShaderItem(grid, x, y, tileId);
+                _cellItems[2 * index + 1] = ShaderFill(grid, x, y);
             }
             LastRedrawnCells++;
         }
@@ -702,7 +711,7 @@ namespace Fabula.Incrementant.AntFarm
                 if (tiles)
                 {
                     System.Array.Copy(_cellTiles, TileBytes * source, _materialIds, TileBytes * wy * _width, TileBytes * _width);
-                    System.Array.Copy(_cellItems, source, _itemIds, wy * _width, _width);
+                    System.Array.Copy(_cellItems, 2 * source, _itemIds, 2 * wy * _width, 2 * _width);
                 }
             }
         }
@@ -736,7 +745,8 @@ namespace Fabula.Incrementant.AntFarm
                                                    + (IsMergeBoundary(grid, x, y) ? MergeFlag : 0));
                         _cellTiles[t + 2] = LightByte(light);
                         _cellTiles[t + 3] = LightFlags(lit, _cellGlowLight[row + lx]);
-                        _cellItems[row + lx] = ShaderItem(grid, x, y, tileId);
+                        _cellItems[2 * (row + lx)] = ShaderItem(grid, x, y, tileId);
+                        _cellItems[2 * (row + lx) + 1] = ShaderFill(grid, x, y);
                     }
                 }
             }
@@ -858,7 +868,7 @@ namespace Fabula.Incrementant.AntFarm
                     color = Darken(NutrientAt(x, y), tunnelLight);
                 byte stored = grid.GetStored(x, y);
                 if (stored != StoredItems.None && !DrawsItemInShader(stored, tileId))
-                    color = StoredAt(color, stored, grid.GetStoredShade(x, y), x, y, tunnelLight);
+                    color = StoredAt(color, stored, grid.GetStoredShade(x, y), x, y, tunnelLight, grid.GetStoredFill(x, y));
                 if (grid.HasWater(x, y))
                     color = WaterOver(color, Darken(grid.HasWater(x, y + 1) ? _waterColor : _waterSurfaceColor, tunnelLight));
             }
@@ -944,15 +954,17 @@ namespace Fabula.Incrementant.AntFarm
         /// parede (a célula continua livre para passar); a água guardada usa a cor da água, com um granulado por posição.
         /// </summary>
         /// <param name="light">Luz já aplicada ao fundo (1 = o shader ilumina): o item recebe a mesma.</param>
-        Color32 StoredAt(Color32 background, byte item, byte shade, int x, int y, float light)
+        /// <param name="fill">Altura da pilha (REQ-072): uma célula da CPU não tem altura, então a pilha mais baixa tinge menos.</param>
+        Color32 StoredAt(Color32 background, byte item, byte shade, int x, int y, float light, float fill)
         {
+            float strength = _storedStrength * Mathf.Lerp(0.5f, 1f, fill);
             if (item == StoredItems.Water)
             {
                 int n = ((x * 19349663) ^ (y * 83492791)) & 15;
                 Color32 water = new Color32((byte)(_waterColor.r + n), (byte)(_waterColor.g + n), (byte)Mathf.Min(255, _waterColor.b + n), 255);
-                return Color32.Lerp(background, Darken(water, light), _storedStrength);
+                return Color32.Lerp(background, Darken(water, light), strength);
             }
-            return Color32.Lerp(background, Darken(CellMaterials.ShadedColor(StoredItems.MaterialOf(item), shade), light), _storedStrength);
+            return Color32.Lerp(background, Darken(CellMaterials.ShadedColor(StoredItems.MaterialOf(item), shade), light), strength);
         }
 
         /// <summary>
@@ -962,17 +974,24 @@ namespace Fabula.Incrementant.AntFarm
         bool DrawsItemInShader(byte item, byte tileId) =>
             _cellTiles != null && item != StoredItems.Water && tileId != CellTileArt.SkyId;
 
-        /// <summary>Valor da célula em <see cref="_itemIds"/>: linha do atlas do item + 1, ou 0.</summary>
+        /// <summary>
+        /// Valor da célula em <see cref="_itemIds"/>: na célula vazia, linha do atlas do item + 1, ou 0; na sólida, o estágio
+        /// da rachadura dos golpes (0 = nenhuma, REQ-072). Item e rachadura nunca estão na mesma célula.
+        /// </summary>
         byte ShaderItem(PixelGrid grid, int x, int y, byte tileId)
         {
             if (grid.IsSolid(x, y))
-                return 0;
+                return (byte)grid.GetCrackStage(x, y);
             byte item = grid.GetStored(x, y);
             if (item == StoredItems.None || !DrawsItemInShader(item, tileId))
                 return 0;
             int sprite = ItemSpriteIndex((CellMaterial)item);
             return sprite >= 0 && sprite < _itemSpriteCount ? (byte)(ItemSpriteBase + sprite) : (byte)(item + 1);
         }
+
+        /// <summary>Altura da pilha de itens da célula para o shader (0..255 = 0..1 da célula); 0 sem item.</summary>
+        static byte ShaderFill(PixelGrid grid, int x, int y) =>
+            (byte)Mathf.RoundToInt(grid.GetStoredFill(x, y) * 255f);
 
         /// <summary>Nutriente pronto: a cor fixa com um leve granulado por posição, para vários juntos não virarem um bloco liso.</summary>
         Color32 NutrientAt(int x, int y)
@@ -1113,6 +1132,8 @@ namespace Fabula.Incrementant.AntFarm
         {
             if (_itemSprites != null)
                 Destroy(_itemSprites);
+            if (_crackSprites != null)
+                Destroy(_crackSprites);
             ReleaseTexture();
             if (_tileInstance != null)
                 Destroy(_tileInstance);

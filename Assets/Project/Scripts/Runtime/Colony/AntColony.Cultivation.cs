@@ -667,6 +667,7 @@ namespace Fabula.Incrementant.Colony
                         ant.FacingX = ant.DigX > ant.X ? 1 : -1;
                     ant.State = AntState.GatheringSoil;
                     ant.Cooldown = CellMaterials.DigSeconds(_grid.Get(ant.DigX, ant.DigY)) * _settings.DigTimeMultiplier * WorkTimeFactor(ant, _grid.Get(ant.DigX, ant.DigY));
+                    StartHits(ant);
                     return;
                 }
                 // Outra formiga levou a terra daqui: espera o campo ser refeito.

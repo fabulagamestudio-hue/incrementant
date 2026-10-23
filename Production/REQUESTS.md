@@ -79,6 +79,7 @@
 | REQ-069 | 2026-10-23 | Graveto montado por peças de 8 px (pontas, casca repetida, nós), no lugar do antigo | ART, PROGRAMMING | UNDEFINED | IMPLEMENTED |
 | REQ-070 | 2026-10-23 | Razão para trabalhar na área externa: biomas laterais com insumos únicos e postos avançados | GAME_DESIGN, ART, PROGRAMMING | UNDEFINED | IN_PROGRESS |
 | REQ-071 | 2026-10-23 | Mundo pequeno no molde do Terraria, minérios em veios, fundição, forja e armazéns de equipamento | GAME_DESIGN, PROGRAMMING, ART | UNDEFINED | IN_PROGRESS |
+| REQ-072 | 2026-10-23 | Blocos em porcentagem: rachadura crescente na coleta e preenchimento vertical nos depósitos (2 itens por célula com melhoria) | GAME_DESIGN, PROGRAMMING, ART | UNDEFINED | IMPLEMENTED |
 
 ## Registros
 
@@ -1360,3 +1361,21 @@
   - 2026-10-23 — IN_PROGRESS: pedido do desenvolvedor: "Deixe os veios mais grossos, em bolsões como no Terraria, e ponha mais ouro no fundo. Não exclua completamente os outros veios no resto do mapa". Feito: veios em bolsões irregulares (uns 10 a 15 células), ouro mais denso perto do fundo e cobre e ferro esparsos abaixo da faixa principal; valores novos no documento 45 e na cena. Conferido pelo agente num mapa do mundo inteiro (seed 1234: cobre 7089, ferro 5540 e ouro 4157 células, 1% da terra); suíte EditMode verde (464).
   - 2026-10-23 — IN_PROGRESS: pedido do desenvolvedor: "Vamos fazer a arte dos mínerios soltos, igual fizemos com a água, e também adicionar física quando não estiverem no depósito ou em uso." Feito: sprites 8 × 8 de cobre, ferro e ouro (`Art/Ants/Item_*Ore`), usados na boca da formiga e na grade; minério fora do depósito de minério e da fundição cai e faz monte (`LooseOreFall`). Suíte EditMode verde (467) e visto pelo agente em Play Mode (monte no chão, minério parado no depósito, sprite na boca).
   - 2026-10-23 — IN_PROGRESS: pedido do desenvolvedor: a arte das formigas que usam ferramentas e roupas/armaduras. Feito em etapas aprovadas por ele (ART-028): prova em ferro, camadas vestidas lateral e superior em cobre, ferro e ouro, nove sprites de item 8 × 8 e cinco ícones de HUD; ligados ao `AntSwarmView`, ao `AntFarmView` e aos botões dos pincéis, vistos em Play Mode pelo agente. Desenvolvedor aprovou camadas, itens e ícones.
+
+### REQ-072 — Blocos em porcentagem: rachadura crescente na coleta e preenchimento vertical nos depósitos
+
+- **Data de registro:** 2026-10-23
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** GAME_DESIGN, PROGRAMMING, ART
+- **Descrição:** Pedido do desenvolvedor: "Precisamos modificar a forma como os blocos em si interagem. Hoje eles funcionam como blocos únicos. Vamos modificar eles para serem uma porcentagem. Para blocos que forem ser coletados, deve-se aparecer uma rachadura crescente baseado no número de \"ataques\" q a formiga da nele, que seria o tempo de coleta. Para colocar dos depósitos e outros locais que eles são posicionados, eles poderão ter uma taxa de preenchimento vertical, onde as formigas vão colocando aos poucos. Assim, blocos que antes foram 100% preenchidos, quando sofrerem o upgrade para ocupar menos espaço serão modificados para 50% do preenchimento, podendo ter 2 ocupando a mesma célula. Avalie o que temos que fazer para tornar isso possível." Avaliação do agente entregue na conversa; sem implementação.
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** —
+- **Itens relacionados:** PRG-076, PRG-077, ART-030
+- **Referências:** [StorageGuide](../Assets/Project/Scripts/Runtime/Colony/StorageGuide.md); [AntFarmGuide](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md) ("Rachadura dos blocos"); [StorageGuide](../Assets/Project/Scripts/Runtime/Colony/StorageGuide.md) ("Pilha por célula")
+- **Decisões do desenvolvedor (2026-10-23):** manter o ritmo da escavação (as melhorias de velocidade tornam a escavação mais eficiente); só blocos inteiros racham, planta não; a melhoria de tamanho é por depósito; a obra segue a recomendação do agente (preenchimento só visual, o bloco vira sólido a 100%); só itens iguais dividem a célula.
+- **Decisões pendentes:** lugar da melhoria de tamanho nas árvores de melhoria (o desenvolvedor vai trabalhar na árvore no futuro: ela está incompleta); quais depósitos ganham a melhoria e com que tamanho; avaliação da arte da rachadura (ART-030).
+- **Histórico:**
+  - 2026-10-23 — PLANNED: pedido registrado e avaliação técnica feita pelo agente, sem implementação.
+  - 2026-10-23 — IN_PROGRESS: respostas do desenvolvedor às decisões e pedido "Pode começar pela etapa 1 (rachaduras)". Etapa 1 feita (PRG-076, ART-030): golpes de 0,1 s, dano na célula em 4 estágios e desenho no shader; suíte EditMode 474/475 (a falha era a própria máscara da rachadura, corrigida; `BlockCrackTests` 5/5 depois), visto pelo agente em Play Mode. Falta a etapa 2 (preenchimento vertical) e a avaliação do desenvolvedor.
+  - 2026-10-23 — IMPLEMENTED: pedido "Pode seguir com a etapa 2 (preenchimento vertical dos depósitos)". Feito (PRG-077): pilha de itens iguais por célula com capacidade por depósito, vagas e contas em itens, save versão 27 e desenho pela altura da pilha; suíte EditMode 482/482 e visto pelo agente em Play Mode. O nó da melhoria nas árvores fica para quando o desenvolvedor trabalhar nelas (árvore incompleta); até lá a capacidade é 1 e nada muda para o jogador.
