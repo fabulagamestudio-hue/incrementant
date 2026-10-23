@@ -167,116 +167,16 @@ MonoBehaviour:
     MinorVersion: 2
     PatchVersion: 0
     ManualVersionSuffix: 
-    Added: 'Colony panel with statistics and settings
-
-      Storage rooms for food,
-      building material, water, sand and mushrooms
-
-      Aphid farm with the new
-      farmer ant: milked aphids give sand, leaves, water and sometimes a glowing
-      mushroom
-
-      Termites can bite aphids into black aphids that attack your
-      ants
-
-      Upgrades bought with nutrients and the colony dependency tree
-
-      New
-      ants: the spitter, a ranged warrior, and the waste keeper
-
-      Guard posts
-      for soldiers during raids
-
-      Waste area modes: turn leaves into water,
-      or dirt into sand and water
-
-      Paint limit for each room type, with area
-      upgrades and a free-area bar
-
-      Built rooms change their look as the ants
-      plaster them
-
-      Deeper lakes and underground water pockets
-
-      Spatial
-      audio: sounds follow the camera position and zoom
-
-      New lighting: light
-      comes in only from outside, tunnels are dim and have a textured back wall
-
-      The
-      build version now shows in the bottom-right corner of every screen
-
-      Click
-      the version to see every release so far and its notes
-
-      A short interface
-      tour opens every new game: it explains the cards, menus and buttons, and you
-      can click anything along the way
-
-      The Colony menu on the left tucks away
-      until the mouse gets close
-
-      New glossary explaining every part of the
-      game, with pictures, opened by the ? button or the ESC menu'
-    Removed: Speed buttons (pause stays)
-    Modified: 'Dew drops every 4 s (was 8 s)
-
-      Raids every 2 to 10 minutes,
-      with swarms of 20% to 50% of your ants
-
-      Ants without a job help as workers
-
-      Carriers
-      take more of every item and fill the storage first
-
-      The nutrient room
-      fetches leaves and water from storage
-
-      Ants walk over blocks built outside
-
-      New
-      look for the ants, queen, termites, brood, aphids and pebbles
-
-      Evolution
-      nodes show only icons, and the bottom bar fits in a single card with a Show
-      rooms option
-
-      Smoother raids with many ants and termites'
+    Added: Blocks being dug show a crack that grows with each bite of the ant
+    Removed: 
+    Modified: 
     KnownBugs: 
     ChangelogTranslations:
     - LanguageCode: pt-BR
-      Added: "Painel da col\xF4nia com estat\xEDsticas e configura\xE7\xF5es\nDep\xF3sitos
-        de alimentos, material de constru\xE7\xE3o, \xE1gua, areia e cogumelos\nFazenda
-        de pulg\xF5es com a nova formiga fazendeira: pulg\xF5es ordenhados d\xE3o
-        areia, folhas, \xE1gua e \xE0s vezes um cogumelo luminoso\nCupins podem morder
-        pulg\xF5es e transform\xE1-los em pulg\xF5es pretos que atacam as formigas\nMelhorias
-        compradas com nutrientes e o formigueiro de depend\xEAncias\nNovas formigas:
-        a cuspideira, guerreira de ataque a dist\xE2ncia, e a lixeira\nPostos de
-        guarda para as soldadas durante os ataques\nModos da \xE1rea de res\xEDduos:
-        folhas viram \xE1gua, ou terra vira areia e \xE1gua\nLimite de pintura por
-        tipo de sala, com melhorias de \xE1rea e barra de \xE1rea livre\nSalas constru\xEDdas
-        mudam de visual enquanto as formigas as rebocam\nLagos mais fundos e bols\xF5es
-        de \xE1gua no subterr\xE2neo\n\xC1udio espacial: os sons acompanham a posi\xE7\xE3o
-        e o zoom da c\xE2mera\nNova ilumina\xE7\xE3o: a luz s\xF3 entra pelo lado
-        de fora, os t\xFAneis ficam na penumbra e t\xEAm parede de fundo com textura\nA
-        vers\xE3o da build aparece no canto inferior direito de todas as telas\nClique
-        na vers\xE3o para ver todas as vers\xF5es at\xE9 agora e as notas de cada
-        uma\nUm tour curto da interface abre todo jogo novo: explica os cart\xF5es,
-        os menus e os bot\xF5es, e voc\xEA pode clicar em tudo durante ele\nO menu
-        Col\xF4nia, \xE0 esquerda, fica recolhido at\xE9 o mouse chegar perto\nNovo
-        gloss\xE1rio com a explica\xE7\xE3o de cada parte do jogo, com imagens, aberto
-        pelo bot\xE3o ? ou pelo menu do ESC"
-      Removed: "Bot\xF5es de velocidade (a pausa continua)"
-      Modified: "Gota de orvalho a cada 4 s (era 8 s)\nAtaques a cada 2 a 10 minutos,
-        com enxames de 20% a 50% das formigas\nFormigas sem trabalho ajudam como
-        oper\xE1rias\nCarregadoras levam mais de todos os itens e enchem o estoque
-        primeiro\nA sala de nutrientes busca folhas e \xE1gua nos dep\xF3sitos\nAs
-        formigas andam sobre os blocos constru\xEDdos do lado de fora\nNova apar\xEAncia
-        das formigas, rainha, cupins, crias, pulg\xF5es e pedrinhas\nOs n\xF3s da
-        Evolu\xE7\xE3o mostram s\xF3 \xEDcones, e a barra inferior cabe num cart\xE3o
-        s\xF3, com a op\xE7\xE3o Mostrar ambientes\nAtaques mais leves com muitas
-        formigas e cupins"
+      Added: Blocos sendo cavados mostram uma rachadura que cresce a cada mordida
+        da formiga
+      Removed: 
+      Modified: 
       KnownBugs: 
     ScriptChangeReport:
       AddedScripts:
