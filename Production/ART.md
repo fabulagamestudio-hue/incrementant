@@ -178,7 +178,7 @@ Pedido de REQ-071 ("a arte das formigas que utilizam as ferramentas e as roupas/
 - **Itens:** 9 sprites 8 × 8 (`Item_<Metal><Tipo>`) na grade e na boca da formiga (**Equip Item Sprites** no `AntFarmView` e no `AntSwarmView`).
 - **Ícones de HUD:** 5 PNGs 40 × 40 (`Art/UI/Sprites/icons/equip_*`) nos botões do depósito de minério, da fundição, da forja e dos dois armazéns.
 
-Validação: importação conferida na Unity, console sem erros e Play Mode pelo agente (camadas lateral e superior, itens na grade e na boca, ícones da fundição, da forja e do depósito de minério; os dois armazéns ficaram abaixo da janela de teste). Suíte EditMode não rodada. O equipamento vindo da forja não foi exercitado com este visual. Guias: [Art/Ants](../Assets/Project/Art/Ants/README.md), [AntFarmGuide](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md), [WorkshopGuide](../Assets/Project/Scripts/Runtime/Colony/WorkshopGuide.md).
+Validação: importação conferida na Unity, console sem erros e Play Mode pelo agente (camadas lateral e superior, itens na grade e na boca, ícones da fundição, da forja e do depósito de minério; os dois armazéns ficaram abaixo da janela de teste). Suíte EditMode rodada depois (2026-10-23): 493 de 493 aprovados. O equipamento vindo da forja não foi exercitado com este visual. Guias: [Art/Ants](../Assets/Project/Art/Ants/README.md), [AntFarmGuide](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md), [WorkshopGuide](../Assets/Project/Scripts/Runtime/Colony/WorkshopGuide.md).
 
 ### ART-030 — Rachadura dos blocos golpeados
 
@@ -194,7 +194,7 @@ Arte provisória feita pelo agente em 2026-10-23 (REQ-072): quatro máscaras 8 �
 - Kit do graveto (ART-025): desenvolvedor ainda não avaliou a versão que substitui os antigos; formigas andando sobre o graveto não foram observadas.
 - Experimento 8x8 (ART-024): desenvolvedor ainda não avaliou a escala nem o contorno; custo do contorno no shader do terreno não medido.
 - Tiles de sala construída (ART-023): rainha, cultivo, resíduos, orvalho e fazenda vistos em Play Mode pelo agente em 2026-10-23, em salas de teste montadas por código com a luz de fora (cada família desenha o bloco e o fundo próprios, conforme a maquete); falta a aprovação do desenvolvedor em jogo e vê-los numa sala feita pelas formigas.
-- Sprites 8 × 8 das barras (ART-027, 2026-10-23): três lingotes (`Item_<Metal>Bar`) ligados na lista de equipamento do `AntFarmView` e do `AntSwarmView`; vistos em Play Mode na grade de uma fundição de teste; a suíte EditMode não foi rodada. Falta a aprovação do desenvolvedor. O `Item_IronOre` foi recolorido para aço claro (44, 45, 46) e acompanha as pepitas do atlas; as três barras foram vistas na boca da formiga em Play Mode.
+- Sprites 8 × 8 das barras (ART-027, 2026-10-23): três lingotes (`Item_<Metal>Bar`) ligados na lista de equipamento do `AntFarmView` e do `AntSwarmView`; vistos em Play Mode na grade de uma fundição de teste; a suíte EditMode (493 de 493) passou depois disso. Falta a aprovação do desenvolvedor. O `Item_IronOre` foi recolorido para aço claro (44, 45, 46) e acompanha as pepitas do atlas; as três barras foram vistas na boca da formiga em Play Mode.
 - Pebble_05_2x limpa (ART-021): não vista em Play Mode; a densidade fica em 8 px por célula até ser refeita nativa.
 - Aprovação visual e importação/reprodução na Unity das variantes por função (ART-006); integração no jogo adiada a pedido do desenvolvedor.
 
