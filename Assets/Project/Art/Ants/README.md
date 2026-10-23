@@ -78,8 +78,8 @@ Os quadros adultos da raiz e das pastas `Operaria/`, `Soldado/`, `Coletora/`, `E
 | `Jardineira/` | `6B1F45` `C2477F` `E889B4` | 38–40 |
 | `Cortadeira/` | `0F4F47` `1F9E8E` `6FD6C4` | 41–43 |
 | `Cuspideira/` | `638929` `B3CF51` `E2EA7A` | 25, 27, 28 |
-| `Lixeira/` | `504D55` `7D7676` `BBB29F` | 17, 18, 20 |
-| `Fazendeira/` | `7B4F2E` `9E6534` `C5833E` | 9, 10, 11 |
+| `Lixeira/` | `9A9AA8` `E8E8EE` `FFFFFF` (branca, 2026-10-23; antes `504D55` `7D7676` `BBB29F`) | 44–46 |
+| `Fazendeira/` | `0A2A9E` `0144F7` `5C8CFF` (azul vivo, 2026-10-23; antes `7B4F2E` `9E6534` `C5833E`) | 47–49 |
 
 Gerador: `Source~/ant_sprites.py` (pasta ignorada pela Unity). Desenha por formas (elipses do gáster, pecíolo, tórax e cabeça; linhas das patas, antenas e mandíbulas), com ciclo de tripé em 4 quadros. Para refazer:
 
@@ -127,3 +127,7 @@ Validação da ampliação em 2026-10-18: 72 PNGs, 559.872 pixels RGBA comparado
 Validação em 2026-10-18: 48 PNGs e 10.368 pixels comparados com os originais, conferindo dimensões, alpha e substituição exata da paleta; hashes dos originais e das cópias vermelhas conferidos. Prévia ampliada inspecionada. Importação e reprodução na Unity ainda não verificadas.
 
 Em 2026-10-18 foram criadas `Jardineira/` e `Cortadeira/` por troca de paleta a partir de `Operaria/` (mesmos 4 tons: patas escuras, patas do outro lado, corpo e brilho; olho preservado). Carregadora usa `Coletora/`.
+
+## Variantes de silhueta por papel — 2026-10-23 (experimento)
+
+Cada papel ganhou um traço próprio sobre a base da operária: soldado com cabeção e pinça, cuspideira com gáster inchado de ácido, coletora com ombros, cortadeira com mandíbula-lâmina, escavadora com pá, cuidadora com touca e avental, jardineira com brotos, lixeira com saco de lixo, fazendeira com chapéu de palha; a rainha tem gáster enorme e coroa (diadema na vista de cima). Operária intacta. Gerar de novo: `python -I Source~/ant_variants.py [--sheet prancha.png] [--dry]` (lê de `Source~/Variants/Base`, cópia dos originais). **O `bake-refined.ps1` regrava as formigas sem as variantes: rode este script depois dele.** Mesmos caminhos, GUIDs e pivôs. As camadas de equipamento (ferro) foram sobrepostas às variantes e não pedem realinhamento: a ponteira cai na boca, a lâmina nas costas e a placa no tórax, só ficam por cima do cabeção do soldado e da pá da escavadora. Conferido em Play Mode (rainha, operárias e 6 papéis trocados em tempo de execução, em baixa ampliação); aprovação visual pendente.

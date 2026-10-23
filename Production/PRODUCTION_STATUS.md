@@ -85,6 +85,7 @@ Melhorias incrementais documentadas (GD-008, REQ-039): o [documento 39](../Docs/
 
 ### Arte
 
+- **Silhuetas das formigas por papel:** ART-029 verificado: cada papel e a rainha têm traço próprio (coroa, cabeção, chapéu etc.), lixeira branca e fazendeira azul, aprovados pelo desenvolvedor em 2026-10-23.
 - **Equipamento das formigas:** ART-028 verificado (REQ-071): camadas vestidas, nove itens 8 × 8 e cinco ícones de HUD em cobre, ferro e ouro, aprovados pelo desenvolvedor em 2026-10-23 e vistos em Play Mode; barras e minérios do atlas seguem provisórios (ART-027).
 - **Biomas da superfície:** ART-026 em andamento (tiles provisórios de serapilheira, terra adubada e néctar no atlas em 2026-10-23); (REQ-070): lista de arte por bioma (topo, camada rasa, coletáveis, silhueta, fundo, item), argila no subsolo e entrada secundária, no [documento 44](../Docs/02_World_Art_UI/44_Biomas_da_superficie_e_postos_avancados.md); depende da aprovação dos biomas (GD-012).
 - **Kit do graveto:** ART-025 implementado na branch `experimento/arte-8x8` (REQ-069): os gravetos do cenário são montados por peças de 8 px, no tamanho do mundo dos antigos, que saíram; falta a avaliação do desenvolvedor.

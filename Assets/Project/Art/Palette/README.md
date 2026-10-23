@@ -1,11 +1,11 @@
 # Paleta mestra
 
-As 44 cores (32 aprovadas e 12 das formigas) de onde sai toda a arte do mundo, da UI e as cores dos inspectors (etapa 0 do [documento 40](../../../../Docs/02_World_Art_UI/40_Direcao_de_arte_unificada_e_terreno_iluminado.md)). Prancha com nomes e índices: [41_Paleta_mestra.png](../../../../Docs/02_World_Art_UI/41_Paleta_mestra.png).
+As 50 cores (32 aprovadas e 18 das formigas) de onde sai toda a arte do mundo, da UI e as cores dos inspectors (etapa 0 do [documento 40](../../../../Docs/02_World_Art_UI/40_Direcao_de_arte_unificada_e_terreno_iluminado.md)). Prancha com nomes e índices: [41_Paleta_mestra.png](../../../../Docs/02_World_Art_UI/41_Paleta_mestra.png).
 
 | Arquivo | Conteúdo |
 |---|---|
-| `MasterPalette.png` | 44×1 px, uma cor por pixel na ordem dos índices (Point, sem compressão, sem mipmaps, legível por script) |
-| `MasterPalette.hex` | As mesmas 44 cores, uma por linha (formato aceito pelo Aseprite e pelo Lospec) |
+| `MasterPalette.png` | 50×1 px, uma cor por pixel na ordem dos índices (Point, sem compressão, sem mipmaps, legível por script) |
+| `MasterPalette.hex` | As mesmas 50 cores, uma por linha (formato aceito pelo Aseprite e pelo Lospec) |
 
 | Índices | Grupo | Cores |
 |---|---|---|
@@ -20,6 +20,8 @@ As 44 cores (32 aprovadas e 12 das formigas) de onde sai toda a arte do mundo, d
 | 35–37 | Roxo (formigas) | `3A1A5C` `6F339E` `A06BD0` |
 | 38–40 | Rosa (formigas) | `6B1F45` `C2477F` `E889B4` |
 | 41–43 | Verde-azulado (formigas) | `0F4F47` `1F9E8E` `6FD6C4` |
+| 44–46 | Branco (lixeira, 2026-10-23) | `9A9AA8` `E8E8EE` `FFFFFF` |
+| 47–49 | Azul vivo (fazendeira, 2026-10-23) | `0A2A9E` `0144F7` `5C8CFF` |
 
 **Rampas das formigas (2026-10-21, etapa 8):** as cores das formigas (vermelho da operária e as cores de função) não existiam nas 32; o desenvolvedor escolheu ampliar a paleta com uma rampa de 3 tons (sombra, base, luz) para cada cor que faltava, com a base igual à cor anterior da pasta. Laranja, dourado, azul-claro e verde usam rampas que já existiam (ver `Art/Ants/README.md`). As cores novas entram no fim, então os índices 0–31 não mudaram.
 
