@@ -6,7 +6,7 @@
 
 ## Resumo
 
-Arte do equipamento das formigas aprovada em 2026-10-23 (ART-028, REQ-071): camadas vestidas, nove itens 8 × 8 e cinco ícones de HUD em cobre, ferro e ouro, vistos em Play Mode; as barras e os minérios do atlas continuam provisórios (ART-027).
+Arte do equipamento das formigas aprovada em 2026-10-23 (ART-028, REQ-071): camadas vestidas, nove itens 8 × 8 e cinco ícones de HUD em cobre, ferro e ouro, vistos em Play Mode; minérios e barras do atlas foram redesenhados em 2026-10-23, aguardando aprovação; ferramentas, armas e armaduras do atlas continuam provisórias (ART-027).
 
 Tiles de sala construída no atlas do terreno em 2026-10-22 (ART-023, REQ-058): bloco e parede de fundo para sete famílias (os cinco depósitos dividem uma), na paleta mestra, aprovados pelo desenvolvedor na maquete. Desde o mesmo dia aparecem no jogo quando as formigas rebocam a sala (PRG-071); berçário e depósito conferidos em Play Mode pelo agente.
 
@@ -168,7 +168,7 @@ Lista de arte por bioma, por camada e para os postos avançados, com ordem suger
 
 ### ART-027 — Minérios, barras e equipamentos
 
-Linhas 21 a 23 (minérios: a pedra com pintas grandes do metal) e 24 a 35 (barras, ferramentas, armas e armaduras de cada metal, padrões provisórios só para o bloco carregado e o item guardado), geradas por `terrain_atlas.py`, reduzidas a 8 px e inseridas no atlas. Em 2026-10-23, depois do teste de jogo, pedido do desenvolvedor: famílias de sala construída próprias para a fundição, a forja e os dois armazéns de equipamento (linhas 51 a 58 do atlas) e os itens guardados desenhados com a arte do atlas, como objetos sobre a parede de fundo. A arte do equipamento das formigas (camadas vestidas, itens e ícones de HUD) passou para ART-028. Faltam as barras e os minérios do atlas, ainda provisórios. Lista no [Documento 45](../Docs/01_Design/45_Minerios_fundicao_forja_e_equipamento.md).
+Linhas 21 a 23 (minérios: a pedra com pintas grandes do metal) e 24 a 35 (barras, ferramentas, armas e armaduras de cada metal, padrões provisórios só para o bloco carregado e o item guardado), geradas por `terrain_atlas.py`, reduzidas a 8 px e inseridas no atlas. Em 2026-10-23, depois do teste de jogo, pedido do desenvolvedor: famílias de sala construída próprias para a fundição, a forja e os dois armazéns de equipamento (linhas 51 a 58 do atlas) e os itens guardados desenhados com a arte do atlas, como objetos sobre a parede de fundo. A arte do equipamento das formigas (camadas vestidas, itens e ícones de HUD) passou para ART-028. Em 2026-10-23 os minérios (linhas 21 a 23) e as barras (24 a 26) foram redesenhados: pepitas com contorno escuro e lingotes empilhados, gerados a 16 texels, reduzidos e inseridos só nessas linhas; importação conferida na Unity e os seis materiais vistos em Play Mode pelo agente (amostras postas em área iluminada); falta a aprovação do desenvolvedor. O ferro foi clareado (pepitas de aço claro) por falta de contraste com a pedra; a versão clara só foi vista na prévia e importada na Unity, não em Play Mode. No mesmo dia as ferramentas, armas e armaduras (linhas 27 a 35) viraram objetos 8 × 8 por célula (picareta, espada, escudo), vistos em Play Mode pelo agente na mesma amostra; falta a aprovação do desenvolvedor, e o bloco carregado e o item guardado reais não foram vistos. Lista no [Documento 45](../Docs/01_Design/45_Minerios_fundicao_forja_e_equipamento.md).
 
 ### ART-028 — Arte do equipamento das formigas
 

@@ -275,42 +275,139 @@ def nectar(seed):
     return np.where(mask, np.where(e == 1, 16, np.where(e == -1, 12, 15)), out)
 
 
-def ore(seed, base, hi, lo):
-    """Minério (REQ-071): a pedra com pintas do metal, com luz e sombra, em grãos de 2 texels ou mais para sobreviver à redução."""
+def grow(mask, k):
+    """Dilata a máscara em k texels (disco sem as quinas), com emenda periódica."""
+    out = mask.copy()
+    for dy in range(-k, k + 1):
+        for dx in range(-k, k + 1):
+            if abs(dx) + abs(dy) <= k + 1 and (dx or dy):
+                out |= roll(mask, dx, dy)
+    return out
+
+
+def nuggets(seed, clusters, rmin, rmax):
+    """Pepitas: elipse grande com duas ou três menores em volta, periódicas. Máscara booleana."""
+    r = rng(seed)
+    mask = np.zeros((N, N), bool)
+    yy, xx = np.mgrid[0:N, 0:N] + 0.5
+    for _ in range(clusters):
+        cx, cy = r.random() * N, r.random() * N
+        parts = [(cx, cy, r.uniform(rmin, rmax))]
+        for _ in range(r.integers(1, 3)):
+            ang = r.random() * 6.283
+            d = r.uniform(rmax * 0.9, rmax * 1.5)
+            parts.append((cx + d * np.cos(ang), cy + d * np.sin(ang) * 0.7, r.uniform(2.6, 3.6)))
+        for px, py, pr in parts:
+            for ox in (-N, 0, N):
+                for oy in (-N, 0, N):
+                    mask |= ((xx - px - ox) / pr) ** 2 + ((yy - py - oy) / (pr * 0.8)) ** 2 <= 1
+    return mask
+
+
+def pair(m):
+    """Engrossa de 1 para 2 texels (grão que sobrevive à redução a 8 texels por célula)."""
+    return m | roll(m, 1, 0) | roll(m, 0, 1) | roll(m, 1, 1)
+
+
+def ore(seed, body, hi, lo, glint, rust=None):
+    """Minério (REQ-071): a pedra com pepitas do metal, em contorno escuro de 2 texels, com luz no alto/esquerda,
+    sombra embaixo/direita, facetas em dois tons e brilhos."""
     out = stones(seed, 9, 1, [17, 18, 18, 19], 20, 17)
-    mask = blobs(seed + 7, 20, 4.0, 7.0)
-    e = light_edges(mask)
-    tone = np.array(base)[rng(seed + 8).integers(0, len(base), (N, N))]
-    return np.where(mask, np.where(e == 1, hi, np.where(e == -1, lo, tone)), out)
+    mask = nuggets(seed + 7, 18, 6.0, 9.0)
+    outline = grow(mask, 2) & ~mask
+    lv = majority(np.digitize(fbm(seed + 3), [0.5]), 2)
+    tone = np.array(body)[lv]
+    lit = mask & ~roll(mask, 2, 2)
+    shade = mask & ~roll(mask, -2, -2)
+    core = mask & ~lit & ~shade
+    fill = np.where(lit, hi, np.where(shade, lo, tone))
+    fill = np.where(core & pair(specks(seed + 11, 0.012)), glint, fill)
+    if rust is not None:
+        fill = np.where(core & pair(specks(seed + 12, 0.012)), rust, fill)
+    out = np.where(outline, 0, out)
+    return np.where(mask, fill, out)
 
 
 def copperore(seed):
-    return ore(seed, [33, 34, 12], 12, 8)
+    return ore(seed, [12, 34], 7, 8, 16)
 
 
 def ironore(seed):
-    return ore(seed, [8, 33, 9], 10, 32)
+    return ore(seed, [45, 44], 46, 18, 31)
 
 
 def goldore(seed):
-    return ore(seed, [13, 7, 12], 16, 11)
+    return ore(seed, [13, 12], 16, 11, 46)
 
 
-METALS = {'Copper': ([8, 34, 12], 12, 8), 'Iron': ([17, 18, 19], 20, 1), 'Gold': ([12, 13, 7], 16, 11)}
+# Barra: lingote (borda, sombra de baixo, sombra do lado, tons do corpo, topo claro, brilho)
+INGOTS = {'Copper': dict(out=32, bottom=8, side=34, body=[12, 11], top=7, glint=16),
+          'Iron': dict(out=0, bottom=17, side=18, body=[44, 19], top=45, glint=46),
+          'Gold': dict(out=8, bottom=10, side=11, body=[13, 12], top=16, glint=46)}
+
+
+def ingots(seed, metal):
+    """Barra (REQ-071): lingotes de 32 x 16 texels empilhados em fileiras alternadas, com borda escura de 2 texels, topo
+    claro, lado e base na sombra, quinas cortadas e um brilho no topo."""
+    c = INGOTS[metal]
+    uid, ix, iy = grid_units(32, 16, offset=16)
+    tone = np.array(c['body'])[rng(seed).integers(0, len(c['body']), uid.max() + 1)[uid]]
+    out = np.where(iy < 6, c['top'], np.where(iy >= 14, c['bottom'], tone))
+    out = np.where((ix >= 30) & (iy >= 6) & (iy < 14), c['side'], out)
+    out = np.where((ix < 4) & (iy >= 6) & (iy < 14), c['top'], out)
+    out = np.where((ix >= 6) & (ix < 10) & (iy >= 2) & (iy < 4), c['glint'], out)
+    border = (ix < 2) | (iy < 2)
+    for cx in (2, 30):  # quinas cortadas em 2 x 2 texels
+        for cy in (2, 14):
+            border |= (ix >= cx) & (ix < cx + 2) & (iy >= cy) & (iy < cy + 2)
+    return np.where(border, c['out'], out)
+
+
+# Equipamento: um objeto de 8 x 8 por célula (desenhado a 8 e ampliado 2x, para a redução a 8 texels devolver o desenho),
+# em fileiras de células, sobre um fundo escuro. l = luz, m = corpo, d = sombra, x e w = cabo de madeira (claro e escuro), . = fundo.
+GLYPHS = {
+    'Tool': ['.llmmmd.',
+             'lm.xw.md',
+             'm..xw..d',
+             '...xw...',
+             '...xw...',
+             '...xw...',
+             '...xw...',
+             '........'],
+    'Weapon': ['...ll...',
+               '...lm...',
+               '...lm...',
+               '...lm...',
+               '...lm...',
+               '.dddddd.',
+               '...xw...',
+               '...dd...'],
+    'Armor': ['llllllld',
+              'lmmmmmmd',
+              'lmmddmmd',
+              'lmmddmmd',
+              '.lmmmmd.',
+              '.lmmmmd.',
+              '..lmmd..',
+              '...dd...'],
+}
+GEAR = {'Copper': dict(bg=1, l=7, m=12, d=8, x=5, w=4), 'Iron': dict(bg=0, l=46, m=44, d=18, x=5, w=4),
+        'Gold': dict(bg=2, l=16, m=13, d=11, x=5, w=4)}
+
+
+def gear(metal, kind):
+    """Ferramenta (picareta), arma (espada) ou armadura (peitoral) do metal, um por célula, sobre fundo escuro."""
+    c = GEAR[metal]
+    unit = np.array([[c['bg'] if ch == '.' else c[ch] for ch in row] for row in GLYPHS[kind]])
+    return np.kron(np.tile(unit, (N // 16, N // 16)), np.ones((2, 2), int))
 
 
 def metal_good(seed, metal, kind):
-    """Barra e equipamentos (REQ-071), provisórios: só aparecem no bloco carregado e no item guardado. O padrão diz o tipo
-    (barra em lingotes, ferramenta em lascas, arma em lâminas verticais, armadura em escamas) e as cores dizem o metal."""
-    tones, hi, lo = METALS[metal]
+    """Barra e equipamentos (REQ-071): só aparecem no bloco carregado e no item guardado. A barra são lingotes
+    empilhados; ferramenta, arma e armadura são o desenho do objeto, e as cores dizem o metal."""
     if kind == 'Bar':
-        return masonry(seed, 32, 16, tones, lo, hi, lo, offset=8, bevel=2)[0]
-    if kind == 'Tool':
-        return chunks(seed, 7, tones, lo, hi, lo)
-    if kind == 'Weapon':
-        out = fibers(seed, [tones[1], tones[0], tones[2], hi], vertical=True, density=0.9)
-        return out
-    return masonry(seed, 16, 16, tones, lo, hi, lo, offset=8, bevel=1, rounded=True)[0]
+        return ingots(seed, metal)
+    return gear(metal, kind)
 
 
 # ---------------------------------------------------------------- salas construídas (REQ-058)
