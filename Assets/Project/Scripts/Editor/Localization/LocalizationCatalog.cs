@@ -172,7 +172,10 @@ namespace Fabula.Incrementant.EditorTools.Localization
             // ---------------------------------------------------------------- painel da colônia
             Add(l, "colony.title", "PAINEL DA COLÔNIA", "COLONY PANEL");
             Add(l, "colony.tab.stats", "ESTATÍSTICAS", "STATISTICS");
+            Add(l, "colony.tab.work", "TRABALHO", "WORK");
+            Add(l, "colony.tab.depots", "DEPÓSITOS", "STORAGE");
             Add(l, "colony.col.section", "SEÇÃO DE TRABALHO", "WORK SECTION");
+            Add(l, "colony.col.depot", "DEPÓSITO OU SALA", "STORAGE OR ROOM");
             Add(l, "colony.col.now", "AGORA", "NOW");
             Add(l, "colony.col.limit", "LIMITE DE FORMIGAS", "ANT LIMIT");
             Add(l, "colony.queen.title", "COMPORTAMENTO DA RAINHA", "QUEEN'S BEHAVIOR");
@@ -183,7 +186,7 @@ namespace Fabula.Incrementant.EditorTools.Localization
             Add(l, "colony.stats.brood", "Crias", "Brood");
             Add(l, "colony.stats.idle", "Sem trabalho", "Without a job");
             Add(l, "colony.stats.fighting", "Lutando", "Fighting");
-            Add(l, "colony.stats.waterStock", "Enchendo dep. água", "Filling water depot");
+            Add(l, "colony.stats.depots", "Nos depósitos", "In storage");
             Add(l, "colony.stats.roles", "POR TIPO", "BY TYPE");
             Add(l, "colony.stats.work", "TRABALHANDO EM", "WORKING ON");
             Add(l, "colony.stats.queen", "RAINHA", "QUEEN");
@@ -197,7 +200,16 @@ namespace Fabula.Incrementant.EditorTools.Localization
             Add(l, "colony.section.nursery", "Berçário", "Nursery");
             Add(l, "colony.section.garden", "Sala de nutrientes", "Nutrient room");
             Add(l, "colony.section.dew", "Gotas de orvalho", "Dew drops");
-            Add(l, "colony.section.waste", "Resíduos", "Waste");
+            Add(l, "colony.section.waste", "Cupins mortos", "Dead termites");
+            Add(l, "colony.section.fooddepot", "Alimentos", "Food");
+            Add(l, "colony.section.blockdepot", "Construção", "Building");
+            Add(l, "colony.section.waterdepot", "Água", "Water");
+            Add(l, "colony.section.sanddepot", "Areia", "Sand");
+            Add(l, "colony.section.mushroomdepot", "Cogumelos", "Mushrooms");
+            Add(l, "colony.section.litterdepot", "Serapilheira", "Leaf litter");
+            Add(l, "colony.section.nectardepot", "Néctar", "Nectar");
+            Add(l, "colony.section.oredepot", "Minério", "Ore");
+            Add(l, "colony.section.wasteroom", "Sala de resíduos", "Waste room");
             Add(l, "colony.place.outdoor", "Exterior", "Outdoors");
             Add(l, "colony.place.tunnels", "Túneis", "Tunnels");
             Add(l, "colony.place.queenroom", "Sala da rainha", "Queen's room");
@@ -221,7 +233,7 @@ namespace Fabula.Incrementant.EditorTools.Localization
             Add(l, "tip.colony.minus", "Diminui o limite de formigas nesta seção.", "Lowers the ant limit for this section.");
             Add(l, "tip.colony.plus", "Aumenta o limite; acima do total de formigas, fica sem limite.", "Raises the limit; above the total number of ants, there is no limit.");
             Add(l, "tip.colony.slider", "Arraste para escolher o limite; no fim do trilho, fica sem limite.", "Drag to pick the limit; at the end of the track, there is no limit.");
-            Add(l, "tip.colony.reset", "Liga todas as seções e tira todos os limites.", "Turns every section on and removes every limit.");
+            Add(l, "tip.colony.reset", "Liga todas as linhas desta aba e tira os limites delas.", "Turns every row on this tab on and removes their limits.");
             Add(l, "tip.colony.queen.nest", "A rainha fica na sala dela e põe ovos.", "The queen stays in her room and lays eggs.");
             Add(l, "tip.colony.queen.choose", "Escolha o que a rainha faz: botar ovos ou trabalhar como uma das classes já liberadas.", "Choose what the queen does: lay eggs or work as one of the classes already unlocked.");
             Add(l, "tip.colony.queen.role", "A rainha trabalha como {0}, com o mesmo comportamento dessa classe (sem trabalho dela, faz o da operária). Respeita as seções paradas, mas não os limites. Fora da sala, não põe ovos.", "The queen works as a {0}, with the same behavior as that class (with nothing of its own to do, she does the worker's job). She respects stopped sections, but not limits. Outside her room, she lays no eggs.");
@@ -232,7 +244,16 @@ namespace Fabula.Incrementant.EditorTools.Localization
             Add(l, "tip.colony.section.nursery", "Berçário: levar os ovos e cuidar das crias.", "Nursery: carry the eggs and tend the brood.");
             Add(l, "tip.colony.section.garden", "Sala de nutrientes: montar canteiros, regar e cuidar do que brota.", "Nutrient room: build beds, water them and tend what sprouts.");
             Add(l, "tip.colony.section.dew", "Gotas de orvalho: terra fofa no teto e cuidado das gotas.", "Dew drops: loose soil on the ceiling and care of the drops.");
-            Add(l, "tip.colony.section.waste", "Resíduos: desmembrar cupins mortos e levar os restos.", "Waste: dismember dead termites and carry the remains away.");
+            Add(l, "tip.colony.section.waste", "Cupins mortos: desmembrar os corpos (levar as partes é da sala de resíduos).", "Dead termites: dismember the bodies (carrying the parts belongs to the waste room).");
+            Add(l, "tip.colony.section.fooddepot", "Depósito de alimentos: levar a planta cortada e a solta para o depósito. Parado, a planta vai direto aos canteiros.", "Food storage: carry cut and loose plants to the storage. Stopped, plants go straight to the beds.");
+            Add(l, "tip.colony.section.blockdepot", "Depósito de construção: levar a terra cavada e a da pilha de fora para o depósito. Parado, a terra vai ao canteiro ou ao despejo.", "Building storage: carry dug soil and soil from the outside pile to the storage. Stopped, soil goes to a bed or to the dump.");
+            Add(l, "tip.colony.section.waterdepot", "Depósito de água: buscar água do mapa e a solta e guardá-la. Parado, a água só vai aos canteiros.", "Water storage: fetch water from the map and loose water and store it. Stopped, water only goes to the beds.");
+            Add(l, "tip.colony.section.sanddepot", "Depósito de areia: levar a areia cavada e a solta para o depósito. Parado, a areia vai ao despejo.", "Sand storage: carry dug and loose sand to the storage. Stopped, sand goes to the dump.");
+            Add(l, "tip.colony.section.mushroomdepot", "Depósito de cogumelos: guardar os cogumelos que a ordenha dos pulgões solta. Parado, eles ficam no chão.", "Mushroom storage: store the mushrooms the aphid milking drops. Stopped, they stay on the ground.");
+            Add(l, "tip.colony.section.litterdepot", "Depósito de serapilheira: levar a serapilheira cavada para o depósito. Parado, ela segue como terra.", "Leaf litter storage: carry dug leaf litter to the storage. Stopped, it goes on as soil.");
+            Add(l, "tip.colony.section.nectardepot", "Depósito de néctar: guardar as gotas que as flores soltam. Parado, elas ficam no chão.", "Nectar storage: store the drops the flowers release. Stopped, they stay on the ground.");
+            Add(l, "tip.colony.section.oredepot", "Depósito de minério: levar o minério cavado para o depósito. Parado, ele fica onde foi cavado.", "Ore storage: carry dug ore to the storage. Stopped, it stays where it was dug.");
+            Add(l, "tip.colony.section.wasteroom", "Sala de resíduos: levar entulho, restos de cupim e terra para as áreas de resíduos. Parada, vão ao despejo.", "Waste room: carry rubble, termite remains and soil to the waste areas. Stopped, they go to the dump.");
             Add(l, "tip.pause", "Pausa ou retoma a simulação (tecla P).", "Pauses or resumes the simulation (P key).");
             Add(l, "tip.brush.dig", "Cavar: marque a terra que as escavadoras devem tirar. Botão esquerdo marca, direito desmarca.", "Dig: mark the soil the diggers must remove. Left button marks, right button unmarks.");
             Add(l, "tip.brush.build", "Construir: marque células vazias para as formigas levantarem terra, até acima do solo. Botão direito desmarca.", "Build: mark empty cells for the ants to fill with soil, even above the ground. Right button unmarks.");
@@ -318,6 +339,10 @@ namespace Fabula.Incrementant.EditorTools.Localization
             Add(l, "waste.mode.remains", "Restos em folhas", "Scraps to leaves");
             Add(l, "waste.mode.leaves", "Folhas em água", "Leaves to water");
             Add(l, "waste.mode.dirt", "Terra em areia e água", "Soil to sand and water");
+            Add(l, "waste.mode.nutrient", "Folhas em nutrientes", "Leaves to nutrients");
+            Add(l, "waste.mode.nutrient.tip", "Sala de folhas: pinte uma área e as formigas levam para lá as folhas que cortam (depois dos canteiros e do depósito de alimentos). Cada folha vira um bloco de nutriente depois de um tempo (1 folha, 1 bloco), sem canteiro nem água; as formigas levam o bloco à rainha, que o come.", "Leaf room: paint an area and the ants carry the leaves they cut there (after the beds and the food storage). Each leaf turns into one nutrient block after a while (1 leaf, 1 block), with no bed or water; the ants carry the block to the queen, who eats it.");
+            Add(l, "tip.st.leafroom.paint", "Falta: pintar a sala de folhas (menu Ambientes, Resíduos).", "Missing: paint the leaf room (Environments menu, Waste).");
+            Add(l, "tip.st.leafroom.ok", "Funcionando: {0} lugares livres, {1} blocos de nutriente já feitos de folhas.", "Working: {0} free spots, {1} nutrient blocks already made from leaves.");
             Add(l, "waste.mode.remains.tip", "Pinta uma área para entulho e restos de cupim. O entulho some; os restos viram folhas, que as formigas levam ao depósito de alimentos ou aos canteiros.", "Paints an area for rubble and termite scraps. Rubble disappears; scraps become leaves, which the ants carry to food storage or to the beds.");
             Add(l, "waste.mode.leaves.tip", "Pinta uma área só para restos de cupim. As folhas deles ficam na área e viram água (1 folha, 1 água). A água vai ao depósito de água ou aos canteiros.", "Paints an area only for termite scraps. Their leaves stay in the area and turn into water (1 leaf, 1 water). The water goes to water storage or to the beds.");
             Add(l, "waste.mode.dirt.tip", "Pinta uma área só para terra: as formigas trazem a terra solta de fora e a cavada que iria ao despejo, e ela vira areia e água (1 terra, 1 areia e 1 água). A areia vai ao depósito de areia (ou ao despejo); a água, ao depósito de água ou aos canteiros.", "Paints an area only for soil: ants bring loose soil from outside and dug soil that would go to the dump, and it turns into sand and water (1 soil, 1 sand and 1 water). The sand goes to sand storage (or the dump); the water to water storage or to the beds.");
@@ -652,7 +677,7 @@ namespace Fabula.Incrementant.EditorTools.Localization
             ("Z+1", "Passo de pastora", "Fazendeiras andam 4% mais rápido por nível", "Herder's stride", "Farmers walk 4% faster per level"),
             ("Q+4", "Sala real ampla", "Pode pintar +40 células de sala da rainha por nível", "Wide royal room", "You can paint +40 more queen room cells per level"),
             ("T+1", "Obra barata", "Pintar ambientes custa 3% menos por nível", "Cheap works", "Painting rooms costs 3% less per level"),
-            ("T+2", "Frentes de obra", "Todas as formigas cavam 3% mais rápido por nível", "Work fronts", "Every ant digs 3% faster per level"),
+            ("T+2", "Frentes de obra", "Todas as formigas cavam 5% mais rápido por nível", "Work fronts", "Every ant digs 5% faster per level"),
             ("X+1", "Brotação", "Plantas de fora crescem 6% mais rápido por nível", "Sprouting", "Outdoor plants grow 6% faster per level"),
             ("X+2", "Feromônio de trilha", "Formigas andam 3% mais rápido fora do formigueiro por nível", "Trail pheromone", "Ants walk 3% faster outside the anthill per level"),
             ("X+3", "Faro", "Formigas acham plantas 5% mais longe por nível", "Scent", "Ants find plants 5% farther away per level"),

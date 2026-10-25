@@ -30,6 +30,9 @@ namespace Fabula.Incrementant.UI
         TooltipTarget _current;
         float _hoverStart;
         bool _suppressed;
+        Func<int> _worldKey;
+        Func<string> _worldText;
+        int _worldHover;
 
         public HudTooltips(Font font)
         {
@@ -89,15 +92,34 @@ namespace Fabula.Incrementant.UI
 
         public void Attach(Component target, string text) => Attach(target, () => text);
 
+        /// <summary>
+        /// Dica de algo desenhado no mapa, onde não há objeto de UI para o ponteiro. <paramref name="key"/> devolve quem está sob
+        /// o mouse (0 = nada, inclusive com o mouse sobre o HUD); quando muda, a espera recomeça. <paramref name="text"/> só roda
+        /// com a dica à mostra. A dica de um botão tem prioridade.
+        /// </summary>
+        public void SetWorldSource(Func<int> key, Func<string> text)
+        {
+            _worldKey = key;
+            _worldText = text;
+        }
+
         /// <summary>Chamado todo quadro pelo HUD: mostra, atualiza e posiciona a dica do alvo sob o mouse.</summary>
         public void Tick()
         {
-            if (_current == null || _suppressed || Time.unscaledTime - _hoverStart < DelaySeconds)
+            int worldKey = _worldKey != null ? _worldKey() : 0;
+            if (worldKey != _worldHover)
+            {
+                _worldHover = worldKey;
+                _hoverStart = Time.unscaledTime;
+                _suppressed = false;
+            }
+            Func<string> source = _current != null ? _current.Text : worldKey != 0 ? _worldText : null;
+            if (source == null || _suppressed || Time.unscaledTime - _hoverStart < DelaySeconds)
             {
                 Hide();
                 return;
             }
-            string text = _current.Text();
+            string text = source();
             Mouse mouse = Mouse.current;
             if (string.IsNullOrEmpty(text) || mouse == null)
             {

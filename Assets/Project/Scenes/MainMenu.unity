@@ -10482,9 +10482,12 @@ MonoBehaviour:
   _colonySettings:
     _initialAnts: 6
     _maxAnts: 4000
-    _antSpeed: 20
+    _antSpeed: 8
     _idleSpeedRate: 0.5
-    _digTimeMultiplier: 1
+    _workerSpeedRate: 0.8
+    _workerTaskTimeFactor: 1.6667
+    _assistDig: 1
+    _digTimeMultiplier: 24
     _dropSeconds: 0.1
     _nutrientCureSeconds: 30
     _fieldRebuildInterval: 0.1
@@ -10501,7 +10504,7 @@ MonoBehaviour:
     _larvaSeconds: 14
     _pupaSeconds: 12
     _minNutrientReserve: 30
-    _cellsPerAdultSlot: 24
+    _cellsPerAdultSlot: 72
     _cellsPerNurserySlot: 16
     _dewDropSeconds: 24
     _dewSoilShare: 0.3

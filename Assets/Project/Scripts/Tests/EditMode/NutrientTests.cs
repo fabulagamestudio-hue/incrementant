@@ -504,6 +504,41 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
+        public void LeafRoom_TakesTheCutPlant_AndTurnsEachLeafIntoOneNutrient()
+        {
+            var (grid, vegetation, plantX, shape) = MakeGarden();
+            // Sem canteiros nem depósito: a sala de folhas (em vez da sala de nutrientes) é o único destino da planta.
+            for (int x = 24; x <= 47; x++)
+            for (int y = 1; y <= 3; y++)
+            {
+                grid.SetNutrientRoom(x, y, false);
+                grid.SetWasteRoom(x, y, true, (byte)WasteMode.LeavesToNutrient);
+            }
+            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 7);
+            colony.AttachVegetation(vegetation);
+            int expected = HarvestableCells(shape);
+            var granular = new GranularSimulation();
+
+            int maxBlocks = 0;
+            int creditedBeforeAnyBlock = 0;
+            for (int i = 0; i < 60 * 2500 && colony.TotalNutrients < expected; i++)
+            {
+                colony.Tick(Dt);
+                granular.Step(grid);
+                maxBlocks = Mathf.Max(maxBlocks, grid.NutrientCount);
+                if (grid.NutrientCount == 0 && colony.LeavesToNutrients == 0)
+                    creditedBeforeAnyBlock = colony.TotalNutrients;
+            }
+
+            Assert.AreEqual(expected, colony.LeavesToNutrients, "Cada pixel de planta cortado vira uma folha e depois um bloco de nutriente.");
+            Assert.AreEqual(0, creditedBeforeAnyBlock, "A conversão não credita nada: antes do bloco existir o saldo não muda.");
+            Assert.GreaterOrEqual(maxBlocks, 1, "O nutriente é um bloco no mundo, que a formiga leva à rainha.");
+            Assert.AreEqual(expected, colony.TotalNutrients, "A rainha come 1 bloco por folha.");
+            Assert.AreEqual(0, grid.NutrientCount, "Nenhum bloco ficou esquecido.");
+            Assert.AreEqual(0, grid.BedCount, "Nenhum canteiro foi usado.");
+        }
+
+        [Test]
         public void Gardeners_AndDiggers_NeverTouchPlants()
         {
             var (grid, vegetation, plantX, shape) = MakeGarden();

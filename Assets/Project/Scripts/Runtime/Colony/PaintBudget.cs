@@ -5,8 +5,12 @@ using UnityEngine;
 
 namespace Fabula.Incrementant.Colony
 {
-    /// <summary>Ambiente que o pincel pinta e que tem limite de área (KI-043). Os cinco depósitos têm limites separados.</summary>
-    public enum PaintRoom { Queen, Nutrient, Nursery, Waste, Dew, FoodStore, BlockStore, WaterStore, Farm, SandStore, MushroomStore, LitterStore, NectarStore, OreStore, Smelter, Forge, Armory, Wardrobe }
+    /// <summary>
+    /// Ambiente que o pincel pinta e que tem limite de área (KI-043). Os depósitos têm limites separados, e cada modo da
+    /// área de resíduos também: <see cref="Waste"/> é o modo restos em folhas, <see cref="WasteLeaves"/> e <see cref="WasteDirt"/>
+    /// vêm no fim para não renumerar os ambientes (o reboco do save guarda o índice).
+    /// </summary>
+    public enum PaintRoom { Queen, Nutrient, Nursery, Waste, Dew, FoodStore, BlockStore, WaterStore, Farm, SandStore, MushroomStore, LitterStore, NectarStore, OreStore, Smelter, Forge, Armory, Wardrobe, WasteLeaves, WasteDirt, WasteNutrient }
 
     /// <summary>Por que o pincel não pode pintar uma célula do ambiente.</summary>
     public enum PaintBlock
@@ -60,7 +64,10 @@ namespace Fabula.Incrementant.Colony
                 case PaintRoom.Queen: return _grid.QueenRoomCount;
                 case PaintRoom.Nutrient: return _grid.NutrientRoomCount;
                 case PaintRoom.Nursery: return _grid.NurseryRoomCount;
-                case PaintRoom.Waste: return _grid.WasteRoomCount;
+                case PaintRoom.Waste:
+                case PaintRoom.WasteLeaves:
+                case PaintRoom.WasteDirt:
+                case PaintRoom.WasteNutrient: return _grid.GetWasteKindCount(WasteKindOf(room));
                 case PaintRoom.Dew: return _grid.DewRoomCount;
                 case PaintRoom.Farm: return _grid.FarmRoomCount;
                 default: return _grid.StorageRoomCount(StorageOf(room));
@@ -131,12 +138,25 @@ namespace Fabula.Incrementant.Colony
                 case PaintRoom.Queen: return grid.IsQueenRoom(x, y);
                 case PaintRoom.Nutrient: return grid.IsNutrientRoom(x, y);
                 case PaintRoom.Nursery: return grid.IsNurseryRoom(x, y);
-                case PaintRoom.Waste: return grid.IsWasteRoom(x, y);
+                case PaintRoom.Waste:
+                case PaintRoom.WasteLeaves:
+                case PaintRoom.WasteDirt:
+                case PaintRoom.WasteNutrient: return grid.IsWasteRoom(x, y) && grid.GetWasteKind(x, y) == WasteKindOf(room);
                 case PaintRoom.Dew: return grid.IsDewRoom(x, y);
                 case PaintRoom.Farm: return grid.IsFarmRoom(x, y);
                 default: return grid.GetStorageRoom(x, y) == StorageOf(room);
             }
         }
+
+        /// <summary>Modo de conversão (<see cref="WasteMode"/> como byte) da área de resíduos de um ambiente <c>Waste*</c>.</summary>
+        public static byte WasteKindOf(PaintRoom room) =>
+            (byte)(room == PaintRoom.WasteLeaves ? WasteMode.LeavesToWater : room == PaintRoom.WasteDirt ? WasteMode.DirtToWater
+                : room == PaintRoom.WasteNutrient ? WasteMode.LeavesToNutrient : WasteMode.RemainsToLeaves);
+
+        /// <summary>Ambiente da área de resíduos de um modo (<see cref="WasteKindOf"/> ao contrário).</summary>
+        public static PaintRoom WasteRoomOf(byte kind) =>
+            kind == (byte)WasteMode.LeavesToWater ? PaintRoom.WasteLeaves : kind == (byte)WasteMode.DirtToWater ? PaintRoom.WasteDirt
+                : kind == (byte)WasteMode.LeavesToNutrient ? PaintRoom.WasteNutrient : PaintRoom.Waste;
 
         /// <summary>Ambiente pintado na célula, se houver (as salas nunca se sobrepõem).</summary>
         public static bool TryGetRoomAt(PixelGrid grid, int x, int y, out PaintRoom room)
@@ -145,7 +165,7 @@ namespace Fabula.Incrementant.Colony
             if (grid.IsQueenRoom(x, y)) room = PaintRoom.Queen;
             else if (grid.IsNutrientRoom(x, y)) room = PaintRoom.Nutrient;
             else if (grid.IsNurseryRoom(x, y)) room = PaintRoom.Nursery;
-            else if (grid.IsWasteRoom(x, y)) room = PaintRoom.Waste;
+            else if (grid.IsWasteRoom(x, y)) room = WasteRoomOf(grid.GetWasteKind(x, y));
             else if (grid.IsDewRoom(x, y)) room = PaintRoom.Dew;
             else if (grid.IsFarmRoom(x, y)) room = PaintRoom.Farm;
             else
@@ -196,7 +216,10 @@ namespace Fabula.Incrementant.Colony
                 case PaintRoom.Queen: return _grid.GetChunkQueenRoomCount(cx, cy);
                 case PaintRoom.Nutrient: return _grid.GetChunkNutrientRoomCount(cx, cy);
                 case PaintRoom.Nursery: return _grid.GetChunkNurseryRoomCount(cx, cy);
-                case PaintRoom.Waste: return _grid.GetChunkWasteRoomCount(cx, cy);
+                case PaintRoom.Waste:
+                case PaintRoom.WasteLeaves:
+                case PaintRoom.WasteDirt:
+                case PaintRoom.WasteNutrient: return _grid.GetChunkWasteRoomCount(cx, cy); // os modos juntos: IsRoom separa
                 case PaintRoom.Dew: return _grid.GetChunkDewRoomCount(cx, cy);
                 case PaintRoom.Farm: return _grid.GetChunkFarmRoomCount(cx, cy);
                 default: return _grid.GetChunkStorageRoomCount(cx, cy); // os depósitos juntos: IsRoom separa

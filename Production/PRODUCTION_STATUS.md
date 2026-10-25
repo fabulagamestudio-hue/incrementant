@@ -59,7 +59,7 @@ Tutorial refeito como tour da interface (REQ-065, PRG-035; o roteiro guiado de R
 
 Menu principal implementado (REQ-031, PRG-036): cena `MainMenu` com a colônia trabalhando ao fundo, Continuar/Iniciar/Configurações/Sobre/Sair, splash da Unity desligado e Menu principal no menu de pausa; verificado só em Play Mode pelo agente, falta uma pessoa usar. Logo da Fábula aplicado; splash da Fábula pendente.
 
-Painel da colônia implementado (PRG-046, REQ-035): botão à esquerda do sino abre a janela com Estatísticas (formigas por seção, tipo e lugar; produção por segundo) e Configurações (ligar, parar e limitar cada uma das 8 seções de trabalho; comportamento da rainha: botar ovos ou trabalhar como uma das classes liberadas, seletor de 2026-10-21). Testes EditMode e Play Mode pelo agente; falta uma pessoa usar.
+Painel da colônia implementado (PRG-046, REQ-035): botão à esquerda do sino abre a janela com Estatísticas (formigas por seção, tipo e lugar; produção por segundo) e Configurações (ligar, parar e limitar cada uma das 8 seções de trabalho; comportamento da rainha: botar ovos ou trabalhar como uma das classes liberadas, seletor de 2026-10-21). Testes EditMode e Play Mode pelo agente; falta uma pessoa usar. Em 2026-10-24 (PRG-082, REQ-075) ganhou uma linha por depósito e uma da sala de resíduos, e as configurações viraram as abas Trabalho e Depósitos; suíte EditMode 505/505.
 
 Formigas sem trabalho do papel fazem o da operária comum (PRG-048, REQ-037): soldado fora do combate, cortadeira sem corte, cuidadora sem cria etc. cavam, carregam e cuidam como a comum e voltam ao papel quando ele tem trabalho. Testes EditMode novos; sem Play Mode.
 
@@ -177,6 +177,7 @@ Melhorias incrementais documentadas (GD-008, REQ-039): o [documento 39](../Docs/
 | Postos de guarda, distribuição das soldadas e velocidade por situação | IMPLEMENTED | PRG-052 |
 | Sala Gotas de Orvalho (terra fofa, folha, gota que as paredes não absorvem) | VERIFIED | PRG-037 |
 | Painel da colônia: estatísticas, seções de trabalho e comportamento da rainha | IMPLEMENTED | PRG-046 |
+| Painel da colônia: seções por depósito e sala de resíduos, abas Trabalho/Depósitos | IMPLEMENTED | PRG-082 |
 | Depósitos de alimentos, construção e água; resíduos sem obstruir | IMPLEMENTED | PRG-047 |
 | Formiga sem trabalho do papel faz o trabalho da operária comum | IMPLEMENTED | PRG-048 |
 | Liberação de blocos de água por vizinhança e troca de alvo | IMPLEMENTED | PRG-049 |
@@ -264,6 +265,8 @@ Melhorias incrementais documentadas (GD-008, REQ-039): o [documento 39](../Docs/
 | REQ-071 | Mundo pequeno no molde do Terraria, minérios em veios, fundição, forja e armazéns de equipamento | IN_PROGRESS | UNDEFINED |
 | REQ-072 | Blocos em porcentagem: rachadura na coleta e preenchimento vertical nos depósitos | IMPLEMENTED | UNDEFINED |
 | REQ-073 | Árvore de evolução como formigueiro descendo da rainha: domínios, níveis e túneis | IN_PROGRESS | UNDEFINED |
+| REQ-074 | Ritmo lento do começo: escavação e movimento, operária comum a mais lenta, mutirão de escavação e sala de folhas em nutrientes | IMPLEMENTED | UNDEFINED |
+| REQ-075 | Painel da colônia: controle de formigas por depósito e da sala de resíduos, agrupado em abas | IMPLEMENTED | UNDEFINED |
 
 Registro completo: [REQUESTS.md](REQUESTS.md)
 

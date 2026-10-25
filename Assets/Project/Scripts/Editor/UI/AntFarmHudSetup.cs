@@ -178,13 +178,16 @@ namespace Fabula.Incrementant.EditorTools.UI
             int brushCount = AntFarmGame.BrushCount;
             string[] brushIcons =
             {
-                "icons/shovel", "icons/crate", "icons/crown", "icons/mushroom", "icons/egg", "icons/close", "icons/hand_index_up", "icons/leaf",
+                "icons/shovel", "icons/crate", "icons/crown", "icons/mushroom", "icons/egg", "icons/leaf", "icons/hand_index_up", "icons/leaf",
                 "icons/leaf", "icons/crate", "icons/arrow_down", "icons/mushroom", "icons/ant", "icons/crate", "icons/mushroom",
                 "icons/leaf", "icons/crate", "icons/equip_ore", "icons/equip_smelter", "icons/equip_forge", "icons/equip_armory", "icons/equip_wardrobe",
+                "icons/arrow_down", "icons/shovel", "icons/leaf",
             };
             int[] paintBrushes = { 0, 1, 11, 6 };   // Cavar, Construir, Cogumelo luminoso, Dedo
-            // Sala da rainha, Sala de nutrientes, Berçário, Resíduos, Gotas de orvalho, Fazenda de pulgões, Fundição, Forja
-            int[] environmentBrushes = { 2, 3, 4, 5, 7, 12, 18, 19 };
+            // Sala da rainha, Sala de nutrientes, Berçário, Gotas de orvalho, Fazenda de pulgões, Fundição, Forja
+            int[] environmentBrushes = { 2, 3, 4, 7, 12, 18, 19 };
+            // Restos em folhas, folhas em água e terra em areia e água (submenu RESÍDUOS, cada um com a própria área)
+            int[] wasteBrushes = { 5, 22, 23, 24 };
             // Depósitos de alimentos, construção, água, areia, cogumelos, serapilheira, néctar e minério e os armazéns de
             // ferramentas e armas e de roupas e armaduras (submenu DEPÓSITO)
             int[] depotBrushes = { 8, 9, 10, 13, 14, 15, 16, 17, 20, 21 };
@@ -193,21 +196,29 @@ namespace Fabula.Incrementant.EditorTools.UI
             var brushFills = new Image[brushCount];
             Image paint = BuildBrushPanel(root, "SubmenuFerramenta", "FERRAMENTA", paintBrushes, brushIcons, brushButtons, brushImages, brushFills);
             Image environment = BuildBrushPanel(root, "SubmenuAmbientes", "AMBIENTES", environmentBrushes, brushIcons, brushButtons, brushImages,
-                                                brushFills, extraRows: 1);
-            // Última linha do Ambientes: DEPÓSITO abre o submenu dos depósitos, à direita do painel.
+                                                brushFills, extraRows: 2);
+            // Últimas linhas do Ambientes: RESÍDUOS e DEPÓSITO abrem os submenus, à direita do painel (um por vez).
+            Button wasteButton = BuildButton(environment.transform, "Residuos", new Vector2(0.5f, 1),
+                                             new Vector2(0, -56 - environmentBrushes.Length * 50), new Vector2(368, 42), "icons/leaf",
+                                             "RESÍDUOS", interactable: true, out Image wasteImage);
             Button depotButton = BuildButton(environment.transform, "Deposito", new Vector2(0.5f, 1),
-                                             new Vector2(0, -56 - environmentBrushes.Length * 50), new Vector2(368, 42), "icons/crate",
+                                             new Vector2(0, -56 - (environmentBrushes.Length + 1) * 50), new Vector2(368, 42), "icons/crate",
                                              "DEPÓSITO", interactable: true, out Image depotImage);
-            // Mais largo: "DEPÓSITO DE CONSTRUÇÃO" tem 22 letras de 16 px.
+            // Mais largo: "DEPÓSITO DE CONSTRUÇÃO" tem 22 letras de 16 px (e "TERRA EM AREIA E ÁGUA", 21).
+            Image waste = BuildBrushPanel(root, "SubmenuResiduos", "RESÍDUOS", wasteBrushes, brushIcons, brushButtons, brushImages,
+                                          brushFills, width: 456);
+            waste.rectTransform.anchoredPosition = new Vector2(696, -214 - environmentBrushes.Length * 50);
             Image depot = BuildBrushPanel(root, "SubmenuDeposito", "DEPÓSITO", depotBrushes, brushIcons, brushButtons, brushImages,
                                           brushFills, width: 456);
-            depot.rectTransform.anchoredPosition = new Vector2(696, -214 - environmentBrushes.Length * 50);
+            depot.rectTransform.anchoredPosition = new Vector2(696, -214 - (environmentBrushes.Length + 1) * 50);
             SetObject(refs, "_paintPanel", paint.gameObject);
             SetObject(refs, "_environmentPanel", environment.gameObject);
+            SetObject(refs, "_wasteButton", wasteButton);
+            SetObject(refs, "_wasteButtonImage", wasteImage);
+            SetObject(refs, "_wastePanel", waste.gameObject);
             SetObject(refs, "_depotButton", depotButton);
             SetObject(refs, "_depotButtonImage", depotImage);
             SetObject(refs, "_depotPanel", depot.gameObject);
-            BuildWastePanel(root, refs);
             SetArray(refs, "_brushButtons", brushButtons);
             SetArray(refs, "_brushImages", brushImages);
             SetArray(refs, "_brushFills", brushFills);
@@ -339,30 +350,6 @@ namespace Fabula.Incrementant.EditorTools.UI
             fill.rectTransform.offsetMin = Vector2.zero;
             fill.rectTransform.offsetMax = Vector2.zero;
             return fill;
-        }
-
-        /// <summary>
-        /// Submenu RESÍDUOS: o modo de conversão da área (um por vez). À direita do Ambientes, no alto, para não cobrir o
-        /// submenu DEPÓSITO (que abre mais abaixo). O HUD o mostra só com o pincel Resíduos escolhido.
-        /// </summary>
-        static void BuildWastePanel(Transform root, SerializedObject refs)
-        {
-            WasteMode[] modes = AntFarmHud.WasteModes;
-            string[] icons = { "icons/leaf", "icons/arrow_down", "icons/shovel" };
-            // Mais largo: "TERRA EM AREIA E ÁGUA" tem 21 letras de 16 px.
-            const int width = 456;
-            Image panel = BuildPanelWithHeader(root, "SubmenuResiduos", new Vector2(0, 1), new Vector2(696, -214),
-                                               new Vector2(width, 62 + modes.Length * 50 + 12), "RESÍDUOS");
-            var buttons = new Button[modes.Length];
-            var images = new Image[modes.Length];
-            for (int i = 0; i < modes.Length; i++)
-                buttons[i] = BuildButton(panel.transform, "Modo" + i, new Vector2(0.5f, 1), new Vector2(0, -56 - i * 50),
-                                         new Vector2(width - 32, 42), icons[i],
-                                         LocalizationCatalog.Pt(AntFarmHud.WasteModeKey(modes[i])).ToUpperInvariant(), true, out images[i]);
-            panel.gameObject.SetActive(false);
-            SetObject(refs, "_wastePanel", panel.gameObject);
-            SetArray(refs, "_wasteModeButtons", buttons);
-            SetArray(refs, "_wasteModeImages", images);
         }
 
         /// <summary>Submenu da rainha: modo (automático, específico, pausado), tipo, o que vem a seguir e o botão de criar.</summary>

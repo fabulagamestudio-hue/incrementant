@@ -57,11 +57,10 @@ namespace Fabula.Incrementant.UI
         [SerializeField] Button _depotButton;
         [SerializeField] Image _depotButtonImage;
         [SerializeField] GameObject _depotPanel;
-        [Tooltip("Submenu RESÍDUOS (modo de conversão da área), aberto ao lado do Ambientes com o pincel Resíduos escolhido. Opcional.")]
+        [Tooltip("Botão RESÍDUOS (linha acima do DEPÓSITO) e o submenu dos três modos da área de resíduos, aberto ao lado dele.")]
+        [SerializeField] Button _wasteButton;
+        [SerializeField] Image _wasteButtonImage;
         [SerializeField] GameObject _wastePanel;
-        [Tooltip("Botões dos modos, na ordem de AntFarmHud.WasteModes.")]
-        [SerializeField] Button[] _wasteModeButtons;
-        [SerializeField] Image[] _wasteModeImages;
 
         [Header("Menu Rainha (política: modo e tipo da próxima formiga)")]
         [SerializeField] Button _queenButton;
@@ -146,11 +145,9 @@ namespace Fabula.Incrementant.UI
         public static string ModeKey(QueenMode mode) =>
             mode == QueenMode.Automatic ? "queen.mode.auto" : mode == QueenMode.Specific ? "queen.mode.specific" : "queen.mode.paused";
 
-        /// <summary>Modos da área de resíduos, na ordem dos botões do submenu RESÍDUOS.</summary>
-        public static readonly WasteMode[] WasteModes = { WasteMode.RemainsToLeaves, WasteMode.LeavesToWater, WasteMode.DirtToWater };
-
         public static string WasteModeKey(WasteMode mode) =>
-            mode == WasteMode.LeavesToWater ? "waste.mode.leaves" : mode == WasteMode.DirtToWater ? "waste.mode.dirt" : "waste.mode.remains";
+            mode == WasteMode.LeavesToWater ? "waste.mode.leaves" : mode == WasteMode.DirtToWater ? "waste.mode.dirt"
+                : mode == WasteMode.LeavesToNutrient ? "waste.mode.nutrient" : "waste.mode.remains";
 
         enum Menu { None, Paint, Environment, Queen, Tree, Colony }
 
@@ -202,6 +199,7 @@ namespace Fabula.Incrementant.UI
                 _brushButtons == null || _brushButtons.Length != AntFarmGame.BrushCount ||
                 _queenButton == null || _queenPanel == null || _environmentButton == null || _environmentPanel == null ||
                 _depotButton == null || _depotButtonImage == null || _depotPanel == null ||
+                _wasteButton == null || _wasteButtonImage == null || _wastePanel == null ||
                 _modeButtons == null || _modeButtons.Length != 3 ||
                 _stanceButtons == null || _stanceButtons.Length != 2 || _stanceImages == null || _stanceImages.Length != 2 ||
                 _typeButtons == null || _typeButtons.Length != CreatableRoles.Length || _typeLabels == null ||
@@ -230,21 +228,6 @@ namespace Fabula.Incrementant.UI
                 int index = i;
                 _stanceHandlers[i] = () => SetStance((QueenStance)index);
             }
-            if (_wastePanel != null && (_wasteModeButtons == null || _wasteModeButtons.Length != WasteModes.Length ||
-                                        _wasteModeImages == null || _wasteModeImages.Length != WasteModes.Length))
-            {
-                Debug.LogError($"{name}: submenu RESÍDUOS sem os {WasteModes.Length} botões de modo (rode Incrementant/Setup/Montar HUD da partida).", this);
-                _wastePanel = null;
-            }
-            if (_wastePanel != null)
-            {
-                _wasteModeHandlers = new UnityAction[WasteModes.Length];
-                for (int i = 0; i < _wasteModeHandlers.Length; i++)
-                {
-                    WasteMode mode = WasteModes[i];
-                    _wasteModeHandlers[i] = () => _game.WasteBrushMode = mode;
-                }
-            }
             _typeHandlers = new UnityAction[_typeButtons.Length];
             for (int i = 0; i < _typeHandlers.Length; i++)
             {
@@ -254,11 +237,7 @@ namespace Fabula.Incrementant.UI
             _paintPanel.SetActive(false);
             _environmentPanel.SetActive(false);
             _depotPanel.SetActive(false);
-            if (_wastePanel != null)
-            {
-                _wastePanel.SetActive(false);
-                PanelAnimator.Attach(_wastePanel, PanelAnimator.PanelStyle.Pop);
-            }
+            _wastePanel.SetActive(false);
             _queenPanel.SetActive(false);
             _treePanel.SetActive(false);
             _pauseMenu.gameObject.SetActive(false);
@@ -272,6 +251,7 @@ namespace Fabula.Incrementant.UI
             PanelAnimator.Attach(_paintPanel, PanelAnimator.PanelStyle.Pop);
             PanelAnimator.Attach(_environmentPanel, PanelAnimator.PanelStyle.Pop);
             PanelAnimator.Attach(_depotPanel, PanelAnimator.PanelStyle.Pop);
+            PanelAnimator.Attach(_wastePanel, PanelAnimator.PanelStyle.Pop);
             PanelAnimator.Attach(_queenPanel, PanelAnimator.PanelStyle.Pop);
             PanelAnimator.Attach(_raidAlert, PanelAnimator.PanelStyle.Pop);
             PanelAnimator.Attach(_treePanel, PanelAnimator.PanelStyle.Fade);
@@ -332,6 +312,7 @@ namespace Fabula.Incrementant.UI
             _tooltips.Attach(_paintButton, () => Loc.T("tip.menu.paint"));
             _tooltips.Attach(_environmentButton, () => Loc.T("tip.menu.environments"));
             _tooltips.Attach(_depotButton, () => Loc.T("tip.menu.depots"));
+            _tooltips.Attach(_wasteButton, () => Loc.T("tip.brush.waste"));
             _tooltips.Attach(_queenButton, () => Loc.T("tip.menu.queen"));
             _tooltips.Attach(_treeButton, () => Loc.T("tip.menu.evolution"));
             _tooltips.Attach(_pauseButton, () => Loc.T("tip.pause"));
@@ -358,14 +339,6 @@ namespace Fabula.Incrementant.UI
                 var stance = (QueenStance)i;
                 _tooltips.Attach(_stanceButtons[i], () => HudTooltipTexts.Stance(stance));
             }
-            if (_wastePanel != null)
-            {
-                for (int i = 0; i < _wasteModeButtons.Length; i++)
-                {
-                    WasteMode mode = WasteModes[i];
-                    _tooltips.Attach(_wasteModeButtons[i], () => HudTooltipTexts.WasteMode(mode));
-                }
-            }
             for (int i = 0; i < _typeButtons.Length; i++)
             {
                 AntRole role = CreatableRoles[i];
@@ -374,7 +347,21 @@ namespace Fabula.Incrementant.UI
             AttachCardTooltip(_nutrientsValue, () => HudTooltipTexts.NutrientsCard(_game.Colony, _game.Grid));
             AttachCardTooltip(_antsValue, () => HudTooltipTexts.AntsCard(_game.Colony));
             AttachCardTooltip(_queenValue, () => HudTooltipTexts.QueenCard(_game.Colony, _game.Grid));
+            _tooltips.SetWorldSource(HoveredRoomKey, () => TryGetHoveredRoom(out PaintRoom room) ? HudTooltipTexts.PaintedRoom(_game, room) : null);
         }
+
+        /// <summary>Ambiente pintado sob o mouse no mapa, só com a pintura dos ambientes à mostra (botão Mostrar ambientes).</summary>
+        bool TryGetHoveredRoom(out PaintRoom room)
+        {
+            room = default;
+            if (!GameSettings.Current.ShowRooms || !_game.PointerOverWorld || _game.Grid == null)
+                return false;
+            Vector2Int cell = _game.PointerCell;
+            return PaintBudget.TryGetRoomAt(_game.Grid, cell.x, cell.y, out room);
+        }
+
+        /// <summary>Chave da dica do mapa: o ambiente + 1, 0 = nenhum; trocar de ambiente recomeça a espera.</summary>
+        int HoveredRoomKey() => TryGetHoveredRoom(out PaintRoom room) ? (int)room + 1 : 0;
 
         /// <summary>O cartão é o pai do texto do valor; ele precisa receber o raio do mouse para a dica aparecer.</summary>
         void AttachCardTooltip(Text value, Func<string> text)
@@ -403,15 +390,13 @@ namespace Fabula.Incrementant.UI
                 _glossaryButton.onClick.AddListener(_glossary.Open);
             _environmentButton.onClick.AddListener(ToggleEnvironment);
             _depotButton.onClick.AddListener(ToggleDepot);
+            _wasteButton.onClick.AddListener(ToggleWaste);
             _queenButton.onClick.AddListener(ToggleQueen);
             _treeButton.onClick.AddListener(ToggleTree);
             for (int i = 0; i < _modeButtons.Length; i++)
                 _modeButtons[i].onClick.AddListener(_modeHandlers[i]);
             for (int i = 0; i < _stanceButtons.Length; i++)
                 _stanceButtons[i].onClick.AddListener(_stanceHandlers[i]);
-            if (_wastePanel != null)
-                for (int i = 0; i < _wasteModeButtons.Length; i++)
-                    _wasteModeButtons[i].onClick.AddListener(_wasteModeHandlers[i]);
             for (int i = 0; i < _typeButtons.Length; i++)
                 _typeButtons[i].onClick.AddListener(_typeHandlers[i]);
             for (int i = 0; i < _brushButtons.Length; i++)
@@ -436,15 +421,13 @@ namespace Fabula.Incrementant.UI
                 _glossaryButton.onClick.RemoveListener(_glossary.Open);
             _environmentButton.onClick.RemoveListener(ToggleEnvironment);
             _depotButton.onClick.RemoveListener(ToggleDepot);
+            _wasteButton.onClick.RemoveListener(ToggleWaste);
             _queenButton.onClick.RemoveListener(ToggleQueen);
             _treeButton.onClick.RemoveListener(ToggleTree);
             for (int i = 0; i < _modeButtons.Length; i++)
                 _modeButtons[i].onClick.RemoveListener(_modeHandlers[i]);
             for (int i = 0; i < _stanceButtons.Length; i++)
                 _stanceButtons[i].onClick.RemoveListener(_stanceHandlers[i]);
-            if (_wastePanel != null)
-                for (int i = 0; i < _wasteModeButtons.Length; i++)
-                    _wasteModeButtons[i].onClick.RemoveListener(_wasteModeHandlers[i]);
             for (int i = 0; i < _typeButtons.Length; i++)
                 _typeButtons[i].onClick.RemoveListener(_typeHandlers[i]);
             for (int i = 0; i < _brushButtons.Length; i++)
@@ -461,38 +444,33 @@ namespace Fabula.Incrementant.UI
         void ToggleDepot()
         {
             _depotOpen = !_depotOpen;
-            _depotPanel.SetActive(_menu == Menu.Environment && _depotOpen);
+            _wasteOpen &= !_depotOpen;
+            RefreshBrushSubmenus();
         }
 
-        // Submenu DEPÓSITO aberto dentro do Ambientes. Ao abrir o Ambientes, volta aberto se o pincel atual é um depósito.
+        /// <summary>RESÍDUOS, dentro do Ambientes: abre ou fecha o submenu dos três modos da área de resíduos (um submenu por vez).</summary>
+        void ToggleWaste()
+        {
+            _wasteOpen = !_wasteOpen;
+            _depotOpen &= !_wasteOpen;
+            RefreshBrushSubmenus();
+        }
+
+        // Submenus DEPÓSITO e RESÍDUOS abertos dentro do Ambientes (no máximo um). Ao abrir o Ambientes, volta aberto o do pincel atual.
         bool _depotOpen;
+        bool _wasteOpen;
+
+        void RefreshBrushSubmenus()
+        {
+            _depotPanel.SetActive(_menu == Menu.Environment && _depotOpen);
+            _wastePanel.SetActive(_menu == Menu.Environment && _wasteOpen);
+        }
 
         /// <summary>O submenu dos depósitos está aberto (para o tutorial e as dicas).</summary>
         public bool DepotMenuOpen => _menu == Menu.Environment && _depotOpen;
 
-        UnityAction[] _wasteModeHandlers;
-
-        /// <summary>
-        /// Submenu RESÍDUOS: aberto ao lado do Ambientes enquanto o pincel Resíduos é o escolhido. Escolhe com que modo o
-        /// pincel pinta (cada área guarda o seu; pintar por cima troca); o botão do modo do pincel fica aceso.
-        /// </summary>
-        void RefreshWastePanel()
-        {
-            if (_wastePanel == null)
-                return;
-            AntColony colony = _game.Colony;
-            bool open = _menu == Menu.Environment && _game.BrushIndex == AntFarmGame.WasteBrushIndex && colony != null &&
-                        colony.WasteUnlocked;
-            if (_wastePanel.activeSelf != open)
-                _wastePanel.SetActive(open);
-            if (!open)
-                return;
-            for (int i = 0; i < _wasteModeImages.Length; i++)
-                _wasteModeImages[i].sprite = WasteModes[i] == _game.WasteBrushMode ? _buttonActive : _buttonIdle;
-        }
-
         /// <summary>O submenu RESÍDUOS está aberto (para o tutorial e as dicas).</summary>
-        public bool WasteMenuOpen => _wastePanel != null && _wastePanel.activeSelf;
+        public bool WasteMenuOpen => _menu == Menu.Environment && _wasteOpen;
 
         void ToggleTree() => OpenMenu(_menu == Menu.Tree ? Menu.None : Menu.Tree);
 
@@ -505,8 +483,11 @@ namespace Fabula.Incrementant.UI
             _paintPanel.SetActive(menu == Menu.Paint);
             _environmentPanel.SetActive(menu == Menu.Environment);
             if (menu == Menu.Environment)
+            {
                 _depotOpen = AntFarmGame.IsDepotBrush(_game.BrushIndex);
-            _depotPanel.SetActive(menu == Menu.Environment && _depotOpen);
+                _wasteOpen = AntFarmGame.IsWasteBrush(_game.BrushIndex);
+            }
+            RefreshBrushSubmenus();
             _queenPanel.SetActive(menu == Menu.Queen);
             _treePanel.SetActive(menu == Menu.Tree);
             if (_colonyPanel != null)
@@ -640,8 +621,12 @@ namespace Fabula.Incrementant.UI
             _paintButtonImage.sprite = _menu == Menu.Paint ? _buttonActive : _buttonIdle;
             _environmentButtonImage.sprite = _menu == Menu.Environment ? _buttonActive : _buttonIdle;
             _depotButtonImage.sprite = DepotMenuOpen || AntFarmGame.IsDepotBrush(_game.BrushIndex) ? _buttonActive : _buttonIdle;
+            _wasteButtonImage.sprite = WasteMenuOpen || AntFarmGame.IsWasteBrush(_game.BrushIndex) ? _buttonActive : _buttonIdle;
+            // A área de resíduos só abre depois do primeiro ataque de cupins; a sala de folhas está livre desde o começo.
+            bool wasteUnlocked = _game.Colony != null;
+            if (_wasteButton.interactable != wasteUnlocked)
+                _wasteButton.interactable = wasteUnlocked;
             _queenButtonImage.sprite = _menu == Menu.Queen ? _buttonActive : _buttonIdle;
-            RefreshWastePanel();
             _treeButtonImage.sprite = _menu == Menu.Tree ? _buttonActive : _buttonIdle;
             AntColony colony = _game.Colony;
 

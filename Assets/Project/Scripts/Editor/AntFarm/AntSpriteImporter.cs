@@ -23,7 +23,7 @@ namespace Fabula.Incrementant.EditorTools.AntFarm
         /// Experimento 8x8 de 2026-10-22: 8 (antes 16, documento 40); os adultos (24x16 = 3x2 células) usam esta.
         /// </summary>
         public const float WorldPixelsPerCell = Fabula.Incrementant.AntFarm.CellTileArt.TexelsPerCell;
-        /// <summary>Quadros próprios da rainha (48x32 no experimento 8x8; 96x64 antes).</summary>
+        /// <summary>Quadros próprios da rainha (64x32 no experimento 8x8, com 8 px de folga de cada lado para a coroa e a barriga; 96x64 antes).</summary>
         public const string QueenFolder = AntsFolder + "Rainha/";
         /// <summary>
         /// A rainha é desenhada com o dobro do tamanho (<c>AntSwarmView</c> → <b>Queen Scale</b> 2): a 2 × WorldPixelsPerCell px por unidade,

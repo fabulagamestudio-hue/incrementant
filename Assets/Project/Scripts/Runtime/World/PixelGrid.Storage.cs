@@ -101,7 +101,7 @@ namespace Fabula.Incrementant.World
     /// Depósitos e itens guardados. O item é uma camada à parte, como o nutriente: fica numa célula sem material, não
     /// bloqueia a passagem e não muda a estrutura. Material sólido entrando na célula (grão caindo, obra) destrói o item.
     /// Preenchimento vertical (REQ-072, etapa 2): a célula guarda uma pilha de itens iguais (<see cref="GetStoredAmount"/>),
-    /// até a capacidade do depósito em que está (<see cref="ItemsPerCell"/>, 1 por padrão); cada item ocupa 1/capacidade da
+    /// até a capacidade do depósito em que está (<see cref="CellCapacity"/>, 1 por padrão); cada item ocupa 1/capacidade da
     /// altura da célula (<see cref="GetStoredFill"/>). Com a capacidade subindo de 1 para 2 (melhoria de espaço do depósito),
     /// o item que enchia a célula passa a ocupar metade dela, e outro igual cabe em cima.
     /// </summary>
@@ -115,8 +115,9 @@ namespace Fabula.Incrementant.World
         byte[] _storedShade;
         // Itens da pilha da célula (0 sem item; o tom é o do primeiro).
         byte[] _storedAmount;
-        // Capacidade por célula de cada depósito (índice = StorageKind; 0 = fora de depósito, sempre 1).
-        readonly byte[] _itemsPerCell = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+        // Fator de capacidade de cada depósito (índice = StorageKind; 0 = fora de depósito, sempre 1).
+        readonly float[] _capacityFactor = { 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f };
+        const float CapacityEpsilon = 0.0001f;
         readonly int[] _storageRoomCount = new int[StorageKinds];
         readonly int[] _storedCount = new int[StorageKinds];
         int[] _chunkStorageRoom;
@@ -152,22 +153,49 @@ namespace Fabula.Incrementant.World
             kind == StorageKind.Food || kind == StorageKind.Blocks || kind == StorageKind.Water || kind == StorageKind.Sand ||
             kind == StorageKind.Mushroom || kind == StorageKind.Litter || kind == StorageKind.Nectar || kind == StorageKind.Ore;
 
-        /// <summary>Quantos itens iguais cabem numa célula do depósito (1 sem a melhoria de espaço).</summary>
-        public int ItemsPerCell(StorageKind kind) => _itemsPerCell[(int)kind];
+        /// <summary>Maior quantidade de itens iguais que uma célula do depósito comporta (1 sem a melhoria de espaço).</summary>
+        public int ItemsPerCell(StorageKind kind) => Mathf.Min(MaxItemsPerCell, Mathf.CeilToInt(_capacityFactor[(int)kind] - CapacityEpsilon));
+
+        /// <summary>Fator de capacidade do depósito (1 = um item por célula; 1,5 = metade das células guarda dois).</summary>
+        public float CapacityFactor(StorageKind kind) => _capacityFactor[(int)kind];
 
         /// <summary>
-        /// Muda a capacidade por célula do depósito (a melhoria de espaço, decidida por depósito; a árvore de melhorias ainda
-        /// não tem o nó). Só nos depósitos que empilham (<see cref="CanStack"/>), de 1 a <see cref="MaxItemsPerCell"/>. O que
-        /// já está guardado não sai: a pilha só passa a ocupar outra altura. Devolve false se nada mudou.
+        /// Itens que a célula (x, y) comporta num depósito do tipo dado. Com fator fracionário a capacidade varia de célula
+        /// em célula, em diagonal, de modo que a média do depósito seja o fator: 1,5 alterna 1 e 2; 1,25 dá 2 em uma de
+        /// cada quatro. A conta depende só da posição, então não muda ao pintar ou apagar células vizinhas.
         /// </summary>
-        public bool SetItemsPerCell(StorageKind kind, int count)
+        public int CellCapacity(int x, int y, StorageKind kind)
+        {
+            float factor = _capacityFactor[(int)kind];
+            if (factor <= 1f + CapacityEpsilon)
+                return 1;
+            int s = x + y;
+            int capacity = Mathf.FloorToInt(factor * (s + 1) + CapacityEpsilon) - Mathf.FloorToInt(factor * s + CapacityEpsilon);
+            return Mathf.Clamp(capacity, 1, MaxItemsPerCell);
+        }
+
+        /// <summary>
+        /// Muda a capacidade por célula de todos os depósitos que empilham (<see cref="CanStack"/>): a melhoria de espaço
+        /// (nó D1, "Pilhas organizadas"). O que já está guardado não sai: a pilha só passa a ocupar outra altura. Devolve false
+        /// se nada mudou.
+        /// </summary>
+        public bool SetCapacityFactor(float factor)
+        {
+            bool changed = false;
+            for (int k = 1; k < StorageKinds; k++)
+                changed |= SetCapacityFactor((StorageKind)k, factor);
+            return changed;
+        }
+
+        /// <summary>Como <see cref="SetCapacityFactor(float)"/>, de um depósito só (de 1 a <see cref="MaxItemsPerCell"/>).</summary>
+        public bool SetCapacityFactor(StorageKind kind, float factor)
         {
             if (!CanStack(kind))
                 return false;
-            byte value = (byte)Mathf.Clamp(count, 1, MaxItemsPerCell);
-            if (_itemsPerCell[(int)kind] == value)
+            float value = Mathf.Clamp(factor, 1f, MaxItemsPerCell);
+            if (Mathf.Abs(_capacityFactor[(int)kind] - value) < CapacityEpsilon)
                 return false;
-            _itemsPerCell[(int)kind] = value;
+            _capacityFactor[(int)kind] = value;
             // A altura de cada item guardado nesse depósito muda: o render redesenha as células com item.
             for (int i = 0; i < _stored.Length; i++)
                 if (_stored[i] != StoredItems.None && _storageRoom[i] == (byte)kind)
@@ -176,14 +204,17 @@ namespace Fabula.Incrementant.World
             return true;
         }
 
+        /// <summary>Capacidade inteira por célula, para depósitos com fator inteiro (a mesma de <see cref="SetCapacityFactor(StorageKind, float)"/>).</summary>
+        public bool SetItemsPerCell(StorageKind kind, int count) => SetCapacityFactor(kind, count);
+
         // A capacidade do depósito só vale para os itens dele: item solto num depósito de outro tipo fica sozinho na célula.
         int CapacityFor(int index, byte item) =>
-            StoredItems.KindOf(item) == (StorageKind)_storageRoom[index] ? _itemsPerCell[_storageRoom[index]] : 1;
+            StoredItems.KindOf(item) == (StorageKind)_storageRoom[index] ? CellCapacity(index % Width, index / Width, (StorageKind)_storageRoom[index]) : 1;
 
         /// <summary>Itens na pilha da célula (0 = nenhum).</summary>
         public int GetStoredAmount(int x, int y) => InBounds(x, y) ? _storedAmount[y * Width + x] : 0;
 
-        /// <summary>Quanto da altura da célula a pilha ocupa, de 0 a 1 (cada item ocupa 1/<see cref="ItemsPerCell"/>).</summary>
+        /// <summary>Quanto da altura da célula a pilha ocupa, de 0 a 1 (cada item ocupa 1/<see cref="CellCapacity"/>).</summary>
         public float GetStoredFill(int x, int y)
         {
             if (!InBounds(x, y))

@@ -540,7 +540,8 @@ namespace Fabula.Incrementant.Tests
 
         /// <summary>
         /// Pedido do desenvolvedor em 2026-10-19: encher o depósito de água não conta no limite da seção Jardim. Com o Jardim
-        /// limitado a 0, as formigas enchem o depósito mesmo assim, e o painel as mostra à parte, não como sem trabalho.
+        /// limitado a 0, as formigas enchem o depósito mesmo assim, e o painel as mostra na seção do depósito de água
+        /// (2026-10-24), não como sem trabalho.
         /// </summary>
         [Test]
         public void MapWater_FillsTheWaterDepot_EvenWithTheGardenSectionAtItsLimit()
@@ -557,11 +558,40 @@ namespace Fabula.Incrementant.Tests
             Assert.IsTrue(TickUntil(colony, () =>
             {
                 colony.TakeCensus(census);
-                maxStocking = Mathf.Max(maxStocking, census.WaterStocking);
+                maxStocking = Mathf.Max(maxStocking, census.Sections[(int)WorkSection.WaterDepot]);
                 Assert.AreEqual(0, census.Sections[(int)WorkSection.Garden], "Encher o depósito não ocupa a seção Jardim.");
                 return CountStoredIn(grid, StorageKind.Water, 40) == 4;
             }, 120f), "Com o Jardim no limite, a água do mapa ainda vai ao depósito de água.");
-            Assert.Greater(maxStocking, 0, "O painel conta quem enche o depósito à parte.");
+            Assert.Greater(maxStocking, 0, "O painel conta quem enche o depósito na seção dele.");
+        }
+
+        /// <summary>
+        /// Pedido do desenvolvedor em 2026-10-24: cada depósito tem a sua seção no painel. Parada, ninguém o enche; com limite,
+        /// no máximo esse tanto de formigas leva itens a ele ao mesmo tempo.
+        /// </summary>
+        [Test]
+        public void TheWaterDepotSection_StopsAndCapsWhoFillsIt()
+        {
+            PixelGrid grid = MakeWorld();
+            PaintDepot(grid, StorageKind.Water, 40);
+            for (int x = 82; x <= 85; x++)
+                Assert.IsTrue(grid.SetWater(x, 1, true));
+            AntColony colony = MakeColony(grid);
+            colony.Work.SetEnabled(WorkSection.WaterDepot, false);
+            for (float t = 0f; t < 40f; t += 0.1f)
+            {
+                colony.Tick(0.1f);
+                Assert.AreEqual(0, colony.WorkersIn(WorkSection.WaterDepot), "Parada, ninguém vai encher o depósito.");
+            }
+            Assert.AreEqual(0, CountStoredIn(grid, StorageKind.Water, 40));
+
+            colony.Work.SetEnabled(WorkSection.WaterDepot, true);
+            colony.Work.SetLimit(WorkSection.WaterDepot, 1);
+            Assert.IsTrue(TickUntil(colony, () =>
+            {
+                Assert.LessOrEqual(colony.WorkersIn(WorkSection.WaterDepot), 1, "Com limite 1, uma formiga por vez.");
+                return CountStoredIn(grid, StorageKind.Water, 40) >= 2;
+            }, 120f), "Religada com limite, a água continua chegando ao depósito.");
         }
 
         [Test]

@@ -1,3 +1,4 @@
+using Fabula.Incrementant.Juice;
 using Fabula.Incrementant.Audio;
 using System.Collections.Generic;
 using Fabula.Incrementant.World;
@@ -18,6 +19,8 @@ namespace Fabula.Incrementant.Colony
         LeavesToWater = 1,
         /// <summary>Recebe só terra (a cavada que iria ao despejo e a da pilha de fora): vira areia e água (1 terra → 1 areia + 1 água).</summary>
         DirtToWater = 2,
+        /// <summary>Recebe as folhas das plantas cortadas: cada folha vira um nutriente depois de um tempo (1 folha → 1 nutriente, pedido de 2026-10-24).</summary>
+        LeavesToNutrient = 3,
     }
 
     /// <summary>
@@ -32,14 +35,14 @@ namespace Fabula.Incrementant.Colony
     /// </summary>
     public sealed partial class AntColony
     {
-        const int WasteModeCount = 3;
+        const int WasteModeCount = 4;
         // Por modo: campo até as vagas livres das áreas daquele modo (criado no primeiro uso), vagas e quem leva para lá.
         readonly FlowField[] _wasteFields = new FlowField[WasteModeCount];
-        readonly bool[] _wasteFieldIdle = { true, true, true };
+        readonly bool[] _wasteFieldIdle = { true, true, true, true };
         readonly int[] _wasteSpots = new int[WasteModeCount];
         readonly int[] _wasteRoomCells = new int[WasteModeCount];
         readonly int[] _wasteCarriers = new int[WasteModeCount];
-        readonly List<int>[] _wasteSources = { new List<int>(), new List<int>(), new List<int>() };
+        readonly List<int>[] _wasteSources = { new List<int>(), new List<int>(), new List<int>(), new List<int>() };
         // Terra esperando virar areia e água nas áreas de terra (contada na rodada dos campos): cada uma precisa de uma vaga para a areia.
         int _wasteDirt;
         // Células com resíduo guardado e o tempo que falta para cada uma se decompor (refeito pela grade ao carregar).
@@ -47,10 +50,11 @@ namespace Fabula.Incrementant.Colony
         readonly List<float> _wasteTimes = new List<float>();
         int _trackedWasteKindVersion = -1;
 
-        const int RemainsMode = (int)WasteMode.RemainsToLeaves, LeavesMode = (int)WasteMode.LeavesToWater, DirtMode = (int)WasteMode.DirtToWater;
+        const int RemainsMode = (int)WasteMode.RemainsToLeaves, LeavesMode = (int)WasteMode.LeavesToWater, DirtMode = (int)WasteMode.DirtToWater,
+            LeafNutrientMode = (int)WasteMode.LeavesToNutrient;
 
         /// <summary>Células das áreas de resíduos onde ainda cabe um resíduo (vazias, sem item, caminháveis), somando os modos.</summary>
-        public int WasteSpots => _wasteSpots[RemainsMode] + _wasteSpots[LeavesMode] + _wasteSpots[DirtMode];
+        public int WasteSpots => _wasteSpots[RemainsMode] + _wasteSpots[LeavesMode] + _wasteSpots[DirtMode] + _wasteSpots[LeafNutrientMode];
 
         /// <summary>Vagas livres nas áreas do modo dado.</summary>
         public int WasteSpotsOf(WasteMode mode) => _wasteSpots[(int)mode];
@@ -63,6 +67,9 @@ namespace Fabula.Incrementant.Colony
 
         /// <summary>Folhas que viraram água na área de resíduos desde o começo do mapa (não vai para o save).</summary>
         public int LeavesWatered { get; private set; }
+
+        /// <summary>Folhas que viraram nutriente na sala de folhas desde o começo do mapa (não vai para o save).</summary>
+        public int LeavesToNutrients { get; private set; }
 
         /// <summary>Terras que viraram areia e água na área de resíduos desde o começo do mapa (não vai para o save).</summary>
         public int DirtConverted { get; private set; }
@@ -103,7 +110,9 @@ namespace Fabula.Incrementant.Colony
                 else if (IsConversionInput(x, y, item))
                 {
                     // Folha → água; terra → água na célula e areia numa vaga perto (sem vaga, espera).
-                    if (material == CellMaterial.PlantLeaf)
+                    if (material == CellMaterial.PlantLeaf && _grid.GetWasteKind(x, y) == LeafNutrientMode)
+                        retry = !TryMakeLeafNutrient(x, y, item);
+                    else if (material == CellMaterial.PlantLeaf)
                     {
                         _grid.SetStored(x, y, StoredItems.None);
                         _grid.SetStored(x, y, StoredItems.Water);
@@ -192,25 +201,45 @@ namespace Fabula.Incrementant.Colony
             if (!_grid.IsWasteRoom(x, y))
                 return false;
             int kind = _grid.GetWasteKind(x, y);
-            return kind == LeavesMode ? item == StoredItems.Of(CellMaterial.PlantLeaf)
+            return kind == LeavesMode || kind == LeafNutrientMode ? item == StoredItems.Of(CellMaterial.PlantLeaf)
                 : kind == DirtMode && item == StoredItems.Of(CellMaterial.Spoil);
         }
 
+        /// <summary>
+        /// A folha da sala de folhas vira um bloco de nutriente na própria célula (1 folha, 1 bloco; pedido do desenvolvedor em
+        /// 2026-10-24): a conversão não credita nada, a formiga leva o bloco até a rainha e ela o come, como os que brotam dos
+        /// canteiros (<see cref="TryStartFetch"/>). Sem poder pôr o bloco, a folha fica e tenta de novo.
+        /// </summary>
+        bool TryMakeLeafNutrient(int x, int y, byte leaf)
+        {
+            byte shade = _grid.GetStoredShade(x, y);
+            _grid.SetStored(x, y, StoredItems.None);
+            if (_grid.SetNutrient(x, y, true))
+            {
+                LeavesToNutrients++;
+                return true;
+            }
+            _grid.SetStored(x, y, leaf, shade);
+            return false;
+        }
+
         /// <summary>Tempo que o item recém-chegado à área leva para se decompor ou se converter.</summary>
-        float WasteSeconds(byte item)
+        float WasteSeconds(int x, int y, byte item)
         {
             CellMaterial material = StoredItems.MaterialOf(item);
             if (material == CellMaterial.Spoil)
                 return RaidSettings.DirtWaterSeconds * Effects.DirtWaterTime;
             if (material == CellMaterial.PlantLeaf)
-                return RaidSettings.LeafWaterSeconds * Effects.WasteTime;
+                return _grid.GetWasteKind(x, y) == LeafNutrientMode
+                    ? _settings.LeafNutrientSeconds
+                    : RaidSettings.LeafWaterSeconds * Effects.WasteTime;
             return RaidSettings.WasteDecaySeconds * Effects.WasteTime;
         }
 
         void TrackWaste(int x, int y)
         {
             _wasteCells.Add(_grid.ToIndex(x, y));
-            _wasteTimes.Add(WasteSeconds(_grid.GetStored(x, y)));
+            _wasteTimes.Add(WasteSeconds(x, y, _grid.GetStored(x, y)));
         }
 
         /// <summary>
@@ -386,6 +415,7 @@ namespace Fabula.Incrementant.Colony
             {
                 case RemainsMode: return CellMaterials.IsWaste(material);
                 case LeavesMode: return material == CellMaterial.TermiteRemains;
+                case LeafNutrientMode: return CellMaterials.IsPlant(material);
                 default: return IsBlockItem(material);
             }
         }
@@ -400,6 +430,11 @@ namespace Fabula.Incrementant.Colony
         /// </summary>
         bool TryStartWaste(Ant ant, bool dirt = false)
         {
+            if (CellMaterials.IsPlant(ant.Carried))
+                return false; // planta vai à sala de folhas por TryStartLeafRoom
+            // Sala de resíduos parada ou no limite: segue o caminho de quando não há área (despejo).
+            if (!SectionAllows(WorkSection.WasteRoom, ant))
+                return false;
             int mode = -1;
             if (dirt)
             {
@@ -435,6 +470,33 @@ namespace Fabula.Incrementant.Colony
         /// então a terra (guardada e a caminho) fica abaixo das vagas livres. Sem isso a área enche de terra sem lugar para a
         /// areia e trava.
         /// </summary>
+        /// <summary>
+        /// Vagas livres nas salas de folhas que a colheita pode encher (0 com a seção de resíduos parada). Entram em
+        /// <see cref="PlantSupplyDemand"/>: com a sala pintada, as formigas cortam planta mesmo sem canteiros nem depósito.
+        /// </summary>
+        int LeafRoomSpots => Work.IsEnabled(WorkSection.WasteRoom) && _wasteSpots[LeafNutrientMode] > 0 ? _wasteSpots[LeafNutrientMode] : 0;
+
+        /// <summary>Há sala de folhas com vaga e caminho a partir da célula.</summary>
+        bool LeafRoomReachable(int x, int y) =>
+            LeafRoomSpots > 0 && WasteDistance(LeafNutrientMode, x, y) != FlowField.Unreachable;
+
+        /// <summary>
+        /// A formiga com planta na mão (que nenhum canteiro pede) leva para a sala de folhas, se houver vaga e caminho. Planta
+        /// na mão vai na ordem: canteiros, depósito de alimentos, sala de folhas, chão.
+        /// </summary>
+        bool TryStartLeafRoom(Ant ant)
+        {
+            if (!CellMaterials.IsPlant(ant.Carried) || !SectionAllows(WorkSection.WasteRoom, ant) ||
+                _wasteSpots[LeafNutrientMode] - _wasteCarriers[LeafNutrientMode] <= 0 ||
+                WasteDistance(LeafNutrientMode, ant.X, ant.Y) == FlowField.Unreachable)
+                return false;
+            ReleaseDumpSide(ant);
+            ant.State = AntState.CarryingWaste;
+            ant.WasteTarget = LeafNutrientMode;
+            _wasteCarriers[LeafNutrientMode]++;
+            return true;
+        }
+
         bool DirtRoomLeft => _wasteDirt + _wasteCarriers[DirtMode] < _wasteSpots[DirtMode];
 
         // Formigas indo buscar terra na pilha de fora para a área (recontadas a cada Tick).
@@ -459,7 +521,7 @@ namespace Fabula.Incrementant.Colony
         /// </summary>
         bool TryStartWasteRestock(Ant ant)
         {
-            if (!WasteRestockOpen || !SectionAllows(WorkSection.Dig, ant) || _builtSoilPileVersion < 0 ||
+            if (!WasteRestockOpen || !SectionAllows(WorkSection.WasteRoom, ant) || _builtSoilPileVersion < 0 ||
                 WasteDistance(DirtMode, ant.X, ant.Y) == FlowField.Unreachable ||
                 _soilPileField.Get(ant.X, ant.Y) == FlowField.Unreachable)
                 return false;
@@ -518,6 +580,12 @@ namespace Fabula.Incrementant.Colony
 
         void DeliverWithoutWasteRoom(Ant ant)
         {
+            if (CellMaterials.IsPlant(ant.Carried))
+            {
+                // A sala de folhas ficou inalcançável: a planta volta ao caminho normal (UpdateStoring decide de novo).
+                ant.State = AntState.Carrying;
+                return;
+            }
             ant.State = AntState.Carrying;
             ant.StoreTarget = StorageKind.None;
             if (BlockDepot ? IsBlockItem(ant.Carried) && TryStartStock(ant, StorageKind.Blocks) : TryStartBedSoil(ant))
@@ -535,8 +603,11 @@ namespace Fabula.Incrementant.Colony
                     continue;
                 // O resto de cupim fica como resto (vira folhas ao se decompor); a terra fica como terra fofa (vira areia e
                 // água); o entulho vira resíduo comum.
-                CellMaterial deposited = ant.Carried == CellMaterial.TermiteRemains ? CellMaterial.TermiteRemains
+                CellMaterial deposited = CellMaterials.IsPlant(ant.Carried) ? CellMaterial.PlantLeaf
+                    : ant.Carried == CellMaterial.TermiteRemains ? CellMaterial.TermiteRemains
                     : CellMaterials.IsWaste(ant.Carried) ? CellMaterial.Refuse : CellMaterial.Spoil;
+                if (deposited == CellMaterial.PlantLeaf)
+                    _plantsInFlight = Mathf.Max(0, _plantsInFlight - 1);
                 _grid.SetStored(x, y, StoredItems.Of(deposited), ant.CarriedShade);
                 Emit(SfxId.Drop, x, y);
                 TrackWaste(x, y);

@@ -63,7 +63,7 @@ namespace Fabula.Incrementant.Tests
             Assert.AreEqual(BuyBlock.None, colony.TryBuyUpgrade(def, 2, out int bought));
             Assert.AreEqual(2, bought);
             Assert.AreEqual(2, colony.Galleries.Level("O+1"));
-            Assert.AreEqual(10000 - (80 + 108), colony.Nutrients); // 80 × 1,35^0 + 80 × 1,35^1
+            Assert.AreEqual(10000 - (UpgradeCatalog.LevelCost(def, 1) + UpgradeCatalog.LevelCost(def, 2)), colony.Nutrients); // custo × 1,35^(n−1), já com o fator do nível
             Assert.AreEqual(1.08f, colony.Galleries.Multiplier("O+1"), 1e-4f);
         }
 
@@ -73,7 +73,7 @@ namespace Fabula.Incrementant.Tests
             var (colony, _, _) = MakeColony();
             UpgradeDef def = UpgradeCatalog.Get("O+1");
             OpenRingTwo(colony);
-            colony.RestoreNutrients(200, 200, 0); // 80 + 108 = 188 pagam 2 níveis; o terceiro (146) não cabe
+            colony.RestoreNutrients(UpgradeCatalog.LevelCost(def, 1) + UpgradeCatalog.LevelCost(def, 2) + 10, 1000, 0); // paga 2 níveis; o terceiro não cabe
             Assert.AreEqual(BuyBlock.None, colony.TryBuyUpgrade(def, 0, out int bought));
             Assert.AreEqual(2, bought);
 

@@ -186,7 +186,8 @@ namespace Fabula.Incrementant.Colony
         }
 
         float CarePause(Ant ant) =>
-            _settings.CarePauseSeconds / Tree.CareRate(ant.Role) * (ant.Role == AntRole.Nurse ? Effects.CarePauseFactor : 1f);
+            _settings.CarePauseSeconds / Tree.CareRate(ant.Role) * (ant.Role == AntRole.Nurse ? Effects.CarePauseFactor : 1f)
+            * (ant.Role == AntRole.Worker ? _settings.WorkerTaskTimeFactor : 1f);
 
         bool NearCell(Ant ant, Vector2Int cell) => Mathf.Abs(ant.X - cell.x) <= 1 && Mathf.Abs(ant.Y - cell.y) <= 1;
 
@@ -352,7 +353,7 @@ namespace Fabula.Incrementant.Colony
         // ---------------------------------------------------------------- sala de nutrientes (cultivo)
 
         /// <summary>Canteiros que o papel cobre: blocos (B) do design vezes as células de um B no protótipo.</summary>
-        int GardenCapacity(Ant ant) => Tree.GardenBlocks(ant.Role) * Mathf.Max(1, _settings.CellsPerAdultSlot);
+        int GardenCapacity(Ant ant) => Tree.GardenBlocks(ant.Role) * Mathf.Max(1, _settings.CellsPerGardenBlock);
 
         /// <summary>
         /// Ritmo dos canteiros que brotam sem ninguém em interação: a parte que cabe na cobertura de quem está na sala

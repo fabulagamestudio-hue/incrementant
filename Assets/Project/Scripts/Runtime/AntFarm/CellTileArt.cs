@@ -69,7 +69,10 @@ namespace Fabula.Incrementant.AntFarm
                 case PaintRoom.Queen: return RoomStyle.Queen;
                 case PaintRoom.Nutrient: return RoomStyle.Nutrient;
                 case PaintRoom.Nursery: return RoomStyle.Nursery;
-                case PaintRoom.Waste: return RoomStyle.Waste;
+                case PaintRoom.Waste:
+                case PaintRoom.WasteLeaves:
+                case PaintRoom.WasteDirt:
+                case PaintRoom.WasteNutrient: return RoomStyle.Waste;
                 case PaintRoom.Dew: return RoomStyle.Dew;
                 case PaintRoom.Farm: return RoomStyle.Farm;
                 // Fundição, forja e armazéns de equipamento com visual próprio (pedido de 2026-10-23); os outros depósitos dividem Store.

@@ -483,7 +483,7 @@ namespace Fabula.Incrementant.Colony
             ant.Interacting = true;
             if (cell.x != ant.X)
                 ant.FacingX = cell.x > ant.X ? 1 : -1;
-            ant.Cooldown = _settings.CarePauseSeconds;
+            ant.Cooldown = _settings.CarePauseSeconds * (ant.Role == AntRole.Worker ? _settings.WorkerTaskTimeFactor : 1f);
         }
 
         /// <summary>

@@ -161,5 +161,43 @@ namespace Fabula.Incrementant.Tests
             Assert.Fail("Nenhum bloco saiu em 60 s.");
             return 0f;
         }
+
+        [Test]
+        public void AssistingAnts_SpeedUpTheBlock_AndNoBlockIsLostOrDuplicated()
+        {
+            float alone = TimeToClearDirt(assist: false);
+            float together = TimeToClearDirt(assist: true);
+            Assert.Less(together, alone * 0.9f, "Várias formigas no mesmo bloco soltam a faixa mais rápido que cada uma no seu.");
+        }
+
+        static float TimeToClearDirt(bool assist)
+        {
+            // Só dois blocos para seis formigas: sem mutirão, quatro ficam sem o que fazer.
+            var grid = new PixelGrid(90, 16);
+            for (int x = 0; x < grid.Width; x++)
+            {
+                grid.Set(x, 0, CellMaterial.Bedrock);
+                grid.SetSurfaceY(x, 0);
+            }
+            for (int x = 4; x <= 5; x++)
+            {
+                grid.Set(x, 1, CellMaterial.Dirt);
+                Assert.IsTrue(grid.SetMarked(x, 1, true));
+            }
+            var layout = new TerrainLayout(45, new Vector2Int(45, 1), 55, 60);
+            var settings = new ColonySettings();
+            JsonUtility.FromJsonOverwrite("{\"_digTimeMultiplier\":20,\"_assistDig\":" + (assist ? "true" : "false") + "}", settings);
+            var colony = new AntColony(grid, settings, layout, seed: 3);
+            var sim = new GranularSimulation();
+            for (int i = 0; i < 60 * 600; i++)
+            {
+                sim.Step(grid);
+                colony.Tick(Dt);
+                if (grid.Get(4, 1) != CellMaterial.Dirt && grid.Get(5, 1) != CellMaterial.Dirt)
+                    return i * Dt;
+            }
+            Assert.Fail("Os blocos não foram cavados em 10 minutos.");
+            return 0f;
+        }
     }
 }

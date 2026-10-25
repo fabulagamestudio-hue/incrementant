@@ -36,11 +36,19 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Índice da seção do trabalho atual (-1 = nenhuma). Barato: é chamado duas vezes por formiga a cada passo.</summary>
         int SectionIndex(Ant ant)
         {
+            // Levando algo a um depósito ou à área de resíduos, a seção é o destino (pedido do desenvolvedor em 2026-10-24),
+            // venha de onde vier: terra cavada, planta cortada, item solto, água do mapa ou terra da pilha de fora.
+            if (ant.StoreTarget != StorageKind.None && IsStockTrip(ant.State) &&
+                WorkPolicy.TryGetDepotSection(ant.StoreTarget, out WorkSection depot))
+                return (int)depot;
+            if (ant.WasteDirtJob)
+                return (int)WorkSection.WasteRoom;
             switch (ant.State)
             {
                 case AntState.Dismembering:
-                case AntState.CarryingWaste:
                     return (int)WorkSection.Waste;
+                case AntState.CarryingWaste:
+                    return (int)WorkSection.WasteRoom;
                 case AntState.Fetching:
                 case AntState.Delivering:
                     return (int)WorkSection.QueenFeed;
@@ -51,9 +59,9 @@ namespace Fabula.Incrementant.Colony
                     return (int)WorkSection.Nursery;
                 case AntState.FetchingWater:
                 case AntState.CarryingWater:
-                    // Encher o depósito de água não é da seção Jardim (pedido do desenvolvedor em 2026-10-19): com o Jardim
-                    // no limite, ninguém enchia o depósito. Só regar os canteiros conta lá.
-                    return ant.StoreTarget == StorageKind.Water ? -1 : (int)WorkSection.Garden;
+                    // Encher o depósito de água é da seção do depósito (acima), não do Jardim: com o Jardim no limite, ninguém
+                    // enchia o depósito (2026-10-19). Só regar os canteiros conta aqui.
+                    return (int)WorkSection.Garden;
                 case AntState.Gardening:
                     return (int)WorkSection.Garden;
                 case AntState.TakingStored:
@@ -64,9 +72,6 @@ namespace Fabula.Incrementant.Colony
                 case AntState.BringingSoil:
                 case AntState.FetchingSoil:
                 case AntState.GatheringSoil:
-                    // Terra da pilha para a área de resíduos (modo terra → água): mesma seção da reposição do depósito.
-                    if (ant.WasteDirtJob)
-                        return (int)WorkSection.Dig;
                     return (int)(ant.DewJob ? WorkSection.Dew : WorkSection.Garden);
                 case AntState.Gathering:
                 case AntState.Hauling:
@@ -93,6 +98,23 @@ namespace Fabula.Incrementant.Colony
             }
         }
 
+        /// <summary>Estados em que <see cref="Ant.StoreTarget"/> é uma viagem para encher o depósito (ida à água ou à pilha, ou a volta carregada).</summary>
+        static bool IsStockTrip(AntState state) =>
+            state == AntState.Carrying || state == AntState.CarryingWater || state == AntState.FetchingWater ||
+            state == AntState.FetchingSoil || state == AntState.GatheringSoil;
+
+        /// <summary>
+        /// Formigas que a seção ainda aceita além das que já estão nela (0 parada; <see cref="int.MaxValue"/> sem limite).
+        /// Os itens soltos usam isso para não sair buscando o que o depósito no limite não vai receber.
+        /// </summary>
+        int SectionRoom(WorkSection section)
+        {
+            if (!Work.IsEnabled(section))
+                return 0;
+            int limit = Work.LimitOf(section);
+            return limit == WorkPolicy.Unlimited ? int.MaxValue : UnityEngine.Mathf.Max(0, limit - _sectionCounts[(int)section]);
+        }
+
         bool IsPlantCell(int x, int y)
         {
             CellMaterial material = _grid.Get(x, y);
@@ -111,6 +133,18 @@ namespace Fabula.Incrementant.Colony
             if (ant == Queen)
                 return true;
             return SectionIndex(ant) == (int)section || Work.HasRoom(section, _sectionCounts[(int)section]);
+        }
+
+        /// <summary>
+        /// A seção tem onde trabalhar: o depósito dela pintado ou alguma área de resíduos (as seções de trabalho, sempre). O
+        /// painel apaga a linha de quem ainda não tem sala.
+        /// </summary>
+        public bool HasSectionRoom(WorkSection section)
+        {
+            if (section == WorkSection.WasteRoom)
+                return _grid.WasteRoomCount > 0;
+            StorageKind kind = WorkPolicy.DepotOf(section);
+            return kind == StorageKind.None || HasDepot(kind);
         }
 
         void ClearSectionCounts() => Array.Clear(_sectionCounts, 0, _sectionCounts.Length);
@@ -329,8 +363,6 @@ namespace Fabula.Incrementant.Colony
                 int section = SectionIndex(ant);
                 if (section >= 0)
                     census.Sections[section]++;
-                else if (ant.StoreTarget == StorageKind.Water && (ant.State == AntState.FetchingWater || ant.State == AntState.CarryingWater))
-                    census.WaterStocking++;
                 else if (ant.State == AntState.Fighting)
                     census.Fighting++;
                 else
@@ -387,8 +419,6 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Sem trabalho: vagando, esperando ou recolhidas pelo sino.</summary>
         public int Idle;
         public int Fighting;
-        /// <summary>Levando água do mapa ao depósito de água (fora das seções de trabalho).</summary>
-        public int WaterStocking;
 
         public void Clear()
         {
@@ -397,7 +427,6 @@ namespace Fabula.Incrementant.Colony
             Array.Clear(Places, 0, Places.Length);
             Idle = 0;
             Fighting = 0;
-            WaterStocking = 0;
         }
     }
 }

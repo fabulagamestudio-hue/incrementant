@@ -410,7 +410,7 @@ namespace Fabula.Incrementant.Colony
             BuyBlock block = CheckBuy(node);
             if (block != BuyBlock.None)
                 return block;
-            int cost = QueenTree.Def(node).Cost;
+            int cost = UpgradeCatalog.Of(node).Cost; // com o fator do nível do formigueiro
             if (Nutrients < cost)
                 return BuyBlock.InsufficientNutrients;
             Tree.Grant(node);
@@ -455,6 +455,7 @@ namespace Fabula.Incrementant.Colony
             Galleries.Set(def.Id, level + bought);
             Effects.Recompute(Galleries);
             Tree.FarmAvailable = Effects.FarmUnlocked;
+            _grid.SetCapacityFactor(Effects.StorageCapacityFactor);
             Nutrients -= (int)cost;
             EmitSpent((int)cost);
             Emit(SfxId.Buy);
@@ -467,6 +468,7 @@ namespace Fabula.Incrementant.Colony
             Galleries.Restore(ids, levels);
             Effects.Recompute(Galleries);
             Tree.FarmAvailable = Effects.FarmUnlocked;
+            _grid.SetCapacityFactor(Effects.StorageCapacityFactor);
         }
 
         /// <summary>Custo (nutrientes) de criar uma formiga do papel dado: o alimento por cria do design, estável (não cresce com a colônia).</summary>
@@ -738,6 +740,7 @@ namespace Fabula.Incrementant.Colony
             ResetCare();
             _claimed.Clear();
             _seekOwner.Clear();
+            _assistHelpers.Clear();
             _claimHash = 0;
             _waterClaims.Clear();
             _waterClaimHash = 0;
@@ -792,6 +795,11 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Reservas, pedidos e contagens do passo de uma formiga (ou da rainha trabalhando), antes de todas agirem.</summary>
         void CountWork(Ant ant)
         {
+            if (ant.State == AntState.Digging && ant.AssistOf != null)
+            {
+                _assistHelpers.TryGetValue(ant.AssistOf, out int helpers);
+                _assistHelpers[ant.AssistOf] = helpers + 1;
+            }
             if (ant.State == AntState.Digging)
             {
                 ClaimTarget(ant);
@@ -1176,7 +1184,7 @@ namespace Fabula.Incrementant.Colony
         /// </summary>
         bool IsWorkTarget(int x, int y, int standX, int standY)
         {
-            if (!_grid.IsMarked(x, y) || _claimed.Contains(_grid.ToIndex(x, y)))
+            if (!_grid.IsMarked(x, y) || _claimed.Contains(_grid.ToIndex(x, y)) && !IsAssistableBlock(_grid.ToIndex(x, y)))
                 return false;
             CellMaterial material = _grid.Get(x, y);
             if (CellMaterials.IsDiggable(material))
@@ -1341,6 +1349,8 @@ namespace Fabula.Incrementant.Colony
             bool plant = CellMaterials.IsPlant(material);
             if (!plant)
                 factor *= Effects.AllDigTime * ToolFactor(ant);
+            if (ant.Role == AntRole.Worker)
+                factor *= _settings.WorkerTaskTimeFactor;
             switch (ant.Role)
             {
                 case AntRole.Worker: return plant ? factor * Effects.WorkerCutTime : factor;
@@ -2628,6 +2638,8 @@ namespace Fabula.Incrementant.Colony
                 InterruptForCombat(ant);
 
             ant.Cooldown -= deltaTime;
+            if (ant.AssistOf != null && ant.State == AntState.Digging)
+                UpdateAssist(ant, deltaTime);
             if (ant.HitCell >= 0)
                 UpdateHits(ant);
             if (ant.Cooldown > 0f)
@@ -3048,6 +3060,8 @@ namespace Fabula.Incrementant.Colony
                 // Na borda sem pixel livre ao lado, procura outro ponto perto (PlanSeek) em vez de largar o trabalho.
                 if (TryStartDig(ant, rock: rock))
                     return true;
+                if (!rock && TryAssistDig(ant))
+                    return true;
                 if (!nearby)
                     return false;
             }
@@ -3078,8 +3092,8 @@ namespace Fabula.Incrementant.Colony
         /// <summary>O pixel marcado está livre ou reservado por quem ainda está mais longe dele que <paramref name="arrival"/> passos.</summary>
         bool FreeOrTakeable(Ant ant, int x, int y, int arrival)
         {
-            if (!_settings.StealDigReservations || _seekOwner.Count == 0)
-                return true;
+            if (!_settings.StealDigReservations || _seekOwner.Count == 0 || _claimed.Contains(_grid.ToIndex(x, y)))
+                return true; // bloco já sendo solto por outra: a ajuda não disputa reserva (mutirão)
             if (!_seekOwner.TryGetValue(_grid.ToIndex(x, y), out Ant owner))
                 return true;
             return !ReferenceEquals(owner, ant) && owner.State == AntState.Idle && owner.SeekTarget == _grid.ToIndex(x, y) &&
@@ -3476,6 +3490,9 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Começa a cavar/cortar/quebrar o pixel vizinho (<paramref name="x"/>, <paramref name="y"/>) e o trava.</summary>
         void BeginDig(Ant ant, int x, int y, bool rock)
         {
+            // Bloco que outra já está soltando: ajuda em vez de começar de novo (só a dona pega o pixel).
+            if (!rock && JoinAssist(ant, _grid.ToIndex(x, y)))
+                return;
             // O pedaço solto pego sem reserva (já ao lado) ocupa a vaga agora; o reservado já foi contado em PlanSeek.
             if (!rock && ant.SeekTarget != _grid.ToIndex(x, y) && CellMaterials.IsPlantDebris(_grid.Get(x, y)))
                 _debrisClaims++;
@@ -3494,6 +3511,7 @@ namespace Fabula.Incrementant.Colony
                 }
             }
             ant.ClearSeek();
+            ant.AssistOf = null;
             ant.DigX = x;
             ant.DigY = y;
             if (ant.DigX != ant.X)
@@ -3509,7 +3527,11 @@ namespace Fabula.Incrementant.Colony
                 WearTool(ant);
             // Bloco inteiro racha com os golpes (REQ-072); planta em pé e pedaço de planta não.
             if (!CellMaterials.IsAnyPlant(_grid.Get(ant.DigX, ant.DigY)))
+            {
                 StartHits(ant);
+                if (!rock && ant.HitCell >= 0)
+                    _digOwners[ant.HitCell] = ant;
+            }
             else
                 ant.HitCell = -1;
         }
@@ -3592,6 +3614,14 @@ namespace Fabula.Incrementant.Colony
         void FinishDig(Ant ant)
         {
             ant.State = AntState.Idle;
+            if (ant.AssistOf != null)
+            {
+                // Ajudante: o bloco é da dona, que o pega no passo dela.
+                ant.AssistOf = null;
+                return;
+            }
+            if (ant.HitCell >= 0 && _digOwners.TryGetValue(ant.HitCell, out Ant owner) && ReferenceEquals(owner, ant))
+                _digOwners.Remove(ant.HitCell);
             bool adjacent = Mathf.Abs(ant.DigX - ant.X) <= 1 && Mathf.Abs(ant.DigY - ant.Y) <= 1;
             CellMaterial material = _grid.Get(ant.DigX, ant.DigY);
             // Outra formiga pode ter levado o pixel, ou ele caiu/foi desmarcado durante a escavação. A planta em pé não
@@ -4029,6 +4059,7 @@ namespace Fabula.Incrementant.Colony
         float SpeedOf(Ant ant) =>
             ant.SpeedOverride > 0f ? ant.SpeedOverride
             : _settings.AntSpeed * AntRoles.SpeedFactor(ant.Role) * Tree.SpeedFactor(ant.Role)
+              * (ant.Role == AntRole.Worker ? _settings.WorkerSpeedRate : 1f)
               * (ant.Role == AntRole.Worker ? Effects.WorkerSpeedRate : ant.Role == AntRole.Carrier ? Effects.CarrierSpeedRate
                  : ant.Role == AntRole.Farmer ? Effects.FarmerSpeedRate : 1f)
               * SituationalSpeedRate(ant)

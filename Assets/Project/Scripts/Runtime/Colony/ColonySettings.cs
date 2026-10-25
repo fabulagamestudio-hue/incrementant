@@ -14,6 +14,14 @@ namespace Fabula.Incrementant.Colony
         [SerializeField, Range(0.05f, 1f)] float _idleSpeedRate = 0.5f;
         [Tooltip("Multiplica o tempo de escavação de cada material.")]
         [SerializeField, Min(0.01f)] float _digTimeMultiplier = 1f;
+        [Tooltip("Multiplica a velocidade de andar da operária comum (as outras classes não pagam isso): é o que justifica as classes operárias. 1 = sem penalidade.")]
+        [SerializeField, Range(0.1f, 1f)] float _workerSpeedRate = 1f;
+        [Tooltip("Multiplica o tempo das tarefas da operária comum (cavar, construir, cortar, cuidar). 1 = sem penalidade; a cena usa mais de 1 para a comum ser a mais lenta.")]
+        [SerializeField, Min(1f)] float _workerTaskTimeFactor = 1f;
+        [Tooltip("Mutirão: formigas ociosas ao lado de um bloco que outra está soltando somam o trabalho delas a ele (acelera o bloco); só a primeira pega o pixel. Desligado, cada bloco é de uma formiga só.")]
+        [SerializeField] bool _assistDig = false;
+        [Tooltip("Segundos que uma folha leva para virar um nutriente na sala de folhas (cada folha tem o próprio tempo, em paralelo).")]
+        [SerializeField, Min(0.1f)] float _leafNutrientSeconds = 30f;
         [Tooltip("Pausa ao soltar o pixel no despejo.")]
         [SerializeField, Min(0f)] float _dropSeconds = 0.1f;
         [Tooltip("Segundos (de jogo) que um canteiro da sala de nutrientes (terra fofa + planta + água) leva para brotar e pôr um nutriente pronto em cada lado livre. Só corre com formiga cuidando da sala; a formiga que rega não espera.")]
@@ -46,7 +54,10 @@ namespace Fabula.Incrementant.Colony
         [SerializeField, Min(0)] int _minNutrientReserve = 30;
         [Tooltip("Células escavadas e acessíveis por vaga de adulta. O design usa 256 (um B), mas as formigas do protótipo " +
                  "ocupam 3x2 células; este valor é a escala do protótipo e precisa de ajuste de balanceamento.")]
-        [SerializeField, Min(1)] int _cellsPerAdultSlot = 24;
+        [SerializeField, Min(1)] int _cellsPerAdultSlot = 72;
+        [Tooltip("Células de um B de canteiro da sala de nutrientes (escala do protótipo). Separado de Cells Per Adult Slot " +
+                 "para que o ritmo de escavação das vagas não mude a cobertura dos canteiros.")]
+        [SerializeField, Min(1)] int _cellsPerGardenBlock = 24;
         [Tooltip("Células de berçário (vazias e alcançáveis) por vaga de cria. O design dá 2 vagas por B de 256 células; " +
                  "mesma escala do protótipo de Cells Per Adult Slot.")]
         [SerializeField, Min(1)] int _cellsPerNurserySlot = 16;
@@ -127,7 +138,10 @@ namespace Fabula.Incrementant.Colony
                 case PaintRoom.Queen: return _queenRoomCells;
                 case PaintRoom.Nutrient: return _nutrientRoomCells;
                 case PaintRoom.Nursery: return _nurseryRoomCells;
-                case PaintRoom.Waste: return _wasteRoomCells;
+                case PaintRoom.Waste:
+                case PaintRoom.WasteLeaves:
+                case PaintRoom.WasteDirt:
+                case PaintRoom.WasteNutrient: return _wasteRoomCells; // o mesmo valor, mas cada modo gasta o próprio limite
                 case PaintRoom.Dew: return _dewRoomCells;
                 case PaintRoom.Farm: return _farmRoomCells;
                 default: return _depotCells;
@@ -138,6 +152,10 @@ namespace Fabula.Incrementant.Colony
         public float AntSpeed => _antSpeed;
         public float IdleSpeedRate => _idleSpeedRate;
         public float DigTimeMultiplier => _digTimeMultiplier;
+        public bool AssistDig => _assistDig;
+        public float LeafNutrientSeconds => _leafNutrientSeconds;
+        public float WorkerSpeedRate => _workerSpeedRate;
+        public float WorkerTaskTimeFactor => _workerTaskTimeFactor;
         public float DropSeconds => _dropSeconds;
         public float NutrientCureSeconds => _nutrientCureSeconds;
         public float FieldRebuildInterval => _fieldRebuildInterval;
@@ -155,6 +173,7 @@ namespace Fabula.Incrementant.Colony
         public float PupaSeconds => _pupaSeconds;
         public int MinNutrientReserve => _minNutrientReserve;
         public int CellsPerAdultSlot => _cellsPerAdultSlot;
+        public int CellsPerGardenBlock => _cellsPerGardenBlock;
         public int CellsPerNurserySlot => _cellsPerNurserySlot;
         public float DewDropSeconds => _dewDropSeconds;
         public float DewSoilShare => _dewSoilShare;

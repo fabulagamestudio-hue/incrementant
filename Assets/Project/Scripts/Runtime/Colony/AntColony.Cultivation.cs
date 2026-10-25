@@ -696,8 +696,10 @@ namespace Fabula.Incrementant.Colony
             // Terra para a área de resíduos (modo terra → água): leva para lá; sem lugar ou caminho, entrega como terra.
             if (ant.WasteDirtJob)
             {
+                // A marca sai depois de tentar: até lá ela ainda conta na sala de resíduos (o limite não a barra).
+                bool placed = TryStartWaste(ant, dirt: true);
                 ant.WasteDirtJob = false;
-                if (!TryStartWaste(ant, dirt: true))
+                if (!placed)
                     StartDelivery(ant);
                 return;
             }
@@ -732,6 +734,8 @@ namespace Fabula.Incrementant.Colony
             {
                 if (FoodDepot && TryStartStock(ant, StorageKind.Food))
                     return;
+                if (TryStartLeafRoom(ant))
+                    return;
                 DropCarriedPlant(ant);
                 return;
             }
@@ -746,6 +750,8 @@ namespace Fabula.Incrementant.Colony
                 return;
             // Nenhum canteiro alcançável agora: com depósito de alimentos (com vaga), a planta volta para ele.
             if (FoodDepot && TryStartStock(ant, StorageKind.Food))
+                return;
+            if (TryStartLeafRoom(ant))
                 return;
             // Sem destino nenhum (canteiros sem pedido ou fora de alcance, depósito cheio): larga a planta como pixel solto,
             // que volta quando algum destino pedir (IsWorkTarget). Segurá-la deixava a formiga presa com a folha na mão para

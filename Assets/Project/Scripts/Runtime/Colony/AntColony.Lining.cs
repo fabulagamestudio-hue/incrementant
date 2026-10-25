@@ -9,7 +9,9 @@ namespace Fabula.Incrementant.Colony
     /// <summary>Valor do reboco gravado na grade (<see cref="PixelGrid.GetLining"/>): o ambiente + 1, 0 = sem reboco. Vai para o save: não renumerar.</summary>
     public static class RoomLining
     {
-        public static byte KindOf(PaintRoom room) => (byte)((int)room + 1);
+        /// <summary>Os três modos da área de resíduos têm o mesmo reboco (o de <see cref="PaintRoom.Waste"/>): o valor cabe nos 4 bits do save.</summary>
+        public static byte KindOf(PaintRoom room) =>
+            (byte)((int)(room == PaintRoom.WasteLeaves || room == PaintRoom.WasteDirt || room == PaintRoom.WasteNutrient ? PaintRoom.Waste : room) + 1);
 
         public static bool TryGetRoom(byte kind, out PaintRoom room)
         {

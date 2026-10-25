@@ -309,6 +309,11 @@ namespace Fabula.Incrementant.Colony
         /// </summary>
         public int HitCell = -1;
         public float HitTotal;
+        /// <summary>
+        /// Mutirão de escavação: a formiga que está ajudando a soltar o bloco de outra (ver AntColony.Assist.cs). Só a
+        /// dona do bloco pega o pixel; quem ajuda soma tempo de trabalho e volta a procurar o que fazer. Não vai para o save.
+        /// </summary>
+        public Ant AssistOf;
         public int DumpTargetX;
         /// <summary>Faixa de despejo escolhida ao pegar o pixel (índice em <see cref="AntColony.DumpStrips"/>; -1 = nenhuma).</summary>
         public int DumpSide = -1;
@@ -474,7 +479,7 @@ namespace Fabula.Incrementant.Colony
 
         /// <summary>
         /// A terra que a formiga busca na pilha de fora (<see cref="AntState.FetchingSoil"/>/<see cref="AntState.GatheringSoil"/>)
-        /// é para a área de resíduos no modo terra → água. Não vai para o save.
+        /// é para a área de resíduos no modo terra → água (seção Sala de resíduos). Não vai para o save.
         /// </summary>
         public bool WasteDirtJob;
 

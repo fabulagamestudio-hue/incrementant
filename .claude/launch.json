@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "comfyui",
+      "runtimeExecutable": "H:\\QWEN\\ComfyUI_windows_portable\\python_embeded\\python.exe",
+      "runtimeArgs": ["-s", "H:\\QWEN\\ComfyUI_windows_portable\\ComfyUI\\main.py", "--port", "8188", "--disable-metadata"],
+      "port": 8188
+    }
+  ]
+}

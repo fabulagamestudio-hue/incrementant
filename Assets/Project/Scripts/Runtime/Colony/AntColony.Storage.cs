@@ -96,6 +96,18 @@ namespace Fabula.Incrementant.Colony
         bool OreDepot => HasDepot(StorageKind.Ore);
 
         /// <summary>
+        /// O depósito existe e a seção dele no painel está ativa (pedido do desenvolvedor em 2026-10-24). Parado, ninguém o
+        /// enche: o que viria para ele segue o caminho de quando não há depósito (ou ele está cheio). Quem consome continua
+        /// pegando o que está guardado.
+        /// </summary>
+        bool StockOpen(StorageKind kind) =>
+            HasDepot(kind) && (!WorkPolicy.TryGetDepotSection(kind, out WorkSection section) || Work.IsEnabled(section));
+
+        /// <summary>Formigas que a seção do depósito ainda aceita (sem seção: sem limite).</summary>
+        int StockSectionRoom(StorageKind kind) =>
+            WorkPolicy.TryGetDepotSection(kind, out WorkSection section) ? SectionRoom(section) : int.MaxValue;
+
+        /// <summary>
         /// Itens que só saem do chão para o depósito do tipo deles, com vaga (néctar, minério, barras e equipamentos): sem
         /// destino, ficam onde estão.
         /// </summary>
@@ -104,7 +116,7 @@ namespace Fabula.Incrementant.Colony
             kind == StorageKind.Wardrobe;
 
         /// <summary>Quanto de planta a colheita ainda pode trazer: vagas do depósito de alimentos ou, sem ele, o que os canteiros pedem.</summary>
-        int PlantSupplyDemand => FoodDepot ? _storeFree[(int)StorageKind.Food] : PlantDemand;
+        int PlantSupplyDemand => (StockOpen(StorageKind.Food) ? _storeFree[(int)StorageKind.Food] : PlantDemand) + LeafRoomSpots;
 
         /// <summary>
         /// A planta cortada tem para onde ir a partir da célula: o depósito de alimentos (com vaga) ou, sem ele, os canteiros
@@ -113,7 +125,9 @@ namespace Fabula.Incrementant.Colony
         bool PlantDestinationReachable(int x, int y)
         {
             const int k = (int)StorageKind.Food;
-            if (!FoodDepot)
+            if (LeafRoomReachable(x, y))
+                return true;
+            if (!StockOpen(StorageKind.Food))
                 return _storeField.Get(x, y) != FlowField.Unreachable;
             return !_storeFieldIdle[k] && _putFields[k].Get(x, y) != FlowField.Unreachable;
         }
@@ -126,7 +140,7 @@ namespace Fabula.Incrementant.Colony
         int PlantsWaiting => _reachableDebris + _loosePlants;
 
         /// <summary>Capacidade de referência da histerese da colheita: o depósito de alimentos inteiro, ou os canteiros.</summary>
-        int HarvestCapacity => FoodDepot ? _storeFree[(int)StorageKind.Food] + _storeStock[(int)StorageKind.Food] : _activeBeds;
+        int HarvestCapacity => StockOpen(StorageKind.Food) ? _storeFree[(int)StorageKind.Food] + _storeStock[(int)StorageKind.Food] : _activeBeds;
 
         /// <summary>Bloco que o depósito de construção aceita: terra que vira terra fofa (não areia, rocha, planta nem resíduo).</summary>
         static bool IsBlockItem(CellMaterial material) =>
@@ -249,7 +263,7 @@ namespace Fabula.Incrementant.Colony
                     // Com pilha (REQ-072), a célula com item ainda pode ter vaga para mais um igual: conta o que falta nela.
                     if (IsPutSpot(x, y, kind))
                     {
-                        int room = item == StoredItems.None ? _grid.ItemsPerCell(kind) : _grid.ItemsPerCell(kind) - _grid.GetStoredAmount(x, y);
+                        int room = _grid.CellCapacity(x, y, kind) - (item == StoredItems.None ? 0 : _grid.GetStoredAmount(x, y));
                         // A vaga reservada por uma ordem conta como livre (quem vai a ela está em _storeIncoming), mas sai do
                         // campo: as outras formigas descem para outra.
                         if (_slotClaims.Contains(_grid.ToIndex(x, y)))
@@ -367,23 +381,24 @@ namespace Fabula.Incrementant.Colony
             // néctar só sai do pé da flor (e o minério, de onde ficou) para um depósito do tipo com vaga.
             return kind != StorageKind.None && kind != StorageKind.Waste && _grid.GetStorageRoom(x, y) != kind &&
                    !IsConversionInput(x, y, item) && !IsFarmHeld(x, y, item) && !IsWorkshopInput(x, y, item) &&
-                   (!IsHeldUntilDepot(kind) || HasDepot(kind) && _storeFree[(int)kind] > 0);
+                   (!IsHeldUntilDepot(kind) || StockOpen(kind) && _storeFree[(int)kind] > 0);
         }
 
         bool LooseHasDestination(StorageKind kind)
         {
             switch (kind)
             {
-                case StorageKind.Food: return FoodDepot ? _storeFree[(int)StorageKind.Food] > 0 : PlantDemand > 0;
-                case StorageKind.Water: return WaterDepot ? _storeFree[(int)StorageKind.Water] > 0 : _bedsAwaitingWater > 0;
-                default: return !IsHeldUntilDepot(kind) || HasDepot(kind) && _storeFree[(int)kind] > 0;
+                case StorageKind.Food: return StockOpen(StorageKind.Food) ? _storeFree[(int)StorageKind.Food] > 0 : PlantDemand > 0;
+                case StorageKind.Water: return StockOpen(StorageKind.Water) ? _storeFree[(int)StorageKind.Water] > 0 : _bedsAwaitingWater > 0;
+                default: return !IsHeldUntilDepot(kind) || StockOpen(kind) && _storeFree[(int)kind] > 0;
             }
         }
 
         /// <summary>
         /// Quantos itens soltos do tipo o destino ainda aceita, descontado o que já está a caminho: vagas do depósito menos as
         /// formigas indo para ele, ou o pedido dos canteiros (e das folhas da sala Gotas de Orvalho) menos o que já está na mão
-        /// ou reservado no chão. Terra não tem limite (o despejo aceita tudo).
+        /// ou reservado no chão. Terra não tem limite (o despejo aceita tudo). Para um depósito, também o que o limite da
+        /// seção dele ainda aceita: no limite, ninguém sai buscando o que não vai poder guardar.
         /// </summary>
         int LooseRoom(StorageKind kind)
         {
@@ -391,11 +406,17 @@ namespace Fabula.Incrementant.Colony
             switch (kind)
             {
                 case StorageKind.Food:
-                    return FoodDepot ? _storeFree[food] - _storeIncoming[food] : PlantDemand - _plantsInFlight - _plantsToBeds - _debrisClaims;
+                    return StockOpen(StorageKind.Food)
+                        ? Mathf.Min(_storeFree[food] - _storeIncoming[food], StockSectionRoom(kind))
+                        : PlantDemand - _plantsInFlight - _plantsToBeds - _debrisClaims;
                 case StorageKind.Water:
-                    return WaterDepot ? _storeFree[water] - _storeIncoming[water] : _bedsAwaitingWater - _waterCarriers;
+                    return StockOpen(StorageKind.Water)
+                        ? Mathf.Min(_storeFree[water] - _storeIncoming[water], StockSectionRoom(kind))
+                        : _bedsAwaitingWater - _waterCarriers;
                 default:
-                    return IsHeldUntilDepot(kind) ? _storeFree[(int)kind] - _storeIncoming[(int)kind] : int.MaxValue;
+                    if (!IsHeldUntilDepot(kind))
+                        return int.MaxValue;
+                    return StockOpen(kind) ? Mathf.Min(_storeFree[(int)kind] - _storeIncoming[(int)kind], StockSectionRoom(kind)) : 0;
             }
         }
 
@@ -419,7 +440,7 @@ namespace Fabula.Incrementant.Colony
         {
             int k = (int)kind;
             FlowField field = _putFields[k];
-            if (!HasDepot(kind) || field == null || _storeFieldIdle[k] || _storeFree[k] - _storeIncoming[k] <= 0 ||
+            if (!HasDepot(kind) || !DepotSectionAllows(kind, ant) || field == null || _storeFieldIdle[k] || _storeFree[k] - _storeIncoming[k] <= 0 ||
                 field.Get(ant.X, ant.Y) == FlowField.Unreachable)
                 return false;
             ReleaseDumpSide(ant);
@@ -427,6 +448,10 @@ namespace Fabula.Incrementant.Colony
             _storeIncoming[k] += LoadOf(ant);
             return true;
         }
+
+        /// <summary>A seção do depósito (se ele tem uma) aceita a formiga: ativa e com vaga no limite, ou ela já é dela.</summary>
+        bool DepotSectionAllows(StorageKind kind, Ant ant) =>
+            !WorkPolicy.TryGetDepotSection(kind, out WorkSection section) || SectionAllows(section, ant);
 
         /// <summary>
         /// Leva o item à vaga reservada da ordem (<see cref="Ant.OrderSlot"/>) pelo caminho guardado e o guarda nela. Sem vaga
@@ -955,8 +980,8 @@ namespace Fabula.Incrementant.Colony
         bool TryStartWaterStock(Ant ant)
         {
             const int k = (int)StorageKind.Water;
-            // Fora das seções de trabalho: o limite do Jardim não segura o depósito (ver SectionIndex).
-            if (!WaterDepot || !AntRoles.CarriesWater(ant.TaskRole) ||
+            // Seção do depósito de água, não do Jardim: o limite do Jardim não segura o depósito (ver SectionIndex).
+            if (!WaterDepot || !AntRoles.CarriesWater(ant.TaskRole) || !SectionAllows(WorkSection.WaterDepot, ant) ||
                 _storeFree[k] - _storeIncoming[k] <= 0 || _waterField.Get(ant.X, ant.Y) == FlowField.Unreachable ||
                 _putFields[k] == null || _putFields[k].Get(ant.X, ant.Y) == FlowField.Unreachable)
                 return false;
@@ -1009,7 +1034,7 @@ namespace Fabula.Incrementant.Colony
         /// </summary>
         bool TryStartRestock(Ant ant)
         {
-            if (!BlockRestockWanted || !SectionAllows(WorkSection.Dig, ant) || _builtSoilPileVersion < 0 ||
+            if (!BlockRestockWanted || !SectionAllows(WorkSection.BlockDepot, ant) || _builtSoilPileVersion < 0 ||
                 _soilPileField.Get(ant.X, ant.Y) == FlowField.Unreachable)
                 return false;
             ant.DewJob = false;

@@ -1,6 +1,7 @@
 using System.IO;
 using Fabula.Incrementant.Colony;
 using Fabula.Incrementant.Save;
+using Fabula.Incrementant.Upgrades;
 using Fabula.Incrementant.World;
 using NUnit.Framework;
 using UnityEngine;
@@ -39,7 +40,7 @@ namespace Fabula.Incrementant.Tests
 
         static AntColony MakeColony(int nurseryWidth, int nutrients)
         {
-            var colony = new AntColony(MakeWorld(nurseryWidth), new ColonySettings(), Layout, seed: 1);
+            var colony = new AntColony(MakeWorld(nurseryWidth), BroodTests.CycleSettings(), Layout, seed: 1);
             colony.RestoreNutrients(nutrients, 0, 0);
             Tick(colony, 1f);
             return colony;
@@ -104,19 +105,19 @@ namespace Fabula.Incrementant.Tests
         {
             AntColony colony = MakeColony(21, 500);
             Assert.AreEqual(BuyBlock.None, colony.TryBuy(QueenNode.Q1));
-            Assert.AreEqual(350, colony.Nutrients);
+            Assert.AreEqual(500 - UpgradeCatalog.Of(QueenNode.Q1).Cost, colony.Nutrients);
             Assert.IsTrue(colony.Tree.Owns(QueenNode.Q1));
             Assert.AreEqual(BuyBlock.Owned, colony.TryBuy(QueenNode.Q1));
-            Assert.AreEqual(350, colony.Nutrients, "Comprar de novo não cobra.");
+            Assert.AreEqual(500 - UpgradeCatalog.Of(QueenNode.Q1).Cost, colony.Nutrients, "Comprar de novo não cobra.");
         }
 
         [Test]
         public void WithoutBalanceOrRequirement_NothingIsDebitedOrApplied()
         {
-            AntColony colony = MakeColony(21, 100);
+            AntColony colony = MakeColony(21, 50);
             Assert.AreEqual(BuyBlock.InsufficientNutrients, colony.TryBuy(QueenNode.Q1));
             Assert.IsFalse(colony.Tree.Owns(QueenNode.Q1));
-            Assert.AreEqual(100, colony.Nutrients);
+            Assert.AreEqual(50, colony.Nutrients);
 
             colony.RestoreNutrients(1000, 0, 0);
             Assert.AreEqual(BuyBlock.MissingRequirement, colony.TryBuy(QueenNode.Q2), "Q2 exige Q1.");

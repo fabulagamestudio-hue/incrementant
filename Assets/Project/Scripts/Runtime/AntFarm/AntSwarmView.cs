@@ -19,7 +19,7 @@ namespace Fabula.Incrementant.AntFarm
         [SerializeField] Sprite[] _topFrames;
         [Tooltip("Arte própria de cada papel (pastas Art/Ants/<Papel>). Papel sem entrada usa os quadros acima; a rainha usa os dela, abaixo.")]
         [SerializeField] RoleArt[] _roleArt;
-        [Tooltip("Quadros de lado da rainha (Art/Ants/Rainha, 48x32 a 16 px por unidade com Queen Scale 2 = pixel do tamanho do texel do terreno, experimento 8x8). Vazio = os quadros de cima, ampliados.")]
+        [Tooltip("Quadros de lado da rainha (Art/Ants/Rainha, 64x32 a 16 px por unidade com Queen Scale 2 = pixel do tamanho do texel do terreno, experimento 8x8). Vazio = os quadros de cima, ampliados.")]
         [SerializeField] Sprite[] _queenWalkFrames;
         [Tooltip("Quadros vista de cima da rainha. Vazio = os de cima, ampliados.")]
         [SerializeField] Sprite[] _queenTopFrames;
@@ -56,6 +56,19 @@ namespace Fabula.Incrementant.AntFarm
         [Tooltip("Velocidade de giro (graus por segundo).")]
         [SerializeField, Min(1f)] float _turnSpeed = 900f;
         [SerializeField] int _sortingOrder = 10;
+        [Header("Animação com os blocos (só visual)")]
+        [Tooltip("Duração de um golpe (recua, bate, volta; sem girar o sprite: girar pixel art em ângulo qualquer quebra as patas de 1 pixel) em segundos de jogo, enquanto cava, pega, encaixa ou morde.")]
+        [SerializeField, Min(0.1f)] float _strikeSeconds = 0.45f;
+        [Tooltip("Quanto o corpo avança para o bloco no golpe, em células.")]
+        [SerializeField, Range(0f, 0.6f)] float _strikeLunge = 0.3f;
+        [Tooltip("Tempo do bloco voando do terreno até a boca ao ser pego, em segundos de jogo.")]
+        [SerializeField, Min(0.01f)] float _pickSeconds = 0.2f;
+        [Tooltip("Altura do arco do bloco ao ser pego, em células.")]
+        [SerializeField, Min(0f)] float _pickArc = 0.8f;
+        [Tooltip("Tempo do avanço ao soltar a carga, em segundos de jogo.")]
+        [SerializeField, Min(0.01f)] float _releaseSeconds = 0.25f;
+        [Tooltip("Duração de cada cabeceio de quem cuida de uma cria, canteiro, gota ou pulgão (parada ao lado dele), em segundos de jogo.")]
+        [SerializeField, Min(0.1f)] float _careNodSeconds = 0.7f;
         [Tooltip("Posição do pixel carregado em relação ao pivô (unidades = células), formiga virada para a direita.")]
         [SerializeField] Vector2 _carriedOffset = new Vector2(1.2f, 0.5f);
         [Tooltip("Posição do pixel carregado na vista de cima (pivô no centro do sprite).")]
@@ -134,6 +147,14 @@ namespace Fabula.Incrementant.AntFarm
             public float Scale = 1f;
             /// <summary>A rainha tem arte própria e não segue o papel da simulação.</summary>
             public bool IsQueen;
+            /// <summary>Defasagem do golpe (0 a 1), para as formigas não baterem todas juntas.</summary>
+            public float Phase;
+            /// <summary>Carga no quadro anterior; só vale com <see cref="LoadKnown"/> (o primeiro quadro não anima).</summary>
+            public int PrevLoad;
+            public bool LoadKnown;
+            public float PickTime = float.NegativeInfinity;
+            public Vector2 PickFrom;
+            public float ReleaseTime = float.NegativeInfinity;
         }
 
         readonly List<AntVisual> _visuals = new List<AntVisual>();
@@ -403,7 +424,9 @@ namespace Fabula.Incrementant.AntFarm
 
             // Direção: o último passo, ou o pixel que está cavando.
             // Mordendo um cupim ou desmembrando um corpo também anima como trabalho, virada para o alvo (DigX/DigY).
-            bool working = ant.State == AntState.Digging || ant.State == AntState.Gathering || ant.State == AntState.Placing || ant.Biting;
+            // Pegar terra fofa da pilha de fora (GatheringSoil) golpeia o bloco como cavar (AntColony.Hits) e precisa estar aqui.
+            bool working = ant.State == AntState.Digging || ant.State == AntState.Gathering || ant.State == AntState.GatheringSoil ||
+                           ant.State == AntState.Placing || ant.Biting;
             Vector2 heading = working
                 ? new Vector2(ant.DigX - ant.X, ant.DigY - ant.Y)
                 : new Vector2(ant.X - ant.FromX, ant.Y - ant.FromY);
@@ -425,16 +448,37 @@ namespace Fabula.Incrementant.AntFarm
                 ant.Role != AntRole.Worker)
                 tint = Color.Lerp(Color.white, RoleColor(ant.Role), _placeholderTint);
             visual.Body.color = tint;
+            // Abaixo do solo original (dentro do formigueiro) é sempre vista de cima; do lado de fora vale a regra acima.
             bool topView = topFrames != null && topFrames.Length > 0 && topFrames[0] != null
-                           && (AntNavigation.IsBackground(grid, ant.X, ant.Y) && !AntNavigation.TouchesSolid(grid, ant.X, ant.Y)
+                           && (ant.Y <= grid.GetSurfaceY(ant.X)
+                               || AntNavigation.IsBackground(grid, ant.X, ant.Y) && !AntNavigation.TouchesSolid(grid, ant.X, ant.Y)
                                || AntNavigation.IsOutdoorWall(grid, ant.X, ant.Y));
             if (topView)
                 UpdateTopOrientation(visual, heading, deltaTime);
             else
                 UpdateOrientation(visual, GroundVector(grid, ant.X, ant.Y), heading, deltaTime);
+            bool moving = (cell - visual.LastPosition).sqrMagnitude > 1e-6f;
+            int load = ant.CarriedCount;
+            bool pickedUp = visual.LoadKnown && load > visual.PrevLoad;
+            if (pickedUp && ant.CarriedFrom >= 0)
+            {
+                var source = new Vector2(ant.CarriedFrom % grid.Width, ant.CarriedFrom / grid.Width);
+                // Só o que veio de perto voa até a boca (um quadro com a lista reordenada não risca a tela).
+                if ((source - cell).sqrMagnitude <= 16f)
+                {
+                    visual.PickTime = time;
+                    visual.PickFrom = source;
+                }
+            }
+            if (visual.LoadKnown && load < visual.PrevLoad)
+                visual.ReleaseTime = time;
+            visual.PrevLoad = load;
+            visual.LoadKnown = true;
+
             visual.Transform.rotation = Quaternion.Euler(0f, 0f, visual.Angle);
+            Vector2 swing = SwingPose(visual, ant, working, moving, heading, time);
             visual.Body.flipX = visual.FlipX;
-            Vector3 position = origin + new Vector3(cell.x + 0.5f, cell.y + 0.5f, 0f);
+            Vector3 position = origin + new Vector3(cell.x + 0.5f + swing.x, cell.y + 0.5f + swing.y, 0f);
             // De lado, o pivô fica meia célula (na escala 1) acima das patas: maior, ele sobe junto, no "cima" do sprite.
             if (!topView && visual.Scale != 1f)
                 position += visual.Transform.rotation * new Vector3(0f, (visual.Scale - 1f) * 0.5f, 0f);
@@ -490,7 +534,61 @@ namespace Fabula.Incrementant.AntFarm
                     visual.Carried.color = delivering ? (Color)_nutrientColor : CellMaterials.ShadedColor(ant.Carried, ant.CarriedShade);
                 Vector2 offset = broodArt != null ? _carriedBroodOffset : topView ? _carriedOffsetTop : _carriedOffset;
                 visual.Carried.transform.localPosition = new Vector3(visual.FlipX ? -offset.x : offset.x, offset.y, 0f);
+
+                // Bloco recém-pego: sai da célula de onde foi tirado e sobe em arco até a boca, em vez de aparecer nela.
+                float u = (time - visual.PickTime) / _pickSeconds;
+                if (u >= 0f && u < 1f && broodArt == null)
+                {
+                    Vector3 mouth = visual.Carried.transform.position;
+                    Vector3 from = origin + new Vector3(visual.PickFrom.x + 0.5f, visual.PickFrom.y + 0.5f, 0f);
+                    float eased = u * u * (3f - 2f * u);
+                    visual.Carried.transform.position = Vector3.Lerp(from, mouth, eased) + new Vector3(0f, _pickArc * 4f * u * (1f - u), 0f);
+                }
             }
+        }
+
+        /// <summary>
+        /// Deslocamento procedural do corpo para o bloco (só visual), em células: golpe quando trabalha no alvo, avanço ao
+        /// soltar a carga e cabeceio de quem cuida parada. Não gira o sprite (em ângulo que não é múltiplo de 45° o filtro de
+        /// ponto apaga as patas de 1 pixel) e arredonda ao texel do sprite, para as patas não tremerem. Corre no tempo de
+        /// jogo, então acompanha as rachaduras e a pausa.
+        /// </summary>
+        Vector2 SwingPose(AntVisual visual, Ant ant, bool working, bool moving, Vector2 heading, float time)
+        {
+            Vector2 swing = Vector2.zero;
+            if (working && !moving)
+            {
+                float strike = Strike(Mathf.Repeat(time / _strikeSeconds + visual.Phase, 1f));
+                Vector2 dir = heading.sqrMagnitude > 0.01f ? heading.normalized : new Vector2(ant.FacingX, 0f);
+                swing = dir * (strike * _strikeLunge);
+            }
+            else
+            {
+                // Para a frente do corpo, onde quer que ele aponte (de lado espelhado ou de cima girado).
+                Vector2 forward = Quaternion.Euler(0f, 0f, visual.Angle) * new Vector2(visual.FlipX ? -1f : 1f, 0f);
+                if (!moving && IsCareState(ant.State))
+                    swing = forward * (Mathf.Sin(Mathf.Repeat(time / _careNodSeconds + visual.Phase, 1f) * Mathf.PI) * 0.12f);
+                float release = (time - visual.ReleaseTime) / _releaseSeconds;
+                if (release >= 0f && release < 1f)
+                    swing += forward * (Mathf.Sin(release * Mathf.PI) * 0.15f);
+            }
+            // Texel do sprite: 1/8 de célula nos adultos (a rainha, na escala 2, tem o mesmo texel em pixels de tela).
+            const float texel = 1f / CellTileArt.TexelsPerCell;
+            return new Vector2(Mathf.Round(swing.x / texel) * texel, Mathf.Round(swing.y / texel) * texel);
+        }
+
+        static bool IsCareState(AntState state) =>
+            state == AntState.Tending || state == AntState.Gardening || state == AntState.TendingDew || state == AntState.TendingAphid;
+
+        /// <summary>Curva do golpe de 0 a 1: recua um pouco (negativo), bate (1) e volta a 0.</summary>
+        static float Strike(float p)
+        {
+            const float wind = 0.35f;
+            if (p < 0.55f)
+                return -wind * Mathf.SmoothStep(0f, 1f, p / 0.55f);
+            if (p < 0.7f)
+                return Mathf.Lerp(-wind, 1f, Mathf.SmoothStep(0f, 1f, (p - 0.55f) / 0.15f));
+            return Mathf.Lerp(1f, 0f, Mathf.SmoothStep(0f, 1f, (p - 0.7f) / 0.3f));
         }
 
         /// <summary>
@@ -575,7 +673,7 @@ namespace Fabula.Incrementant.AntFarm
             float target;
             if (ground.sqrMagnitude >= 0.5f)
             {
-                target = Snap45(Mathf.Atan2(ground.y, ground.x) * Mathf.Rad2Deg) + 90f;
+                target = SnapAngle(visual, Mathf.Atan2(ground.y, ground.x) * Mathf.Rad2Deg) + 90f;
                 float radians = target * Mathf.Deg2Rad;
                 float along = Vector2.Dot(heading, new Vector2(Mathf.Cos(radians), Mathf.Sin(radians)));
                 // Zona morta: passo perpendicular à superfície (ex.: cavando o piso) mantém o lado atual.
@@ -586,7 +684,7 @@ namespace Fabula.Incrementant.AntFarm
             }
             else if (heading.sqrMagnitude > 0.01f)
             {
-                target = Snap45(Mathf.Atan2(heading.y, heading.x) * Mathf.Rad2Deg);
+                target = SnapAngle(visual, Mathf.Atan2(heading.y, heading.x) * Mathf.Rad2Deg);
                 // Indo para a esquerda: espelha em vez de ficar de cabeça para baixo.
                 visual.FlipX = Mathf.Cos(target * Mathf.Deg2Rad) < -0.01f;
                 if (visual.FlipX)
@@ -597,7 +695,8 @@ namespace Fabula.Incrementant.AntFarm
                 return;
             }
 
-            visual.Angle = Mathf.Abs(Mathf.DeltaAngle(visual.Angle, target)) > 135f
+            // A rainha troca de ângulo de uma vez: nos ângulos do meio do giro as patas de 1 pixel somem.
+            visual.Angle = visual.IsQueen || Mathf.Abs(Mathf.DeltaAngle(visual.Angle, target)) > 135f
                 ? target
                 : Mathf.MoveTowardsAngle(visual.Angle, target, _turnSpeed * deltaTime);
         }
@@ -613,8 +712,8 @@ namespace Fabula.Incrementant.AntFarm
             }
             if (heading.sqrMagnitude <= 0.01f)
                 return;
-            float target = Snap45(Mathf.Atan2(heading.y, heading.x) * Mathf.Rad2Deg);
-            visual.Angle = Mathf.MoveTowardsAngle(visual.Angle, target, _turnSpeed * deltaTime);
+            float target = SnapAngle(visual, Mathf.Atan2(heading.y, heading.x) * Mathf.Rad2Deg);
+            visual.Angle = visual.IsQueen ? target : Mathf.MoveTowardsAngle(visual.Angle, target, _turnSpeed * deltaTime);
         }
 
         static Vector2 GroundVector(PixelGrid grid, int x, int y)
@@ -669,6 +768,13 @@ namespace Fabula.Incrementant.AntFarm
 
         static float Snap45(float degrees) => Mathf.Round(degrees / 45f) * 45f;
 
+        /// <summary>
+        /// Degraus de 45°, ou de 90° na rainha: girar pixel art 45° com filtro de ponto apaga as patas de 1 pixel dela
+        /// (quadros ficam sem pernas em quina e rampa); a 90° nenhum pixel se perde.
+        /// </summary>
+        static float SnapAngle(AntVisual visual, float degrees) =>
+            visual.IsQueen ? Mathf.Round(degrees / 90f) * 90f : Snap45(degrees);
+
         AntVisual CreateVisual(string objectName, float scale, int sortingOrder)
         {
             var root = new GameObject(objectName);
@@ -685,7 +791,7 @@ namespace Fabula.Incrementant.AntFarm
             carried.sortingOrder = sortingOrder + 2; // acima das camadas do equipamento (+1)
             carriedGo.SetActive(false);
 
-            return new AntVisual { GameObject = root, Transform = root.transform, Body = body, Carried = carried, Scale = scale };
+            return new AntVisual { GameObject = root, Transform = root.transform, Body = body, Carried = carried, Scale = scale, Phase = Random.value };
         }
 
         void EnsurePixelSprite()

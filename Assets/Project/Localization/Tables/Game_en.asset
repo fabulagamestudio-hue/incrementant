@@ -1471,7 +1471,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 316986959564813
-    m_Localized: Waste
+    m_Localized: Dead termites
     m_Metadata:
       m_Items: []
   - m_Id: 316986959564814
@@ -1564,7 +1564,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 316986959564836
-    m_Localized: Turns every section on and removes every limit.
+    m_Localized: Turns every row on this tab on and removes their limits.
     m_Metadata:
       m_Items: []
   - m_Id: 316986959564837
@@ -1606,7 +1606,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 316986959564846
-    m_Localized: 'Waste: dismember dead termites and carry the remains away.'
+    m_Localized: 'Dead termites: dismember the bodies (carrying the parts belongs
+      to the waste room).'
     m_Metadata:
       m_Items: []
   - m_Id: 320654177964032
@@ -2050,7 +2051,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 391819839901763
-    m_Localized: Every ant digs 3% faster per level
+    m_Localized: Every ant digs 5% faster per level
     m_Metadata:
       m_Items: []
   - m_Id: 391819839901764
@@ -3669,6 +3670,127 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 1817226957156373
     m_Localized: Ants wielding a weapon deal 4% more damage per level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602865233920
+    m_Localized: WORK
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602890399744
+    m_Localized: STORAGE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602890399745
+    m_Localized: STORAGE OR ROOM
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602890399746
+    m_Localized: In storage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602890399747
+    m_Localized: Food
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602890399748
+    m_Localized: Building
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602890399749
+    m_Localized: Water
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602890399750
+    m_Localized: Sand
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602890399751
+    m_Localized: Mushrooms
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602890399752
+    m_Localized: Leaf litter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602890399753
+    m_Localized: Nectar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602890399754
+    m_Localized: Ore
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602894594048
+    m_Localized: Waste room
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602894594049
+    m_Localized: 'Food storage: carry cut and loose plants to the storage. Stopped,
+      plants go straight to the beds.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602894594050
+    m_Localized: 'Building storage: carry dug soil and soil from the outside pile
+      to the storage. Stopped, soil goes to a bed or to the dump.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602894594051
+    m_Localized: 'Water storage: fetch water from the map and loose water and store
+      it. Stopped, water only goes to the beds.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602894594052
+    m_Localized: 'Sand storage: carry dug and loose sand to the storage. Stopped,
+      sand goes to the dump.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602894594053
+    m_Localized: 'Mushroom storage: store the mushrooms the aphid milking drops.
+      Stopped, they stay on the ground.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602894594054
+    m_Localized: 'Leaf litter storage: carry dug leaf litter to the storage. Stopped,
+      it goes on as soil.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602894594055
+    m_Localized: 'Nectar storage: store the drops the flowers release. Stopped, they
+      stay on the ground.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602894594056
+    m_Localized: 'Ore storage: carry dug ore to the storage. Stopped, it stays where
+      it was dug.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602894594057
+    m_Localized: 'Waste room: carry rubble, termite remains and soil to the waste
+      areas. Stopped, they go to the dump.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2199151987257344
+    m_Localized: Leaves to nutrients
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2199151991451648
+    m_Localized: 'Leaf room: paint an area and the ants carry the leaves they cut
+      there (after the beds and the food storage). Each leaf turns into one nutrient
+      block after a while (1 leaf, 1 block), with no bed or water; the ants carry
+      the block to the queen, who eats it.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2199151991451649
+    m_Localized: 'Missing: paint the leaf room (Environments menu, Waste).'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2199151991451650
+    m_Localized: 'Working: {0} free spots, {1} nutrient blocks already made from
+      leaves.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2199188481896448
+    m_Localized: LEAVES TO NUTRIENTS
     m_Metadata:
       m_Items: []
   references:

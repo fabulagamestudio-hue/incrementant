@@ -41,9 +41,21 @@ namespace Fabula.Incrementant.Tests
             return grid;
         }
 
+        /// <summary>
+        /// Escala de 24 células por vaga: estes testes são do ciclo de criação e contam vagas em corredores pequenos;
+        /// o ritmo de escavação do jogo (<see cref="ColonySettings.CellsPerAdultSlot"/>) é balanceamento e não é o assunto aqui.
+        /// </summary>
+        internal static ColonySettings CycleSettings()
+        {
+            var settings = new ColonySettings();
+            typeof(ColonySettings).GetField("_cellsPerAdultSlot", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                .SetValue(settings, 24);
+            return settings;
+        }
+
         static AntColony MakeColony(int nurseryWidth, int nutrients, int corridorHeight = 8)
         {
-            var colony = new AntColony(MakeWorld(nurseryWidth, corridorHeight), new ColonySettings(), Layout, seed: 1);
+            var colony = new AntColony(MakeWorld(nurseryWidth, corridorHeight), CycleSettings(), Layout, seed: 1);
             colony.Tree.Restore(QueenTree.LegacyMask | 1UL << (int)QueenNode.N0); // só as classes liberadas; estes testes são do ciclo, não da árvore (ver QueenTreeTests)
             colony.RestoreNutrients(nutrients, 0, 0);
             Tick(colony, 1f); // monta os campos e conta o espaço
@@ -95,7 +107,7 @@ namespace Fabula.Incrementant.Tests
             for (int x = 40; x < 44; x++)
             for (int y = 1; y <= 3; y++)
                 grid.SetQueenRoom(x, y, false);
-            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 1);
+            var colony = new AntColony(grid, CycleSettings(), Layout, seed: 1);
             colony.RestoreNutrients(1000, 0, 0);
             Tick(colony, 40f);
             Assert.AreEqual(BreedingState.WaitingQueenRoom, colony.Breeding);
@@ -282,7 +294,7 @@ namespace Fabula.Incrementant.Tests
                 Assert.IsTrue(grid.SetNutrientRoom(x, y, true));
                 Assert.IsTrue(grid.SetNutrient(x, y, true));
             }
-            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 1);
+            var colony = new AntColony(grid, CycleSettings(), Layout, seed: 1);
             colony.Tree.Restore(QueenTree.LegacyMask | 1UL << (int)QueenNode.N0);
             colony.SetQueenPolicy(QueenMode.Paused, AntRole.Worker);
             Assert.AreEqual(0, colony.CountOf(AntRole.Gardener));
@@ -303,7 +315,7 @@ namespace Fabula.Incrementant.Tests
                 Assert.IsTrue(grid.SetNutrientRoom(x, y, true));
                 Assert.IsTrue(grid.SetNutrient(x, y, true));
             }
-            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 1);
+            var colony = new AntColony(grid, CycleSettings(), Layout, seed: 1);
             colony.Tree.Restore(QueenTree.LegacyMask | 1UL << (int)QueenNode.N0);
             colony.SetQueenPolicy(QueenMode.Paused, AntRole.Worker);
             colony.Spawn(AntRole.Gardener);

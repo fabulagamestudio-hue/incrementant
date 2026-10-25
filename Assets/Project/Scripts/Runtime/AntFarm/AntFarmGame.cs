@@ -118,14 +118,15 @@ namespace Fabula.Incrementant.AntFarm
         {
             Dig, Build, QueenRoom, NutrientRoom, NurseryRoom, WasteRoom, Finger, DewRoom, FoodStore, BlockStore, WaterStore, GlowMushroom,
             FarmRoom, SandStore, MushroomStore, LitterStore, NectarStore, OreStore, Smelter, Forge, Armory, Wardrobe,
+            WasteLeavesRoom, WasteDirtRoom, WasteNutrientRoom,
         }
 
         static readonly string[] BrushLabels =
         {
-            "Cavar", "Construir", "Sala da rainha", "Sala de nutrientes", "Berçário", "Resíduos", "Dedo", "Gotas de orvalho",
+            "Cavar", "Construir", "Sala da rainha", "Sala de nutrientes", "Berçário", "Restos em folhas", "Dedo", "Gotas de orvalho",
             "Depósito de alimentos", "Depósito de construção", "Depósito de água", "Cogumelo luminoso", "Fazenda de pulgões",
             "Depósito de areia", "Depósito de cogumelos", "Depósito de serapilheira", "Depósito de néctar", "Depósito de minério", "Fundição", "Forja",
-            "Armazém de ferramentas e armas", "Armazém de roupas e armaduras",
+            "Armazém de ferramentas e armas", "Armazém de roupas e armaduras", "Folhas em água", "Terra em areia e água", "Folhas em nutrientes",
         };
         static readonly string[] WeatherLabels = { "Seco", "Chuva leve", "Chuva forte" };
 
@@ -336,16 +337,16 @@ namespace Fabula.Incrementant.AntFarm
         public static int BrushCount => BrushLabels.Length;
         public static string BrushLabel(int index) => BrushLabels[index];
 
-        /// <summary>O pincel pinta um dos depósitos (alimentos, construção, água): mora no submenu DEPÓSITO do HUD.</summary>
         /// <summary>
-        /// Modo com que o pincel Resíduos pinta (submenu RESÍDUOS do HUD). Cada área guarda o modo com que foi pintada;
-        /// pintar por cima com outro modo troca o da célula. Não vai para o save (volta ao padrão).
+        /// O pincel pinta um dos modos da área de resíduos (restos em folhas, folhas em água, terra em areia e água): cada um é
+        /// um ambiente com limite de área próprio, como os depósitos, e mora no submenu RESÍDUOS do HUD. Pintar por cima de uma
+        /// área com outro modo troca o modo da célula.
         /// </summary>
-        public WasteMode WasteBrushMode { get; set; }
+        public static bool IsWasteBrush(int index) =>
+            index == (int)BrushMode.WasteRoom || index == (int)BrushMode.WasteLeavesRoom || index == (int)BrushMode.WasteDirtRoom ||
+            index == (int)BrushMode.WasteNutrientRoom;
 
-        /// <summary>Índice do pincel Resíduos (o HUD abre o submenu do modo da área com ele escolhido).</summary>
-        public const int WasteBrushIndex = (int)BrushMode.WasteRoom;
-
+        /// <summary>O pincel pinta um dos depósitos (alimentos, construção, água...): mora no submenu DEPÓSITO do HUD.</summary>
         public static bool IsDepotBrush(int index) =>
             index >= (int)BrushMode.FoodStore && index <= (int)BrushMode.WaterStore || index == (int)BrushMode.SandStore ||
             index == (int)BrushMode.MushroomStore || index == (int)BrushMode.LitterStore || index == (int)BrushMode.NectarStore ||
@@ -363,6 +364,9 @@ namespace Fabula.Incrementant.AntFarm
                 case BrushMode.NutrientRoom: room = PaintRoom.Nutrient; return true;
                 case BrushMode.NurseryRoom: room = PaintRoom.Nursery; return true;
                 case BrushMode.WasteRoom: room = PaintRoom.Waste; return true;
+                case BrushMode.WasteLeavesRoom: room = PaintRoom.WasteLeaves; return true;
+                case BrushMode.WasteDirtRoom: room = PaintRoom.WasteDirt; return true;
+                case BrushMode.WasteNutrientRoom: room = PaintRoom.WasteNutrient; return true;
                 case BrushMode.DewRoom: room = PaintRoom.Dew; return true;
                 case BrushMode.FoodStore: room = PaintRoom.FoodStore; return true;
                 case BrushMode.BlockStore: room = PaintRoom.BlockStore; return true;
@@ -388,6 +392,9 @@ namespace Fabula.Incrementant.AntFarm
         /// <summary>O ponteiro está sobre o mapa, e não sobre o HUD, e o input está liberado.</summary>
         public bool PointerOverWorld => _pointerOverWorld;
 
+        /// <summary>Célula do mapa sob o mouse (vale com <see cref="PointerOverWorld"/>); a mesma da mira do pincel.</summary>
+        public Vector2Int PointerCell => _brushCell;
+
         /// <summary>
         /// O pincel pode ser usado agora: a área de resíduos só depois do primeiro ataque de cupins; a fazenda de pulgões só com
         /// a câmara A0 comprada.
@@ -396,7 +403,9 @@ namespace Fabula.Incrementant.AntFarm
         {
             switch ((BrushMode)index)
             {
-                case BrushMode.WasteRoom: return _colony != null && _colony.WasteUnlocked;
+                case BrushMode.WasteRoom:
+                case BrushMode.WasteLeavesRoom:
+                case BrushMode.WasteDirtRoom: return _colony != null && _colony.WasteUnlocked;
                 case BrushMode.FarmRoom: return _colony != null && _colony.FarmUnlocked;
                 case BrushMode.OreStore: return _colony != null && _colony.OreStoreUnlocked;
                 case BrushMode.Smelter: return _colony != null && _colony.SmelterUnlocked;
@@ -823,7 +832,6 @@ namespace Fabula.Incrementant.AntFarm
             bool spriteAnts = _antsView != null && _antsView.HasFrames;
             RectInt window = AntFarmView.WindowFor(LocalViewRect(), _grid);
             long renderStart = SimProfiler.Now();
-            _view.WasteBrushKind = (byte)WasteBrushMode;
             // Com "Mostrar ambientes" desligado, a pintura das salas volta enquanto um pincel de ambiente está na mão.
             _view.ShowRooms = GameSettings.Current.ShowRooms || TryGetPaintRoom((int)_brushMode, out _);
             _view.Render(_grid, _colony.Ants, _colony.DumpStrips,_brushCell, _brushMode == BrushMode.Finger ? _colony.RaidSettings.FingerReach : _brushRadius, _pointerOverWorld, !spriteAnts, window, _rain.Drops,
@@ -1137,8 +1145,8 @@ namespace Fabula.Incrementant.AntFarm
             PaintRoom room = default;
             bool limited = marked && TryGetPaintRoom((int)_brushMode, out room);
             PaintBudget budget = _colony.PaintBudget;
-            // Sala nova acima do máximo: o traço inteiro é recusado. A falta de área é vista célula a célula (abaixo), para
-            // repintar a área que já existe (o modo dos resíduos) continuar valendo com o limite cheio.
+            // Sala nova acima do máximo: o traço inteiro é recusado. A falta de área é vista célula a célula (abaixo), porque
+            // o traço pode esgotá-la no meio; célula que já é do ambiente não gasta área nova.
             if (limited && budget.Check(room, _brushCell.x, _brushCell.y, _brushRadius) == PaintBlock.NoRooms)
             {
                 Deny();
@@ -1183,7 +1191,16 @@ namespace Fabula.Incrementant.AntFarm
                         _grid.SetNurseryRoom(x, y, marked);
                         break;
                     case BrushMode.WasteRoom:
-                        _grid.SetWasteRoom(x, y, marked, (byte)WasteBrushMode);
+                        _grid.SetWasteRoom(x, y, marked, (byte)WasteMode.RemainsToLeaves);
+                        break;
+                    case BrushMode.WasteLeavesRoom:
+                        _grid.SetWasteRoom(x, y, marked, (byte)WasteMode.LeavesToWater);
+                        break;
+                    case BrushMode.WasteDirtRoom:
+                        _grid.SetWasteRoom(x, y, marked, (byte)WasteMode.DirtToWater);
+                        break;
+                    case BrushMode.WasteNutrientRoom:
+                        _grid.SetWasteRoom(x, y, marked, (byte)WasteMode.LeavesToNutrient);
                         break;
                     case BrushMode.DewRoom:
                         _grid.SetDewRoom(x, y, marked);

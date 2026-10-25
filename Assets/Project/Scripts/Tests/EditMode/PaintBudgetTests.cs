@@ -160,6 +160,37 @@ namespace Fabula.Incrementant.Tests
             Assert.IsTrue(budget.StartsRoom(PaintRoom.FoodStore, 18, 10), "a água ao lado não conecta o depósito de alimentos");
         }
 
+        [Test]
+        public void WasteModesHaveSeparateBudgetsAndRooms()
+        {
+            var (grid, colony) = Make();
+            PaintBudget budget = colony.PaintBudget;
+            for (int x = 10; x < 15; x++)
+                Assert.IsTrue(grid.SetWasteRoom(x, 10, true, (byte)WasteMode.RemainsToLeaves));
+            for (int x = 15; x < 18; x++)
+                Assert.IsTrue(grid.SetWasteRoom(x, 10, true, (byte)WasteMode.LeavesToWater));
+            Assert.IsTrue(grid.SetWasteRoom(18, 10, true, (byte)WasteMode.DirtToWater));
+            Assert.AreEqual(5, budget.Used(PaintRoom.Waste));
+            Assert.AreEqual(3, budget.Used(PaintRoom.WasteLeaves));
+            Assert.AreEqual(1, budget.Used(PaintRoom.WasteDirt));
+            Assert.AreEqual(budget.Limit(PaintRoom.Waste) - 5, budget.Available(PaintRoom.Waste));
+            Assert.AreEqual(budget.Limit(PaintRoom.WasteDirt) - 1, budget.Available(PaintRoom.WasteDirt));
+            Assert.AreEqual(1, budget.Rooms(PaintRoom.Waste));
+            Assert.AreEqual(1, budget.Rooms(PaintRoom.WasteLeaves));
+            Assert.IsTrue(budget.StartsRoom(PaintRoom.WasteLeaves, 12, 10), "os restos em volta não conectam a sala de folhas");
+            Assert.IsFalse(budget.StartsRoom(PaintRoom.WasteLeaves, 18, 10), "a célula ao lado da sala de folhas a continua");
+
+            // Repintar com outro modo move a célula de um limite para o outro; apagar libera o do modo dela.
+            Assert.IsTrue(grid.SetWasteRoom(14, 10, true, (byte)WasteMode.LeavesToWater));
+            Assert.AreEqual(4, budget.Used(PaintRoom.Waste));
+            Assert.AreEqual(4, budget.Used(PaintRoom.WasteLeaves));
+            Assert.IsTrue(grid.SetWasteRoom(14, 10, false));
+            Assert.AreEqual(3, budget.Used(PaintRoom.WasteLeaves));
+            Assert.AreEqual(PaintRoom.WasteDirt, PaintBudget.WasteRoomOf(grid.GetWasteKind(18, 10)));
+            Assert.IsTrue(PaintBudget.TryGetRoomAt(grid, 16, 10, out PaintRoom room));
+            Assert.AreEqual(PaintRoom.WasteLeaves, room);
+        }
+
         [TestCase("C+4", PaintRoom.Nutrient)]
         [TestCase("B+3", PaintRoom.Nursery)]
         [TestCase("D+3", PaintRoom.WaterStore)]

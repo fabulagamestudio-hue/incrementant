@@ -3459,6 +3459,114 @@ MonoBehaviour:
     m_Key: upgrade.S+5.effect
     m_Metadata:
       m_Items: []
+  - m_Id: 2184602865233920
+    m_Key: colony.tab.work
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602890399744
+    m_Key: colony.tab.depots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602890399745
+    m_Key: colony.col.depot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602890399746
+    m_Key: colony.stats.depots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602890399747
+    m_Key: colony.section.fooddepot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602890399748
+    m_Key: colony.section.blockdepot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602890399749
+    m_Key: colony.section.waterdepot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602890399750
+    m_Key: colony.section.sanddepot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602890399751
+    m_Key: colony.section.mushroomdepot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602890399752
+    m_Key: colony.section.litterdepot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602890399753
+    m_Key: colony.section.nectardepot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602890399754
+    m_Key: colony.section.oredepot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602894594048
+    m_Key: colony.section.wasteroom
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602894594049
+    m_Key: tip.colony.section.fooddepot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602894594050
+    m_Key: tip.colony.section.blockdepot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602894594051
+    m_Key: tip.colony.section.waterdepot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602894594052
+    m_Key: tip.colony.section.sanddepot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602894594053
+    m_Key: tip.colony.section.mushroomdepot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602894594054
+    m_Key: tip.colony.section.litterdepot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602894594055
+    m_Key: tip.colony.section.nectardepot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602894594056
+    m_Key: tip.colony.section.oredepot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2184602894594057
+    m_Key: tip.colony.section.wasteroom
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2199151987257344
+    m_Key: waste.mode.nutrient
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2199151991451648
+    m_Key: waste.mode.nutrient.tip
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2199151991451649
+    m_Key: tip.st.leafroom.paint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2199151991451650
+    m_Key: tip.st.leafroom.ok
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2199188481896448
+    m_Key: waste.mode.nutrient.U
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

@@ -10,10 +10,12 @@ using UnityEngine.UI;
 namespace Fabula.Incrementant.UI
 {
     /// <summary>
-    /// Painel da colônia (botão à esquerda do sino), com duas abas: Estatísticas (formigas por papel, seção de trabalho e
-    /// lugar, e a produção por segundo) e Configurações (ligar, parar e limitar cada seção de trabalho, por "-"/"+" ou slider, e o comportamento da
-    /// rainha: botar ovos ou trabalhar como uma das classes liberadas). Só lê e muda <see cref="AntColony"/>; quem abre e fecha é o <see cref="AntFarmHud"/>. A hierarquia é
-    /// montada por <c>Incrementant/Setup/Montar HUD da partida</c>.
+    /// Painel da colônia (botão à esquerda do sino), com três abas: Estatísticas (formigas por papel, seção de trabalho e
+    /// lugar, e a produção por segundo), Trabalho (ligar, parar e limitar cada seção de <see cref="WorkPolicy.Jobs"/>, por
+    /// "-"/"+" ou slider, e o comportamento da rainha: botar ovos ou trabalhar como uma das classes liberadas) e Depósitos (o
+    /// mesmo controle para cada depósito e a sala de resíduos, <see cref="WorkPolicy.Depots"/>). Só lê e muda
+    /// <see cref="AntColony"/>; quem abre e fecha é o <see cref="AntFarmHud"/>. A hierarquia é montada por
+    /// <c>Incrementant/Setup/Montar HUD da partida</c>.
     /// </summary>
     public sealed class ColonyPanel : MonoBehaviour
     {
@@ -25,8 +27,12 @@ namespace Fabula.Incrementant.UI
         [SerializeField] Image _statsTabImage;
         [SerializeField] Button _settingsTab;
         [SerializeField] Image _settingsTabImage;
+        [SerializeField] Button _depotsTab;
+        [SerializeField] Image _depotsTabImage;
         [SerializeField] GameObject _statsPage;
+        [Tooltip("Aba Trabalho (o nome do campo é de quando era a única aba de configurações).")]
         [SerializeField] GameObject _settingsPage;
+        [SerializeField] GameObject _depotsPage;
         [SerializeField] Sprite _tabActive;
         [SerializeField] Sprite _tabInactive;
 
@@ -35,7 +41,7 @@ namespace Fabula.Incrementant.UI
         [SerializeField] Text _workColumn;
         [SerializeField] Text _placesColumn;
 
-        [Header("Configurações: uma linha por seção, na ordem de WorkPolicy.All")]
+        [Header("Trabalho e Depósitos: uma linha por seção, na ordem de WorkPolicy.All (cada uma na página do seu grupo)")]
         [SerializeField] Button[] _toggles;
         [SerializeField] Image[] _toggleImages;
         [SerializeField] Text[] _sectionLabels;
@@ -45,7 +51,10 @@ namespace Fabula.Incrementant.UI
         [Tooltip("De 0 ao total de formigas; a última posição (total + 1) é \"sem limite\".")]
         [SerializeField] Slider[] _limitSliders;
         [SerializeField] Text[] _limits;
+        [Tooltip("TUDO ATIVO da aba Trabalho.")]
         [SerializeField] Button _reset;
+        [Tooltip("TUDO ATIVO da aba Depósitos.")]
+        [SerializeField] Button _depotsReset;
         [SerializeField] Sprite _toggleOn;
         [SerializeField] Sprite _toggleOff;
 
@@ -77,10 +86,12 @@ namespace Fabula.Incrementant.UI
         UnityAction[] _toggleHandlers, _minusHandlers, _plusHandlers, _jobHandlers;
         UnityAction<float>[] _sliderHandlers;
         bool _valid;
-        // RefreshSettings mexe na faixa dos sliders, e mudar maxValue dispara onValueChanged: ignorar enquanto sincroniza.
+        // RefreshSections mexe na faixa dos sliders, e mudar maxValue dispara onValueChanged: ignorar enquanto sincroniza.
         bool _syncingSliders;
-        bool _settingsOpen;
+        Page _page;
         float _nextRefresh;
+
+        enum Page { Stats, Work, Depots }
 
         int Sections => WorkPolicy.Count;
 
@@ -93,9 +104,10 @@ namespace Fabula.Incrementant.UI
         void Awake()
         {
             int n = Sections;
-            _valid = _game != null && _close != null && _statsTab != null && _settingsTab != null && _statsTabImage != null &&
-                     _settingsTabImage != null && _statsPage != null && _settingsPage != null && _antsColumn != null &&
-                     _workColumn != null && _placesColumn != null && _reset != null && _queenJobState != null &&
+            _valid = _game != null && _close != null && _statsTab != null && _settingsTab != null && _depotsTab != null &&
+                     _statsTabImage != null && _settingsTabImage != null && _depotsTabImage != null && _statsPage != null &&
+                     _settingsPage != null && _depotsPage != null && _antsColumn != null && _workColumn != null &&
+                     _placesColumn != null && _reset != null && _depotsReset != null && _queenJobState != null &&
                      _queenJobToggle != null && _queenJobLabel != null && _queenJobIcon != null && _queenJobList != null && _queenJobBlocker != null &&
                      Has(_toggles, n) && Has(_toggleImages, n) && Has(_sectionLabels, n) && Has(_sectionNow, n) &&
                      Has(_minus, n) && Has(_plus, n) && Has(_limitSliders, n) && Has(_limits, n) && Has(_queenJobs, QueenJobCount) && Has(_queenJobImages, QueenJobCount) && Has(_queenJobLabels, QueenJobCount) &&
@@ -144,8 +156,10 @@ namespace Fabula.Incrementant.UI
                 return;
             _close.onClick.AddListener(Close);
             _statsTab.onClick.AddListener(ShowStats);
-            _settingsTab.onClick.AddListener(ShowSettings);
-            _reset.onClick.AddListener(ResetPolicy);
+            _settingsTab.onClick.AddListener(ShowWork);
+            _depotsTab.onClick.AddListener(ShowDepots);
+            _reset.onClick.AddListener(ResetJobs);
+            _depotsReset.onClick.AddListener(ResetDepots);
             for (int i = 0; i < Sections; i++)
             {
                 _toggles[i].onClick.AddListener(_toggleHandlers[i]);
@@ -157,7 +171,7 @@ namespace Fabula.Incrementant.UI
                 _queenJobs[i].onClick.AddListener(_jobHandlers[i]);
             _queenJobToggle.onClick.AddListener(ToggleQueenJobList);
             _queenJobBlocker.onClick.AddListener(CloseQueenJobList);
-            ShowPage(_settingsOpen);
+            ShowPage(_page);
         }
 
         void OnDisable()
@@ -166,8 +180,10 @@ namespace Fabula.Incrementant.UI
                 return;
             _close.onClick.RemoveListener(Close);
             _statsTab.onClick.RemoveListener(ShowStats);
-            _settingsTab.onClick.RemoveListener(ShowSettings);
-            _reset.onClick.RemoveListener(ResetPolicy);
+            _settingsTab.onClick.RemoveListener(ShowWork);
+            _depotsTab.onClick.RemoveListener(ShowDepots);
+            _reset.onClick.RemoveListener(ResetJobs);
+            _depotsReset.onClick.RemoveListener(ResetDepots);
             for (int i = 0; i < Sections; i++)
             {
                 _toggles[i].onClick.RemoveListener(_toggleHandlers[i]);
@@ -181,7 +197,7 @@ namespace Fabula.Incrementant.UI
             _queenJobBlocker.onClick.RemoveListener(CloseQueenJobList);
         }
 
-        /// <summary>Dicas dos controles da aba Configurações (o <see cref="HudTooltips"/> é do HUD).</summary>
+        /// <summary>Dicas dos controles das abas Trabalho e Depósitos (o <see cref="HudTooltips"/> é do HUD).</summary>
         public void AttachTooltips(HudTooltips tooltips)
         {
             if (!_valid)
@@ -201,24 +217,29 @@ namespace Fabula.Incrementant.UI
                 tooltips.Attach(_queenJobs[i], () => QueenJobTip(job));
             }
             tooltips.Attach(_reset, () => Loc.T("tip.colony.reset"));
+            tooltips.Attach(_depotsReset, () => Loc.T("tip.colony.reset"));
         }
 
         public void Close() => gameObject.SetActive(false);
 
-        void ShowStats() => ShowPage(false);
+        void ShowStats() => ShowPage(Page.Stats);
 
-        void ShowSettings() => ShowPage(true);
+        void ShowWork() => ShowPage(Page.Work);
 
-        void ShowPage(bool settings)
+        void ShowDepots() => ShowPage(Page.Depots);
+
+        void ShowPage(Page page)
         {
             CloseQueenJobList();
-            _settingsOpen = settings;
-            _statsPage.SetActive(!settings);
-            _settingsPage.SetActive(settings);
+            _page = page;
+            _statsPage.SetActive(page == Page.Stats);
+            _settingsPage.SetActive(page == Page.Work);
+            _depotsPage.SetActive(page == Page.Depots);
             if (_tabActive != null && _tabInactive != null)
             {
-                _statsTabImage.sprite = settings ? _tabInactive : _tabActive;
-                _settingsTabImage.sprite = settings ? _tabActive : _tabInactive;
+                _statsTabImage.sprite = page == Page.Stats ? _tabActive : _tabInactive;
+                _settingsTabImage.sprite = page == Page.Work ? _tabActive : _tabInactive;
+                _depotsTabImage.sprite = page == Page.Depots ? _tabActive : _tabInactive;
             }
             _nextRefresh = 0f;
         }
@@ -272,12 +293,17 @@ namespace Fabula.Incrementant.UI
             _nextRefresh = 0f;
         }
 
-        void ResetPolicy()
+        void ResetJobs() => ResetSections(WorkPolicy.Jobs);
+
+        void ResetDepots() => ResetSections(WorkPolicy.Depots);
+
+        /// <summary>TUDO ATIVO de cada aba: só as seções dela.</summary>
+        void ResetSections(WorkSection[] sections)
         {
             AntColony colony = _game.Colony;
             if (colony == null)
                 return;
-            colony.Work.Reset();
+            colony.Work.Reset(sections);
             _nextRefresh = 0f;
         }
 
@@ -339,8 +365,13 @@ namespace Fabula.Incrementant.UI
                 return;
             _nextRefresh = Time.unscaledTime + RefreshSeconds;
             colony.TakeCensus(_census);
-            if (_settingsOpen)
-                RefreshSettings(colony);
+            if (_page == Page.Work)
+            {
+                RefreshSections(colony, WorkPolicy.Jobs);
+                RefreshQueenJob(colony);
+            }
+            else if (_page == Page.Depots)
+                RefreshSections(colony, WorkPolicy.Depots);
             else
                 RefreshStats(colony);
         }
@@ -355,7 +386,7 @@ namespace Fabula.Incrementant.UI
             Line(Loc.T("colony.stats.brood"), colony.Brood.Count.ToString());
             Line(Loc.T("colony.stats.idle"), _census.Idle.ToString());
             Line(Loc.T("colony.stats.fighting"), _census.Fighting.ToString());
-            Line(Loc.T("colony.stats.waterStock"), _census.WaterStocking.ToString());
+            Line(Loc.T("colony.stats.depots"), DepotWorkers().ToString());
             _text.Append('\n');
             Title(Loc.T("colony.stats.roles"));
             foreach (AntRole role in AntRoles.All)
@@ -367,10 +398,9 @@ namespace Fabula.Incrementant.UI
 
             _text.Clear();
             Title(Loc.T("colony.stats.work"));
-            for (int i = 0; i < Sections; i++)
+            foreach (WorkSection section in WorkPolicy.Jobs)
             {
-                WorkSection section = WorkPolicy.All[i];
-                string value = colony.Work.IsEnabled(section) ? _census.Sections[i].ToString() : Loc.T("colony.stopped");
+                string value = colony.Work.IsEnabled(section) ? _census.Sections[(int)section].ToString() : Loc.T("colony.stopped");
                 Line(Loc.T(SectionKey(section)), value);
             }
             _text.Append('\n');
@@ -394,6 +424,15 @@ namespace Fabula.Incrementant.UI
             _placesColumn.text = _text.ToString();
         }
 
+        /// <summary>Formigas levando algo aos depósitos e à sala de resíduos (o detalhe está na aba Depósitos).</summary>
+        int DepotWorkers()
+        {
+            int n = 0;
+            foreach (WorkSection section in WorkPolicy.Depots)
+                n += _census.Sections[(int)section];
+            return n;
+        }
+
         static readonly ColonyPlace[] Places = (ColonyPlace[])Enum.GetValues(typeof(ColonyPlace));
 
         static string Rate(AntColony colony, ColonyRates.Counter counter) =>
@@ -409,32 +448,34 @@ namespace Fabula.Incrementant.UI
             _text.Append(label.PadRight(LabelWidth)).Append(value.PadLeft(ValueWidth)).Append('\n');
         }
 
-        // ---------------------------------------------------------------- configurações
+        // ---------------------------------------------------------------- trabalho e depósitos
 
-        void RefreshSettings(AntColony colony)
+        /// <summary>Linhas da aba aberta. Depósito ou sala ainda não pintados aparecem apagados, com SEM SALA no lugar da contagem.</summary>
+        void RefreshSections(AntColony colony, WorkSection[] sections)
         {
             WorkPolicy work = colony.Work;
             int total = colony.Ants.Count;
             _syncingSliders = true;
-            for (int i = 0; i < Sections; i++)
+            foreach (WorkSection section in sections)
             {
-                WorkSection section = WorkPolicy.All[i];
+                int i = (int)section;
                 bool on = work.IsEnabled(section);
+                bool room = colony.HasSectionRoom(section);
+                Color ink = on && room ? Ink : InkOff;
                 _toggleImages[i].sprite = on ? _toggleOn : _toggleOff;
                 _sectionLabels[i].text = Loc.T(SectionKey(section)).ToUpperInvariant();
-                _sectionLabels[i].color = on ? Ink : InkOff;
-                _sectionNow[i].text = on ? _census.Sections[i].ToString() : Loc.T("colony.stopped");
-                _sectionNow[i].color = on ? Ink : InkOff;
+                _sectionLabels[i].color = ink;
+                _sectionNow[i].text = !room ? Loc.T("queen.status.noroom") : on ? _census.Sections[i].ToString() : Loc.T("colony.stopped");
+                _sectionNow[i].color = ink;
                 int limit = work.LimitOf(section);
                 _limits[i].text = limit == WorkPolicy.Unlimited ? Loc.T("colony.limit.none") : Loc.T("colony.limit.max", limit);
-                _limits[i].color = on ? Ink : InkOff;
+                _limits[i].color = ink;
                 Slider slider = _limitSliders[i];
                 slider.minValue = 0f;
                 slider.maxValue = total + 1;
                 slider.SetValueWithoutNotify(limit == WorkPolicy.Unlimited ? total + 1 : Mathf.Min(limit, total));
             }
             _syncingSliders = false;
-            RefreshQueenJob(colony);
         }
 
         /// <summary>Seletor com a escolha de agora e, na lista, o destaque e os rótulos de cada opção.</summary>
@@ -472,7 +513,16 @@ namespace Fabula.Incrementant.UI
                 case WorkSection.Nursery: return "colony.section.nursery";
                 case WorkSection.Garden: return "colony.section.garden";
                 case WorkSection.Dew: return "colony.section.dew";
-                default: return "colony.section.waste";
+                case WorkSection.Waste: return "colony.section.waste";
+                case WorkSection.FoodDepot: return "colony.section.fooddepot";
+                case WorkSection.BlockDepot: return "colony.section.blockdepot";
+                case WorkSection.WaterDepot: return "colony.section.waterdepot";
+                case WorkSection.SandDepot: return "colony.section.sanddepot";
+                case WorkSection.MushroomDepot: return "colony.section.mushroomdepot";
+                case WorkSection.LitterDepot: return "colony.section.litterdepot";
+                case WorkSection.NectarDepot: return "colony.section.nectardepot";
+                case WorkSection.OreDepot: return "colony.section.oredepot";
+                default: return "colony.section.wasteroom";
             }
         }
 
@@ -487,7 +537,16 @@ namespace Fabula.Incrementant.UI
                 case WorkSection.Nursery: return "tip.colony.section.nursery";
                 case WorkSection.Garden: return "tip.colony.section.garden";
                 case WorkSection.Dew: return "tip.colony.section.dew";
-                default: return "tip.colony.section.waste";
+                case WorkSection.Waste: return "tip.colony.section.waste";
+                case WorkSection.FoodDepot: return "tip.colony.section.fooddepot";
+                case WorkSection.BlockDepot: return "tip.colony.section.blockdepot";
+                case WorkSection.WaterDepot: return "tip.colony.section.waterdepot";
+                case WorkSection.SandDepot: return "tip.colony.section.sanddepot";
+                case WorkSection.MushroomDepot: return "tip.colony.section.mushroomdepot";
+                case WorkSection.LitterDepot: return "tip.colony.section.litterdepot";
+                case WorkSection.NectarDepot: return "tip.colony.section.nectardepot";
+                case WorkSection.OreDepot: return "tip.colony.section.oredepot";
+                default: return "tip.colony.section.wasteroom";
             }
         }
 

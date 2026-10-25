@@ -81,6 +81,7 @@
 | REQ-071 | 2026-10-23 | Mundo pequeno no molde do Terraria, minérios em veios, fundição, forja e armazéns de equipamento | GAME_DESIGN, PROGRAMMING, ART | UNDEFINED | IN_PROGRESS |
 | REQ-072 | 2026-10-23 | Blocos em porcentagem: rachadura crescente na coleta e preenchimento vertical nos depósitos (2 itens por célula com melhoria) | GAME_DESIGN, PROGRAMMING, ART | UNDEFINED | IMPLEMENTED |
 | REQ-073 | 2026-10-23 | Árvore de evolução como formigueiro descendo da rainha: domínios, níveis por progresso e túneis por valor do upgrade | GAME_DESIGN, PROGRAMMING | UNDEFINED | IN_PROGRESS |
+| REQ-075 | 2026-10-24 | Painel da colônia: controle de formigas por depósito e da sala de resíduos, agrupado em abas | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
 
 ## Registros
 
@@ -1399,3 +1400,36 @@
   - 2026-10-23 — IN_PROGRESS: pedido "Pode seguir com a etapa 2 (layout e tela em colunas e níveis)". Etapa 2 implementada (PRG-079): tela única em colunas e níveis, galeria sob a Câmara real, ligações entre colunas só na seleção, salões com progresso; vista em Play Mode pelo agente. Depois que o desenvolvedor religou o servidor MCP: setup de localização, chaves antigas apagadas, Play Mode final e suíte EditMode 490/490 (PRG-079 verificado). Os nós ainda não somem de longe.
   - 2026-10-23 — IN_PROGRESS: pedido "Pode seguir com a etapa 3: compra dos nós da rainha pela mesma regra (UpgradeBoard.Unlockable)". Implementada (PRG-080): nós da rainha também passam por nível, condição e requisitos do catálogo; falta a rodada final dos testes na Unity.
   - 2026-10-23 — IN_PROGRESS: pedido "Podemos fazer as evoluções para incluir forjas e criação de armaduras e ferramentas" (etapa 4). Decisões do desenvolvedor: os pincéis do depósito de minério, da fundição, da forja e dos armazéns viram câmaras pagas; entram os domínios Minérios e Forja e as galerias de nível 5. Implementado (PRG-081): câmaras V0, V1, Y0, Y1, Y2 e galerias V+1, Y+1, Y+2, O+4, E+4, S+5; testes novos e 46/46 nas suítes afetadas; colunas vistas em Play Mode. Custos e efeitos são suposições do agente, a aprovar.
+
+### REQ-074 — Ritmo lento do começo: escavação e movimento das formigas, operária comum a mais lenta
+
+- **Data de registro:** 2026-10-24
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** GAME_DESIGN, PROGRAMMING
+- **Descrição:** Pedido do desenvolvedor: "Precisamos fazer uma curva de upgrade melhor, e também transformar o progresso de cada etapa do jogo em algo mais lento. Vamos separar o jogo em algumas partes: Criação do formigueiro, evolução das fazendas, Loop de farm, Idade do ferro. [...] o jogo terá no futuro prestígio, então podemos fazer o começo ser muito lento. Vamos começar com, as formigas demorando bem mais para destruir os blocos. Algo como, começando com 10 segundos cada bloco, terminando os upgrades com 5 segundos de duração. Movimentação também das formigas bem lenta. Vamos tornar a formiga operária mais lenta em todas as tarefas para justificar as outras classes operárias."
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-039
+- **Itens relacionados:** —
+- **Referências:** [ColonySettings.cs](../Assets/Project/Scripts/Runtime/Colony/ColonySettings.cs); [UpgradeCatalog.cs](../Assets/Project/Scripts/Runtime/Upgrades/UpgradeCatalog.cs)
+- **Decisões pendentes:** curva de custos das melhorias e ritmo das demais etapas (formigueiro, fazendas, loop de farm, idade do ferro), a tratar em seguida; valores desta etapa são suposições do agente (terra 10 s → 5 s com T+2 no nível 10 na comum; velocidade base 20 → 8 células/s; comum com 80% da velocidade e 1,67× o tempo das tarefas).
+- **Histórico:**
+  - 2026-10-24 — IMPLEMENTED: primeira etapa (escavação e movimento). Valores na cena (`_antSpeed` 8, `_digTimeMultiplier` 24, `_workerSpeedRate` 0,8, `_workerTaskTimeFactor` 1,6667), T+2 passa a −5% por nível. Compila (`dotnet build`); testes EditMode não rodados após a mudança.
+  - 2026-10-24 — IMPLEMENTED: validação pedida pelo desenvolvedor. Compilação na Unity sem erros e suíte EditMode 504/504 (`TestResults.xml`); conta dos valores da cena confere (terra 10,0 s na comum, 5,0 s com T+2 no nível 10). Não observado em Play Mode, por isso segue sem `VERIFIED`.
+  - 2026-10-24 — IMPLEMENTED: segunda etapa, curva de custos. Pedido "Aplicar fatores, vou começar um save do inicio com eles e vamos analisar o que aconteceu". Fator sobre o custo da planilha por nível do formigueiro (N1 ×0,6, N2 ×1,4, N3 ×1,45, N4 ×0,9, N5 ×0,9), em `UpgradeCatalog.TierCostFactors`; vale também para os nós da rainha. Renda medida no quicksave: ~1,4 N/s (60 s de simulação). Suíte EditMode 504/504. Fatores são suposições; aguarda o save novo do desenvolvedor para calibrar, principalmente o N1.
+
+### REQ-075 — Painel da colônia: controle de formigas por depósito e da sala de resíduos, agrupado em abas
+
+- **Data de registro:** 2026-10-24
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** PROGRAMMING, GAME_DESIGN
+- **Descrição:** Pedido do desenvolvedor: "Falta no controle de formigas do painel da colonia, um controle de formigas cuidando dos depósitos individualmente, e também da sala de resíduos. Com isso em mente, vai ficar muita informação na tela, precisamos agrupar isso de forma mais eficiente, talvez por abas com o conteúdo."
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-035 (painel da colônia)
+- **Itens relacionados:** PRG-082, PRG-046
+- **Referências:** [ColonyWork.cs](../Assets/Project/Scripts/Runtime/Colony/ColonyWork.cs), [AntColony.Work.cs](../Assets/Project/Scripts/Runtime/Colony/AntColony.Work.cs), [ColonyPanel.cs](../Assets/Project/Scripts/Runtime/UI/ColonyPanel.cs); regras em [StorageGuide.md](../Assets/Project/Scripts/Runtime/Colony/StorageGuide.md) ("Seções dos depósitos") e [HudGuide.md](../Assets/Project/Scripts/Runtime/UI/HudGuide.md) ("Painel da colônia")
+- **Decisões pendentes:** o que conta como "cuidar do depósito" foi suposição do agente: quem está levando algo para ele, venha de onde vier (escavação, corte, item solto, água do mapa, pilha de fora); quem pega do depósito segue na seção de quem consome. Também suposição: a linha antiga "Resíduos" virou "Cupins mortos" (só desmembrar) e levar as partes, o entulho e a terra para as áreas passou à nova "Sala de resíduos".
+- **Histórico:**
+  - 2026-10-24 — IMPLEMENTED: oito seções novas de depósito (alimentos, construção, água, areia, cogumelos, serapilheira, néctar, minério) e a da sala de resíduos, com ligar/parar e limite; o painel passou de Estatísticas + Configurações para Estatísticas, Trabalho e Depósitos, com TUDO ATIVO por aba. Suíte EditMode 505/505 na Unity (`TestResults.xml`), com o teste novo `TheWaterDepotSection_StopsAndCapsWhoFillsIt`; abas Trabalho e Depósitos vistas em Play Mode pelo agente num mapa novo (sem depósitos pintados). Não observado com depósitos cheios de formigas em jogo real.
+  - 2026-10-24 — IMPLEMENTED: feedback do save do desenvolvedor ("21 nutrientes em 41 minutos"; "não gostei da 1 e da 3" sobre renda passiva e estoque inicial). Pedidos: (1) mutirão de escavação, com formigas somando trabalho no mesmo bloco e só a primeira pegando o pixel (`AntColony.Assist.cs`, até 3 ajudantes por bloco; simulação de 2 blocos e 6 formigas: 7,0 s → 5,3 s); (2) sala de resíduos para folhas, converte 1 folha em 1 nutriente em 30 s, livre desde o início (`WasteMode.LeavesToNutrient`, pincel "Folhas em nutrientes"). Suíte EditMode 507/507 (testes novos: mutirão e sala de folhas de ponta a ponta). Falta ver em Play Mode: ritmo da renda da sala de folhas, tempo de 30 s e a ordem de destino da planta (canteiros → depósito → sala de folhas).

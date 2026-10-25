@@ -15,7 +15,8 @@ namespace Fabula.Incrementant.UI
         // Índices de AntFarmGame.BrushLabels (os mesmos de AntFarmGame.BrushMode).
         const int BrushDig = 0, BrushBuild = 1, BrushQueenRoom = 2, BrushNutrientRoom = 3, BrushNursery = 4, BrushWaste = 5,
             BrushFinger = 6, BrushDew = 7, BrushFoodStore = 8, BrushBlockStore = 9, BrushWaterStore = 10, BrushGlowMushroom = 11,
-            BrushFarm = 12, BrushSandStore = 13, BrushMushroomStore = 14, BrushLitterStore = 15, BrushNectarStore = 16, BrushOreStore = 17, BrushSmelter = 18, BrushForge = 19, BrushArmory = 20, BrushWardrobe = 21;
+            BrushFarm = 12, BrushSandStore = 13, BrushMushroomStore = 14, BrushLitterStore = 15, BrushNectarStore = 16, BrushOreStore = 17, BrushSmelter = 18, BrushForge = 19, BrushArmory = 20, BrushWardrobe = 21,
+            BrushWasteLeaves = 22, BrushWasteDirt = 23, BrushWasteNutrient = 24;
 
         static string Join(string description, string status) =>
             string.IsNullOrEmpty(status) ? description : description + "\n\n" + status;
@@ -34,6 +35,66 @@ namespace Fabula.Incrementant.UI
             return Join(text, area);
         }
 
+        /// <summary>
+        /// Dica do ambiente pintado sob o mouse no mapa: o nome e o mesmo status da dica do pincel (produção ou o que falta),
+        /// mais a área usada. O status é da colônia inteira para aquele ambiente, não de uma sala em particular.
+        /// </summary>
+        public static string PaintedRoom(AntFarmGame game, PaintRoom room)
+        {
+            AntColony colony = game.Colony;
+            if (colony == null)
+                return null;
+            PixelGrid grid = game.Grid;
+            PaintBudget budget = colony.PaintBudget;
+            string area = Loc.T("tip.room.area", budget.Used(room), budget.Limit(room), budget.Rooms(room), budget.MaxRooms);
+            return Join(Loc.T(RoomNameKey(room)), Join(RoomStatus(colony, grid, room), area));
+        }
+
+        static string RoomNameKey(PaintRoom room)
+        {
+            switch (room)
+            {
+                case PaintRoom.Queen: return "brush.queenroom";
+                case PaintRoom.Nutrient: return "brush.nutrientroom";
+                case PaintRoom.Nursery: return "brush.nursery";
+                case PaintRoom.Waste: return AntFarmHud.WasteModeKey(Colony.WasteMode.RemainsToLeaves);
+                case PaintRoom.WasteLeaves: return AntFarmHud.WasteModeKey(Colony.WasteMode.LeavesToWater);
+                case PaintRoom.WasteDirt: return AntFarmHud.WasteModeKey(Colony.WasteMode.DirtToWater);
+                case PaintRoom.WasteNutrient: return AntFarmHud.WasteModeKey(Colony.WasteMode.LeavesToNutrient);
+                case PaintRoom.Dew: return "brush.dew";
+                case PaintRoom.FoodStore: return "brush.foodstore";
+                case PaintRoom.BlockStore: return "brush.blockstore";
+                case PaintRoom.WaterStore: return "brush.waterstore";
+                case PaintRoom.Farm: return "brush.farm";
+                case PaintRoom.SandStore: return "brush.sandstore";
+                case PaintRoom.MushroomStore: return "brush.mushroomstore";
+                case PaintRoom.LitterStore: return "brush.litterstore";
+                case PaintRoom.NectarStore: return "brush.nectarstore";
+                case PaintRoom.OreStore: return "brush.orestore";
+                case PaintRoom.Smelter: return "brush.smelter";
+                case PaintRoom.Forge: return "brush.forge";
+                case PaintRoom.Armory: return "brush.armory";
+                default: return "brush.wardrobe";
+            }
+        }
+
+        static string RoomStatus(AntColony colony, PixelGrid grid, PaintRoom room)
+        {
+            switch (room)
+            {
+                case PaintRoom.Queen: return QueenRoomStatus(colony, grid);
+                case PaintRoom.Nutrient: return NutrientRoomStatus(colony, grid);
+                case PaintRoom.Nursery: return NurseryStatus(colony, grid);
+                case PaintRoom.Waste:
+                case PaintRoom.WasteLeaves:
+                case PaintRoom.WasteDirt: return WasteStatus(colony, grid);
+                case PaintRoom.WasteNutrient: return LeafRoomStatus(colony, grid);
+                case PaintRoom.Dew: return DewStatus(colony, grid);
+                case PaintRoom.Farm: return FarmStatus(colony, grid);
+                default: return DepotStatus(colony, PaintBudget.StorageOf(room));
+            }
+        }
+
         static string BrushDescription(AntFarmGame game, int index)
         {
             AntColony colony = game.Colony;
@@ -48,9 +109,15 @@ namespace Fabula.Incrementant.UI
                 case BrushNutrientRoom: return Join(Loc.T("tip.brush.nutrientroom") + " " + Loc.T("tip.room.paint"), NutrientRoomStatus(colony, grid));
                 case BrushNursery: return Join(Loc.T("tip.brush.nursery") + " " + Loc.T("tip.room.paint"), NurseryStatus(colony, grid));
                 case BrushWaste:
+                case BrushWasteLeaves:
+                case BrushWasteDirt:
                     return colony != null && !colony.WasteUnlocked
                         ? Loc.T("tip.brush.waste.locked")
-                        : Join(Loc.T("tip.brush.waste") + " " + Loc.T("tip.room.paint"), WasteStatus(colony, grid, game.WasteBrushMode));
+                        : Join(WasteMode(index == BrushWasteLeaves ? Colony.WasteMode.LeavesToWater :
+                                         index == BrushWasteDirt ? Colony.WasteMode.DirtToWater : Colony.WasteMode.RemainsToLeaves) +
+                               " " + Loc.T("tip.room.paint"), WasteStatus(colony, grid));
+                case BrushWasteNutrient:
+                    return Join(WasteMode(Colony.WasteMode.LeavesToNutrient) + " " + Loc.T("tip.room.paint"), LeafRoomStatus(colony, grid));
                 case BrushDew: return Join(Loc.T("tip.brush.dew") + " " + Loc.T("tip.room.paint"), DewStatus(colony, grid));
                 case BrushFoodStore: return Join(Loc.T("tip.brush.foodstore") + " " + Loc.T("tip.room.paint"), DepotStatus(colony, StorageKind.Food));
                 case BrushBlockStore: return Join(Loc.T("tip.brush.blockstore") + " " + Loc.T("tip.room.paint"), DepotStatus(colony, StorageKind.Blocks));
@@ -216,7 +283,7 @@ namespace Fabula.Incrementant.UI
         static string MushroomStatus(AntColony colony) =>
             colony == null ? null : Loc.T("tip.st.mushroom.stock", colony.MushroomItems);
 
-        static string WasteStatus(AntColony colony, PixelGrid grid, WasteMode brushMode)
+        static string WasteStatus(AntColony colony, PixelGrid grid)
         {
             if (colony == null)
                 return null;
@@ -224,8 +291,16 @@ namespace Fabula.Incrementant.UI
                 return Loc.T("tip.st.waste.paint");
             if (colony.WasteSpots == 0 && colony.WasteCells == 0)
                 return Loc.T("tip.st.waste.nospot");
-            return Loc.T("tip.st.waste.ok", colony.WasteSpots, colony.WasteCells, colony.WasteDeposited) + " " +
-                   Loc.T("tip.st.waste.mode", Loc.T(AntFarmHud.WasteModeKey(brushMode)));
+            return Loc.T("tip.st.waste.ok", colony.WasteSpots, colony.WasteCells, colony.WasteDeposited);
+        }
+
+        static string LeafRoomStatus(AntColony colony, PixelGrid grid)
+        {
+            if (colony == null)
+                return null;
+            if (grid.GetWasteKindCount((byte)Colony.WasteMode.LeavesToNutrient) == 0)
+                return Loc.T("tip.st.leafroom.paint");
+            return Loc.T("tip.st.leafroom.ok", colony.WasteSpotsOf(Colony.WasteMode.LeavesToNutrient), colony.LeavesToNutrients);
         }
 
         static string DewStatus(AntColony colony, PixelGrid grid)

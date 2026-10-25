@@ -34,7 +34,7 @@ namespace Fabula.Incrementant.Tests
             {
                 UpgradeDef def = UpgradeCatalog.Of(queen.Node);
                 Assert.AreEqual(UpgradeTab.Queen, def.Tab, queen.Id);
-                Assert.AreEqual(queen.Cost, def.Cost, queen.Id);
+                Assert.AreEqual(queen.Cost, def.BaseCost, queen.Id);
                 Assert.AreEqual(queen.Node, def.QueenNode, queen.Id);
             }
         }
@@ -111,7 +111,7 @@ namespace Fabula.Incrementant.Tests
         [TestCase("S+1", 10, 1197)]
         public void LevelCostsMatchTheSpreadsheet(string id, int level, int cost)
         {
-            Assert.AreEqual(cost, UpgradeCatalog.LevelCost(UpgradeCatalog.Get(id), level));
+            Assert.AreEqual(cost, UpgradeCatalog.BaseLevelCost(UpgradeCatalog.Get(id), level));
         }
 
         [Test]
@@ -121,7 +121,11 @@ namespace Fabula.Incrementant.Tests
             Assert.AreEqual(0, UpgradeCatalog.LevelCost(def, 11));
             long total = UpgradeCatalog.CostOfLevels(def, 0, 50, out int bought);
             Assert.AreEqual(10, bought);
-            Assert.AreEqual(8189, total); // planilha: custo total até o teto
+            long baseTotal = 0;
+            for (int n = 1; n <= 10; n++)
+                baseTotal += UpgradeCatalog.BaseLevelCost(def, n);
+            Assert.AreEqual(8189, baseTotal); // planilha: custo total até o teto
+            Assert.AreEqual(System.Math.Round(8189 * UpgradeCatalog.TierCostFactor(def.Tier)), total, 10, "O fator do nível escala o total.");
             Assert.AreEqual(2f, UpgradeCatalog.ValueAt(def, 10), 1e-3f);
         }
 
@@ -129,10 +133,12 @@ namespace Fabula.Incrementant.Tests
         public void MaxAffordableNeverOverspends()
         {
             UpgradeDef def = UpgradeCatalog.Get("C+1");
-            long spent = UpgradeCatalog.MaxAffordable(def, 0, 200, out int bought);
-            Assert.AreEqual(4, bought); // 40 + 46 + 53 + 61 = 200
-            Assert.LessOrEqual(spent, 200);
-            Assert.Greater(spent + UpgradeCatalog.LevelCost(def, bought + 1), 200);
+            long budget = UpgradeCatalog.LevelCost(def, 1) + UpgradeCatalog.LevelCost(def, 2) + UpgradeCatalog.LevelCost(def, 3) +
+                          UpgradeCatalog.LevelCost(def, 4);
+            long spent = UpgradeCatalog.MaxAffordable(def, 0, budget, out int bought);
+            Assert.AreEqual(4, bought);
+            Assert.AreEqual(budget, spent);
+            Assert.Greater(spent + UpgradeCatalog.LevelCost(def, bought + 1), budget);
         }
 
         [Test]

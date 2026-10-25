@@ -108,8 +108,10 @@ namespace Fabula.Incrementant.Upgrades
         public int Tier { get; internal set; } = -1;
         public bool Placed => Tier >= 0;
         public UpgradeKind Kind { get; }
-        /// <summary>Custo da câmara ou custo do nível 1 da galeria, em nutrientes.</summary>
-        public int Cost { get; }
+        /// <summary>Custo da câmara ou do nível 1 da galeria na planilha (documento 39), antes do fator do nível do formigueiro.</summary>
+        public int BaseCost { get; }
+        /// <summary>Custo da câmara ou do nível 1 da galeria, em nutrientes: a planilha vezes <see cref="UpgradeCatalog.TierCostFactor"/>.</summary>
+        public int Cost => UpgradeCatalog.ScaledCost(BaseCost, Tier);
         public IReadOnlyList<UpgradeRequirement> Requires { get; }
         public UpgradeCondition Condition { get; }
         public GalleryType Type { get; }
@@ -139,7 +141,7 @@ namespace Fabula.Incrementant.Upgrades
             Branch = branch;
             Ring = ring;
             Kind = kind;
-            Cost = cost;
+            BaseCost = cost;
             Requires = requires;
             Condition = condition;
             Type = type;
@@ -174,6 +176,19 @@ namespace Fabula.Incrementant.Upgrades
 
         /// <summary>Profundidade que abre cada nível do formigueiro (documento 46, "Níveis"; o 100 do nível 5 é suposição).</summary>
         static readonly int[] TierDepth = { 0, 0, 5, 20, 50, 100 };
+
+        /// <summary>
+        /// Fator sobre o custo da planilha por nível do formigueiro, para casar com a renda de cada etapa do jogo (REQ-074: criação
+        /// do formigueiro, evolução das fazendas, loop de farm, Idade do ferro; ~8 h até o prestígio). Valores assumidos a partir da
+        /// renda medida no quicksave (~1,4 N/s numa colônia montada); o nível 1 é o que mais precisa de playtest.
+        /// </summary>
+        static readonly float[] TierCostFactors = { 1f, 0.6f, 1.4f, 1.45f, 0.9f, 0.9f };
+
+        public static float TierCostFactor(int tier) => tier < 0 ? 1f : TierCostFactors[Math.Min(tier, TierCostFactors.Length - 1)];
+
+        /// <summary>Custo da planilha no nível do formigueiro dado (0 continua 0; o resto nunca cai abaixo de 1).</summary>
+        public static int ScaledCost(int baseCost, int tier) =>
+            baseCost <= 0 ? 0 : Math.Max(1, (int)Math.Round(baseCost * TierCostFactor(tier), MidpointRounding.AwayFromZero));
         public static int TierCount => TierDepth.Length;
         /// <summary>Nós por câmara lateral (domínio + nível) antes de ela precisar se dividir (documento 46, regra 6).</summary>
         public const int MaxNodesPerSideChamber = 8;
@@ -286,7 +301,7 @@ namespace Fabula.Incrementant.Upgrades
             Gallery(H, "G+1", Orvalho, 2, 90, "G0", GalleryType.Physical, 10, 8f, -0.05f);
             Gallery(H, "G+2", Orvalho, 2, 120, "G1", GalleryType.Physical, 10, 24f, 4f, additive: true);
             Gallery(H, "T+1", Obra, 1, 50, "T0", GalleryType.Physical, 15, 1f, -0.03f);
-            Gallery(H, "T+2", Obra, 2, 150, "T1,E0", GalleryType.Physical, 10, 1f, -0.03f);
+            Gallery(H, "T+2", Obra, 2, 150, "T1,E0", GalleryType.Physical, 10, 1f, -0.05f); // 10 níveis = metade do tempo de cavar (10 s → 5 s)
             Gallery(H, "X+1", Exterior, 2, 100, "X0", GalleryType.Economy, 0, 1f, 0.06f);
             Gallery(H, "X+2", Exterior, 2, 90, "X0", GalleryType.Physical, 10, 1f, 0.03f);
             Gallery(H, "X+3", Exterior, 2, 100, "X0,F0", GalleryType.Physical, 10, 1f, 0.05f);
@@ -492,6 +507,16 @@ namespace Fabula.Incrementant.Upgrades
             if (level < 1 || (def.Capped && level > def.Cap))
                 return 0;
             return (int)Math.Round(def.Cost * Math.Pow(Growth(def.Type), level - 1), MidpointRounding.AwayFromZero);
+        }
+
+        /// <summary>Custo do nível na planilha, sem o fator do nível do formigueiro (os testes que travam o documento 39 usam este).</summary>
+        public static int BaseLevelCost(UpgradeDef def, int level)
+        {
+            if (def.Kind == UpgradeKind.Chamber)
+                return def.BaseCost;
+            if (level < 1 || (def.Capped && level > def.Cap))
+                return 0;
+            return (int)Math.Round(def.BaseCost * Math.Pow(Growth(def.Type), level - 1), MidpointRounding.AwayFromZero);
         }
 
         /// <summary>Custo de comprar <paramref name="count"/> níveis a partir do nível atual (para no teto).</summary>

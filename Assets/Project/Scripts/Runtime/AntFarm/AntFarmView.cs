@@ -33,6 +33,9 @@ namespace Fabula.Incrementant.AntFarm
         Forge,
         Armory,
         Wardrobe,
+        WasteLeaves,
+        WasteDirt,
+        WasteNutrient,
     }
 
     /// <summary>
@@ -65,6 +68,8 @@ namespace Fabula.Incrementant.AntFarm
         [Tooltip("Cor da área de resíduos no modo folhas em água (as outras: Waste Room Color = restos em folhas, Waste Dirt Color = terra em areia e água).")]
         [SerializeField] Color32 _wasteLeavesColor = new Color32(90, 170, 150, 255);
         [SerializeField] Color32 _wasteDirtColor = new Color32(190, 120, 70, 255);
+        [Tooltip("Cor da sala de folhas em nutrientes (área de resíduos nesse modo) e do pincel dela.")]
+        [SerializeField] Color32 _wasteNutrientColor = new Color32(150, 210, 80, 255);
         [Tooltip("Cor da sala Gotas de Orvalho pintada e do pincel no modo sala Gotas de Orvalho.")]
         [SerializeField] Color32 _dewRoomColor = new Color32(90, 190, 230, 255);
         [Tooltip("Cor do depósito de alimentos pintado e do pincel no modo depósito de alimentos.")]
@@ -521,11 +526,9 @@ namespace Fabula.Incrementant.AntFarm
             }
         }
 
-        /// <summary>Modo (<c>WasteMode</c> como byte) com que o pincel Resíduos pinta: dá a cor do contorno do pincel.</summary>
-        public byte WasteBrushKind { get; set; }
-
         /// <summary>Cor da área de resíduos por modo (0 restos em folhas, 1 folhas em água, 2 terra em areia e água).</summary>
-        Color32 WasteColor(byte kind) => kind == 1 ? _wasteLeavesColor : kind == 2 ? _wasteDirtColor : _wasteRoomColor;
+        Color32 WasteColor(byte kind) =>
+            kind == 1 ? _wasteLeavesColor : kind == 2 ? _wasteDirtColor : kind == 3 ? _wasteNutrientColor : _wasteRoomColor;
 
         Color32 BrushColor(BrushTint brush)
         {
@@ -535,7 +538,10 @@ namespace Fabula.Incrementant.AntFarm
                 case BrushTint.QueenRoom: return _queenRoomColor;
                 case BrushTint.NutrientRoom: return _nutrientRoomColor;
                 case BrushTint.NurseryRoom: return _nurseryRoomColor;
-                case BrushTint.WasteRoom: return WasteColor((byte)WasteBrushKind);
+                case BrushTint.WasteRoom: return _wasteRoomColor;
+                case BrushTint.WasteLeaves: return _wasteLeavesColor;
+                case BrushTint.WasteDirt: return _wasteDirtColor;
+                case BrushTint.WasteNutrient: return _wasteNutrientColor;
                 case BrushTint.DewRoom: return _dewRoomColor;
                 case BrushTint.FoodStore: return _foodStoreColor;
                 case BrushTint.BlockStore: return _blockStoreColor;

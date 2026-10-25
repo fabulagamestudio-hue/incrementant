@@ -156,6 +156,40 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
+        public void FractionalFactor_GivesTheDepotThatMuchMoreOnAverage()
+        {
+            PixelGrid grid = MakeWorld();
+            PaintDepot(grid, StorageKind.Blocks, 30);
+            Assert.IsTrue(grid.SetCapacityFactor(StorageKind.Blocks, 1.5f));
+            int total = 0;
+            for (int x = 30; x <= 36; x++)
+            for (int y = 1; y <= 3; y++)
+            {
+                int capacity = grid.CellCapacity(x, y, StorageKind.Blocks);
+                Assert.That(capacity, Is.InRange(1, 2));
+                Assert.AreEqual(capacity, grid.StoredRoomFor(x, y, Soil), "A vaga livre vale a capacidade da própria célula.");
+                total += capacity;
+            }
+            Assert.AreEqual(32, total, "21 células a 1,5: as de x + y ímpar guardam dois (a conta é por posição).");
+            Assert.AreEqual(1, grid.CellCapacity(5, 5, StorageKind.Smelter), "A fundição não empilha.");
+        }
+
+        [Test]
+        public void ChamberD1_RaisesEveryStackingDepotByHalf()
+        {
+            PixelGrid grid = MakeWorld();
+            PaintDepot(grid, StorageKind.Food, 30);
+            var colony = new AntColony(grid, new ColonySettings(), Layout, seed: 5) { RaidsEnabled = false };
+            Assert.AreEqual(1f, grid.CapacityFactor(StorageKind.Food));
+            colony.RestoreGalleries(new[] { "D1" }, new[] { 1 });
+            Assert.AreEqual(1.5f, grid.CapacityFactor(StorageKind.Food), 0.0001f);
+            Assert.AreEqual(1.5f, grid.CapacityFactor(StorageKind.Water), 0.0001f);
+            Assert.AreEqual(1f, grid.CapacityFactor(StorageKind.Smelter));
+            colony.RestoreGalleries(new string[0], new int[0]);
+            Assert.AreEqual(1f, grid.CapacityFactor(StorageKind.Food));
+        }
+
+        [Test]
         public void Ants_FillTheDepotTwoPerCell_WithTheUpgrade()
         {
             PixelGrid grid = MakeWorld();

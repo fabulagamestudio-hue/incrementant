@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace Fabula.Incrementant.EditorTools.UI
 {
-    /// <summary>Painel da colônia (botão à esquerda do sino): abas Estatísticas e Configurações. Ver <see cref="ColonyPanel"/>.</summary>
+    /// <summary>Painel da colônia (botão à esquerda do sino): abas Estatísticas, Trabalho e Depósitos. Ver <see cref="ColonyPanel"/>.</summary>
     public static partial class AntFarmHudSetup
     {
         static readonly Vector2 ColonyPanelSize = new Vector2(1440, 760);
@@ -37,11 +37,14 @@ namespace Fabula.Incrementant.EditorTools.UI
 
             // --- abas e fechar
             Button statsTab = BuildTab(panel.transform, "AbaEstatisticas", 40, LocalizationCatalog.Pt("colony.tab.stats"), true, out Image statsImage);
-            Button settingsTab = BuildTab(panel.transform, "AbaConfiguracoes", 360, LocalizationCatalog.Pt("menu.settings"), false, out Image settingsImage);
+            Button settingsTab = BuildTab(panel.transform, "AbaConfiguracoes", 360, LocalizationCatalog.Pt("colony.tab.work"), false, out Image settingsImage);
+            Button depotsTab = BuildTab(panel.transform, "AbaDepositos", 680, LocalizationCatalog.Pt("colony.tab.depots"), false, out Image depotsImage);
             SetObject(so, "_statsTab", statsTab);
             SetObject(so, "_statsTabImage", statsImage);
             SetObject(so, "_settingsTab", settingsTab);
             SetObject(so, "_settingsTabImage", settingsImage);
+            SetObject(so, "_depotsTab", depotsTab);
+            SetObject(so, "_depotsTabImage", depotsImage);
             SetObject(so, "_tabActive", Load("tabs/tab_active"));
             SetObject(so, "_tabInactive", Load("tabs/tab_inactive"));
             SetObject(so, "_close", BuildSmallIconButton(panel.transform, "Fechar", "icons/close",
@@ -59,41 +62,18 @@ namespace Fabula.Incrementant.EditorTools.UI
             }
             SetObject(so, "_statsPage", stats.gameObject);
 
-            // --- página Configurações: uma linha por seção, depois o trabalho da rainha
+            // --- páginas Trabalho e Depósitos: uma linha por seção do grupo (índice = valor da seção nos arrays)
             RectTransform settings = BuildColonyPage(panel.transform, "PaginaConfiguracoes");
-            ColonyHeader(settings, "colony.col.section", 120, 380, TextAnchor.MiddleLeft);
-            ColonyHeader(settings, "colony.col.now", 520, 140, TextAnchor.MiddleLeft);
-            ColonyHeader(settings, "colony.col.limit", ColonyMinusX, ColonyLimitX + ColonyLimitWidth - ColonyMinusX, TextAnchor.MiddleCenter);
+            RectTransform depots = BuildColonyPage(panel.transform, "PaginaDepositos");
             int n = WorkPolicy.Count;
-            var toggles = new Button[n];
-            var toggleImages = new Image[n];
-            var labels = new Text[n];
-            var now = new Text[n];
-            var minus = new Button[n];
-            var plus = new Button[n];
-            var sliders = new Slider[n];
-            var limits = new Text[n];
-            for (int i = 0; i < n; i++)
-            {
-                float top = ColonyRowTop + i * ColonyRowStep;
-                Image toggle = BuildScaledSprite(settings, "Interruptor" + i, "controls/toggle_on", 2f);
-                toggle.type = Image.Type.Simple;
-                toggle.raycastTarget = true;
-                Place(toggle.rectTransform, new Vector2(0, -top), new Vector2(100, 52));
-                toggles[i] = toggle.gameObject.AddComponent<Button>();
-                toggles[i].targetGraphic = toggle;
-                toggles[i].transition = Selectable.Transition.None;
-                toggleImages[i] = toggle;
-
-                labels[i] = ColonyRowText(settings, "Secao" + i, 120, top, 380, TextAnchor.MiddleLeft);
-                now[i] = ColonyRowText(settings, "Agora" + i, 520, top, 140, TextAnchor.MiddleLeft);
-                minus[i] = BuildSmallIconButton(settings, "Menos" + i, "icons/minus", new Vector2(ColonyMinusX, top));
-                // Faixa e valor são do ColonyPanel (dependem do total de formigas); aqui fica só a forma.
-                sliders[i] = BuildSlider(settings, "Slider" + i, new Vector2(ColonySliderX, top + 26), ColonySliderWidth);
-                sliders[i].wholeNumbers = true;
-                plus[i] = BuildSmallIconButton(settings, "Mais" + i, "icons/plus", new Vector2(ColonyPlusX, top));
-                limits[i] = ColonyRowText(settings, "Limite" + i, ColonyLimitX, top, ColonyLimitWidth, TextAnchor.MiddleCenter);
-            }
+            var rows = new ColonyRows(n);
+            BuildColonySectionRows(settings, "colony.col.section", WorkPolicy.Jobs, rows);
+            BuildColonySectionRows(depots, "colony.col.depot", WorkPolicy.Depots, rows);
+            Button[] toggles = rows.Toggles;
+            Image[] toggleImages = rows.ToggleImages;
+            Text[] labels = rows.Labels, now = rows.Now, limits = rows.Limits;
+            Button[] minus = rows.Minus, plus = rows.Plus;
+            Slider[] sliders = rows.Sliders;
             SetArray(so, "_toggles", toggles);
             SetArray(so, "_toggleImages", toggleImages);
             SetArray(so, "_sectionLabels", labels);
@@ -105,7 +85,7 @@ namespace Fabula.Incrementant.EditorTools.UI
             SetObject(so, "_toggleOn", Load("controls/toggle_on"));
             SetObject(so, "_toggleOff", Load("controls/toggle_off"));
 
-            float queenTop = ColonyRowTop + n * ColonyRowStep + 16;
+            float queenTop = ColonyRowTop + WorkPolicy.Jobs.Length * ColonyRowStep + 16;
             ColonyHeader(settings, "colony.queen.title", 0, 600, TextAnchor.MiddleLeft, queenTop);
             SetObject(so, "_reset", BuildButton(settings, "TudoAtivo", new Vector2(0, 1), new Vector2(1210, -(queenTop + 32)),
                                                 new Vector2(300, 42), "icons/play", LocalizationCatalog.Pt("colony.reset"), true, out _));
@@ -118,6 +98,12 @@ namespace Fabula.Incrementant.EditorTools.UI
             SetObject(so, "_buttonActive", Load("buttons/button_focus"));
             SetObject(so, "_settingsPage", settings.gameObject);
             settings.gameObject.SetActive(false);
+
+            float depotsResetTop = ColonyRowTop + WorkPolicy.Depots.Length * ColonyRowStep + 8;
+            SetObject(so, "_depotsReset", BuildButton(depots, "TudoAtivo", new Vector2(0, 1), new Vector2(1210, -depotsResetTop),
+                                                      new Vector2(300, 42), "icons/play", LocalizationCatalog.Pt("colony.reset"), true, out _));
+            SetObject(so, "_depotsPage", depots.gameObject);
+            depots.gameObject.SetActive(false);
 
             so.ApplyModifiedPropertiesWithoutUndo();
             panel.gameObject.SetActive(false);
@@ -186,6 +172,57 @@ namespace Fabula.Incrementant.EditorTools.UI
             SetArray(so, "_queenJobImages", images);
             SetArray(so, "_queenJobLabels", labels);
             SetArray(so, "_queenJobIcons", icons);
+        }
+
+        /// <summary>Controles de cada linha das abas Trabalho e Depósitos, indexados pelo valor da seção.</summary>
+        sealed class ColonyRows
+        {
+            public readonly Button[] Toggles, Minus, Plus;
+            public readonly Image[] ToggleImages;
+            public readonly Text[] Labels, Now, Limits;
+            public readonly Slider[] Sliders;
+
+            public ColonyRows(int n)
+            {
+                Toggles = new Button[n];
+                Minus = new Button[n];
+                Plus = new Button[n];
+                ToggleImages = new Image[n];
+                Labels = new Text[n];
+                Now = new Text[n];
+                Limits = new Text[n];
+                Sliders = new Slider[n];
+            }
+        }
+
+        /// <summary>Cabeçalho e uma linha por seção (interruptor, nome, agora, "-", slider, "+" e limite) na página.</summary>
+        static void BuildColonySectionRows(RectTransform page, string firstHeader, WorkSection[] sections, ColonyRows rows)
+        {
+            ColonyHeader(page, firstHeader, 120, 380, TextAnchor.MiddleLeft);
+            ColonyHeader(page, "colony.col.now", 520, 140, TextAnchor.MiddleLeft);
+            ColonyHeader(page, "colony.col.limit", ColonyMinusX, ColonyLimitX + ColonyLimitWidth - ColonyMinusX, TextAnchor.MiddleCenter);
+            for (int row = 0; row < sections.Length; row++)
+            {
+                int i = (int)sections[row];
+                float top = ColonyRowTop + row * ColonyRowStep;
+                Image toggle = BuildScaledSprite(page, "Interruptor" + i, "controls/toggle_on", 2f);
+                toggle.type = Image.Type.Simple;
+                toggle.raycastTarget = true;
+                Place(toggle.rectTransform, new Vector2(0, -top), new Vector2(100, 52));
+                rows.Toggles[i] = toggle.gameObject.AddComponent<Button>();
+                rows.Toggles[i].targetGraphic = toggle;
+                rows.Toggles[i].transition = Selectable.Transition.None;
+                rows.ToggleImages[i] = toggle;
+
+                rows.Labels[i] = ColonyRowText(page, "Secao" + i, 120, top, 380, TextAnchor.MiddleLeft);
+                rows.Now[i] = ColonyRowText(page, "Agora" + i, 520, top, 140, TextAnchor.MiddleLeft);
+                rows.Minus[i] = BuildSmallIconButton(page, "Menos" + i, "icons/minus", new Vector2(ColonyMinusX, top));
+                // Faixa e valor são do ColonyPanel (dependem do total de formigas); aqui fica só a forma.
+                rows.Sliders[i] = BuildSlider(page, "Slider" + i, new Vector2(ColonySliderX, top + 26), ColonySliderWidth);
+                rows.Sliders[i].wholeNumbers = true;
+                rows.Plus[i] = BuildSmallIconButton(page, "Mais" + i, "icons/plus", new Vector2(ColonyPlusX, top));
+                rows.Limits[i] = ColonyRowText(page, "Limite" + i, ColonyLimitX, top, ColonyLimitWidth, TextAnchor.MiddleCenter);
+            }
         }
 
         static RectTransform BuildColonyPage(Transform panel, string name)

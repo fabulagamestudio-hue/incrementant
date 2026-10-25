@@ -91,7 +91,10 @@ namespace Fabula.Incrementant.Upgrades
                 case PaintRoom.Queen: return QueenRoomCellsBonus;
                 case PaintRoom.Nutrient: return NutrientRoomCellsBonus;
                 case PaintRoom.Nursery: return NurseryRoomCellsBonus;
-                case PaintRoom.Waste: return WasteRoomCellsBonus;
+                case PaintRoom.Waste:
+                case PaintRoom.WasteLeaves:
+                case PaintRoom.WasteDirt:
+                case PaintRoom.WasteNutrient: return WasteRoomCellsBonus;
                 case PaintRoom.Dew: return DewRoomCellsBonus;
                 case PaintRoom.Farm: return FarmRoomCellsBonus;
                 default: return DepotCellsBonus;

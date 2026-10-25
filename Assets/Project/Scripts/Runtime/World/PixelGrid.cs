@@ -140,6 +140,19 @@ namespace Fabula.Incrementant.World
 
         /// <summary>Células pintadas como área de resíduos.</summary>
         public int WasteRoomCount { get; private set; }
+
+        // Células da área de resíduos por modo (índice = Colony.WasteMode como byte): cada modo tem o próprio limite de área.
+        const int WasteKinds = 4;
+        readonly int[] _wasteKindCount = new int[WasteKinds];
+
+        /// <summary>Células da área de resíduos pintadas com o modo <paramref name="kind"/> (<c>Colony.WasteMode</c> como byte).</summary>
+        public int GetWasteKindCount(byte kind) => kind < WasteKinds ? _wasteKindCount[kind] : 0;
+
+        void CountWasteKind(byte kind, int delta)
+        {
+            if (delta != 0 && kind < WasteKinds)
+                _wasteKindCount[kind] += delta;
+        }
         public int DewRoomCount { get; private set; }
 
         /// <summary>Células pintadas como fazenda de pulgões.</summary>
@@ -801,7 +814,9 @@ namespace Fabula.Incrementant.World
             {
                 if (!room || _wasteKind[i] == kind)
                     return false;
+                CountWasteKind(_wasteKind[i], -1);
                 _wasteKind[i] = kind;
+                CountWasteKind(kind, 1);
                 DirtyRender(i);
                 WasteKindVersion++;
                 MarkVersion++;
@@ -810,8 +825,10 @@ namespace Fabula.Incrementant.World
             if (room && (y > GetSurfaceY(x) || _queenRoom[i] || _nutrientRoom[i] || _nurseryRoom[i] || _dewRoom[i] || IsStorageAt(i) || _farmRoom[i]))
                 return false;
 
+            CountWasteKind(_wasteKind[i], room ? 0 : -1);
             _wasteRoom[i] = room;
             _wasteKind[i] = room ? kind : (byte)0;
+            CountWasteKind(_wasteKind[i], room ? 1 : 0);
             WasteKindVersion++;
             DirtyRender(i);
             WasteRoomCount += room ? 1 : -1;

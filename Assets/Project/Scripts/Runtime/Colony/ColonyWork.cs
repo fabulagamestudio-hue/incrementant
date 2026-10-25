@@ -1,4 +1,5 @@
 using System;
+using Fabula.Incrementant.World;
 
 namespace Fabula.Incrementant.Colony
 {
@@ -22,8 +23,26 @@ namespace Fabula.Incrementant.Colony
         Garden = 5,
         /// <summary>Sala Gotas de Orvalho: terra fofa no teto e cuidado das gotas.</summary>
         Dew = 6,
-        /// <summary>Desmembrar cupins mortos e levar entulho e restos à área de resíduos.</summary>
+        /// <summary>Desmembrar cupins mortos (levar as partes à área de resíduos é <see cref="WasteRoom"/>).</summary>
         Waste = 7,
+
+        // Depósitos e sala de resíduos (pedido do desenvolvedor em 2026-10-24): quem está levando algo para lá, venha de onde
+        // vier (escavação, corte, item solto, água do mapa, pilha de fora). Parado ou no limite, o item segue o caminho de
+        // quando o depósito está cheio.
+
+        /// <summary>Levar planta ao depósito de alimentos.</summary>
+        FoodDepot = 8,
+        /// <summary>Levar terra ao depósito de construção (cavada, sobra de obra ou da pilha de fora).</summary>
+        BlockDepot = 9,
+        /// <summary>Encher o depósito de água (água do mapa ou solta).</summary>
+        WaterDepot = 10,
+        SandDepot = 11,
+        MushroomDepot = 12,
+        LitterDepot = 13,
+        NectarDepot = 14,
+        OreDepot = 15,
+        /// <summary>Levar entulho, restos de cupim e terra à área de resíduos (inclui buscar a terra na pilha de fora).</summary>
+        WasteRoom = 16,
     }
 
     /// <summary>
@@ -81,13 +100,66 @@ namespace Fabula.Incrementant.Colony
         /// <summary>Limite que significa "sem limite".</summary>
         public const int Unlimited = -1;
 
+        /// <summary>Todas as seções, na ordem do enum (o índice é o valor: contagens e save usam <c>(int)section</c>).</summary>
         public static readonly WorkSection[] All =
+        {
+            WorkSection.Dig, WorkSection.Build, WorkSection.Harvest, WorkSection.QueenFeed,
+            WorkSection.Nursery, WorkSection.Garden, WorkSection.Dew, WorkSection.Waste,
+            WorkSection.FoodDepot, WorkSection.BlockDepot, WorkSection.WaterDepot, WorkSection.SandDepot,
+            WorkSection.MushroomDepot, WorkSection.LitterDepot, WorkSection.NectarDepot, WorkSection.OreDepot,
+            WorkSection.WasteRoom,
+        };
+
+        public static int Count => All.Length;
+
+        /// <summary>Aba Trabalho do painel: as seções de produção e cuidado.</summary>
+        public static readonly WorkSection[] Jobs =
         {
             WorkSection.Dig, WorkSection.Build, WorkSection.Harvest, WorkSection.QueenFeed,
             WorkSection.Nursery, WorkSection.Garden, WorkSection.Dew, WorkSection.Waste,
         };
 
-        public static int Count => All.Length;
+        /// <summary>Aba Depósitos do painel: um depósito por linha e a sala de resíduos.</summary>
+        public static readonly WorkSection[] Depots =
+        {
+            WorkSection.FoodDepot, WorkSection.BlockDepot, WorkSection.WaterDepot, WorkSection.SandDepot,
+            WorkSection.MushroomDepot, WorkSection.LitterDepot, WorkSection.NectarDepot, WorkSection.OreDepot,
+            WorkSection.WasteRoom,
+        };
+
+        /// <summary>Seção de quem leva itens ao depósito do tipo; <c>false</c> para os tipos sem seção (oficinas, armazéns).</summary>
+        public static bool TryGetDepotSection(StorageKind kind, out WorkSection section)
+        {
+            switch (kind)
+            {
+                case StorageKind.Food: section = WorkSection.FoodDepot; return true;
+                case StorageKind.Blocks: section = WorkSection.BlockDepot; return true;
+                case StorageKind.Water: section = WorkSection.WaterDepot; return true;
+                case StorageKind.Sand: section = WorkSection.SandDepot; return true;
+                case StorageKind.Mushroom: section = WorkSection.MushroomDepot; return true;
+                case StorageKind.Litter: section = WorkSection.LitterDepot; return true;
+                case StorageKind.Nectar: section = WorkSection.NectarDepot; return true;
+                case StorageKind.Ore: section = WorkSection.OreDepot; return true;
+                default: section = default; return false;
+            }
+        }
+
+        /// <summary>Tipo do depósito da seção; <see cref="StorageKind.None"/> para as demais (inclusive a sala de resíduos).</summary>
+        public static StorageKind DepotOf(WorkSection section)
+        {
+            switch (section)
+            {
+                case WorkSection.FoodDepot: return StorageKind.Food;
+                case WorkSection.BlockDepot: return StorageKind.Blocks;
+                case WorkSection.WaterDepot: return StorageKind.Water;
+                case WorkSection.SandDepot: return StorageKind.Sand;
+                case WorkSection.MushroomDepot: return StorageKind.Mushroom;
+                case WorkSection.LitterDepot: return StorageKind.Litter;
+                case WorkSection.NectarDepot: return StorageKind.Nectar;
+                case WorkSection.OreDepot: return StorageKind.Ore;
+                default: return StorageKind.None;
+            }
+        }
 
         readonly bool[] _enabled = new bool[All.Length];
         readonly int[] _limits = new int[All.Length];
@@ -104,6 +176,17 @@ namespace Fabula.Incrementant.Colony
             {
                 _enabled[i] = true;
                 _limits[i] = Unlimited;
+            }
+            Version++;
+        }
+
+        /// <summary>Só as seções dadas voltam a ativas e sem limite (o botão de cada aba do painel).</summary>
+        public void Reset(WorkSection[] sections)
+        {
+            foreach (WorkSection section in sections)
+            {
+                _enabled[(int)section] = true;
+                _limits[(int)section] = Unlimited;
             }
             Version++;
         }
