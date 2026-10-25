@@ -50,7 +50,13 @@ namespace Fabula.Incrementant.Colony
         [SerializeField, Min(0.1f)] float _eggSeconds = 8f;
         [SerializeField, Min(0.1f)] float _larvaSeconds = 14f;
         [SerializeField, Min(0.1f)] float _pupaSeconds = 12f;
-        [Tooltip("Nutrientes que a rainha preserva: só põe o ovo se sobrar isto depois de pagar a cria.")]
+        [Tooltip("Custo do ovo da comum com até Egg Cost Free Adults adultas (REQ-077, documento 47). As outras classes mantêm a proporção do design (alimento por cria ÷ 18).")]
+        [SerializeField, Min(1f)] float _eggBaseCost = 6f;
+        [Tooltip("Quanto o ovo encarece por adulta acima de Egg Cost Free Adults (1,04 = 4% por formiga).")]
+        [SerializeField, Min(1f)] float _eggCostGrowth = 1.04f;
+        [Tooltip("Adultas que não encarecem o ovo (as operárias iniciais).")]
+        [SerializeField, Min(0)] int _eggCostFreeAdults = 6;
+        [Tooltip("Nutrientes que a rainha preserva: só põe o ovo se sobrar isto (ou o custo de um ovo, se for menor) depois de pagar a cria.")]
         [SerializeField, Min(0)] int _minNutrientReserve = 30;
         [Tooltip("Células escavadas e acessíveis por vaga de adulta. O design usa 256 (um B), mas as formigas do protótipo " +
                  "ocupam 3x2 células; este valor é a escala do protótipo e precisa de ajuste de balanceamento.")]
@@ -172,6 +178,9 @@ namespace Fabula.Incrementant.Colony
         public float LarvaSeconds => _larvaSeconds;
         public float PupaSeconds => _pupaSeconds;
         public int MinNutrientReserve => _minNutrientReserve;
+        public float EggBaseCost => _eggBaseCost;
+        public float EggCostGrowth => _eggCostGrowth;
+        public int EggCostFreeAdults => _eggCostFreeAdults;
         public int CellsPerAdultSlot => _cellsPerAdultSlot;
         public int CellsPerGardenBlock => _cellsPerGardenBlock;
         public int CellsPerNurserySlot => _cellsPerNurserySlot;

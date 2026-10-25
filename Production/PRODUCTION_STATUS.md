@@ -7,7 +7,7 @@
 - **Engine:** Unity 6000.3.11f1, URP 17.3.0
 - **Plataformas-alvo:** Pendente de definição
 - **Marco atual:** Pendente de definição
-- **Última avaliação:** 2026-10-23
+- **Última avaliação:** 2026-10-25
 
 ## Resumo executivo
 
@@ -85,6 +85,7 @@ Melhorias incrementais documentadas (GD-008, REQ-039): o [documento 39](../Docs/
 
 ### Arte
 
+- **Caminhada das formigas:** ART-031 implementado (REQ-076): 6 quadros em marcha em tripé com balanço nos dez papéis e na rainha, por script, nos mesmos 24 × 16; falta a aprovação vendo em jogo.
 - **Silhuetas das formigas por papel:** ART-029 verificado: cada papel e a rainha têm traço próprio (coroa, cabeção, chapéu etc.), lixeira branca e fazendeira azul, aprovados pelo desenvolvedor em 2026-10-23.
 - **Rachadura dos blocos:** ART-030 implementado (REQ-072): máscaras provisórias do agente, vistas em Play Mode; falta a avaliação do desenvolvedor.
 - **Equipamento das formigas:** ART-028 verificado (REQ-071): camadas vestidas, nove itens 8 × 8 e cinco ícones de HUD em cobre, ferro e ouro, aprovados pelo desenvolvedor em 2026-10-23 e vistos em Play Mode; barras e minérios do atlas seguem provisórios (ART-027).
@@ -125,6 +126,8 @@ Melhorias incrementais documentadas (GD-008, REQ-039): o [documento 39](../Docs/
 ### Game design
 
 - **Árvore de evolução:** GD-014 em andamento (REQ-073): [documento 46](../Docs/01_Design/46_Arvore_de_evolucao_em_niveis_e_tuneis.md) aprovado em 2026-10-23 (formigueiro descendo da rainha, domínios em colunas, níveis por progresso, túneis por valor do upgrade); etapa 1 (dados) verificada em PRG-078; etapa 2 (tela em colunas e níveis) verificada em PRG-079; etapa 3 (compra unificada) verificada em PRG-080 (suíte 493/493); etapa 4 (nós de Minérios e Forja e galerias de nível 5) implementada em PRG-081, com custos e efeitos assumidos pelo agente.
+- **Ritmo das evoluções:** GD-015 e PRG-083 implementados (REQ-077, [documento 47](../Docs/01_Design/47_Ritmo_das_evolucoes_formigas_e_nutrientes.md)): primeiras compras de 2 a 5 N, custos por nível do formigueiro na curva de ~500 compras em ~8 h, ovo que encarece com a colônia; Suíte EditMode 516/516 na Unity em 2026-10-24 (`TestResults.xml`); falta medir num save novo.
+- **Árvore desenhada:** GD-016 e PRG-084 implementados (REQ-078, [documento 48](../Docs/01_Design/48_Arvore_desenhada_tuneis_interligados.md)): desenho em asset gerado automaticamente (colunas reconhecíveis, túneis entre domínios que se encontram em salões) e janela de Editor para redesenhar à mão; suíte EditMode 522/522 em 2026-10-25; falta o desenvolvedor ver em jogo e redesenhar.
 - **Exterior:** GD-012 em andamento (dois biomas implementados, PRG-074, com valores assumidos); (REQ-070): direção A decidida pelo desenvolvedor em 2026-10-23 (biomas laterais com insumos únicos e postos avançados) e regra do cenário (elementos grandes só no bioma deles, gramado central limpo, decoração não imita insumo); biomas, insumos, números e biomas da demo a aprovar.
 - **Entregas verificadas:** GD-006 Documento revisado convertido e conferido contra o DOCX (38 seções e 28 tabelas); [índice](../Docs/README.md)
 - **Pendências:** GD-001 Conceito (alinhamento do protótipo à referência revisada e validação do loop); GD-002 Regras da chuva (interpretações a confirmar); GD-003 Regras da água (valores de X/Y e interpretações a confirmar); GD-004 Regras da rainha (interpretações a confirmar); GD-005 Regras das plantas e nutrientes (interpretações a confirmar); GD-008 Melhorias incrementais (proposta sem balanceamento, construção não pedida)
@@ -267,6 +270,8 @@ Melhorias incrementais documentadas (GD-008, REQ-039): o [documento 39](../Docs/
 | REQ-073 | Árvore de evolução como formigueiro descendo da rainha: domínios, níveis e túneis | IN_PROGRESS | UNDEFINED |
 | REQ-074 | Ritmo lento do começo: escavação e movimento, operária comum a mais lenta, mutirão de escavação e sala de folhas em nutrientes | IMPLEMENTED | UNDEFINED |
 | REQ-075 | Painel da colônia: controle de formigas por depósito e da sala de resíduos, agrupado em abas | IMPLEMENTED | UNDEFINED |
+| REQ-077 | Evoluções em passos pequenos: formigas e nutrientes no centro, ~20 N nos primeiros 3 minutos | IMPLEMENTED | UNDEFINED |
+| REQ-078 | Árvore de evolução desenhada: túneis interligados gerados e redesenhados à mão | IMPLEMENTED | UNDEFINED |
 
 Registro completo: [REQUESTS.md](REQUESTS.md)
 
@@ -281,6 +286,7 @@ Registro completo: [REQUESTS.md](REQUESTS.md)
 
 ### Sugeridas pelo agente
 
+- Abrir a tela Evolução e a janela Incrementant/Árvore/Editor de desenho; aprovar a primeira versão gerada ou redesenhar e aplicar na cena (REQ-078, PRG-084).
 - Jogar a fazenda de pulgões (comprar A0 e Z0, pintar a fazenda e os depósitos de areia e de cogumelos) e um ataque com pulgões; aprovar ou ajustar os valores assumidos e a arte da fazendeira (REQ-061, GD-011, ART-022).
 - Jogar um ataque (F4) com cuspideiras e lixeiras e aprovar ou ajustar os valores assumidos (REQ-056, REQ-057, GD-009).
 - Pintar os ambientes até o limite, comprar uma galeria de área e conferir barra e aviso; ajustar os limites de base (REQ-046, PRG-058).
@@ -300,6 +306,8 @@ Registro completo: [REQUESTS.md](REQUESTS.md)
 
 ## Decisões necessárias
 
+- Ritmo das evoluções (REQ-077, GD-015, PRG-083): calibrar curva, custos e ovo depois de medir um save novo; efeito dos marcos visíveis nos níveis 5, 10 e 25 ([documento 47](../Docs/01_Design/47_Ritmo_das_evolucoes_formigas_e_nutrientes.md)).
+- Árvore desenhada (REQ-078, GD-016): aprovar a primeira versão gerada e redesenhar à mão na janela Incrementant/Árvore/Editor de desenho ([documento 48](../Docs/01_Design/48_Arvore_desenhada_tuneis_interligados.md)).
 - Árvore de evolução em níveis (REQ-073, GD-014): limite do nível 5, ordem das colunas, aprovação dos custos e efeitos dos nós de Minérios e Forja ([documento 46](../Docs/01_Design/46_Arvore_de_evolucao_em_niveis_e_tuneis.md)).
 - Blocos em porcentagem (REQ-072): lugar da melhoria de tamanho nas árvores de melhoria (árvore incompleta, a trabalhar no futuro pelo desenvolvedor) e quais depósitos a ganham; avaliação da arte da rachadura (ART-030).
 - Minérios e forja (REQ-071, GD-013): aprovar os números do documento 45 e a transformação automática da fundição e da forja; fruto da fruteira; uso das roupas; custos dos nós da árvore (PRG-081).

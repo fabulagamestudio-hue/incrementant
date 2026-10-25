@@ -876,10 +876,21 @@ namespace Fabula.Incrementant.Tests
         }
 
         [Test]
+        public void EggCost_GrowsWithTheColony()
+        {
+            var settings = new ColonySettings();
+            var colony = new AntColony(MakeWorld(), settings, Layout, seed: 1);
+            Assert.AreEqual(settings.EggCostFreeAdults, colony.Ants.Count, "A partida começa com as adultas que não encarecem o ovo.");
+            int start = colony.CostOf(AntRole.Worker);
+            Assert.AreEqual(Mathf.RoundToInt(start * 34f / 18f), colony.CostOf(AntRole.Soldier), 1, "As classes seguem a proporção do design.");
+            Assert.AreEqual(10, Mathf.RoundToInt(settings.EggBaseCost * Mathf.Pow(settings.EggCostGrowth, 14)), "~10 N com 20 adultas.");
+        }
+
+        [Test]
         public void AntRoles_CostsAndWorkFollowTheDesign()
         {
             var colony = new AntColony(MakeWorld(), new ColonySettings(), Layout, seed: 1);
-            Assert.AreEqual(18, colony.CostOf(AntRole.Worker), "Comum: 18 N, do design.");
+            Assert.AreEqual(6, colony.CostOf(AntRole.Worker), "Comum: 6 N com as adultas iniciais (REQ-077).");
             Assert.Greater(colony.CostOf(AntRole.Digger), colony.CostOf(AntRole.Carrier));
             Assert.Greater(colony.CostOf(AntRole.Carrier), colony.CostOf(AntRole.Worker));
             Assert.IsTrue(AntRoles.Harvests(AntRole.Worker) && AntRoles.Harvests(AntRole.Carrier) && AntRoles.Harvests(AntRole.Cutter));

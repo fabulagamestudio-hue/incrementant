@@ -2,7 +2,7 @@
 
 **Projeto:** Incrementant
 **Setor:** PROGRAMMING
-**Última avaliação:** 2026-10-23
+**Última avaliação:** 2026-10-25
 
 ## Resumo
 
@@ -95,6 +95,8 @@ Protótipo de viabilidade do formigário implementado: grade de pixels com físi
 | PRG-080 | Árvore de evolução em níveis, etapa 3: compra dos nós da rainha pela regra única (nível, condição e requisitos do catálogo) | VERIFIED | UNDEFINED | [AntColony.cs](../Assets/Project/Scripts/Runtime/Colony/AntColony.cs) (`CheckBuy`, `GateBlock`); suíte EditMode 493/493 em 2026-10-23 | REQ-073, GD-014, PRG-079 | 2026-10-23 |
 | PRG-081 | Árvore de evolução em níveis, etapa 4: nós de Minérios e Forja (câmaras V0, V1, Y0, Y1, Y2 que liberam os pincéis; galerias V+1, Y+1, Y+2) e as galerias de nível 5 O+4, E+4 e S+5 | IMPLEMENTED | UNDEFINED | [UpgradeCatalog.cs](../Assets/Project/Scripts/Runtime/Upgrades/UpgradeCatalog.cs), [UpgradeEffects.cs](../Assets/Project/Scripts/Runtime/Upgrades/UpgradeEffects.cs), [AntColony.Workshop.cs](../Assets/Project/Scripts/Runtime/Colony/AntColony.Workshop.cs); `WorkshopUpgradeTests` (8 testes novos); suíte EditMode 501/501 em 2026-10-23; colunas Minérios e Forja vistas em Play Mode pelo agente | REQ-073, REQ-071, GD-014, PRG-075, PRG-080 | 2026-10-23 |
 | PRG-082 | Painel da colônia: seções por depósito e da sala de resíduos (ligar, parar, limitar) e abas Trabalho/Depósitos | IMPLEMENTED | UNDEFINED | [ColonyWork.cs](../Assets/Project/Scripts/Runtime/Colony/ColonyWork.cs), [AntColony.Work.cs](../Assets/Project/Scripts/Runtime/Colony/AntColony.Work.cs), [ColonyPanel.cs](../Assets/Project/Scripts/Runtime/UI/ColonyPanel.cs); suíte EditMode 505/505 em 2026-10-24; abas vistas em Play Mode pelo agente | REQ-075, PRG-046 | 2026-10-24 |
+| PRG-083 | Ritmo das evoluções: custos por nível, primeiros passos, crescimento suave, abertura por compras e ovo crescente | IMPLEMENTED | UNDEFINED | [UpgradeCatalog.cs](../Assets/Project/Scripts/Runtime/Upgrades/UpgradeCatalog.cs), [AntColony.cs](../Assets/Project/Scripts/Runtime/Colony/AntColony.cs), [BroodCycle.cs](../Assets/Project/Scripts/Runtime/Colony/BroodCycle.cs); Suíte EditMode 516/516 na Unity em 2026-10-24 (`TestResults.xml`) | REQ-077 | 2026-10-24 |
+| PRG-084 | Árvore desenhada: asset de desenho, gerador com salões de encontro entre domínios, janela de redesenho e tela lendo o desenho | IMPLEMENTED | UNDEFINED | [UpgradeTreeDrawing.cs](../Assets/Project/Scripts/Runtime/Upgrades/UpgradeTreeDrawing.cs), [UpgradeTreeGenerator.cs](../Assets/Project/Scripts/Runtime/Upgrades/UpgradeTreeGenerator.cs), [UpgradeTreeDrawingWindow.cs](../Assets/Project/Scripts/Editor/UI/UpgradeTreeDrawingWindow.cs), [AntFarmHudSetup.Evolution.cs](../Assets/Project/Scripts/Editor/UI/AntFarmHudSetup.Evolution.cs), `Assets/Project/Data/UpgradeTreeDrawing.asset`; suíte EditMode 522/522 na Unity em 2026-10-25 (`TestResults.xml`, 6 testes novos em `UpgradeTreeDrawingTests`); tela vista em Play Mode e arrasto/desfazer da janela exercitados pelo agente | REQ-078, GD-016, PRG-079 | 2026-10-25 |
 
 ## Detalhes
 

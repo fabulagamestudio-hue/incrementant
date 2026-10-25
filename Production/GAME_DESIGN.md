@@ -2,7 +2,7 @@
 
 **Projeto:** Incrementant
 **Setor:** GAME_DESIGN
-**Última avaliação:** 2026-10-23
+**Última avaliação:** 2026-10-25
 
 ## Resumo
 
@@ -25,6 +25,8 @@ Conceito informado pelo desenvolvedor em 2026-10-17: formigueiro visto de lado, 
 | GD-012 | Exterior: biomas laterais com insumos únicos e postos avançados | IN_PROGRESS | UNDEFINED | Direção decidida pelo desenvolvedor em 2026-10-23; [Documento 44](../Docs/02_World_Art_UI/44_Biomas_da_superficie_e_postos_avancados.md) | REQ-070 | 2026-10-23 |
 | GD-013 | Mundo pequeno no molde do Terraria, minérios, fundição, forja e equipamento | IN_PROGRESS | UNDEFINED | Direção decidida pelo desenvolvedor em 2026-10-23; [Documento 45](../Docs/01_Design/45_Minerios_fundicao_forja_e_equipamento.md) | REQ-071 | 2026-10-23 |
 | GD-014 | Árvore de evolução como formigueiro: domínios, níveis e túneis por valor | IN_PROGRESS | UNDEFINED | Direção aprovada pelo desenvolvedor em 2026-10-23; [Documento 46](../Docs/01_Design/46_Arvore_de_evolucao_em_niveis_e_tuneis.md); etapa 4 (minérios e forja) implementada em PRG-081 com custos assumidos | REQ-073, REQ-039 | 2026-10-23 |
+| GD-015 | Ritmo das evoluções: compras baratas, custo do ovo crescente, ~500 compras até o prestígio | IMPLEMENTED | UNDEFINED | [Documento 47](../Docs/01_Design/47_Ritmo_das_evolucoes_formigas_e_nutrientes.md) aprovado e implementado em 2026-10-24 (PRG-083), números assumidos; falta medir num save novo | REQ-077 | 2026-10-24 |
+| GD-016 | Árvore desenhada: layout gerado e redesenhado à mão, túneis entre domínios | IMPLEMENTED | UNDEFINED | [Documento 48](../Docs/01_Design/48_Arvore_desenhada_tuneis_interligados.md), proposta de 2026-10-24; decisões do desenvolvedor em 2026-10-25 (coluna reconhecível; túneis entre domínios sempre à vista, apagados); as 3 etapas implementadas em PRG-084; falta o redesenho à mão e a aprovação vendo em jogo | REQ-078 | 2026-10-25 |
 | GD-006 | Documento de design revisado organizado em Markdown | VERIFIED | UNDEFINED | Conferência automática em 2026-10-17: 38 seções, 507 parágrafos, 28 tabelas, 209 linhas e 604 células preservados; 156 links locais válidos. [Índice e conferência](../Docs/README.md) | REQ-009 | 2026-10-17 |
 
 ## Detalhes

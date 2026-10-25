@@ -110,8 +110,11 @@ namespace Fabula.Incrementant.Upgrades
         public UpgradeKind Kind { get; }
         /// <summary>Custo da câmara ou do nível 1 da galeria na planilha (documento 39), antes do fator do nível do formigueiro.</summary>
         public int BaseCost { get; }
-        /// <summary>Custo da câmara ou do nível 1 da galeria, em nutrientes: a planilha vezes <see cref="UpgradeCatalog.TierCostFactor"/>.</summary>
-        public int Cost => UpgradeCatalog.ScaledCost(BaseCost, Tier);
+        /// <summary>
+        /// Custo da câmara ou do nível 1 da galeria, em nutrientes: o dos primeiros passos (<see cref="UpgradeCatalog.FirstStepCost"/>)
+        /// ou a planilha vezes <see cref="UpgradeCatalog.TierCostFactor"/>.
+        /// </summary>
+        public int Cost => UpgradeCatalog.FirstStepCost(Id) ?? UpgradeCatalog.ScaledCost(BaseCost, Tier);
         public IReadOnlyList<UpgradeRequirement> Requires { get; }
         public UpgradeCondition Condition { get; }
         public GalleryType Type { get; }
@@ -166,6 +169,11 @@ namespace Fabula.Incrementant.Upgrades
         public const float GrowthPhysical = 1.35f;
         public const float GrowthEconomy = 1.15f;
         public const float GrowthCombat = 1.22f;
+        // Crescimento por nível no jogo (REQ-077, documento 47): mais suave que o da planilha, para a compra seguinte estar
+        // sempre perto. A planilha continua nas constantes acima e em BaseLevelCost.
+        public const float LevelGrowthPhysical = 1.15f;
+        public const float LevelGrowthEconomy = 1.12f;
+        public const float LevelGrowthCombat = 1.15f;
         public const int MilestoneInterval = 10;
         public const float MilestoneFactor = 1.5f;
         public const int QualitativeMilestone = 25;
@@ -174,15 +182,31 @@ namespace Fabula.Incrementant.Upgrades
         public const int PointsPerCompletedGallery = 3;
         static readonly int[] RingDepth = { 0, 0, 5, 20, 50, 100 };
 
-        /// <summary>Profundidade que abre cada nível do formigueiro (documento 46, "Níveis"; o 100 do nível 5 é suposição).</summary>
-        static readonly int[] TierDepth = { 0, 0, 5, 20, 50, 100 };
+        /// <summary>
+        /// Profundidade que abre cada nível do formigueiro. A profundidade soma compras (câmaras e níveis), então o nível abre
+        /// perto da compra prevista pela curva do documento 47 (N2 ~40, N3 ~130, N4 ~240, N5 ~380). Suposição a calibrar.
+        /// </summary>
+        static readonly int[] TierDepth = { 0, 0, 40, 130, 240, 380 };
 
         /// <summary>
-        /// Fator sobre o custo da planilha por nível do formigueiro, para casar com a renda de cada etapa do jogo (REQ-074: criação
-        /// do formigueiro, evolução das fazendas, loop de farm, Idade do ferro; ~8 h até o prestígio). Valores assumidos a partir da
-        /// renda medida no quicksave (~1,4 N/s numa colônia montada); o nível 1 é o que mais precisa de playtest.
+        /// Fator sobre o custo da planilha por nível do formigueiro (REQ-077, documento 47): leva cada nível para a faixa de custo
+        /// da curva-alvo (N1 2 a 6 N, N2 6 a 30, N3 30 a 125, N4 125 a 780, N5 780 a 2400), ~500 compras em ~8 h até o
+        /// prestígio. Substitui os fatores do REQ-074. Valores assumidos, a calibrar num save novo.
         /// </summary>
-        static readonly float[] TierCostFactors = { 1f, 0.6f, 1.4f, 1.45f, 0.9f, 0.9f };
+        static readonly float[] TierCostFactors = { 1f, 0.04f, 0.07f, 0.12f, 0.31f, 0.68f };
+
+        /// <summary>
+        /// Primeiros passos (documento 47, proposta 3): galerias de formiga e nutriente do nível 1 com custo fixo baixo, para o
+        /// jogador comprar enquanto cava as primeiras salas. Vence o fator do nível.
+        /// </summary>
+        static readonly Dictionary<string, int> FirstStepCosts = new Dictionary<string, int>
+        {
+            { "C+1", 2 }, { "O+1", 2 }, { "T+2", 3 }, { "O+3", 3 }, { "Q+1", 3 }, { "Q+2", 4 }, { "H+1", 4 },
+            { "C+4", 3 }, { "B+3", 3 }, { "Q+4", 3 }, { "C+2", 5 },
+        };
+
+        /// <summary>Custo fixo do nível 1 se o nó é um dos primeiros passos; senão null.</summary>
+        public static int? FirstStepCost(string id) => FirstStepCosts.TryGetValue(id, out int cost) ? cost : (int?)null;
 
         public static float TierCostFactor(int tier) => tier < 0 ? 1f : TierCostFactors[Math.Min(tier, TierCostFactors.Length - 1)];
 
@@ -292,7 +316,7 @@ namespace Fabula.Incrementant.Upgrades
             // ---------------- aba Formigueiro: galerias
             Gallery(H, "H+1", Obra, 1, 60, "P0", GalleryType.Physical, 10, 24f, -0.04f);
             Gallery(H, "C+1", Cultivo, 1, 40, "C1", GalleryType.Economy, 0, 1f, 0.08f);
-            Gallery(H, "C+2", Cultivo, 2, 120, "C3", GalleryType.Economy, 0, 1f, 0.05f);
+            Gallery(H, "C+2", Cultivo, 2, 120, "C1", GalleryType.Economy, 0, 1f, 0.05f); // REQ-077: exigia C3; primeiro passo
             Gallery(H, "C+3", Cultivo, 2, 150, "C+1:5", GalleryType.Physical, 10, 30f, -0.04f);
             Gallery(H, "B+1", Bercario, 3, 250, "B3", GalleryType.Physical, 10, 14f, -0.03f);
             Gallery(H, "B+2", Bercario, 3, 250, "B3,H+1:3", GalleryType.Physical, 8, 16f, -0.05f);
@@ -301,7 +325,7 @@ namespace Fabula.Incrementant.Upgrades
             Gallery(H, "G+1", Orvalho, 2, 90, "G0", GalleryType.Physical, 10, 8f, -0.05f);
             Gallery(H, "G+2", Orvalho, 2, 120, "G1", GalleryType.Physical, 10, 24f, 4f, additive: true);
             Gallery(H, "T+1", Obra, 1, 50, "T0", GalleryType.Physical, 15, 1f, -0.03f);
-            Gallery(H, "T+2", Obra, 2, 150, "T1,E0", GalleryType.Physical, 10, 1f, -0.05f); // 10 níveis = metade do tempo de cavar (10 s → 5 s)
+            Gallery(H, "T+2", Obra, 2, 150, "T0", GalleryType.Physical, 10, 1f, -0.05f); // REQ-077: exigia T1 e E0; primeiro passo. // 10 níveis = metade do tempo de cavar (10 s → 5 s)
             Gallery(H, "X+1", Exterior, 2, 100, "X0", GalleryType.Economy, 0, 1f, 0.06f);
             Gallery(H, "X+2", Exterior, 2, 90, "X0", GalleryType.Physical, 10, 1f, 0.03f);
             Gallery(H, "X+3", Exterior, 2, 100, "X0,F0", GalleryType.Physical, 10, 1f, 0.05f);
@@ -374,9 +398,9 @@ namespace Fabula.Incrementant.Upgrades
             Gallery(Q, "Q+2", Rainha, 1, 150, "Q0,B0", GalleryType.Physical, 15, 1f, -0.02f);
             Gallery(Q, "Q+3", Rainha, 1, 250, "Q0", GalleryType.Physical, 10, 60f, 0.10f, condition: UpgradeCondition.FirstRaid);
             Gallery(Q, "Q+4", Rainha, 1, 60, "Q0", GalleryType.Physical, 10, 200f, 40f, additive: true); // KI-043, ver C+4
-            Gallery(Q, "O+1", Comum, 2, 80, "O2", GalleryType.Physical, 10, 30f, 0.04f);
+            Gallery(Q, "O+1", Comum, 2, 80, "O2", GalleryType.Physical, 25, 30f, 0.04f); // REQ-077: teto 10 → 25
             Gallery(Q, "O+2", Comum, 1, 150, "O0,B1", GalleryType.Physical, 10, 1f, 0.10f);
-            Gallery(Q, "O+3", Comum, 2, 80, "O1", GalleryType.Physical, 10, 1f, -0.03f);
+            Gallery(Q, "O+3", Comum, 2, 80, "O1", GalleryType.Physical, 16, 1f, -0.03f); // REQ-077: teto 10 → 16 (até 48%, regra dos 50%)
             Gallery(Q, "L+1", Carregadora, 2, 200, "L1", GalleryType.Physical, 4, 6f, 1f, additive: true);
             Gallery(Q, "L+2", Carregadora, 2, 120, "L3", GalleryType.Physical, 10, 35f, 0.04f);
             Gallery(Q, "L+3", Carregadora, 2, 140, "L3", GalleryType.Physical, 10, 1f, 0.04f);
@@ -402,15 +426,15 @@ namespace Fabula.Incrementant.Upgrades
             // O nível é o anel do documento 39, menos O+2, que desce para o nível 2 por exigir B1.
             const UpgradeDomain Raiz = UpgradeDomain.Root;
             Place(Raiz, 0, "P0,T0,Q0,O0");
-            Place(UpgradeDomain.Queen, 1, "Q1,Q+2,Q+3,Q+4,H+1");
-            Place(UpgradeDomain.Queen, 2, "Q2,Q+1");
+            // REQ-077 (documento 47): O+1, O+3, T+2, Q+1 e C+2 descem para o nível 1 como primeiros passos.
+            Place(UpgradeDomain.Queen, 1, "Q1,Q+1,Q+2,Q+3,Q+4,H+1");
+            Place(UpgradeDomain.Queen, 2, "Q2");
             Place(UpgradeDomain.Queen, 4, "Q3");
             Place(UpgradeDomain.Ants, 2, "O+2");
-            Place(UpgradeDomain.Common, 1, "O1,O2,O3");
-            Place(UpgradeDomain.Common, 2, "O+1,O+3");
+            Place(UpgradeDomain.Common, 1, "O1,O2,O3,O+1,O+3");
             Place(UpgradeDomain.Common, 4, "O4");
-            Place(UpgradeDomain.Cultivation, 1, "C0,C1,J0,C+1,C+4");
-            Place(UpgradeDomain.Cultivation, 2, "C2,C3,J1,C+2,C+3,J+1,J+2");
+            Place(UpgradeDomain.Cultivation, 1, "C0,C1,J0,C+1,C+2,C+4");
+            Place(UpgradeDomain.Cultivation, 2, "C2,C3,J1,C+3,J+1,J+2");
             Place(UpgradeDomain.Cultivation, 3, "C4,J2");
             Place(UpgradeDomain.Cultivation, 4, "C5,J3");
             Place(UpgradeDomain.Nursery, 1, "B0,N0,B+3");
@@ -430,8 +454,7 @@ namespace Fabula.Incrementant.Upgrades
             Place(UpgradeDomain.Waste, 1, "R0,R+1");
             Place(UpgradeDomain.Waste, 2, "R1,W0");
             Place(UpgradeDomain.Waste, 3, "R2");
-            Place(UpgradeDomain.Works, 1, "T1,T+1,T+3");
-            Place(UpgradeDomain.Works, 2, "T+2");
+            Place(UpgradeDomain.Works, 1, "T1,T+1,T+2,T+3");
             Place(UpgradeDomain.Works, 3, "T2");
             Place(UpgradeDomain.Digging, 1, "E0");
             Place(UpgradeDomain.Digging, 2, "E1,E+1,E+2");
@@ -496,8 +519,13 @@ namespace Fabula.Incrementant.Upgrades
 
         // ---------------------------------------------------------------- fórmulas (documento 39, "Fórmulas")
 
+        /// <summary>Crescimento por nível da planilha (documento 39); só <see cref="BaseLevelCost"/> usa.</summary>
         public static float Growth(GalleryType type) =>
             type == GalleryType.Physical ? GrowthPhysical : type == GalleryType.Economy ? GrowthEconomy : GrowthCombat;
+
+        /// <summary>Crescimento por nível no jogo (documento 47).</summary>
+        public static float LevelGrowth(GalleryType type) =>
+            type == GalleryType.Physical ? LevelGrowthPhysical : type == GalleryType.Economy ? LevelGrowthEconomy : LevelGrowthCombat;
 
         /// <summary>Custo do nível <paramref name="level"/> (o próximo a comprar, a partir de 1): custo base × r^(n−1).</summary>
         public static int LevelCost(UpgradeDef def, int level)
@@ -506,7 +534,7 @@ namespace Fabula.Incrementant.Upgrades
                 return def.Cost;
             if (level < 1 || (def.Capped && level > def.Cap))
                 return 0;
-            return (int)Math.Round(def.Cost * Math.Pow(Growth(def.Type), level - 1), MidpointRounding.AwayFromZero);
+            return (int)Math.Round(def.Cost * Math.Pow(LevelGrowth(def.Type), level - 1), MidpointRounding.AwayFromZero);
         }
 
         /// <summary>Custo do nível na planilha, sem o fator do nível do formigueiro (os testes que travam o documento 39 usam este).</summary>

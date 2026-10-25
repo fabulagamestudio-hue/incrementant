@@ -17,8 +17,8 @@ namespace Fabula.Incrementant.UI
     /// <summary>
     /// Tela Evolução (documento 46 do design): um formigueiro em corte arrastável (<see cref="TreeViewport"/>) que desce da
     /// Câmara real, com uma coluna por domínio, faixas por nível do formigueiro (as fechadas cobertas de terra) e câmaras e
-    /// galerias (documento 39). Dentro da coluna as ligações aparecem sempre; as que cruzam colunas ou saem da raiz só com
-    /// o nó selecionado. A compra vai para <see cref="AntColony.TryBuy"/> (nós da rainha com sistema) ou
+    /// galerias (documento 39), no desenho do <see cref="UpgradeTreeDrawing"/> (documento 48). As ligações aparecem sempre;
+    /// as que cruzam colunas ou saem da raiz ficam apagadas até o nó delas ser selecionado. A compra vai para <see cref="AntColony.TryBuy"/> (nós da rainha com sistema) ou
     /// <see cref="AntColony.TryBuyUpgrade"/> (câmaras e galerias vivas); o resto mostra EM BREVE.
     /// Cobre a tela inteira; ESC ou VOLTAR a fecham. A hierarquia é montada pelo Editor
     /// (<c>Incrementant/Setup/Montar HUD da partida</c>), que liga as referências abaixo. Não pausa o jogo (regra em
@@ -28,7 +28,7 @@ namespace Fabula.Incrementant.UI
     {
         /// <summary>
         /// Ligação de dependência desenhada pelos túneis do formigueiro: índices em <see cref="NodesOf"/>; <see cref="Parent"/>
-        /// -1 = a Câmara real. <see cref="Cross"/>: liga colunas diferentes (ou a raiz) e só aparece com o nó selecionado.
+        /// -1 = a Câmara real. <see cref="Cross"/>: liga colunas diferentes (ou a raiz) e fica apagada sem o nó selecionado.
         /// </summary>
         [Serializable]
         public struct Link
@@ -83,6 +83,8 @@ namespace Fabula.Incrementant.UI
         [SerializeField, Min(0f)] float _linkPulseSpeed = 6f;
         [SerializeField, Min(0f)] float _linkCore = 2f;
         [SerializeField, Min(0f)] float _linkHighlightCore = 4f;
+        [Tooltip("Brilho das ligações entre colunas (e da raiz) sem o nó selecionado: ficam à vista, mas apagadas.")]
+        [SerializeField, Range(0f, 1f)] float _crossDim = 0.5f;
         [Tooltip("Amostras da legenda do rodapé, na ordem: tem o requisito, falta o requisito, o que libera.")]
         [SerializeField] TunnelPathGraphic[] _legendLines = Array.Empty<TunnelPathGraphic>();
         [SerializeField] Color _closedTier = new Color(0.08f, 0.05f, 0.03f, 0.78f);
@@ -339,9 +341,9 @@ namespace Fabula.Incrementant.UI
                           : parentOk && UpgradeBoard.HasSystem(child) ? _linkAvailable
                           : _linkLocked;
                 }
-                // Ligações entre colunas (e as da raiz) só aparecem com o nó selecionado, para a árvore não virar um novelo.
-                link.Path.enabled = highlight || !link.Cross;
-                color = highlight ? Pulse(color) : color;
+                // Ligações entre colunas (e as da raiz) ficam apagadas sem o nó selecionado, para a árvore não virar um novelo.
+                link.Path.enabled = true;
+                color = highlight ? Pulse(color) : link.Cross ? color * _crossDim : color;
                 color.a = 1f;
                 link.Path.color = color;
                 link.Path.Core = highlight ? _linkHighlightCore : _linkCore;

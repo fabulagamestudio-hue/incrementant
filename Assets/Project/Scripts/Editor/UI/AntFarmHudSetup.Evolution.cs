@@ -11,7 +11,8 @@ namespace Fabula.Incrementant.EditorTools.UI
     /// <summary>
     /// Formigueiro da tela Evolução (documento 46): janela arrastável com a Câmara real no topo, a galeria logo abaixo, uma
     /// coluna por domínio com o salão no nível de origem e as câmaras laterais nos níveis dos nós, as faixas dos níveis (terra
-    /// escura quando fechadas) e as ligações de dependência pelos túneis. As posições vêm de <see cref="UpgradeLayout"/> e a
+    /// escura quando fechadas) e as ligações de dependência pelos túneis. As posições vêm de <see cref="UpgradeLayout"/>, lido
+    /// com o desenho da árvore (<see cref="UpgradeTreeDrawing"/>, documento 48), e a
     /// ordem dos widgets de <see cref="SkillTreeScreen.NodesOf"/>. Arte provisória: losango do kit para os dois tipos (galeria
     /// menor), ícones gerais onde o kit não tem ícone.
     /// </summary>
@@ -30,7 +31,7 @@ namespace Fabula.Incrementant.EditorTools.UI
 
         static void BuildAnthillPage(Transform page, SerializedObject screen, string field)
         {
-            var layout = new UpgradeLayout();
+            var layout = new UpgradeLayout(LoadTreeDrawing());
             Rect bounds = layout.Bounds;
 
             // --- janela (recebe arrasto e roda) e conteúdo
@@ -93,7 +94,7 @@ namespace Fabula.Incrementant.EditorTools.UI
             // --- terreno escavado: galeria, colunas e Câmara real, embaixo dos túneis
             CaveMap caves = BuildCaves(content, defs, layout);
 
-            // --- ligações de dependência, pelos túneis (sobre a caverna)
+            // --- ligações de dependência, pelos túneis do desenho (sobre a caverna)
             var links = new List<(TunnelPathGraphic path, int parent, int child, bool cross)>();
             Transform linkLayer = Layer(content, "Tuneis");
             Transform labelLayer = null;
@@ -183,16 +184,16 @@ namespace Fabula.Incrementant.EditorTools.UI
         // Terra escavada: parede clara (cópia engordada por baixo) e vão escuro, com um tom por coluna para demarcar os domínios.
         static readonly Color CaveWallColor = new Color(0.52f, 0.38f, 0.25f, 1f);
         static readonly Color CaveBaseColor = new Color(0.075f, 0.05f, 0.038f, 1f);
-        // Câmara lateral: folga em volta dos nós (câmara/galeria), folga até o piso, proporção mínima largura/altura.
-        const float CavePadChamber = 72f, CavePadGallery = 56f, CaveFloorGap = 48f, CaveMinAspect = 1.3f;
         const float CaveTunnelWidth = 34f, CaveWall = 13f;
-        const float CaveMaxHalfWidth = UpgradeLayout.ColumnWidth * 0.5f - 30f;
-        // Câmara real e salão do domínio: meia largura e meia altura.
+        // Meia largura e meia altura: Câmara real, salão do domínio, câmara de cada nó (câmara/galeria) e encontro de túneis.
         static readonly Vector2 CaveHallSize = new Vector2(150f, 112f);
         static readonly Vector2 CaveDomainHallSize = new Vector2(170f, 46f);
+        static readonly Vector2 CaveNodeSize = new Vector2(70f, 54f);
+        static readonly Vector2 CaveGallerySize = new Vector2(56f, 44f);
+        static readonly Vector2 CaveJunctionSize = new Vector2(46f, 36f);
 
         /// <summary>Tom da coluna: matizes espalhados pela roda de cor, na ordem das colunas.</summary>
-        static Color CaveTint(int column) => Color.HSVToRGB(column / (float)UpgradeCatalog.Domains.Length, 0.55f, 0.85f);
+        internal static Color CaveTint(int column) => Color.HSVToRGB(column / (float)UpgradeCatalog.Domains.Length, 0.55f, 0.85f);
 
         /// <summary>Vão da coluna: o escuro da caverna puxado para o tom dela, opaco (a parede clara fica só na borda).</summary>
         static Color CaveFill(int column)
@@ -203,53 +204,56 @@ namespace Fabula.Incrementant.EditorTools.UI
         }
 
         /// <summary>
-        /// O formigueiro em corte: a galeria horizontal (um túnel sinuoso entre os pontos de cada coluna e o da Câmara real), a
-        /// Câmara real ligada a ela e, em cada coluna, um túnel que desce da galeria ao salão do domínio e dele a cada câmara
-        /// lateral (uma por nível com nós, mais larga que alta e de piso plano, em volta da grade que o <see cref="UpgradeLayout"/>
-        /// forma). Cada peça desenha a parede e depois o vão (<see cref="CaveGraphic"/>); a Câmara real fica por último.
+        /// O formigueiro em corte (documento 48): a galeria horizontal (um túnel sinuoso entre os pontos de cada coluna e o da
+        /// Câmara real), a Câmara real ligada a ela e, em cada coluna, um túnel que desce da galeria ao salão do domínio, uma
+        /// câmara pequena em volta de cada nó e os túneis do desenho (<see cref="UpgradeLayout.TunnelPoints"/>) entre os nós do
+        /// domínio, no tom da coluna. O nó sem pai no domínio (nem ligado à raiz) ganha um túnel do salão. Os túneis entre
+        /// domínios e os encontros ficam no escuro neutro, por cima das colunas: se cruzam e se encontram. Cada peça desenha a
+        /// parede e depois o vão (<see cref="CaveGraphic"/>); a Câmara real fica por último.
         /// </summary>
         static CaveMap BuildCaves(Transform content, List<UpgradeDef> defs, UpgradeLayout layout)
         {
             var map = new CaveMap(layout);
             int columns = UpgradeCatalog.Domains.Length;
-            // Caixa dos nós de cada câmara lateral (coluna, nível): mínimo, máximo e a maior folga dos nós dela.
-            var boxes = new SortedDictionary<int, (Vector2 min, Vector2 max, float pad)>();
-            foreach (UpgradeDef def in defs)
-            {
-                Vector2 p = layout.Positions[def.Id];
-                float pad = def.Kind == UpgradeKind.Gallery ? CavePadGallery : CavePadChamber;
-                int key = layout.Column(def.Domain) * 10 + def.Tier;
-                boxes[key] = boxes.TryGetValue(key, out var box)
-                    ? (Vector2.Min(box.min, p), Vector2.Max(box.max, p), Mathf.Max(box.pad, pad))
-                    : (p, p, pad);
-            }
-
             var chambers = new List<Vector4>[columns];
             var tunnels = new List<Vector4>[columns];
-            var previous = new Vector2[columns];
+            var cross = new List<Vector4>();
+            var seen = new HashSet<Vector4>();
             for (int c = 0; c < columns; c++)
             {
                 Vector2 hall = layout.Hall(UpgradeCatalog.Domains[c].Domain);
                 chambers[c] = new List<Vector4> { new Vector4(hall.x, hall.y, CaveDomainHallSize.x, CaveDomainHallSize.y) };
-                tunnels[c] = new List<Vector4> { new Vector4(hall.x, UpgradeLayout.GalleryY, hall.x, hall.y) };
-                previous[c] = hall;
+                map.Trunk[c] = new Vector4(hall.x, UpgradeLayout.GalleryY, hall.x, hall.y);
+                tunnels[c] = new List<Vector4> { map.Trunk[c] };
             }
-            foreach (KeyValuePair<int, (Vector2 min, Vector2 max, float pad)> pair in boxes) // níveis em ordem crescente
+            foreach (UpgradeDef def in defs)
             {
-                int c = pair.Key / 10;
-                (Vector2 min, Vector2 max, float pad) = pair.Value;
-                // O piso fica uma folga abaixo do nó mais baixo e o teto uma folga acima do mais alto; o centro do salão sobe para
-                // o piso cortado (CaveGraphic.FloorFraction da meia altura) cair nessa linha.
-                float height = (max.y + pad) - (min.y - CaveFloorGap);
-                float halfHeight = height / 1.82f;
-                // Mais larga que alta quando cabe; a coluna limita a largura, para a câmara não invadir a vizinha.
-                float halfWidth = Mathf.Min(Mathf.Max((max.x - min.x) * 0.5f + pad, halfHeight * CaveMinAspect), CaveMaxHalfWidth);
-                var center = new Vector2((min.x + max.x) * 0.5f, max.y + pad - halfHeight);
-                map.Chamber[pair.Key] = chambers[c].Count;
-                chambers[c].Add(new Vector4(center.x, center.y, halfWidth, halfHeight));
-                tunnels[c].Add(new Vector4(previous[c].x, previous[c].y, center.x, center.y));
-                previous[c] = center;
+                int c = layout.Column(def.Domain);
+                Vector2 p = layout.Positions[def.Id];
+                Vector2 size = def.Kind == UpgradeKind.Gallery ? CaveGallerySize : CaveNodeSize;
+                chambers[c].Add(new Vector4(p.x, p.y, size.x, size.y));
+                bool sameParent = false, rootParent = false;
+                foreach (UpgradeRequirement r in def.Requires)
+                {
+                    UpgradeDomain from = UpgradeCatalog.Get(r.Id).Domain;
+                    sameParent |= from == def.Domain;
+                    rootParent |= from == UpgradeDomain.Root;
+                }
+                // O nó que não desce de outro do domínio sai do salão (o ligado à raiz já chega por ele).
+                if (!sameParent && !rootParent)
+                    AddSegment(tunnels[c], seen, layout.Hall(def.Domain), p);
+                foreach (UpgradeRequirement r in def.Requires)
+                {
+                    UpgradeDef target = UpgradeCatalog.Get(r.Id);
+                    bool inColumn = target.Domain == def.Domain || target.Domain == UpgradeDomain.Root;
+                    Vector2[] points = layout.TunnelPoints(target, def);
+                    for (int k = 0; k + 1 < points.Length; k++)
+                        AddSegment(inColumn ? tunnels[c] : cross, seen, points[k], points[k + 1]);
+                }
             }
+            var junctions = new List<Vector4>();
+            foreach (Vector2 j in layout.Junctions.Values)
+                junctions.Add(new Vector4(j.x, j.y, CaveJunctionSize.x, CaveJunctionSize.y));
 
             // Galeria: paradas nas colunas e na Câmara real, da esquerda para a direita.
             var stops = new List<float> { layout.Root.x };
@@ -270,29 +274,36 @@ namespace Fabula.Incrementant.EditorTools.UI
             BuildCave(layer, "ParedeGaleria", none, galleryAll, CaveWallColor, CaveWall);
             for (int c = 0; c < columns; c++)
                 BuildCave(layer, "Parede" + c, chambers[c], tunnels[c], CaveWallColor, CaveWall);
+            BuildCave(layer, "ParedeEncontros", junctions, cross, CaveWallColor, CaveWall);
             BuildCave(layer, "ParedeCentro", hallChamber, none, CaveWallColor, CaveWall);
-            // O vão da galeria vem depois do das colunas: o trilho horizontal passa contínuo pelos encontros.
             for (int c = 0; c < columns; c++)
                 BuildCave(layer, "Coluna" + c, chambers[c], tunnels[c], CaveFill(c), 0f);
+            // Túneis entre domínios por cima das colunas; a galeria depois, para o trilho horizontal passar contínuo.
+            BuildCave(layer, "Encontros", junctions, cross, CaveBaseColor, 0f);
             BuildCave(layer, "Galeria", none, galleryAll, CaveBaseColor, 0f);
             BuildCave(layer, "Centro", hallChamber, none, CaveBaseColor, 0f);
-            map.Tunnels = tunnels;
             map.Gallery = gallery;
             map.GalleryStops = stops;
             map.RootTunnel = rootTunnel;
             return map;
         }
 
+        /// <summary>Trecho de túnel de a até b, uma vez só (vários túneis do desenho passam pelo mesmo trecho).</summary>
+        static void AddSegment(List<Vector4> list, HashSet<Vector4> seen, Vector2 a, Vector2 b)
+        {
+            var segment = new Vector4(a.x, a.y, b.x, b.y);
+            if ((b - a).sqrMagnitude > 1f && seen.Add(segment))
+                list.Add(segment);
+        }
+
         /// <summary>
-        /// Salões e túneis montados por <see cref="BuildCaves"/>, para traçar as ligações por dentro deles. O túnel k de uma
-        /// coluna liga a câmara k − 1 (ou a parada da coluna na galeria, para k = 0) à câmara k; a câmara 0 é o salão do
-        /// domínio. O trecho k da galeria liga a parada k à k + 1.
+        /// Galeria, troncos das colunas e túneis do desenho montados por <see cref="BuildCaves"/>, para traçar as ligações por
+        /// dentro deles. O trecho k da galeria liga a parada k à k + 1; o tronco da coluna desce da galeria ao salão.
         /// </summary>
         sealed class CaveMap
         {
             readonly UpgradeLayout _layout;
-            public readonly Dictionary<int, int> Chamber = new Dictionary<int, int>(); // coluna × 10 + nível → câmara na coluna
-            public List<Vector4>[] Tunnels;
+            public readonly Vector4[] Trunk = new Vector4[UpgradeCatalog.Domains.Length];
             public List<Vector4> Gallery;
             public List<float> GalleryStops;
             public Vector4 RootTunnel;
@@ -300,46 +311,24 @@ namespace Fabula.Incrementant.EditorTools.UI
             public CaveMap(UpgradeLayout layout) => _layout = layout;
 
             /// <summary>
-            /// Caminho de <paramref name="from"/> até <paramref name="to"/>: do nó ao centro da câmara dele, pelo túnel da coluna
-            /// (subindo até a galeria e andando nela quando as colunas são outras, ou descendo da Câmara real) até a câmara do
-            /// destino e então ao nó.
+            /// Caminho de <paramref name="from"/> até <paramref name="to"/> pelos mesmos trechos da caverna: da raiz, desce à
+            /// galeria, anda nela até a coluna e desce o tronco ao salão; depois segue os pontos do desenho até o nó.
             /// </summary>
             public Vector2[] Route(UpgradeDef from, Vector2 fromPos, UpgradeDef to, Vector2 toPos)
             {
                 var points = new List<Vector2> { fromPos };
-                int toColumn = _layout.Column(to.Domain);
-                int toChamber = Chamber[toColumn * 10 + to.Tier];
                 if (from.Domain == UpgradeDomain.Root)
                 {
+                    int toColumn = _layout.Column(to.Domain);
                     AddTunnel(points, RootTunnel, false);
                     WalkGallery(points, _layout.Root.x, UpgradeLayout.ColumnX(toColumn));
-                    Walk(points, toColumn, -1, toChamber);
+                    AddTunnel(points, Trunk[toColumn], false);
                 }
-                else
-                {
-                    int fromColumn = _layout.Column(from.Domain);
-                    int fromChamber = Chamber[fromColumn * 10 + from.Tier];
-                    if (fromColumn == toColumn)
-                        Walk(points, toColumn, fromChamber, toChamber);
-                    else
-                    {
-                        Walk(points, fromColumn, fromChamber, -1);
-                        WalkGallery(points, UpgradeLayout.ColumnX(fromColumn), UpgradeLayout.ColumnX(toColumn));
-                        Walk(points, toColumn, -1, toChamber);
-                    }
-                }
+                Vector2[] drawn = _layout.TunnelPoints(from, to);
+                for (int k = 0; k + 1 < drawn.Length; k++)
+                    AddTunnel(points, new Vector4(drawn[k].x, drawn[k].y, drawn[k + 1].x, drawn[k + 1].y), false);
                 Add(points, toPos);
                 return points.ToArray();
-            }
-
-            // Da câmara "from" à câmara "to" da mesma coluna (-1 = parada da coluna na galeria), pelo eixo dos túneis do meio.
-            void Walk(List<Vector2> points, int column, int from, int to)
-            {
-                List<Vector4> tunnels = Tunnels[column];
-                for (int k = from + 1; k <= to; k++)
-                    AddTunnel(points, tunnels[k], false);
-                for (int k = from; k > to; k--)
-                    AddTunnel(points, tunnels[k], true);
             }
 
             // Da parada em fromX à parada em toX, pelos trechos da galeria.
@@ -384,6 +373,23 @@ namespace Fabula.Incrementant.EditorTools.UI
                 left -= length;
             }
             return route[route.Length - 1];
+        }
+
+        /// <summary>Desenho da árvore (documento 48); sem ele, ou com nós faltando, a grade do <see cref="UpgradeLayout"/> e um aviso.</summary>
+        static UpgradeTreeDrawing LoadTreeDrawing()
+        {
+            var drawing = AssetDatabase.LoadAssetAtPath<UpgradeTreeDrawing>(UpgradeTreeDrawing.AssetPath);
+            if (drawing == null)
+            {
+                Debug.LogWarning($"[AntFarmHudSetup] {UpgradeTreeDrawing.AssetPath} não existe: árvore no layout em grade. " +
+                                 "Rode Incrementant/Árvore/Gerar desenho.");
+                return null;
+            }
+            var check = new UpgradeLayout(drawing);
+            if (check.Missing.Count > 0)
+                Debug.LogWarning("[AntFarmHudSetup] Nós sem posição no desenho da árvore (ficam na grade): " +
+                                 string.Join(", ", check.Missing) + ". Rode Incrementant/Árvore/Gerar desenho.", drawing);
+            return drawing;
         }
 
         static void BuildCave(Transform parent, string name, List<Vector4> chambers, List<Vector4> tunnels, Color color, float grow)

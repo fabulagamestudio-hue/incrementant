@@ -9,6 +9,9 @@ namespace Fabula.Incrementant.Tests
     /// <summary>Tabela, fórmulas e layout das melhorias do documento 39 (valores da planilha aprovada em 2026-10-19).</summary>
     public sealed class UpgradeCatalogTests
     {
+        /// <summary>Galerias que desceram para o nível 1 como primeiros passos (REQ-077, documento 47).</summary>
+        static readonly HashSet<string> FirstSteps = new HashSet<string> { "O+1", "O+3", "T+2", "Q+1", "C+2" };
+
         [Test]
         public void TheCatalogHasTheNodesOfTheDocument()
         {
@@ -125,7 +128,11 @@ namespace Fabula.Incrementant.Tests
             for (int n = 1; n <= 10; n++)
                 baseTotal += UpgradeCatalog.BaseLevelCost(def, n);
             Assert.AreEqual(8189, baseTotal); // planilha: custo total até o teto
-            Assert.AreEqual(System.Math.Round(8189 * UpgradeCatalog.TierCostFactor(def.Tier)), total, 10, "O fator do nível escala o total.");
+            long gameTotal = 0;
+            for (int n = 1; n <= 10; n++)
+                gameTotal += UpgradeCatalog.LevelCost(def, n);
+            Assert.AreEqual(gameTotal, total, "O total no jogo usa o custo escalado e o crescimento do documento 47.");
+            Assert.Less(total, baseTotal, "O jogo fica abaixo da planilha (REQ-077).");
             Assert.AreEqual(2f, UpgradeCatalog.ValueAt(def, 10), 1e-3f);
         }
 
@@ -167,10 +174,12 @@ namespace Fabula.Incrementant.Tests
                 Assert.AreEqual(BuyBlock.None, tree.Grant(node));
             board.Refresh(tree, 0, 0);
             Assert.AreEqual(5, board.Depth);
-            Assert.IsTrue(board.TierOpen(2));
+            Assert.IsFalse(board.TierOpen(2), "Desde o REQ-077 o nível 2 abre com 40 compras.");
             board.SetLevelForPreview("H+1", 10); // completa: 10 níveis + 3
+            board.SetLevelForPreview("C+1", 22); // sem teto: só os níveis
             board.Refresh(tree, 0, 0);
-            Assert.AreEqual(18, board.Depth);
+            Assert.AreEqual(40, board.Depth);
+            Assert.IsTrue(board.TierOpen(2));
             Assert.IsFalse(board.TierOpen(3));
         }
 
@@ -308,7 +317,7 @@ namespace Fabula.Incrementant.Tests
         {
             // Documento 46, "Distribuição dos nós atuais": nível = anel do documento 39; O+2 desce por exigir B1.
             foreach (UpgradeDef def in UpgradeCatalog.All)
-                Assert.AreEqual(def.Id == "O+2" ? 2 : def.Ring, def.Tier, def.Id);
+                Assert.AreEqual(def.Id == "O+2" ? 2 : FirstSteps.Contains(def.Id) ? 1 : def.Ring, def.Tier, def.Id);
             Assert.AreEqual(UpgradeDomain.Ants, UpgradeCatalog.Get("O+2").Domain);
             Assert.AreEqual(UpgradeDomain.Queen, UpgradeCatalog.Get("H+1").Domain);
             Assert.AreEqual(UpgradeDomain.Waste, UpgradeCatalog.Get("W0").Domain);
@@ -322,9 +331,38 @@ namespace Fabula.Incrementant.Tests
             Assert.AreEqual(0, UpgradeCatalog.DepthToOpenTier(1));
             for (int tier = 1; tier < UpgradeCatalog.TierCount; tier++)
                 Assert.GreaterOrEqual(UpgradeCatalog.DepthToOpenTier(tier), UpgradeCatalog.DepthToOpenTier(tier - 1));
-            // Os níveis 0 a 4 repetem os anéis de hoje.
-            for (int ring = 0; ring <= 4; ring++)
-                Assert.AreEqual(UpgradeCatalog.DepthToOpen(ring), UpgradeCatalog.DepthToOpenTier(ring));
+        }
+
+        [TestCase("C+1", 2)]
+        [TestCase("O+1", 2)]
+        [TestCase("T+2", 3)]
+        [TestCase("Q+1", 3)]
+        [TestCase("H+1", 4)]
+        [TestCase("C+2", 5)]
+        public void FirstStepsAreCheapAndShallow(string id, int cost)
+        {
+            UpgradeDef def = UpgradeCatalog.Get(id);
+            Assert.AreEqual(1, def.Tier, id);
+            Assert.AreEqual(cost, def.Cost, id);
+        }
+
+        [Test]
+        public void TierCostsFollowTheTargetCurve()
+        {
+            // Documento 47: faixa do nível 1 de cada nível do formigueiro (com folga de arredondamento e nós fora da média).
+            int[] max = { 0, 12, 40, 160, 800, 2400 };
+            foreach (UpgradeDef def in UpgradeCatalog.All)
+                if (def.Tier > 0 && def.Cost > 0)
+                    Assert.LessOrEqual(def.Cost, max[def.Tier], $"{def.Id} (nível {def.Tier})");
+            Assert.Greater(UpgradeCatalog.Get("Y0").Cost, UpgradeCatalog.Get("C1").Cost * 100, "O fundo continua caro.");
+        }
+
+        [Test]
+        public void EachLevelCostsLittleMoreThanThePrevious()
+        {
+            UpgradeDef def = UpgradeCatalog.Get("O+2");
+            Assert.LessOrEqual(UpgradeCatalog.LevelCost(def, 10), UpgradeCatalog.LevelCost(def, 1) * 3.6f);
+            Assert.AreEqual(1.15f, UpgradeCatalog.LevelGrowth(GalleryType.Physical), 1e-6f);
         }
     }
 }

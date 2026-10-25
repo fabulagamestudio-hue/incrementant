@@ -22,6 +22,8 @@ Cupins refinados em 16 quadros de 64×64, com prancha e importação conferidas 
 
 A direção de arte unificada foi aprovada em 2026-10-21 (ART-013): 16 px por célula, paleta mestra e filtro Point. O refinamento das formigas e da Rainha (ART-014) está implementado em 72 quadros, com cores por função preservadas e importação conferida na Unity; reprodução em jogo e aprovação visual do conjunto pendentes. Cenário, crias, UI e demais etapas continuam com o estado registrado em ART-013.
 
+Caminhada das formigas refeita em 2026-10-24 (ART-031, REQ-076): 6 quadros por vista nos dez papéis e na rainha, em marcha em tripé com balanço, gerados por script nos mesmos 24 × 16; falta a aprovação vendo em jogo.
+
 ## Itens
 
 | ID | Título | Estado | Prioridade | Evidência | Dependências | Verificado em |
@@ -62,6 +64,7 @@ A direção de arte unificada foi aprovada em 2026-10-21 (ART-013): 16 px por c�
 | ART-027 | Minérios, barras e equipamentos no atlas; fundição e forja | IN_PROGRESS | UNDEFINED | Linhas 21 a 35 do [atlas](../Assets/Project/Art/Terrain/README.md), provisórias, geradas por código em 2026-10-23; sprites 8 × 8 do minério solto ([Art/Ants](../Assets/Project/Art/Ants/README.md)), 2026-10-23; a arte do equipamento ficou em ART-028 | REQ-071 | — |
 | ART-028 | Arte do equipamento das formigas: camadas vestidas, 9 itens 8 × 8 e 5 ícones de HUD (cobre, ferro e ouro) | VERIFIED | UNDEFINED | [Art/Ants/README.md](../Assets/Project/Art/Ants/README.md) ("Equipamento das formigas" e "Itens de equipamento"); pranchas [vestidas](../Docs/02_World_Art_UI/Formigas_equipadas_2026-10-23.png), [itens](../Docs/02_World_Art_UI/Itens_equipamento_2026-10-23.png) e [ícones](../Docs/02_World_Art_UI/Icones_HUD_forja_armazens_2026-10-23.png); importação conferida na Unity e vista em Play Mode pelo agente; aprovada pelo desenvolvedor em 2026-10-23 | REQ-071, ART-027, ART-024 | 2026-10-23 |
 | ART-029 | Silhuetas por papel das formigas: rainha com coroa e gáster enorme, soldado com cabeção, cuspideira, coletora, cortadeira, escavadora, cuidadora, jardineira, lixeira (branca) e fazendeira (azul, chapéu de palha) | VERIFIED | UNDEFINED | [Art/Ants/README.md](../Assets/Project/Art/Ants/README.md) ("Variantes de silhueta por papel"); gerador [ant_variants.py](../Assets/Project/Art/Ants/Source~/ant_variants.py); 80 PNGs importados sem erros na Unity, vistos em Play Mode pelo agente (baixa ampliação); aprovado pelo desenvolvedor em 2026-10-23 | ART-014, ART-022 | 2026-10-23 |
+| ART-031 | Caminhada das formigas em 6 quadros (os dez papéis e a rainha): marcha em tripé, passo de 4 texels, balanço do corpo e antenas (procedural, sem IA) | IMPLEMENTED | UNDEFINED | [Art/Ants/README.md](../Assets/Project/Art/Ants/README.md) ("Caminhada em tripé da operária"), [gait_frames.py](../Assets/Project/Art/Ants/Source~/gait_frames.py); suíte EditMode 507/507; quadros 0–5 em uso e equipamento subindo 1 texel no quadro lateral 1, no Play Mode pelo agente | REQ-076, ART-029 | 2026-10-24 |
 | ART-030 | Rachadura dos blocos golpeados: máscaras 8 × 8 de 4 estágios, na cor do contorno (provisória do agente) | IMPLEMENTED | UNDEFINED | [CrackArt.cs](../Assets/Project/Scripts/Runtime/AntFarm/CrackArt.cs); vista em Play Mode pelo agente em 2026-10-23; sem avaliação do desenvolvedor | REQ-072, PRG-076 | 2026-10-23 |
 
 ## Detalhes
@@ -183,6 +186,10 @@ Validação: importação conferida na Unity, console sem erros e Play Mode pelo
 ### ART-030 — Rachadura dos blocos golpeados
 
 Arte provisória feita pelo agente em 2026-10-23 (REQ-072): quatro máscaras 8 × 8 desenhadas em texto em `CrackArt.cs`, cada uma contendo a anterior, pintadas pelo shader com o preto do contorno e espelhadas por célula. Falta a avaliação do desenvolvedor (forma, cor, se cada material deve ter a sua). Como trocar: [AntFarmGuide.md](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md) ("Rachadura dos blocos").
+
+### ART-031 — Caminhada das formigas em 6 quadros
+
+Pedido de 2026-10-24 (REQ-076). O desenvolvedor perguntou sobre usar o Qwen 2.1 para melhorar a animação e a qualidade sem mudar a resolução; a recomendação foi não gerar os pixels finais por IA (24 × 16 com 4 cores, quadros sem coerência entre si) e fazer as patas por script. Escolhida pelo desenvolvedor a partir de prancha e GIF: passo amplo (4 texels) e balanço na vista lateral. O corpo é o de antes; as patas são redesenhadas e as camadas de equipamento e o item na boca sobem junto com o corpo no balanço. No mesmo dia o desenvolvedor pediu levar a marcha aos outros nove papéis: mesmo gerador, com as patas por baixo de folha, broto, chapéu, cabeção e gáster; antenas balançando só onde estão no lugar das da operária. Depois, a pedido do desenvolvedor ("A rainha também precisa disso"), a rainha: geometria própria de 64 × 32 com patas de 2 texels, passo dobrado e só as três patas de perto de lado; em Play Mode ela passou pelo quadro lateral novo (`Ant_Walk_5`). Os cupins seguem com 4 quadros. Conferido pelo agente em Play Mode (dados, não imagem): quadros novos em uso, balanço medido nos quadros 1 e 4 dos dez papéis e a camada de ferramenta subindo 1 texel no quadro lateral 1. Falta a aprovação do desenvolvedor vendo em jogo. Como funciona: [AntFarmGuide.md](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md) ("Animação").
 
 ## Riscos e bloqueios
 

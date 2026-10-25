@@ -45,12 +45,13 @@ namespace Fabula.Incrementant.Tests
             return grid;
         }
 
-        /// <summary>Galerias de área e de obra no teto: profundidade 110 (o nível 5 abre com 100, o 4 com 50).</summary>
+        /// <summary>Galerias de área e de obra no teto e a profundidade que abre todos os níveis.</summary>
         static void OpenAllTiers(AntColony colony)
         {
             foreach (string id in new[] { "Q+4", "C+4", "B+3", "D+3", "R+1", "G+3", "A+3", "A+1" })
                 colony.Galleries.Set(id, 10);
             colony.Galleries.Set("T+3", 3);
+            QueenTreeTests.OpenTier(colony, UpgradeCatalog.TierCount - 1); // REQ-077: a profundidade do nível 5 passou a 380
         }
 
         [Test]
@@ -86,7 +87,7 @@ namespace Fabula.Incrementant.Tests
         {
             AntColony colony = MakeColony();
             Assert.IsFalse(colony.OreStoreUnlocked || colony.SmelterUnlocked || colony.ForgeUnlocked || colony.ArmoryUnlocked || colony.WardrobeUnlocked);
-            Assert.AreEqual(BuyBlock.NeedsDepth, colony.TryBuyUpgrade(UpgradeCatalog.Get("V0"), 1, out _), "Nível 4: profundidade 50.");
+            Assert.AreEqual(BuyBlock.NeedsDepth, colony.TryBuyUpgrade(UpgradeCatalog.Get("V0"), 1, out _), "Nível 4: profundidade 240.");
 
             OpenAllTiers(colony);
             Assert.AreEqual(BuyBlock.MissingRequirement, colony.TryBuyUpgrade(UpgradeCatalog.Get("V1"), 1, out _), "A fundição vem depois do depósito de minério.");
@@ -111,9 +112,8 @@ namespace Fabula.Incrementant.Tests
         public void ForgeNodes_NeedTheDeepestTier()
         {
             AntColony colony = MakeColony();
-            // Só o nível 4 aberto (profundidade 50 a 99): a forja, no nível 5, espera.
-            foreach (string id in new[] { "Q+4", "C+4", "B+3", "D+3", "R+1" })
-                colony.Galleries.Set(id, 10);
+            // Só o nível 4 aberto (profundidade 240 a 379): a forja, no nível 5, espera.
+            QueenTreeTests.OpenTier(colony, 4);
             Assert.AreEqual(BuyBlock.None, colony.TryBuyUpgrade(UpgradeCatalog.Get("V0"), 1, out _));
             Assert.AreEqual(BuyBlock.None, colony.TryBuyUpgrade(UpgradeCatalog.Get("V1"), 1, out _));
             Assert.AreEqual(BuyBlock.NeedsDepth, colony.TryBuyUpgrade(UpgradeCatalog.Get("Y0"), 1, out _));

@@ -11,6 +11,8 @@ namespace Fabula.Incrementant.Upgrades
     /// em cada nível com nós do domínio, uma câmara lateral com os nós em grade de até duas colunas (câmaras antes das
     /// galerias; o nó cujos pais ficam mais para um lado vai para a coluna desse lado). Coordenadas em pixels de UI, y para
     /// cima, topo do conteúdo em y = 0 e a coluna do meio em x = 0.
+    /// Com um <see cref="UpgradeTreeDrawing"/> (documento 48), as posições dos nós e os encontros dos túneis vêm dele; um nó
+    /// que o desenho não tem fica no lugar da grade e entra em <see cref="Missing"/>.
     /// </summary>
     public sealed class UpgradeLayout
     {
@@ -37,12 +39,19 @@ namespace Fabula.Incrementant.Upgrades
         readonly float[] _tierTop;
         readonly float[] _tierBottom;
         readonly Dictionary<UpgradeDomain, int> _column = new Dictionary<UpgradeDomain, int>();
+        readonly Dictionary<string, Vector2> _junctions = new Dictionary<string, Vector2>();
+        readonly Dictionary<(string, string), List<string>> _via = new Dictionary<(string, string), List<string>>();
+        readonly List<string> _missing = new List<string>();
 
         /// <summary>Posição de cada nó (os da raiz ficam todos na Câmara real).</summary>
         public IReadOnlyDictionary<string, Vector2> Positions => _positions;
         public Vector2 Root { get; }
         /// <summary>Retângulo do conteúdo inteiro, com margem: o que a janela pode mostrar.</summary>
         public Rect Bounds { get; }
+        /// <summary>Encontros de túneis do desenho, por id.</summary>
+        public IReadOnlyDictionary<string, Vector2> Junctions => _junctions;
+        /// <summary>Nós que o desenho não posiciona (ficaram na grade).</summary>
+        public IReadOnlyList<string> Missing => _missing;
 
         public float TierTop(int tier) => _tierTop[tier];
         public float TierBottom(int tier) => _tierBottom[tier];
@@ -56,7 +65,9 @@ namespace Fabula.Incrementant.Upgrades
             return new Vector2(DomainX(domain), origin == 0 ? RootHallY : _tierTop[origin] - HallDrop);
         }
 
-        public UpgradeLayout()
+        public UpgradeLayout() : this(null) { }
+
+        public UpgradeLayout(UpgradeTreeDrawing drawing)
         {
             UpgradeDomainDef[] domains = UpgradeCatalog.Domains;
             for (int c = 0; c < domains.Length; c++)
@@ -112,7 +123,52 @@ namespace Fabula.Incrementant.Upgrades
                         Place(list, DomainX(d.Domain), (_tierTop[t] - BandTop + _tierBottom[t] + BandBottom) * 0.5f);
 
             float half = ColumnX(domains.Length - 1) + SideMargin;
-            Bounds = Rect.MinMaxRect(-half, _tierBottom[tiers - 1] - BottomMargin, half, 0f);
+            Rect bounds = Rect.MinMaxRect(-half, _tierBottom[tiers - 1] - BottomMargin, half, 0f);
+            if (drawing != null)
+                ApplyDrawing(drawing, ref bounds);
+            Bounds = bounds;
+        }
+
+        void ApplyDrawing(UpgradeTreeDrawing drawing, ref Rect bounds)
+        {
+            foreach (UpgradeDef def in UpgradeCatalog.All)
+            {
+                if (def.Domain == UpgradeDomain.Root)
+                    continue;
+                UpgradeTreeDrawing.Node node = drawing.FindNode(def.Id);
+                if (node == null)
+                    _missing.Add(def.Id);
+                else
+                    _positions[def.Id] = node.Position;
+            }
+            foreach (UpgradeTreeDrawing.Junction j in drawing.Junctions)
+                _junctions[j.Id] = j.Position;
+            foreach (UpgradeTreeDrawing.Tunnel t in drawing.Tunnels)
+                _via[(t.From, t.To)] = t.Via;
+            // Um nó ou encontro arrastado para fora ainda cabe na janela.
+            foreach (Vector2 p in _positions.Values)
+                bounds = Grow(bounds, p);
+            foreach (Vector2 p in _junctions.Values)
+                bounds = Grow(bounds, p);
+        }
+
+        static Rect Grow(Rect r, Vector2 p) =>
+            Rect.MinMaxRect(Mathf.Min(r.xMin, p.x - BottomMargin), Mathf.Min(r.yMin, p.y - BottomMargin),
+                            Mathf.Max(r.xMax, p.x + BottomMargin), Mathf.Max(r.yMax, p.y));
+
+        /// <summary>
+        /// Pontos do túnel de <paramref name="from"/> (requisito) até <paramref name="to"/>: o nó do requisito (ou, se ele é da
+        /// raiz, o salão do domínio de <paramref name="to"/>), os encontros do desenho e o nó.
+        /// </summary>
+        public Vector2[] TunnelPoints(UpgradeDef from, UpgradeDef to)
+        {
+            var points = new List<Vector2> { from.Domain == UpgradeDomain.Root ? Hall(to.Domain) : _positions[from.Id] };
+            if (_via.TryGetValue((from.Id, to.Id), out List<string> via))
+                foreach (string id in via)
+                    if (_junctions.TryGetValue(id, out Vector2 p))
+                        points.Add(p);
+            points.Add(_positions[to.Id]);
+            return points.ToArray();
         }
 
         static int IndexOf(UpgradeDef def)

@@ -187,7 +187,8 @@ namespace Fabula.Incrementant.Colony
             // Rainha sozinha (sem adultas nem crias): bota o ovo que recomeça a colônia sem respeitar a reserva mínima,
             // só precisa pagar o custo (pedido do desenvolvedor em 2026-10-18).
             bool loneQueen = c.Adults == 0 && _brood.Count == 0;
-            int reserve = loneQueen ? 0 : _settings.MinNutrientReserve;
+            // A reserva nunca passa do custo de um ovo: com o ovo barato do começo (REQ-077), 30 N fixos travariam a postura.
+            int reserve = loneQueen ? 0 : Math.Min(_settings.MinNutrientReserve, c.Cost);
             if (c.Nutrients - c.Cost < reserve)
                 return BreedingState.WaitingResources;
             return BreedingState.Available;

@@ -52,11 +52,15 @@ namespace Fabula.Incrementant.Tests
                 colony.Tick(Dt);
         }
 
+        /// <summary>Abre o nível 2 do formigueiro (documento 46) sem mexer nestes testes: ver <see cref="OpenTier"/>.</summary>
+        internal static void OpenTierTwo(AntColony colony) => OpenTier(colony, 2);
+
         /// <summary>
-        /// Abre o nível 2 do formigueiro (profundidade 5, documento 46) sem mexer na simulação: a galeria T+3 (salas extras,
-        /// só muda o pincel) completa vale 3 níveis + 3 da galeria completa.
+        /// Abre os níveis até <paramref name="tier"/> dando a profundidade pedida à galeria S+1 (dano do soldado, sem teto), que
+        /// só pesa em batalha. Desde o REQ-077 a profundidade conta compras (40 abre o nível 2).
         /// </summary>
-        internal static void OpenTierTwo(AntColony colony) => colony.Galleries.Set("T+3", 3);
+        internal static void OpenTier(AntColony colony, int tier) =>
+            colony.Galleries.Set("S+1", System.Math.Max(colony.Galleries.Level("S+1"), UpgradeCatalog.DepthToOpenTier(tier)));
 
         /// <summary>Compra a câmara B0 (berçário inicial), requisito do formigueiro para Q2 e N0.</summary>
         static void BuyNurseryChamber(AntColony colony) =>
@@ -114,10 +118,11 @@ namespace Fabula.Incrementant.Tests
         [Test]
         public void WithoutBalanceOrRequirement_NothingIsDebitedOrApplied()
         {
-            AntColony colony = MakeColony(21, 50);
+            int short1 = UpgradeCatalog.Of(QueenNode.Q1).Cost - 1;
+            AntColony colony = MakeColony(21, short1);
             Assert.AreEqual(BuyBlock.InsufficientNutrients, colony.TryBuy(QueenNode.Q1));
             Assert.IsFalse(colony.Tree.Owns(QueenNode.Q1));
-            Assert.AreEqual(50, colony.Nutrients);
+            Assert.AreEqual(short1, colony.Nutrients);
 
             colony.RestoreNutrients(1000, 0, 0);
             Assert.AreEqual(BuyBlock.MissingRequirement, colony.TryBuy(QueenNode.Q2), "Q2 exige Q1.");
@@ -157,7 +162,7 @@ namespace Fabula.Incrementant.Tests
             // Documento 46, "Compra": os nós da rainha seguem a mesma regra das câmaras e galerias (nível do formigueiro aberto).
             AntColony colony = MakeColony(21, 5000);
             Assert.AreEqual(BuyBlock.None, colony.TryBuy(QueenNode.E0)); // nível 1: aberto desde o começo
-            Assert.AreEqual(BuyBlock.NeedsDepth, colony.CheckBuy(QueenNode.E1)); // nível 2: profundidade 5
+            Assert.AreEqual(BuyBlock.NeedsDepth, colony.CheckBuy(QueenNode.E1)); // nível 2: profundidade 40
             int before = colony.Nutrients;
             Assert.AreEqual(BuyBlock.NeedsDepth, colony.TryBuy(QueenNode.E1));
             Assert.AreEqual(before, colony.Nutrients, "Recusa não cobra.");
@@ -281,14 +286,15 @@ namespace Fabula.Incrementant.Tests
         [Test]
         public void Q2_ProducesAPartialLot_WhenTheFoodOnlyCoversOneOrTwo()
         {
-            // Reserva de 30 N + cria de 18 N (comum): 80 N cobrem dois ovos (30 + 36 = 66 ≤ 80), não três (84 > 80).
-            AntColony colony = MakeColony(21, 80);
-            colony.RestoreNutrients(80, 0, 0);
+            // Reserva de 18 N (o custo de um ovo, menor que 30) + cria de 18 N (comum): 70 N cobrem dois ovos (18 + 36 = 54 ≤ 70),
+            // não três (18 + 54 = 72 > 70).
+            AntColony colony = MakeColony(21, 70);
+            colony.RestoreNutrients(70, 0, 0);
             colony.Tree.Restore(1UL << (int)QueenNode.Q1 | 1UL << (int)QueenNode.Q2);
             for (float t = 0f; t < 25f && colony.Brood.Count == 0; t += Dt)
                 colony.Tick(Dt);
             Assert.AreEqual(2, colony.Brood.Count);
-            Assert.AreEqual(80 - 36, colony.Nutrients);
+            Assert.AreEqual(70 - 36, colony.Nutrients);
         }
 
         [Test]

@@ -50,6 +50,12 @@ namespace Fabula.Incrementant.Tests
             var settings = new ColonySettings();
             typeof(ColonySettings).GetField("_cellsPerAdultSlot", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
                 .SetValue(settings, 24);
+            // Custo fixo do design (18 N a comum) para estes testes do ciclo; o ovo que encarece com a colônia (REQ-077) tem
+            // teste próprio em NutrientTests.
+            typeof(ColonySettings).GetField("_eggBaseCost", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                .SetValue(settings, 18f);
+            typeof(ColonySettings).GetField("_eggCostGrowth", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                .SetValue(settings, 1f);
             return settings;
         }
 
@@ -230,16 +236,17 @@ namespace Fabula.Incrementant.Tests
         [Test]
         public void TheReserve_IsKept_BeforeLaying()
         {
-            AntColony colony = MakeColony(21, 18 + 29);
+            // A reserva é a menor entre 30 N e o custo de um ovo (REQ-077): aqui, 18 N.
+            AntColony colony = MakeColony(21, 18 + 17);
             colony.SetQueenPolicy(QueenMode.Specific, AntRole.Worker);
             Tick(colony, 25f);
             Assert.AreEqual(BreedingState.WaitingResources, colony.Breeding);
             Assert.AreEqual(0, colony.Brood.Count);
 
-            colony.RestoreNutrients(18 + 30, 0, 0);
+            colony.RestoreNutrients(18 + 18, 0, 0);
             Tick(colony, 1f);
-            Assert.AreEqual(1, colony.Brood.Count, "Com a reserva de 30 N preservada, o ovo sai.");
-            Assert.AreEqual(30, colony.Nutrients);
+            Assert.AreEqual(1, colony.Brood.Count, "Com a reserva de 18 N preservada, o ovo sai.");
+            Assert.AreEqual(18, colony.Nutrients);
         }
 
         [Test]
@@ -264,16 +271,16 @@ namespace Fabula.Incrementant.Tests
         [Test]
         public void ClickingTheQueen_ForcesAnEggBelowTheReserve_ButNotWithoutFoodOrWhilePaused()
         {
-            AntColony colony = MakeColony(21, 40);
+            AntColony colony = MakeColony(21, 30);
             colony.SetQueenPolicy(QueenMode.Specific, AntRole.Worker);
             Assert.IsTrue(TickUntil(colony, () => colony.QueenInRoom, 30f), "A rainha vai à sala antes de pôr.");
-            colony.RestoreNutrients(40, 0, 0);
+            colony.RestoreNutrients(30, 0, 0);
             Tick(colony, Dt);
-            Assert.AreEqual(BreedingState.WaitingResources, colony.Breeding, "40 N - 18 N fica abaixo da reserva de 30 N.");
+            Assert.AreEqual(BreedingState.WaitingResources, colony.Breeding, "30 N - 18 N fica abaixo da reserva de 18 N.");
 
             Assert.IsTrue(colony.ForceLay(), "Clicar na rainha ignora a reserva e o relógio.");
             Assert.AreEqual(1, colony.Brood.Count);
-            Assert.AreEqual(22, colony.Nutrients);
+            Assert.AreEqual(12, colony.Nutrients);
 
             colony.RestoreNutrients(5, 0, 0);
             Assert.IsFalse(colony.ForceLay(), "Sem nutrientes para o custo, nada é posto.");

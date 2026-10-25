@@ -1,7 +1,7 @@
 # Solicitações do desenvolvedor
 
 **Projeto:** Incrementant
-**Última atualização:** 2026-10-23
+**Última atualização:** 2026-10-25
 
 ## Índice
 
@@ -82,6 +82,9 @@
 | REQ-072 | 2026-10-23 | Blocos em porcentagem: rachadura crescente na coleta e preenchimento vertical nos depósitos (2 itens por célula com melhoria) | GAME_DESIGN, PROGRAMMING, ART | UNDEFINED | IMPLEMENTED |
 | REQ-073 | 2026-10-23 | Árvore de evolução como formigueiro descendo da rainha: domínios, níveis por progresso e túneis por valor do upgrade | GAME_DESIGN, PROGRAMMING | UNDEFINED | IN_PROGRESS |
 | REQ-075 | 2026-10-24 | Painel da colônia: controle de formigas por depósito e da sala de resíduos, agrupado em abas | PROGRAMMING, GAME_DESIGN | UNDEFINED | IMPLEMENTED |
+| REQ-076 | 2026-10-24 | Animação das formigas melhor sem aumentar a resolução: marcha em tripé, balanço e antenas nos dez papéis e na rainha | ART, PROGRAMMING | UNDEFINED | IMPLEMENTED |
+| REQ-077 | 2026-10-24 | Evoluções em passos pequenos: compras baratas, ovos e nutrientes no centro, ~20 N nos primeiros 3 minutos | GAME_DESIGN, PROGRAMMING | UNDEFINED | IMPLEMENTED |
+| REQ-078 | 2026-10-24 | Árvore de evolução desenhada: túneis interligados gerados automaticamente e redesenhados à mão | GAME_DESIGN, PROGRAMMING | UNDEFINED | IMPLEMENTED |
 
 ## Registros
 
@@ -1433,3 +1436,53 @@
 - **Histórico:**
   - 2026-10-24 — IMPLEMENTED: oito seções novas de depósito (alimentos, construção, água, areia, cogumelos, serapilheira, néctar, minério) e a da sala de resíduos, com ligar/parar e limite; o painel passou de Estatísticas + Configurações para Estatísticas, Trabalho e Depósitos, com TUDO ATIVO por aba. Suíte EditMode 505/505 na Unity (`TestResults.xml`), com o teste novo `TheWaterDepotSection_StopsAndCapsWhoFillsIt`; abas Trabalho e Depósitos vistas em Play Mode pelo agente num mapa novo (sem depósitos pintados). Não observado com depósitos cheios de formigas em jogo real.
   - 2026-10-24 — IMPLEMENTED: feedback do save do desenvolvedor ("21 nutrientes em 41 minutos"; "não gostei da 1 e da 3" sobre renda passiva e estoque inicial). Pedidos: (1) mutirão de escavação, com formigas somando trabalho no mesmo bloco e só a primeira pegando o pixel (`AntColony.Assist.cs`, até 3 ajudantes por bloco; simulação de 2 blocos e 6 formigas: 7,0 s → 5,3 s); (2) sala de resíduos para folhas, converte 1 folha em 1 nutriente em 30 s, livre desde o início (`WasteMode.LeavesToNutrient`, pincel "Folhas em nutrientes"). Suíte EditMode 507/507 (testes novos: mutirão e sala de folhas de ponta a ponta). Falta ver em Play Mode: ritmo da renda da sala de folhas, tempo de 30 s e a ordem de destino da planta (canteiros → depósito → sala de folhas).
+  - 2026-10-24 — IMPLEMENTED: ajuste pedido pelo desenvolvedor ("A conversão não deve ser instantânea. Deve-se virar o bloco de nutriente que a rainha tem que comer"). Na sala de folhas, a folha vira, depois de 30 s, um bloco de nutriente na própria célula (`PixelGrid.SetNutrient`); a formiga o leva até a rainha e ela o come pelas regras normais de entrega, sem crédito direto no saldo. Suíte EditMode 507/507 (teste de ponta a ponta confere que o saldo não muda antes do bloco existir). Não visto em Play Mode.
+
+### REQ-076 — Animação das formigas sem aumentar a resolução
+
+- **Data de registro:** 2026-10-24
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** ART, PROGRAMMING
+- **Descrição:** Pedido do desenvolvedor: "Através do QWEN 2.1, gostaria de tentar melhorar as imagens das formigas, quanto à animação e qualidade delas, sem aumentar a resolução, mantendo nos pixels que temos hoje." Depois da recomendação de não usar IA nos pixels finais, pediu o teste procedural na operária (marcha em tripé, balanço do corpo e antenas), o passo mais amplo a aplicação da versão com balanço e, depois, levá-la aos outros papéis ("Sim, leve a marcha em tripé com balanço para os outros papéis").
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** —
+- **Itens relacionados:** ART-031, ART-029
+- **Referências:** [Art/Ants/README.md](../Assets/Project/Art/Ants/README.md) ("Caminhada em tripé da operária"); [AntFarmGuide.md](../Assets/Project/Scripts/Runtime/AntFarm/AntFarmGuide.md) ("Animação")
+- **Decisões pendentes:** aprovar vendo em jogo; cupins (ainda com 4 quadros); qualidade (forma e volume) pelo Qwen só como referência, se ainda for desejada.
+- **Histórico:**
+  - 2026-10-24 — IMPLEMENTED: 6 quadros de lado e 6 de cima da operária gerados por `gait_frames.py`, ligados na cena (balanço medido: quadros 1 e 4), equipamento e item na boca acompanhando o balanço. Suíte EditMode 507/507 na Unity; em Play Mode as operárias passaram pelos quadros novos sem erros no console. Vista lateral e equipamento erguido não conferidos na tela pelo agente.
+  - 2026-10-24 — IMPLEMENTED: marcha levada aos outros nove papéis pelo mesmo `gait_frames.py` (patas por baixo das peças de cada papel). Na Unity: importação dos 60 quadros novos no padrão (PPU 8, Point, pivôs), balanço medido nos quadros 1 e 4 dos dez papéis e, em Play Mode, a camada de ferramenta subindo 1 texel (0,125) no quadro lateral 1, sem erros no console. Suíte EditMode não rodada de novo (só arte e cena mudaram desde os 507/507).
+  - 2026-10-24 — IMPLEMENTED: pedido "A rainha também precisa disso". Rainha com 6 + 6 quadros pelo mesmo `gait_frames.py`, geometria própria (64 × 32, patas de 2 texels, passo dobrado, só as três patas de perto de lado). Importação conferida na Unity (PPU 16, Point, pivôs) e, em Play Mode, a rainha no quadro lateral novo `Ant_Walk_5`, sem erros no console.
+
+### REQ-077 — Evoluções em passos pequenos: formigas e nutrientes no centro
+
+- **Data de registro:** 2026-10-24
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** GAME_DESIGN, PROGRAMMING
+- **Descrição:** Pedido do desenvolvedor: "Hoje em cerca de 20 minutos eu consegui 20 nutrientes. Precisamos que isso seja em algo em torno de 3 minutos. O crescimento tem que ser rápido e contínuo, em pequenos passos." Escolheu as compras mais baratas no começo e pediu "uma proposta de aumentar as evoluções para trabalhar nos valores das formigas e dos nutrientes, e manter o jogo em criar formigas e salas". Regra decidida: nunca começar com salas ou formigas extras; toda sala é pintada pelo jogador e toda formiga nasce de um ovo da rainha.
+- **Critérios de aceitação:** Pendente de definição (o documento 47 sugere 20 N juntados até o minuto 3)
+- **Dependências:** REQ-074, REQ-073
+- **Itens relacionados:** GD-015, PRG-083
+- **Referências:** [Documento 47](../Docs/01_Design/47_Ritmo_das_evolucoes_formigas_e_nutrientes.md); [UpgradeCatalog.cs](../Assets/Project/Scripts/Runtime/Upgrades/UpgradeCatalog.cs)
+- **Decisões pendentes:** calibrar curva, custos e ovo após medir um save novo; efeito dos marcos visíveis (proposta 5, não implementada).
+- **Histórico:**
+  - 2026-10-24 — PLANNED: proposta escrita no documento 47; nada implementado.
+  - 2026-10-24 — IMPLEMENTED: pedido "Mantém as 6 operárias iniciais e pode implementar a proposta do documento 47". Custos por nível (N1 ×0,04 … N5 ×0,68), primeiros passos com custo fixo (2 a 5 N; O+1, O+3, T+2, Q+1 e C+2 descem para o N1), crescimento por nível 1,15/1,12/1,15, abertura dos níveis por compras (40, 130, 240, 380), ovo 6 × 1,04^(adultas − 6) e reserva da rainha limitada ao custo de um ovo. Suíte EditMode 516/516 na Unity em 2026-10-24 (`TestResults.xml`). Não medido num save novo nem visto em Play Mode.
+
+### REQ-078 — Árvore de evolução desenhada: túneis interligados
+
+- **Data de registro:** 2026-10-24
+- **Estado:** IMPLEMENTED
+- **Prioridade:** UNDEFINED
+- **Setores:** GAME_DESIGN, PROGRAMMING
+- **Descrição:** Pedido do desenvolvedor: túneis de formigueiro "se interligando com habilidades de formigas/salas/rainha, tudo se encontrando". Escolheu desenhar os caminhos à mão, "podendo mesclar com [a geração automática], onde é gerado automaticamente a primeira versão e depois eu redesenho".
+- **Critérios de aceitação:** Pendente de definição
+- **Dependências:** REQ-073
+- **Itens relacionados:** GD-016, PRG-084
+- **Referências:** [Documento 48](../Docs/01_Design/48_Arvore_desenhada_tuneis_interligados.md); [UpgradeLayout.cs](../Assets/Project/Scripts/Runtime/Upgrades/UpgradeLayout.cs)
+- **Decisões pendentes:** aprovar a primeira versão gerada vendo em jogo e redesenhar à mão o que quiser (janela Incrementant/Árvore/Editor de desenho). Decididas em 2026-10-25: cada domínio continua uma coluna reconhecível; túneis entre domínios sempre à vista, apagados, acendendo ao focar; as 3 etapas do documento 48 nesta sessão.
+- **Histórico:**
+  - 2026-10-24 — PLANNED: proposta escrita no documento 48; nada implementado.
+  - 2026-10-25 — IMPLEMENTED: as 3 etapas do documento 48 (PRG-084). Asset `Data/UpgradeTreeDrawing.asset` com posição de cada nó e encontros dos túneis; gerador (nós acomodados dentro da coluna e da faixa do nível; salões de encontro `out:C0`, `out:B0`, `out:B3`, `out:Y1`, `in:M1`); janela de redesenho (arrastar e fixar, dobras, gerar, aplicar na cena); tela com câmara por nó, túneis do desenho e túneis entre domínios no escuro neutro, ligações entre domínios sempre à vista e apagadas. Suíte EditMode 522/522 na Unity; tela vista em Play Mode e arrasto/desfazer da janela exercitados pelo agente. Falta o desenvolvedor ver em jogo e redesenhar.

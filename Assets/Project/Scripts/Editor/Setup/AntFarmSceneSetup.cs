@@ -324,15 +324,57 @@ namespace Fabula.Incrementant.EditorTools.Setup
                 SerializedProperty entry = list.GetArrayElementAtIndex(i);
                 entry.FindPropertyRelative("Role").enumValueIndex = (int)RoleArtFolders[i].role; // valores 0..9 contíguos
                 string folder = $"{AntSpriteImporter.AntsFolder}{RoleArtFolders[i].folder}/";
-                SetSprites(entry.FindPropertyRelative("Walk"), LoadFrames(folder, "Ant_Walk_"));
+                Sprite[] walk = LoadFrames(folder, "Ant_Walk_");
+                SetSprites(entry.FindPropertyRelative("Walk"), walk);
                 SetSprites(entry.FindPropertyRelative("Top"), LoadFrames(folder, AntSpriteImporter.TopViewPrefix));
+                SerializedProperty lift = entry.FindPropertyRelative("WalkLift");
+                int[] lifts = MeasureLift(walk);
+                lift.arraySize = lifts.Length;
+                for (int f = 0; f < lifts.Length; f++)
+                    lift.GetArrayElementAtIndex(f).intValue = lifts[f];
             }
         }
 
-        static Sprite[] LoadFrames(string folder, string prefix) => Enumerable.Range(0, AntSpriteGenerator.FrameCount)
-            .Select(i => AssetDatabase.LoadAssetAtPath<Sprite>($"{folder}{prefix}{i}.png"))
-            .Where(sprite => sprite != null)
-            .ToArray();
+        /// <summary>Quadros 0, 1, 2… até o primeiro que falta (a operária tem 6 desde 2026-10-24; os demais papéis, 4).</summary>
+        static Sprite[] LoadFrames(string folder, string prefix)
+        {
+            var frames = new List<Sprite>();
+            for (int i = 0; i < 16; i++)
+            {
+                Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>($"{folder}{prefix}{i}.png");
+                if (sprite == null)
+                    break;
+                frames.Add(sprite);
+            }
+            return frames.ToArray();
+        }
+
+        /// <summary>
+        /// Texels que o corpo sobe em cada quadro em relação ao 0: diferença da linha opaca mais alta (as pontas das
+        /// antenas, que no balanço só andam para os lados; ver Source~/gait_frames.py). Tudo 0 = sem balanço, lista vazia.
+        /// </summary>
+        static int[] MeasureLift(Sprite[] frames)
+        {
+            var lifts = new int[frames.Length];
+            int baseTop = -1;
+            bool any = false;
+            for (int i = 0; i < frames.Length; i++)
+            {
+                var texture = new Texture2D(2, 2);
+                texture.LoadImage(System.IO.File.ReadAllBytes(AssetDatabase.GetAssetPath(frames[i])));
+                Color32[] pixels = texture.GetPixels32();
+                int top = -1;
+                for (int p = pixels.Length - 1; p >= 0 && top < 0; p--)
+                    if (pixels[p].a > 0)
+                        top = p / texture.width;
+                Object.DestroyImmediate(texture);
+                if (i == 0)
+                    baseTop = top;
+                lifts[i] = top - baseTop;
+                any |= lifts[i] != 0;
+            }
+            return any ? lifts : new int[0];
+        }
 
         /// <summary>Liga os quadros de ovo, larva e pupa (PNGs em Art/Ants, desenhados à mão: nunca são gerados nem sobrescritos).</summary>
         static void AssignBroodFrames(BroodView broodView)

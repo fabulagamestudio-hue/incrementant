@@ -119,6 +119,8 @@ namespace Fabula.Incrementant.AntFarm
             public AntRole Role;
             public Sprite[] Walk;
             public Sprite[] Top;
+            /// <summary>Texels que o corpo sobe em cada quadro de <see cref="Walk"/> (balanço da marcha); vazio = nenhum. Medido pelo setup.</summary>
+            public int[] WalkLift;
         }
 
         /// <summary>Camadas de equipamento de um papel: as mesmas 9 posições de <c>_equipWalk</c> e <c>_equipTop</c>, com null onde vale a geral.</summary>
@@ -444,7 +446,8 @@ namespace Fabula.Incrementant.AntFarm
             Sprite[] topFrames = topOverride ?? _topFrames;
             // Papel sem arte própria na cena (pasta em Art/Ants não ligada): quadros da operária tingidos com a cor do papel.
             Color tint = Color.white;
-            if (!visual.IsQueen && walkOverride == null && !ApplyRoleArt(ant.Role, ref walkFrames, ref topFrames) &&
+            int[] walkLift = null;
+            if (!visual.IsQueen && walkOverride == null && !ApplyRoleArt(ant.Role, ref walkFrames, ref topFrames, ref walkLift) &&
                 ant.Role != AntRole.Worker)
                 tint = Color.Lerp(Color.white, RoleColor(ant.Role), _placeholderTint);
             visual.Body.color = tint;
@@ -491,11 +494,15 @@ namespace Fabula.Incrementant.AntFarm
                 : (int)(visual.Walked * _framesPerCell);
             Sprite[] frames = topView ? topFrames : walkFrames;
             visual.Body.sprite = frames[frame % frames.Length];
+            // Quadro de lado com o corpo erguido pelo balanço: equipamento e item na boca sobem junto (as patas, não).
+            float lift = !topView && walkLift != null && walkLift.Length == frames.Length
+                ? walkLift[frame % frames.Length] / visual.Body.sprite.pixelsPerUnit
+                : 0f;
             if (!visual.IsQueen)
             {
-                UpdateEquipLayer(visual, 0, ant.Tool, topView, ant.Role);
-                UpdateEquipLayer(visual, 1, ant.Weapon, topView, ant.Role);
-                UpdateEquipLayer(visual, 2, ant.Armor, topView, ant.Role);
+                UpdateEquipLayer(visual, 0, ant.Tool, topView, ant.Role, lift);
+                UpdateEquipLayer(visual, 1, ant.Weapon, topView, ant.Role, lift);
+                UpdateEquipLayer(visual, 2, ant.Armor, topView, ant.Role, lift);
             }
 
             bool delivering = ant.State == AntState.Delivering;
@@ -533,7 +540,7 @@ namespace Fabula.Incrementant.AntFarm
                 else
                     visual.Carried.color = delivering ? (Color)_nutrientColor : CellMaterials.ShadedColor(ant.Carried, ant.CarriedShade);
                 Vector2 offset = broodArt != null ? _carriedBroodOffset : topView ? _carriedOffsetTop : _carriedOffset;
-                visual.Carried.transform.localPosition = new Vector3(visual.FlipX ? -offset.x : offset.x, offset.y, 0f);
+                visual.Carried.transform.localPosition = new Vector3(visual.FlipX ? -offset.x : offset.x, offset.y + lift, 0f);
 
                 // Bloco recém-pego: sai da célula de onde foi tirado e sobe em arco até a boca, em vez de aparecer nela.
                 float u = (time - visual.PickTime) / _pickSeconds;
@@ -595,7 +602,7 @@ namespace Fabula.Incrementant.AntFarm
         /// Camada do equipamento vestido (REQ-071): mesmo canvas e pivô do corpo, então basta herdar a rotação do pai e o espelho.
         /// O corpo não muda entre os quadros de caminhada, por isso uma camada por vista serve para todos.
         /// </summary>
-        void UpdateEquipLayer(AntVisual visual, int slot, CellMaterial item, bool topView, AntRole role)
+        void UpdateEquipLayer(AntVisual visual, int slot, CellMaterial item, bool topView, AntRole role, float lift)
         {
             Sprite sprite = null;
             Sprite[] set = topView ? _equipTop : _equipWalk;
@@ -630,6 +637,7 @@ namespace Fabula.Incrementant.AntFarm
                 layer.gameObject.SetActive(true);
             layer.sprite = sprite;
             layer.flipX = visual.FlipX;
+            layer.transform.localPosition = new Vector3(0f, lift, 0f);
         }
 
         Sprite[] RoleEquipSet(AntRole role, bool topView)
@@ -731,7 +739,7 @@ namespace Fabula.Incrementant.AntFarm
 
         /// <summary>Troca os quadros padrão pelos do papel, quando ele tem arte própria completa.</summary>
         /// <summary>Troca os quadros pelos do papel; <c>false</c> = o papel não tem arte própria na cena.</summary>
-        bool ApplyRoleArt(AntRole role, ref Sprite[] walk, ref Sprite[] top)
+        bool ApplyRoleArt(AntRole role, ref Sprite[] walk, ref Sprite[] top, ref int[] walkLift)
         {
             if (_roleArt == null)
                 return false;
@@ -741,6 +749,7 @@ namespace Fabula.Incrementant.AntFarm
                 if (art == null || art.Role != role || art.Walk == null || art.Walk.Length == 0 || art.Walk[0] == null)
                     continue;
                 walk = art.Walk;
+                walkLift = art.WalkLift;
                 if (art.Top != null && art.Top.Length > 0 && art.Top[0] != null)
                     top = art.Top;
                 return true;

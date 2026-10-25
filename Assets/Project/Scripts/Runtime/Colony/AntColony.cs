@@ -257,8 +257,11 @@ namespace Fabula.Incrementant.Colony
         /// </summary>
         public IReadOnlyList<Vector2Int> NurserySpots => _nurserySpots;
 
-        /// <summary>Reserva de nutrientes que a rainha preserva antes de pôr um ovo.</summary>
-        public int MinNutrientReserve => _settings.MinNutrientReserve;
+        /// <summary>
+        /// Reserva de nutrientes que a rainha preserva antes de pôr o próximo ovo: a menor entre a da cena e o custo desse ovo
+        /// (REQ-077; a mesma conta de <see cref="BroodCycle"/>).
+        /// </summary>
+        public int MinNutrientReserve => Math.Min(_settings.MinNutrientReserve, CostOf(NextAntRole ?? AntRole.Worker));
 
         /// <summary>Por que a rainha está (ou não) pondo ovos agora.</summary>
         public BreedingState Breeding => _brood.State;
@@ -471,8 +474,18 @@ namespace Fabula.Incrementant.Colony
             _grid.SetCapacityFactor(Effects.StorageCapacityFactor);
         }
 
-        /// <summary>Custo (nutrientes) de criar uma formiga do papel dado: o alimento por cria do design, estável (não cresce com a colônia).</summary>
-        public int CostOf(AntRole role) => Mathf.Max(1, Mathf.RoundToInt(AntRoles.FoodCost(role) * Effects.BroodCostFactor));
+        /// <summary>
+        /// Custo (nutrientes) de criar uma formiga do papel dado (REQ-077, documento 47): o ovo da comum custa
+        /// <see cref="ColonySettings.EggBaseCost"/> e encarece <see cref="ColonySettings.EggCostGrowth"/> por adulta acima das
+        /// iniciais; as outras classes seguem a proporção do alimento por cria do design (÷ 18). Q+2 e N3 baixam o total.
+        /// </summary>
+        public int CostOf(AntRole role)
+        {
+            int extra = Mathf.Max(0, _ants.Count - _settings.EggCostFreeAdults);
+            float worker = _settings.EggBaseCost * Mathf.Pow(_settings.EggCostGrowth, extra);
+            float ratio = AntRoles.FoodCost(role) / (float)AntRoles.FoodCost(AntRole.Worker);
+            return Mathf.Max(1, Mathf.RoundToInt(worker * ratio * Effects.BroodCostFactor));
+        }
 
         /// <summary>Quantas formigas vivas têm o papel dado.</summary>
         public int CountOf(AntRole role)

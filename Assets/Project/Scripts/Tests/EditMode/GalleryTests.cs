@@ -18,11 +18,12 @@ namespace Fabula.Incrementant.Tests
             return (new AntColony(grid, new ColonySettings(), layout, 99), grid, settings);
         }
 
-        /// <summary>Cinco nós comprados: profundidade 5, que abre o anel A2 onde fica O+1.</summary>
+        /// <summary>Cinco nós da rainha comprados (requisitos de vários testes) e o nível 2 aberto (profundidade 40, REQ-077).</summary>
         static void OpenRingTwo(AntColony colony)
         {
             foreach (QueenNode node in new[] { QueenNode.Q1, QueenNode.O1, QueenNode.O2, QueenNode.L0, QueenNode.F0 })
                 Assert.AreEqual(BuyBlock.None, colony.Tree.Grant(node));
+            QueenTreeTests.OpenTierTwo(colony);
         }
 
         [Test]
@@ -38,18 +39,22 @@ namespace Fabula.Incrementant.Tests
         public void BuyingNeedsTheRequirementTheRingAndTheNutrients()
         {
             var (colony, _, _) = MakeColony();
-            UpgradeDef def = UpgradeCatalog.Get("O+1");
+            // X+2 fica no nível 2 (O+1 desceu para o 1 no REQ-077) e exige a câmara X0.
+            UpgradeDef def = UpgradeCatalog.Get("X+2");
             colony.RestoreNutrients(10000, 10000, 0);
 
-            Assert.AreEqual(BuyBlock.NeedsDepth, colony.TryBuyUpgrade(def, 1, out int bought)); // nível 2 fechado (e sem O2)
+            Assert.AreEqual(BuyBlock.NeedsDepth, colony.TryBuyUpgrade(def, 1, out int bought)); // nível 2 fechado (e sem X0)
             Assert.AreEqual(0, bought);
             Assert.AreEqual(10000, colony.Nutrients);
 
             OpenRingTwo(colony);
-            colony.RestoreNutrients(10, 10, 0);
+            Assert.AreEqual(BuyBlock.MissingRequirement, colony.TryBuyUpgrade(def, 1, out bought));
+            colony.Galleries.Set("X0", 1);
+            int shortOf = def.Cost - 1;
+            colony.RestoreNutrients(shortOf, shortOf, 0);
             Assert.AreEqual(BuyBlock.InsufficientNutrients, colony.TryBuyUpgrade(def, 1, out bought));
-            Assert.AreEqual(0, colony.Galleries.Level("O+1"));
-            Assert.AreEqual(10, colony.Nutrients);
+            Assert.AreEqual(0, colony.Galleries.Level("X+2"));
+            Assert.AreEqual(shortOf, colony.Nutrients);
         }
 
         [Test]
@@ -63,7 +68,7 @@ namespace Fabula.Incrementant.Tests
             Assert.AreEqual(BuyBlock.None, colony.TryBuyUpgrade(def, 2, out int bought));
             Assert.AreEqual(2, bought);
             Assert.AreEqual(2, colony.Galleries.Level("O+1"));
-            Assert.AreEqual(10000 - (UpgradeCatalog.LevelCost(def, 1) + UpgradeCatalog.LevelCost(def, 2)), colony.Nutrients); // custo × 1,35^(n−1), já com o fator do nível
+            Assert.AreEqual(10000 - (UpgradeCatalog.LevelCost(def, 1) + UpgradeCatalog.LevelCost(def, 2)), colony.Nutrients); // custo × 1,15^(n−1) (documento 47), já com o custo do nível
             Assert.AreEqual(1.08f, colony.Galleries.Multiplier("O+1"), 1e-4f);
         }
 
@@ -73,7 +78,7 @@ namespace Fabula.Incrementant.Tests
             var (colony, _, _) = MakeColony();
             UpgradeDef def = UpgradeCatalog.Get("O+1");
             OpenRingTwo(colony);
-            colony.RestoreNutrients(UpgradeCatalog.LevelCost(def, 1) + UpgradeCatalog.LevelCost(def, 2) + 10, 1000, 0); // paga 2 níveis; o terceiro não cabe
+            colony.RestoreNutrients(UpgradeCatalog.LevelCost(def, 1) + UpgradeCatalog.LevelCost(def, 2) + UpgradeCatalog.LevelCost(def, 3) - 1, 1000, 0); // paga 2 níveis; o terceiro não cabe
             Assert.AreEqual(BuyBlock.None, colony.TryBuyUpgrade(def, 0, out int bought));
             Assert.AreEqual(2, bought);
 
@@ -90,8 +95,8 @@ namespace Fabula.Incrementant.Tests
         {
             var (colony, _, _) = MakeColony();
             colony.RestoreNutrients(1000000, 1000000, 0);
-            // Nível 2 aberto sem mexer nas classes (T+3 completa: 3 níveis + 3 da galeria completa), para o bloqueio ser o do nó.
-            colony.Galleries.Set("T+3", 3);
+            // Nível 2 aberto sem mexer nas classes, para o bloqueio ser o do nó.
+            QueenTreeTests.OpenTierTwo(colony);
             foreach (string id in new[] { "L+2", "F+1", "E+1", "O+3" })
                 Assert.AreEqual(BuyBlock.MissingRequirement, colony.TryBuyUpgrade(UpgradeCatalog.Get(id), 1, out _), id);
 
@@ -119,7 +124,7 @@ namespace Fabula.Incrementant.Tests
             Assert.AreEqual(1f / 1.3f, colony.Effects.BedTime, 1e-4f); // canteiros 30% mais rápidos
             Assert.AreEqual(BuyBlock.Owned, colony.TryBuyUpgrade(c1, 1, out _));
             Assert.AreEqual(BuyBlock.NeedsDepth, colony.TryBuyUpgrade(UpgradeCatalog.Get("B3"), 1, out _)); // nível 3 fechado
-            colony.Galleries.Set("T+3", 3); // abre o nível 2 (profundidade 6) sem mexer nos efeitos
+            QueenTreeTests.OpenTierTwo(colony); // abre o nível 2 sem mexer nestes efeitos
             Assert.AreEqual(BuyBlock.MissingRequirement, colony.TryBuyUpgrade(UpgradeCatalog.Get("B1"), 1, out _)); // exige B0
         }
 
@@ -140,6 +145,8 @@ namespace Fabula.Incrementant.Tests
                 {
                     if (def.QueenNode.HasValue || !UpgradeBoard.HasSystem(def))
                         continue;
+                    // Saldo cheio a cada compra: com custos baixos (REQ-077), o MÁX de uma galeria sem teto gastava tudo.
+                    colony.RestoreNutrients(int.MaxValue / 2, int.MaxValue / 2, 0);
                     if (colony.TryBuyUpgrade(def, def.Kind == UpgradeKind.Gallery ? 0 : 1, out int n) == BuyBlock.None && n > 0)
                         changed = true;
                 }
